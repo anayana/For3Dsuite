@@ -45,19 +45,19 @@ export class CloudViewer {
   }
 
   async loadBin(url, meta) {
-    const buf = new Uint8Array(await (await fetch(url)).arrayBuffer());
+    // Blockformat aus pointcloud_web.py: float32-xyz-Block, dann uint8-rgb-Block
+    const ab = await (await fetch(url)).arrayBuffer();
     const n = meta.count;
-    const dv = new DataView(buf.buffer);
-    const positions = new Float32Array(n * 3);
+    const positions = new Float32Array(ab, 0, n * 3);   // zero-copy
+    const rgb = new Uint8Array(ab, n * 12, n * 3);
     const colors = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) {
-      const o = i * 15;
-      positions[i * 3]     = dv.getFloat32(o, true);
-      positions[i * 3 + 1] = dv.getFloat32(o + 4, true);
-      positions[i * 3 + 2] = dv.getFloat32(o + 8, true);
-      colors[i * 3]     = buf[o + 12] / 255;
-      colors[i * 3 + 1] = buf[o + 13] / 255;
-      colors[i * 3 + 2] = buf[o + 14] / 255;
+    for (let i = 0; i < n * 3; i++) colors[i] = rgb[i] / 255;
+
+    if (this.points) {                                   // Stufen-Wechsel
+      this.scene.remove(this.points);
+      this.points.geometry.dispose();
+      this.points.material.dispose();
+      this.points = null;
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));

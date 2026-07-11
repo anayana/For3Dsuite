@@ -7,8 +7,9 @@ Scan-Ursprung zentriert, damit sie mit den Panorama-Markern im selben Bezug
 liegen. Fuer sehr grosse Wolken per Voxel-Gitter ausgeduennt (LOD-frei; fuer
 echtes LOD PotreeConverter im Worker nutzen, siehe platform/README.md).
 
-Format der .bin (little-endian, pro Punkt 15 Byte):
-  float32 x, float32 y, float32 z, uint8 r, uint8 g, uint8 b
+Format der .bin (little-endian, blockweise -- erlaubt zero-copy Float32Array
+im Browser): erst alle Positionen (float32 x,y,z je Punkt), dann alle Farben
+(uint8 r,g,b je Punkt). Punktzahl steht im Meta-JSON.
 
 Nutzung:
   python pointcloud_web.py <datei.e57|.las> <out.bin> [--origin X Y Z]
@@ -81,15 +82,12 @@ def main():
         rgb = np.full((len(xyz), 3), 180, np.uint8)
     rgb = np.clip(rgb, 0, 255).astype(np.uint8)
 
-    buf = bytearray()
-    packed = np.empty((len(xyz), 15), np.uint8)
-    packed[:, 0:12] = xyz.astype("<f4").view(np.uint8).reshape(len(xyz), 12)
-    packed[:, 12:15] = rgb
-    Path(args.out).write_bytes(packed.tobytes())
+    # Blockweise: erst float32-Positionen, dann uint8-Farben (zero-copy im Browser)
+    Path(args.out).write_bytes(xyz.astype("<f4").tobytes() + rgb.tobytes())
 
     meta = {
+        "format": "xyz_f32_rgb_u8_blocks",
         "count": int(len(xyz)),
-        "stride": 15,
         "origin_xyz": [float(c) for c in o],
         "bbox_min": [float(c) for c in xyz.min(0)],
         "bbox_max": [float(c) for c in xyz.max(0)],

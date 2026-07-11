@@ -58,16 +58,21 @@ def main():
         src = sj.parent
         dst = OUT / "media" / "scenes" / sid
         dst.mkdir(parents=True)
-        for f in ("pano.jpg", "thumb.jpg", "cloud.bin"):
-            if (src / f).is_file():
-                shutil.copyfile(src / f, dst / f)
+        for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken-Stufen)
+            if f.is_file() and f.suffix in (".jpg", ".bin"):
+                shutil.copyfile(f, dst / f.name)
 
         rel = f"media/scenes/{sid}"
         s["pano_url"] = f"{rel}/pano.jpg"
         s["thumb_url"] = f"{rel}/thumb.jpg"
-        if s.get("pointcloud") and (src / "cloud.bin").is_file():
-            s["pointcloud"]["bin_url"] = f"{rel}/cloud.bin"
-        elif s.get("pointcloud"):
+        for v in s.get("variants") or []:
+            v["pano_url"] = rel + "/" + v["pano"].rsplit("/", 1)[-1]
+        pc = s.get("pointcloud")
+        if pc and (src / pc["bin"].rsplit("/", 1)[-1]).is_file():
+            pc["bin_url"] = rel + "/" + pc["bin"].rsplit("/", 1)[-1]
+            for lv in pc.get("levels") or []:
+                lv["bin_url"] = rel + "/" + lv["bin"].rsplit("/", 1)[-1]
+        elif pc:
             s["pointcloud"] = None
         (OUT / "data" / f"scene-{sid}.json").write_text(
             json.dumps(s, ensure_ascii=False), encoding="utf-8")

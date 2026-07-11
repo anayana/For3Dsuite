@@ -131,29 +131,40 @@ class Pipeline:
                 return t
         return None
 
+    # Punktdichte-Stufen: (id, label, dateiname, voxel [m], max. Punkte)
+    CLOUD_LEVELS = [
+        ("lite", "Ausgedünnt", "cloud_lite.bin", "0.10", "160000"),
+        ("full", "Voll", "cloud.bin", "0.04", "700000"),
+    ]
+
     def _pointcloud(self, indir, work, sid, origin, log):
-        """Kompakte Web-Punktwolke erzeugen (best effort; ohne pye57 uebersprungen)."""
+        """Web-Punktwolke in zwei Dichte-Stufen (best effort; ohne pye57 uebersprungen)."""
         e57s = sorted(indir.glob("*.e57"))
-        if not e57s:
-            return None
         script = self.scripts / "pointcloud_web.py"
-        if not script.exists():
+        if not e57s or not script.exists():
             return None
-        out = work / "cloud.bin"
-        cmd = [sys.executable, str(script), str(e57s[0]), str(out),
-               "--radius", "25", "--max-points", "700000", "--voxel", "0.04"]
-        if origin:
-            cmd += ["--origin", *[str(c) for c in origin]]
-        try:
-            self._run(cmd, work, log)
-        except RuntimeError as e:
-            log(f"Punktwolke uebersprungen ({e})")
+        levels = []
+        for lid, label, fname, voxel, maxpts in self.CLOUD_LEVELS:
+            out = work / fname
+            cmd = [sys.executable, str(script), str(e57s[0]), str(out),
+                   "--radius", "25", "--max-points", maxpts, "--voxel", voxel]
+            if origin:
+                cmd += ["--origin", *[str(c) for c in origin]]
+            try:
+                self._run(cmd, work, log)
+            except RuntimeError as e:
+                log(f"Punktwolke ({lid}) uebersprungen ({e})")
+                continue
+            meta = json.loads(out.with_suffix(".json").read_text())
+            self.media.put_file(out, f"scenes/{sid}/{fname}")
+            levels.append({"id": lid, "label": label,
+                           "bin": f"scenes/{sid}/{fname}", "count": meta["count"],
+                           "bbox_min": meta["bbox_min"], "bbox_max": meta["bbox_max"]})
+        if not levels:
             return None
-        meta = json.loads(out.with_suffix(".json").read_text())
-        self.media.put_file(out, f"scenes/{sid}/cloud.bin")
-        return {"bin": f"scenes/{sid}/cloud.bin", "count": meta["count"],
-                "stride": meta["stride"], "bbox_min": meta["bbox_min"],
-                "bbox_max": meta["bbox_max"]}
+        # Default (bin/count) = erste Stufe -> schneller Erstaufruf
+        return {**{k: levels[0][k] for k in ("bin", "count", "bbox_min", "bbox_max")},
+                "levels": levels}
 
     # ---------- Veroeffentlichen ----------
 
@@ -165,9 +176,17 @@ class Pipeline:
         with Image.open(pano) as im:
             width, height = im.size
             im.convert("RGB").resize((640, 320), Image.LANCZOS).save(thumb, quality=85)
-
-        self.media.put_file(pano, f"scenes/{sid}/pano.jpg")
         self.media.put_file(thumb, f"scenes/{sid}/thumb.jpg")
+
+        # Drei Farbstufen (Natur/Kraeftig/Hell); "natur" ersetzt pano.jpg
+        sys.path.insert(0, str(self.scripts))
+        from pano_variants import make_variants
+        variants = []
+        vdir = pano.parent / "variants"
+        for vid, label, name in make_variants(pano, vdir):
+            self.media.put_file(vdir / name, f"scenes/{sid}/{name}")
+            variants.append({"id": vid, "label": label, "pano": f"scenes/{sid}/{name}"})
+        log(f"{len(variants)} Farbvarianten erzeugt")
 
         scene = {
             "id": sid,
@@ -178,6 +197,7 @@ class Pipeline:
             "thumb": f"scenes/{sid}/thumb.jpg",
             "width": width,
             "height": height,
+            "variants": variants,
             "source": {"type": jtype, "origin_xyz": origin},
             "pointcloud": pointcloud,
             "markers": markers,

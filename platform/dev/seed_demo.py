@@ -5,6 +5,7 @@ aus den vorhandenen Pipeline-Ausgaben in output/.
   python platform/dev/seed_demo.py
 """
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -13,6 +14,8 @@ from PIL import Image
 Image.MAX_IMAGE_PIXELS = None
 REPO = Path(__file__).resolve().parents[2]
 MEDIA = REPO / "platform" / "dev-data" / "media"
+sys.path.insert(0, str(REPO / "scripts"))
+from pano_variants import make_variants  # noqa: E402
 
 
 def publish(sid, pano_src, title, description, source, markers, max_w=8192,
@@ -26,17 +29,28 @@ def publish(sid, pano_src, title, description, source, markers, max_w=8192,
         w, h = im.size
         im.save(dest / "pano.jpg", quality=90)
         im.resize((640, 320), Image.LANCZOS).save(dest / "thumb.jpg", quality=85)
-    # Bestehendes Punktwolken-Manifest (aus pointcloud_web.py) uebernehmen
-    if pointcloud is None and (dest / "cloud.json").is_file():
-        meta = json.loads((dest / "cloud.json").read_text())
-        pointcloud = {"bin": f"scenes/{sid}/cloud.bin",
-                      "count": meta["count"], "stride": meta["stride"],
-                      "bbox_min": meta["bbox_min"], "bbox_max": meta["bbox_max"]}
+    # Drei Farbstufen (natur ersetzt pano.jpg)
+    variants = [{"id": vid, "label": label, "pano": f"scenes/{sid}/{name}"}
+                for vid, label, name in make_variants(dest / "pano.jpg", dest)]
+    # Punktwolken-Stufen (aus pointcloud_web.py) uebernehmen: lite = Default
+    if pointcloud is None:
+        levels = []
+        for lid, label, fname in (("lite", "Ausgedünnt", "cloud_lite.bin"),
+                                  ("full", "Voll", "cloud.bin")):
+            mj = dest / Path(fname).with_suffix(".json").name
+            if mj.is_file():
+                meta = json.loads(mj.read_text())
+                levels.append({"id": lid, "label": label,
+                               "bin": f"scenes/{sid}/{fname}", "count": meta["count"],
+                               "bbox_min": meta["bbox_min"], "bbox_max": meta["bbox_max"]})
+        if levels:
+            pointcloud = {**{k: levels[0][k] for k in ("bin", "count", "bbox_min", "bbox_max")},
+                          "levels": levels}
     scene = {
         "id": sid, "title": title, "description": description,
         "created": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "pano": f"scenes/{sid}/pano.jpg", "thumb": f"scenes/{sid}/thumb.jpg",
-        "width": w, "height": h,
+        "width": w, "height": h, "variants": variants,
         "source": source, "pointcloud": pointcloud, "markers": markers,
     }
     (dest / "scene.json").write_text(json.dumps(scene, ensure_ascii=False, indent=2),

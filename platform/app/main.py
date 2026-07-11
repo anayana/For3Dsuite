@@ -115,9 +115,15 @@ def get_scene(sid: str):
     scene = load_scene(sid)
     scene["pano_url"] = media.url(scene["pano"])
     scene["thumb_url"] = media.url(scene["thumb"]) if scene.get("thumb") else None
+    for v in scene.get("variants") or []:
+        if v.get("pano"):
+            v["pano_url"] = media.url(v["pano"])
     pc = scene.get("pointcloud")
     if pc and pc.get("bin"):
         pc["bin_url"] = media.url(pc["bin"])
+        for lv in pc.get("levels") or []:
+            if lv.get("bin"):
+                lv["bin_url"] = media.url(lv["bin"])
     return scene
 
 

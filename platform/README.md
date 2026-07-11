@@ -88,9 +88,15 @@ vorhandene Marker erhalten.
 
 Der Szenen-Viewer bietet oben einen Umschalter **Panorama | 3D-Punktwolke**. Die
 3D-Ansicht (Three.js, [cloudviewer.js](web/gallery/cloudviewer.js)) lädt eine
-kompakte Binärdatei (float32 XYZ + uint8 RGB, 15 Byte/Punkt) aus
-[pointcloud_web.py](../scripts/pointcloud_web.py) — auf den Scan-Ursprung zentriert,
-voxel-ausgedünnt auf ~700 k Punkte. **Dieselben Marker** erscheinen in beiden
+kompakte Binärdatei (Blockformat: float32-XYZ-Block + uint8-RGB-Block, zero-copy
+im Browser) aus [pointcloud_web.py](../scripts/pointcloud_web.py) — auf den
+Scan-Ursprung zentriert, in **zwei Dichte-Stufen** (`pointcloud.levels`):
+„Ausgedünnt" (~160 k Punkte / 2 MB, Default für schnellen Erstaufruf) und „Voll"
+(~700 k / 10 MB), im Viewer unten umschaltbar. Zusätzlich erzeugt jeder Job
+**drei Farbstufen** des Panoramas (`variants`: Natur/Kräftig/Hell, via
+[pano_variants.py](../scripts/pano_variants.py), Pillow statt GIMP) mit
+Umschaltleiste im Panorama-Modus; die Blickrichtung bleibt beim Wechsel erhalten.
+**Dieselben Marker** erscheinen in beiden
 Ansichten (im Panorama als Yaw/Pitch-Hotspot, in 3D als Billboard an der
 XYZ-Position) und öffnen dieselbe Infobox. Für den E57-Job erzeugt der Worker die
 Web-Punktwolke automatisch mit.
