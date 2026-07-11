@@ -39,6 +39,24 @@
     #modes button.active { background: rgba(126,231,135,.22); color: #d8ffdb; }
     #modes button:disabled { color: #555; cursor: default; }
 
+    /* Farbvarianten (unten Mitte, nur Panorama-Modus) */
+    #variants { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+      z-index: 15; display: flex; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px; overflow: hidden; }
+    #variants button { background: none; border: none; color: #cfcfcf; cursor: pointer;
+      padding: 7px 16px; font-size: 12.5px; }
+    #variants button.active { background: rgba(255,255,255,.16); color: #fff; }
+    body.mode-3d #variants { display: none; }
+
+    /* Punktdichte (unten Mitte, nur 3D-Modus) */
+    #lod { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+      z-index: 15; display: none; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px; overflow: hidden; }
+    #lod button { background: none; border: none; color: #cfcfcf; cursor: pointer;
+      padding: 7px 16px; font-size: 12.5px; }
+    #lod button.active { background: rgba(121,192,255,.22); color: #d3e8ff; }
+    body.mode-3d #lod { display: flex; }
+
     /* Baum-Marker */
     .tree-marker { width: 18px; height: 18px; border-radius: 50%;
       background: rgba(126, 231, 135, .25); border: 2px solid #7ee787;
@@ -79,6 +97,8 @@
     <button id="mode-pano" class="active">Panorama</button>
     <button id="mode-3d" disabled>3D-Punktwolke</button>
   </div>
+  <div id="variants"></div>
+  <div id="lod"></div>
   <div id="infobox">
     <h2 id="ib-label"></h2>
     <span class="demo" id="ib-demo" hidden>Demo-Werte</span>
@@ -116,6 +136,83 @@
     }
 
     let cloud = null;   // lazy initialisiert beim ersten Wechsel in die 3D-Ansicht
+    let viewer = null;
+
+    function makeViewer(scene, panoUrl, view) {
+      const v = pannellum.viewer('panorama', {
+        type: 'equirectangular',
+        panorama: panoUrl,
+        autoLoad: true,
+        compass: true,
+        showZoomCtrl: true,
+        showFullscreenCtrl: true,
+        yaw: view ? view.yaw : 0,
+        pitch: view ? view.pitch : 0,
+        hfov: view ? view.hfov : 100,
+        friction: 0.15,
+        hotSpots: [],   // Array anlegen, sonst crasht addHotSpot nach Re-Init
+      });
+      // Marker nach dem Laden dynamisch setzen — die Init-Config verliert die
+      // Hotspots beim destroy()/Neuaufbau (Variantenwechsel), addHotSpot nicht.
+      let added = false;
+      v.on('load', () => {
+        if (added) return;
+        added = true;
+        for (const m of scene.markers || []) {
+          v.addHotSpot({
+            id: m.id, yaw: m.yaw, pitch: m.pitch,
+            cssClass: 'ignored',            // eigenes Styling via createTooltipFunc
+            createTooltipFunc: markerDiv, createTooltipArgs: m,
+            clickHandlerFunc: showInfo, clickHandlerArgs: m,
+          });
+        }
+      });
+      return window._viewer = v;
+    }
+
+    // Farbvarianten-Leiste (Natur | Kräftig | Hell); Blickrichtung bleibt erhalten
+    function buildVariants(scene) {
+      const bar = document.getElementById('variants');
+      const variants = scene.variants || [];
+      if (variants.length < 2) { bar.style.display = 'none'; return; }
+      variants.forEach((v, i) => {
+        const b = document.createElement('button');
+        b.textContent = v.label || v.id;
+        if (i === 0) b.classList.add('active');
+        b.onclick = () => {
+          if (b.classList.contains('active')) return;
+          bar.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          const view = { yaw: viewer.getYaw(), pitch: viewer.getPitch(), hfov: viewer.getHfov() };
+          viewer.destroy();
+          viewer = makeViewer(scene, v.pano_url, view);
+        };
+        bar.appendChild(b);
+      });
+    }
+
+    // Dichte-Stufen der Punktwolke (Ausgedünnt | Voll), nur in der 3D-Ansicht
+    function buildLod(scene) {
+      const bar = document.getElementById('lod');
+      const levels = (scene.pointcloud && scene.pointcloud.levels) || [];
+      if (levels.length < 2) return;
+      levels.forEach((lv, i) => {
+        const b = document.createElement('button');
+        const mb = (lv.count * 15 / 1e6).toFixed(0);
+        b.textContent = `${lv.label || lv.id} (${mb} MB)`;
+        if (i === 0) b.classList.add('active');
+        b.onclick = async () => {
+          if (b.classList.contains('active') || !cloud) return;
+          bar.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          const t = b.textContent;
+          b.textContent = 'lädt …';
+          await cloud.loadBin(lv.bin_url, lv);
+          b.textContent = t;
+        };
+        bar.appendChild(b);
+      });
+    }
 
     async function init() {
       if (!sid) { location.href = 'index.html'; return; }
@@ -125,22 +222,9 @@
       document.title = (scene.title || sid) + ' — 360Pano3D';
       document.getElementById('title').textContent = scene.title || sid;
 
-      pannellum.viewer('panorama', {
-        type: 'equirectangular',
-        panorama: scene.pano_url,
-        autoLoad: true,
-        compass: true,
-        showZoomCtrl: true,
-        showFullscreenCtrl: true,
-        hfov: 100,
-        friction: 0.15,
-        hotSpots: (scene.markers || []).map(m => ({
-          id: m.id, yaw: m.yaw, pitch: m.pitch,
-          cssClass: 'ignored',              // eigenes Styling via createTooltipFunc
-          createTooltipFunc: markerDiv, createTooltipArgs: m,
-          clickHandlerFunc: showInfo, clickHandlerArgs: m,
-        })),
-      });
+      viewer = makeViewer(scene, scene.pano_url, null);
+      buildVariants(scene);
+      buildLod(scene);
 
       // 3D-Umschalter nur aktivieren, wenn eine Punktwolke vorliegt
       const btnPano = document.getElementById('mode-pano');
