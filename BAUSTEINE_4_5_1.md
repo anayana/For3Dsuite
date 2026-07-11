@@ -126,10 +126,38 @@ wird ein Vorhersagewerkzeug. Starkes Exposé-Argument Richtung Wachstumskunde.
 
 ---
 
-## Offene nächste Schritte
+## Umgesetzt in der Suite (For3Dsuite)
 
-- [ ] TreeGrOSS-Input-Spezifikation aus Doku/Quellcode ziehen (Pflichtfelder klären)
-- [ ] Stufe-1-CV-Prototyp: Farbindex + GLCM pro Kronen-Crop in R
-- [ ] Kreuzvalidierungs-Logik RGB ↔ QSM/LiDAR als eigenes Arbeitspaket definieren
-- [ ] Java-Service-Skizze (JSON-Baumliste rein, Zukunftsbestand raus)
-- [ ] Bonität/Standort/Alter für Renon-Plot dokumentieren
+- [x] **Stufe-1-CV-Prototyp** — [scripts/qualitative_rgb.py](scripts/qualitative_rgb.py):
+  gnomonischer Kronen-Crop je Marker aus dem Equirectangular-Pano, Farbindizes
+  (ExG/GLI), GLCM-Textur (numpy), Vitalitätsproxy, Multi-View-Aggregation je
+  Marker-ID, Zustandsattribut zurück in `scene.json`. In R geplant, aber in
+  Python umgesetzt — konsistent mit der numpy/Pillow-Pipeline und dem Windows-
+  R-Segfault. Am Renon-Pano getestet (87 Bäume; 6 bestandesrelativ auffällig).
+  Absolute Schadstufen werden bewusst **nicht** behauptet (Domänenlücke): die
+  Einstufung ist eine robuste, bestandesrelative Ausreißer-Erkennung.
+- [x] **Kreuzvalidierungs-Logik RGB ↔ QSM/LiDAR** —
+  [scripts/crossvalidate_rgb_lidar.py](scripts/crossvalidate_rgb_lidar.py):
+  RGB-Vitalproxy vs. strukturelle Größe je Baum, robuste z-Scores, Konkordanz/
+  Widerspruch je Baum + Spearman-ρ. Idealeingang QSM-Astdichte/Kronendichte;
+  Platzhalter aus vorhandenen Attributen.
+- [x] **TreeGrOSS-Input-Spezifikation + Konverter** —
+  [scripts/treegross_export.py](scripts/treegross_export.py): `scene.json`/CSV →
+  Baumlisten-JSON (Artcode-Mapping, Bestandesmetadaten) und Simulationsergebnis →
+  `scene.json` (Prognosejahr in die Marker). Pflichtfelder als stabiler JSON-
+  Kontrakt festgeschrieben (siehe growth-service).
+- [x] **Java-Service-Skizze** — [growth-service/](growth-service/README.md):
+  Spring-Boot-Dienst, `POST /simulate` (Baumliste rein, Zukunftsbestand raus),
+  GPL-Isolation als eigener Prozess, austauschbare Engine (Stub ohne GPL-JAR /
+  echte TreeGrOSS). Kern-Logik + DTOs standalone kompiliert und getestet.
+- [x] **Bonität/Standort/Alter für Renon** —
+  [data/renon/STANDORT.md](data/renon/STANDORT.md) +
+  [data/renon/renon_stand.json](data/renon/renon_stand.json): Standort/Alter/Art
+  belegt, Bonität als kenntlich gemachter Platzhalter (noch zu belegen).
+
+### Verbleibend (inhaltlich, nicht Code)
+
+- [ ] Bonität (site index) für Renon belegen statt Platzhalter (Ertragstafel/Feld).
+- [ ] LiDAR-BHD gegen Feld-BHD validieren (Kalibrierungsbasis von TreeGrOSS).
+- [ ] Echte TreeGrOSS-JAR einbinden (GPL-JAR beziehen, Adapter-Mapping ausfüllen).
+- [ ] Stufe 2 (CNN/ViT) / Stufe 3 (VLM zero-shot) als optionale weitere Beine.

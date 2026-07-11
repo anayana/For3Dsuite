@@ -163,6 +163,30 @@ Punktwolken-Koordinaten (z. B. Einzelbaum-Inventuren) berechnen.
 Details, Schnellstart (lokal ohne Docker) und Server-Deployment:
 [platform/README.md](platform/README.md)
 
+## Qualitative Auswertung + Wachstumsprognose (Bausteine 4 & 5)
+
+Aus der reinen Visualisierung wird eine prognosefähige Bestandesbeschreibung.
+Konzept: [BAUSTEINE_4_5_1.md](BAUSTEINE_4_5_1.md).
+
+- **Qualität aus RGB** ([qualitative_rgb.py](scripts/qualitative_rgb.py)): je
+  Baum-Marker einen Kronen-Crop aus dem Panorama reprojizieren und klassisch
+  (ohne Training) auswerten — Farbindizes (ExG/GLI), GLCM-Textur, bestandes-
+  relativer Vitalitätsproxy — und das georeferenzierte Zustandsattribut in die
+  `scene.json` zurückschreiben. Über mehrere Setups aggregierbar (Multi-View).
+  ```powershell
+  python scripts\qualitative_rgb.py --scene scene.json --pano pano.jpg --write --csv vital.csv
+  ```
+- **Kreuzvalidierung RGB ↔ LiDAR/QSM**
+  ([crossvalidate_rgb_lidar.py](scripts/crossvalidate_rgb_lidar.py)): prüft, ob
+  RGB-Befund und Struktur am selben Baum übereinstimmen — Widerspruch = Hinweis
+  auf Fehldeutung. Spearman-ρ + Widerspruchsliste.
+- **Wachstumsprognose** ([growth-service/](growth-service/README.md) +
+  [treegross_export.py](scripts/treegross_export.py)): Inventur → TreeGrOSS-
+  Baumliste → Simulation (n Jahre) → Zukunftsbestand zurück in die `scene.json`.
+  Der Nutzer begeht dann den in *n* Jahren prognostizierten Wald. TreeGrOSS
+  (GPLv3) läuft als isolierter Java-Dienst; die Suite spricht ihn nur über
+  HTTP/JSON an.
+
 ## Nächste Schritte / Ausbaustufen
 
 - **Nachbearbeitung**: GIMP oder darktable für Farbkorrektur, Retusche des Stativ-Nadirs.

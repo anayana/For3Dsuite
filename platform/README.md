@@ -172,3 +172,19 @@ editierbar).
   `platform/web/gallery/*.html` anpassen.
 - **Publikation:** Zielformat Software-/Methoden-Paper mit Anwendungsfall
   ICOS-Renon (Validierung der abgeleiteten Inventurwerte gegen Referenzmessungen).
+
+## Qualität & Wachstum (Bausteine 4 & 5)
+
+Über die reine Inventur hinaus (Konzept: [BAUSTEINE_4_5_1.md](../BAUSTEINE_4_5_1.md)):
+
+- **Qualitative RGB-Attribute je Baum** ([qualitative_rgb.py](../scripts/qualitative_rgb.py)):
+  Farbindizes (ExG/GLI), GLCM-Textur und ein bestandesrelativer Vitalitätsproxy
+  aus einem reprojizierten Kronen-Crop — georeferenziert in die Marker-Attribute
+  der `scene.json`, im Viewer in derselben Infobox sichtbar. Gegenprobe gegen die
+  Struktur: [crossvalidate_rgb_lidar.py](../scripts/crossvalidate_rgb_lidar.py).
+- **Wachstumsprognose** ([growth-service/](../growth-service/README.md)):
+  TreeGrOSS/BWINPro als isolierter Java-Dienst (GPLv3), angebunden über
+  [treegross_export.py](../scripts/treegross_export.py). Zukunftsbestände fließen
+  als aktualisierte `scene.json` zurück — derselbe Viewer, prognostizierter Wald.
+  Baumart (Attribut `Art`, Default `Picea abies` am Renon-Reinbestand) steuert das
+  Artcode-Mapping; noch nicht automatisch bestimmt.

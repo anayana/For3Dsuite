@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  360Pano3D Growth Service (Baustein 5).
+
+  GPL-Isolation: TreeGrOSS (Kern von BWINPro/ForestSimulator, NW-FVA) steht unter
+  GPLv3. Dieser Dienst ist DAHER bewusst als eigenstaendiger Prozess ausgelegt und
+  ebenfalls unter GPLv3 gestellt. Die uebrige Suite (Python-Pipeline, JS-Viewer)
+  spricht ihn nur ueber HTTP/JSON an und bleibt so von der GPL entkoppelt.
+
+  Die TreeGrOSS-JAR ist NICHT mitgeliefert (nicht redistribuiert). Zum Aktivieren
+  der echten Engine die JAR unter lib/treegross.jar ablegen (siehe README) und das
+  auskommentierte <dependency> unten einschalten.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>de.for3dsuite</groupId>
+    <artifactId>growth-service</artifactId>
+    <version>0.1.0</version>
+    <packaging>jar</packaging>
+    <name>360Pano3D Growth Service</name>
+    <description>TreeGrOSS/BWINPro als JSON-Webdienst fuer die 360Pano3D-Suite</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.4</version>
+        <relativePath/>
+    </parent>
+
+    <properties>
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!--
+          Echte TreeGrOSS-Engine aktivieren: JAR unter lib/treegross.jar ablegen
+          und dieses Dependency einschalten (system-scope, nicht redistribuiert).
+        <dependency>
+            <groupId>de.nwfva</groupId>
+            <artifactId>treegross</artifactId>
+            <version>local</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/treegross.jar</systemPath>
+        </dependency>
+        -->
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

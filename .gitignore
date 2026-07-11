@@ -5,6 +5,8 @@ data/*
 data/renon/*
 !data/renon/BEFUND.md
 !data/renon/trees_setup001.csv
+!data/renon/STANDORT.md
+!data/renon/renon_stand.json
 input/
 output/
 platform/dev-data/
