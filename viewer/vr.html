@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>360° Stereo VR Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://unpkg.com/aframe-stereo-component@0.6.0/dist/aframe-stereo-component.min.js"></script>
+</head>
+<body>
+  <!--
+    Stereoskopisches 360°-Panorama (Top-Bottom: linkes Auge oben, rechtes unten).
+    Am Desktop sieht man nur das linke Auge; mit VR-Brille (WebXR) bekommt
+    jedes Auge seine Haelfte -> echter Tiefeneindruck.
+  -->
+  <a-scene>
+    <a-assets>
+      <img id="stereo-pano" src="../output/scene01/pano_stereo_tb.jpg" crossorigin="anonymous" />
+    </a-assets>
+
+    <a-entity geometry="primitive: sphere; radius: 100; segmentsWidth: 64; segmentsHeight: 64"
+              material="shader: flat; src: #stereo-pano; side: back"
+              scale="-1 1 1"
+              stereo="eye: left; mode: half; split: horizontal"></a-entity>
+
+    <a-entity geometry="primitive: sphere; radius: 100; segmentsWidth: 64; segmentsHeight: 64"
+              material="shader: flat; src: #stereo-pano; side: back"
+              scale="-1 1 1"
+              stereo="eye: right; mode: half; split: horizontal"></a-entity>
+
+    <a-entity camera look-controls wasd-controls-enabled="false" position="0 1.6 0">
+      <a-entity stereocam="eye:left;"></a-entity>
+    </a-entity>
+  </a-scene>
+</body>
+</html>

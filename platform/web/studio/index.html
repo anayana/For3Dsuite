@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Studio — 360Pano3D</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
+  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #0d1117; color: #e6edf3;
+           font-family: system-ui, -apple-system, sans-serif; font-size: 14px; }
+    header { display: flex; align-items: center; gap: 18px; padding: 18px 28px;
+             border-bottom: 1px solid #21262d; }
+    header h1 { margin: 0; font-size: 17px; }
+    header a { color: #58a6ff; text-decoration: none; font-size: 13px; }
+    nav { display: flex; gap: 4px; margin-left: auto; }
+    nav button { background: none; border: none; color: #8b949e; padding: 8px 14px;
+                 border-radius: 8px; cursor: pointer; font-size: 13.5px; }
+    nav button.active { background: #21262d; color: #e6edf3; }
+    main { padding: 24px 28px; max-width: 980px; }
+
+    .panel { display: none; } .panel.active { display: block; }
+    label { display: block; margin: 14px 0 4px; color: #8b949e; font-size: 12.5px; }
+    input, select, textarea { width: 100%; max-width: 460px; background: #161b22;
+      color: #e6edf3; border: 1px solid #30363d; border-radius: 8px;
+      padding: 8px 10px; font-size: 13.5px; font-family: inherit; }
+    textarea { font-family: ui-monospace, monospace; }
+    button.primary { margin-top: 18px; background: #238636; color: #fff; border: none;
+      border-radius: 8px; padding: 9px 18px; font-size: 13.5px; cursor: pointer; }
+    button.primary:disabled { opacity: .5; cursor: default; }
+    button.ghost { background: none; color: #58a6ff; border: 1px solid #30363d;
+      border-radius: 8px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; }
+    button.danger { color: #f85149; border-color: #f8514966; }
+    .hint { color: #6e7681; font-size: 12px; margin-top: 4px; max-width: 460px; }
+    #upload-result { margin-top: 14px; color: #7ee787; font-size: 13px; }
+
+    table.list { width: 100%; border-collapse: collapse; font-size: 13px; }
+    table.list th { text-align: left; color: #8b949e; font-weight: 500;
+      padding: 8px 10px; border-bottom: 1px solid #30363d; }
+    table.list td { padding: 8px 10px; border-bottom: 1px solid #21262d;
+      vertical-align: top; }
+    .status { border-radius: 12px; padding: 2px 10px; font-size: 11.5px; }
+    .status.queued  { background: #30363d; }
+    .status.running { background: #1f3d63; color: #79c0ff; }
+    .status.done    { background: #1c3527; color: #7ee787; }
+    .status.error   { background: #4b1113; color: #ffa198; }
+    pre.log { background: #161b22; border: 1px solid #21262d; border-radius: 8px;
+      padding: 10px; font-size: 11.5px; white-space: pre-wrap; max-height: 260px;
+      overflow-y: auto; }
+
+    /* Marker-Editor */
+    #editor { position: fixed; inset: 0; z-index: 50; display: none;
+      background: #0d1117; }
+    #editor.open { display: flex; }
+    #edit-pano { flex: 1; height: 100%; }
+    #edit-side { width: 380px; border-left: 1px solid #21262d; padding: 16px;
+      overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    #edit-side h2 { margin: 0; font-size: 15px; }
+    .mk { background: #161b22; border: 1px solid #30363d; border-radius: 10px;
+      padding: 10px 12px; }
+    .mk input, .mk textarea { max-width: 100%; margin-top: 4px; }
+    .mk .pos { color: #6e7681; font-size: 11.5px; margin-top: 6px; }
+    .mk textarea { min-height: 64px; font-size: 12px; }
+    #edit-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto;
+      padding-top: 12px; }
+    #addmode-hint { color: #f0b429; font-size: 12.5px; display: none; }
+    .tree-marker { width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(126,231,135,.25); border: 2px solid #7ee787; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>360Pano3D · Studio</h1>
+    <a href="/" target="_blank">Gallery öffnen ↗</a>
+    <nav>
+      <button data-tab="upload" class="active">Upload</button>
+      <button data-tab="jobs">Jobs</button>
+      <button data-tab="scenes">Szenen</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ---------- Upload ---------- -->
+    <section id="tab-upload" class="panel active">
+      <label>Szenen-ID (a-z, 0-9, -, _)</label>
+      <input id="u-id" placeholder="z. B. renon-setup02" />
+      <label>Titel</label>
+      <input id="u-title" placeholder="Anzeigename der Szene" />
+      <label>Beschreibung</label>
+      <input id="u-desc" placeholder="optional" />
+      <label>Verarbeitung</label>
+      <select id="u-type">
+        <option value="fisheye">Fisheye-/Weitwinkel-Satz → Hugin-Stitching</option>
+        <option value="e57">E57-Laserscan → Pinhole-Reprojektion</option>
+        <option value="equirect">Fertiges Equirectangular-Panorama</option>
+      </select>
+      <div id="u-fisheye-opts">
+        <label>Objektiv-Projektion</label>
+        <select id="u-lens">
+          <option value="3">Full-frame Fisheye</option>
+          <option value="2">Circular Fisheye</option>
+          <option value="0">Rectilinear / normal</option>
+        </select>
+        <label>Horizontales Sichtfeld eines Einzelbilds (Grad)</label>
+        <input id="u-fov" type="number" value="180" min="30" max="360" />
+      </div>
+      <label>Dateien</label>
+      <input id="u-files" type="file" multiple />
+      <p class="hint">Fisheye: alle Einzelbilder einer Szene (JPG/TIFF/PNG).
+        E57: eine .e57-Datei mit eingebetteten Pinhole-Bildern (z. B. Leica BLK360).</p>
+      <button class="primary" id="u-go">Hochladen &amp; verarbeiten</button>
+      <div id="upload-result"></div>
+    </section>
+
+    <!-- ---------- Jobs ---------- -->
+    <section id="tab-jobs" class="panel">
+      <table class="list">
+        <thead><tr><th>Job</th><th>Szene</th><th>Typ</th><th>Status</th><th>Aktualisiert</th><th></th></tr></thead>
+        <tbody id="jobs-body"></tbody>
+      </table>
+      <pre class="log" id="job-log" hidden></pre>
+    </section>
+
+    <!-- ---------- Szenen ---------- -->
+    <section id="tab-scenes" class="panel">
+      <table class="list">
+        <thead><tr><th>Szene</th><th>Quelle</th><th>Marker</th><th>Erstellt</th><th></th></tr></thead>
+        <tbody id="scenes-body"></tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- ---------- Marker-Editor ---------- -->
+  <div id="editor">
+    <div id="edit-pano"></div>
+    <div id="edit-side">
+      <h2 id="edit-title"></h2>
+      <span id="addmode-hint">Klickmodus aktiv — ins Panorama klicken, um den Marker zu setzen.</span>
+      <div id="mk-list"></div>
+      <div id="edit-actions">
+        <button class="ghost" id="mk-add">+ Marker per Klick</button>
+        <button class="primary" id="mk-save">Speichern</button>
+        <button class="ghost" id="mk-close">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    // ----- Tabs -----
+    document.querySelectorAll('nav button').forEach(b => b.onclick = () => {
+      document.querySelectorAll('nav button').forEach(x => x.classList.toggle('active', x === b));
+      document.querySelectorAll('.panel').forEach(p =>
+        p.classList.toggle('active', p.id === 'tab-' + b.dataset.tab));
+      if (b.dataset.tab === 'jobs') refreshJobs();
+      if (b.dataset.tab === 'scenes') refreshScenes();
+    });
+
+    // ----- Upload -----
+    $('u-type').onchange = () =>
+      $('u-fisheye-opts').style.display = $('u-type').value === 'fisheye' ? '' : 'none';
+
+    $('u-go').onclick = async () => {
+      const fd = new FormData();
+      fd.append('scene_id', $('u-id').value.trim());
+      fd.append('title', $('u-title').value.trim());
+      fd.append('description', $('u-desc').value.trim());
+      fd.append('type', $('u-type').value);
+      fd.append('lens', $('u-lens').value);
+      fd.append('fov', $('u-fov').value);
+      for (const f of $('u-files').files) fd.append('files', f);
+      if (!$('u-files').files.length) { alert('Keine Dateien gewählt.'); return; }
+      $('u-go').disabled = true;
+      $('upload-result').textContent = 'Lade hoch …';
+      try {
+        const r = await fetch('/api/studio/upload', { method: 'POST', body: fd });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.detail || r.statusText);
+        $('upload-result').textContent =
+          `Job ${j.job.id} angelegt — Verarbeitung läuft (siehe Tab „Jobs“).`;
+      } catch (e) {
+        $('upload-result').textContent = 'Fehler: ' + e.message;
+      } finally {
+        $('u-go').disabled = false;
+      }
+    };
+
+    // ----- Jobs -----
+    let jobTimer = null;
+    async function refreshJobs() {
+      const jobs = await (await fetch('/api/studio/jobs')).json();
+      const tb = $('jobs-body');
+      tb.innerHTML = '';
+      for (const j of jobs) {
+        const tr = tb.insertRow();
+        tr.innerHTML = `
+          <td><code>${j.id}</code></td><td>${j.scene_id}</td><td>${j.type}</td>
+          <td><span class="status ${j.status}">${j.status}</span></td>
+          <td>${(j.updated || '').replace('T', ' ').slice(0, 19)}</td>
+          <td><button class="ghost">Log</button></td>`;
+        tr.querySelector('button').onclick = () => {
+          $('job-log').hidden = false;
+          $('job-log').textContent = j.log || '(leer)';
+        };
+      }
+      clearTimeout(jobTimer);
+      if (document.getElementById('tab-jobs').classList.contains('active') &&
+          jobs.some(j => j.status === 'queued' || j.status === 'running'))
+        jobTimer = setTimeout(refreshJobs, 2500);
+    }
+
+    // ----- Szenen -----
+    async function refreshScenes() {
+      const scenes = await (await fetch('/api/scenes')).json();
+      const tb = $('scenes-body');
+      tb.innerHTML = '';
+      for (const s of scenes) {
+        const tr = tb.insertRow();
+        tr.innerHTML = `
+          <td><b></b><br><span style="color:#8b949e;font-size:12px"></span></td>
+          <td>${s.source_type || ''}</td><td>${s.markers}</td>
+          <td>${(s.created || '').slice(0, 10)}</td>
+          <td style="white-space:nowrap">
+            <button class="ghost mk-edit">Marker bearbeiten</button>
+            <button class="ghost danger mk-del">Löschen</button>
+          </td>`;
+        tr.querySelector('b').textContent = s.title || s.id;
+        tr.querySelector('span').textContent = s.id;
+        tr.querySelector('.mk-edit').onclick = () => openEditor(s.id);
+        tr.querySelector('.mk-del').onclick = async () => {
+          if (!confirm(`Szene "${s.id}" wirklich löschen?`)) return;
+          await fetch('/api/studio/scenes/' + encodeURIComponent(s.id), { method: 'DELETE' });
+          refreshScenes();
+        };
+      }
+    }
+
+    // ----- Marker-Editor -----
+    let viewer = null, editScene = null, addMode = false;
+
+    async function openEditor(sid) {
+      editScene = await (await fetch('/api/scenes/' + encodeURIComponent(sid))).json();
+      $('edit-title').textContent = editScene.title || sid;
+      $('editor').classList.add('open');
+      $('edit-pano').innerHTML = '';
+      viewer = pannellum.viewer('edit-pano', {
+        type: 'equirectangular', panorama: editScene.pano_url,
+        autoLoad: true, hfov: 100, friction: 0.15, compass: true,
+      });
+      viewer.on('mousedown', (ev) => {
+        if (!addMode) return;
+        const c = viewer.mouseEventToCoords(ev);  // [pitch, yaw]
+        editScene.markers.push({
+          id: 'm' + Date.now(), label: 'Neuer Marker',
+          pitch: +c[0].toFixed(2), yaw: +c[1].toFixed(2), attributes: {},
+        });
+        setAddMode(false);
+        renderMarkers(); refreshHotspots();
+      });
+      renderMarkers();
+      viewer.on('load', refreshHotspots);
+    }
+
+    function setAddMode(v) {
+      addMode = v;
+      $('addmode-hint').style.display = v ? 'block' : 'none';
+      $('edit-pano').style.cursor = v ? 'crosshair' : '';
+    }
+    $('mk-add').onclick = () => setAddMode(!addMode);
+
+    function refreshHotspots() {
+      const cfg = viewer.getConfig();
+      for (const h of [...(cfg.hotSpots || [])]) viewer.removeHotSpot(h.id);
+      for (const m of editScene.markers)
+        viewer.addHotSpot({ id: m.id, yaw: m.yaw, pitch: m.pitch, cssClass: 'tree-marker' });
+    }
+
+    function renderMarkers() {
+      const list = $('mk-list');
+      list.innerHTML = '';
+      editScene.markers.forEach((m, i) => {
+        const div = document.createElement('div');
+        div.className = 'mk';
+        div.innerHTML = `
+          <input class="mk-label" placeholder="Label" />
+          <div class="pos">yaw ${m.yaw}° · pitch ${m.pitch}°${m.xyz ? ' · xyz (' + m.xyz.map(v => (+v).toFixed(2)).join(', ') + ')' : ''}</div>
+          <textarea class="mk-attrs" placeholder='Attribute als JSON, z. B. {"Baumart": "Picea abies", "BHD_cm": 48.2}'></textarea>
+          <button class="ghost danger">Entfernen</button>`;
+        div.querySelector('.mk-label').value = m.label || '';
+        div.querySelector('.mk-attrs').value = JSON.stringify(m.attributes || {}, null, 1);
+        div.querySelector('.mk-label').oninput = (e) => m.label = e.target.value;
+        div.querySelector('.mk-attrs').onchange = (e) => {
+          try { m.attributes = JSON.parse(e.target.value || '{}'); e.target.style.borderColor = ''; }
+          catch { e.target.style.borderColor = '#f85149'; }
+        };
+        div.querySelector('button').onclick = () => {
+          editScene.markers.splice(i, 1); renderMarkers(); refreshHotspots();
+        };
+        list.appendChild(div);
+      });
+    }
+
+    $('mk-save').onclick = async () => {
+      const r = await fetch('/api/studio/scenes/' + encodeURIComponent(editScene.id) + '/markers', {
+        method: 'PUT', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ markers: editScene.markers }),
+      });
+      if (r.ok) { $('mk-save').textContent = 'Gespeichert ✓';
+        setTimeout(() => $('mk-save').textContent = 'Speichern', 1500); }
+      else alert('Fehler beim Speichern: ' + (await r.text()));
+    };
+
+    $('mk-close').onclick = () => {
+      $('editor').classList.remove('open');
+      if (viewer) { viewer.destroy(); viewer = null; }
+      refreshScenes();
+    };
+  </script>
+</body>
+</html>

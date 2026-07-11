@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>360° Panorama Viewer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
+  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #000; }
+    #panorama { width: 100%; height: 100%; }
+
+    #variant-bar {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.55);
+      border-radius: 999px;
+      padding: 6px;
+      backdrop-filter: blur(4px);
+      font-family: system-ui, sans-serif;
+    }
+    #variant-bar button {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 14px;
+      cursor: pointer;
+      background: transparent;
+      color: #ddd;
+      transition: background 0.15s, color 0.15s;
+    }
+    #variant-bar button:hover { color: #fff; }
+    #variant-bar button.active { background: #fff; color: #111; }
+  </style>
+</head>
+<body>
+  <div id="panorama"></div>
+
+  <div id="variant-bar">
+    <button data-scene="natural" class="active">Natur</button>
+    <button data-scene="vivid">Kräftig</button>
+    <button data-scene="warm">Warm</button>
+  </div>
+
+  <script>
+    // Drei abgestufte Filter-Versionen desselben Panoramas - User waehlt per Button.
+    function makeScene(file) {
+      return {
+        type: "equirectangular",
+        panorama: "../output/scene01/" + file,
+        hfov: 110,
+        pitch: 0,
+        yaw: 0
+      };
+    }
+
+    const viewer = pannellum.viewer('panorama', {
+      "default": {
+        "firstScene": "natural",
+        "sceneFadeDuration": 600,
+        "autoLoad": true,
+        "compass": true,
+        "showZoomCtrl": true,
+        "showFullscreenCtrl": true
+      },
+      "scenes": {
+        "natural": makeScene("pano_v1_natural.jpg"),
+        "vivid":   makeScene("pano_v2_vivid.jpg"),
+        "warm":    makeScene("pano_v3_warm.jpg")
+      }
+    });
+
+    document.querySelectorAll('#variant-bar button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        // Blickrichtung beim Umschalten beibehalten
+        const pitch = viewer.getPitch(), yaw = viewer.getYaw(), hfov = viewer.getHfov();
+        viewer.loadScene(btn.dataset.scene, pitch, yaw, hfov);
+        document.querySelectorAll('#variant-bar button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Szene — 360Pano3D</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
+  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000;
+                 font-family: system-ui, -apple-system, sans-serif; }
+    #panorama, #cloud { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #cloud { display: none; }
+    body.mode-3d #panorama { display: none; }
+    body.mode-3d #cloud { display: block; }
+
+    #topbar { position: absolute; top: 14px; left: 14px; z-index: 10;
+              display: flex; gap: 10px; align-items: center; }
+    #topbar a, #title {
+      color: #eee; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+      padding: 8px 14px; font-size: 13px; text-decoration: none; }
+    #title { font-weight: 600; }
+
+    /* Pano/3D-Umschalter */
+    #modes { position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      z-index: 15; display: flex; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px; overflow: hidden; }
+    #modes button { background: none; border: none; color: #cfcfcf; cursor: pointer;
+      padding: 8px 18px; font-size: 13px; }
+    #modes button.active { background: rgba(126,231,135,.22); color: #d8ffdb; }
+    #modes button:disabled { color: #555; cursor: default; }
+
+    /* Baum-Marker */
+    .tree-marker { width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(126, 231, 135, .25); border: 2px solid #7ee787;
+      box-shadow: 0 0 8px rgba(126,231,135,.6); cursor: pointer; }
+    .tree-marker:hover { background: rgba(126, 231, 135, .55); }
+    .tree-label { position: absolute; left: 22px; top: -2px; white-space: nowrap;
+      color: #d8ffdb; font-size: 12px; text-shadow: 0 1px 3px #000;
+      pointer-events: none; }
+
+    /* Infobox */
+    #infobox { position: absolute; right: 16px; top: 16px; z-index: 20;
+      width: 300px; max-height: calc(100% - 100px); overflow-y: auto;
+      color: #e6edf3; background: rgba(13, 17, 23, .88); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.14); border-radius: 12px;
+      padding: 14px 16px; display: none; }
+    #infobox h2 { margin: 0 0 2px; font-size: 15px; }
+    #infobox .demo { display: inline-block; font-size: 10.5px; color: #f0b429;
+      border: 1px solid #f0b429; border-radius: 10px; padding: 1px 7px; margin: 4px 0 6px; }
+    #infobox table { width: 100%; border-collapse: collapse; margin-top: 8px;
+      font-size: 12.5px; }
+    #infobox td { padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,.08);
+      vertical-align: top; }
+    #infobox td:first-child { color: #8b949e; padding-right: 10px; }
+    #infobox .xyz { margin-top: 8px; font-size: 11px; color: #6e7681; }
+    #infobox button { margin-top: 10px; background: none; color: #58a6ff;
+      border: 1px solid #30363d; border-radius: 8px; padding: 5px 12px;
+      font-size: 12px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <div id="panorama"></div>
+  <div id="cloud"></div>
+  <div id="topbar">
+    <a href="index.html">← Szenen</a>
+    <span id="title"></span>
+  </div>
+  <div id="modes">
+    <button id="mode-pano" class="active">Panorama</button>
+    <button id="mode-3d" disabled>3D-Punktwolke</button>
+  </div>
+  <div id="infobox">
+    <h2 id="ib-label"></h2>
+    <span class="demo" id="ib-demo" hidden>Demo-Werte</span>
+    <table id="ib-attrs"></table>
+    <div class="xyz" id="ib-xyz"></div>
+    <button onclick="document.getElementById('infobox').style.display='none'">Schließen</button>
+  </div>
+
+  <script type="module">
+    import { CloudViewer } from './cloudviewer.js';
+    const sid = new URLSearchParams(location.search).get('id');
+
+    function showInfo(_e, m) {
+      document.getElementById('ib-label').textContent = m.label || m.id;
+      document.getElementById('ib-demo').hidden = !m.demo;
+      const table = document.getElementById('ib-attrs');
+      table.innerHTML = '';
+      for (const [k, v] of Object.entries(m.attributes || {})) {
+        const tr = table.insertRow();
+        tr.insertCell().textContent = k;
+        tr.insertCell().textContent = v;
+      }
+      document.getElementById('ib-xyz').textContent = m.xyz
+        ? `Punktwolken-Position: (${m.xyz.map(v => (+v).toFixed(2)).join(', ')}) m`
+        : '';
+      document.getElementById('infobox').style.display = 'block';
+    }
+
+    function markerDiv(div, m) {
+      div.classList.add('tree-marker');
+      const s = document.createElement('span');
+      s.className = 'tree-label';
+      s.textContent = m.label || '';
+      div.appendChild(s);
+    }
+
+    let cloud = null;   // lazy initialisiert beim ersten Wechsel in die 3D-Ansicht
+
+    async function init() {
+      if (!sid) { location.href = 'index.html'; return; }
+      const r = await fetch('/api/scenes/' + encodeURIComponent(sid));
+      if (!r.ok) { document.getElementById('title').textContent = 'Szene nicht gefunden'; return; }
+      const scene = await r.json();
+      document.title = (scene.title || sid) + ' — 360Pano3D';
+      document.getElementById('title').textContent = scene.title || sid;
+
+      pannellum.viewer('panorama', {
+        type: 'equirectangular',
+        panorama: scene.pano_url,
+        autoLoad: true,
+        compass: true,
+        showZoomCtrl: true,
+        showFullscreenCtrl: true,
+        hfov: 100,
+        friction: 0.15,
+        hotSpots: (scene.markers || []).map(m => ({
+          id: m.id, yaw: m.yaw, pitch: m.pitch,
+          cssClass: 'ignored',              // eigenes Styling via createTooltipFunc
+          createTooltipFunc: markerDiv, createTooltipArgs: m,
+          clickHandlerFunc: showInfo, clickHandlerArgs: m,
+        })),
+      });
+
+      // 3D-Umschalter nur aktivieren, wenn eine Punktwolke vorliegt
+      const btnPano = document.getElementById('mode-pano');
+      const btn3d = document.getElementById('mode-3d');
+      if (scene.pointcloud && scene.pointcloud.bin_url) {
+        btn3d.disabled = false;
+        btn3d.onclick = async () => {
+          document.body.classList.add('mode-3d');
+          btn3d.classList.add('active'); btnPano.classList.remove('active');
+          if (!cloud) {
+            btn3d.textContent = '3D lädt …';
+            cloud = new CloudViewer(document.getElementById('cloud'), (m) => showInfo(null, m));
+            window._cloud = cloud;   // Debug-/Test-Zugriff
+            const origin = (scene.source && scene.source.origin_xyz) || [0, 0, 0];
+            await cloud.loadBin(scene.pointcloud.bin_url, scene.pointcloud);
+            cloud.setMarkers(scene.markers || [], origin);
+            btn3d.textContent = '3D-Punktwolke';
+          }
+        };
+      }
+      btnPano.onclick = () => {
+        document.body.classList.remove('mode-3d');
+        btnPano.classList.add('active'); btn3d.classList.remove('active');
+      };
+    }
+    init();
+  </script>
+</body>
+</html>

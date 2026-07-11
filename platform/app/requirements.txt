@@ -1,0 +1,8 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9
+boto3>=1.34
+numpy>=1.24
+pillow>=10.0
+pye57>=0.4.13
+laspy>=2.5

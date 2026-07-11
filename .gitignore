@@ -1,0 +1,23 @@
+# Rohdaten und grosse Artefakte bleiben lokal (Quellen: Zenodo bzw. eigene Aufnahmen)
+# Ausnahmen: Befund-Doku und abgeleitete Inventur-CSV (klein, reproduzierbar wichtig)
+data/*
+!data/renon
+data/renon/*
+!data/renon/BEFUND.md
+!data/renon/trees_setup001.csv
+input/
+output/
+platform/dev-data/
+viewer/img/
+
+*.ARW
+*.e57
+*.las
+*.tif
+
+# Lokales
+.claude/
+__pycache__/
+*.pyc
+platform/.env
+share/

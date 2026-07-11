@@ -1,0 +1,25 @@
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Oeffentliche Medien (Panoramen, Thumbs, scene.json) direkt aus dem
+	# Garage-Web-Endpoint des Buckets "media" — die App wird dafuer nicht angefasst.
+	handle_path /media/* {
+		reverse_proxy garage:3902 {
+			header_up Host media.web.garage
+		}
+	}
+
+	# Studio-UI und Studio-API nur mit Login.
+	@studio path /admin* /api/studio*
+	handle @studio {
+		basic_auth {
+			{$STUDIO_USER} {$STUDIO_HASH}
+		}
+		reverse_proxy app:8000
+	}
+
+	# Gallery und oeffentliche API.
+	handle {
+		reverse_proxy app:8000
+	}
+}

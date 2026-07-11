@@ -1,0 +1,9 @@
+data/
+input/
+output/
+viewer/
+platform/dev-data/
+**/.DAV/
+**/*.ARW
+**/*.e57
+**/*.tif

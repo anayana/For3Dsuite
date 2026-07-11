@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Renon / ICOS IT-Ren — 360° (Setup 01) · Layer 1</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
+  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background: #000;
+                 font-family: system-ui, -apple-system, sans-serif; }
+    #panorama { width: 100%; height: 100%; }
+
+    #info {
+      position: absolute; top: 16px; left: 16px; z-index: 10;
+      max-width: 340px; color: #eee;
+      background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px; padding: 14px 16px;
+    }
+    #info h1 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+    #info p  { margin: 4px 0; font-size: 12.5px; line-height: 1.45; color: #cfcfcf; }
+    #info .k { color: #9ecbff; }
+    #info details { margin-top: 8px; font-size: 12px; color: #bbb; }
+    #info summary { cursor: pointer; color: #9ecbff; }
+  </style>
+</head>
+<body>
+  <div id="panorama"></div>
+
+  <div id="info">
+    <h1>Renon / ICOS IT-Ren — Setup 01</h1>
+    <p><span class="k">Layer 1 · 3D Bild.</span> Equirectangular-Panorama,
+       rekonstruiert aus 6 Pinhole-Kameras des Leica BLK360 (je 2048², ~90° HFOV)
+       per direkter sphärischer Reprojektion aus den mitgelieferten E57-Posen —
+       ohne Stitching-Kontrollpunkte.</p>
+    <p>Ungleichaltriger ~200-jähriger Fichtenbestand, Renon (Südtirol), 1735 m.
+       Der schwarze Bereich unten ist der Nadir (Stativ/Scanner, maskiert).</p>
+    <details>
+      <summary>Quelle &amp; Methode</summary>
+      <p>Zenodo 10.5281/zenodo.17186174 (CC-BY-4.0). Reprojektion:
+         <code>scripts/reproject_pano.py</code> aus
+         <code>data/renon/extracted/…_poses.json</code>.</p>
+    </details>
+  </div>
+
+  <script>
+    pannellum.viewer('panorama', {
+      "type": "equirectangular",
+      "panorama": "../output/renon_setup01/pano_equirect.jpg",
+      "autoLoad": true,
+      "compass": true,
+      "showZoomCtrl": true,
+      "showFullscreenCtrl": true,
+      "hfov": 100,
+      "pitch": 0,
+      "yaw": 10,
+      "minPitch": -85,
+      "maxPitch": 85,
+      "friction": 0.15
+    });
+  </script>
+</body>
+</html>
