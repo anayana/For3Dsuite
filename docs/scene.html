@@ -57,6 +57,15 @@
     #lod button.active { background: rgba(121,192,255,.22); color: #d3e8ff; }
     body.mode-3d #lod { display: flex; }
 
+    /* Validierungs-Panel (unten links, bei vorhandenen Kennzahlen) */
+    #validation { position: absolute; bottom: 16px; left: 14px; z-index: 15;
+      max-width: 340px; color: #d7e0ea; background: rgba(13,17,23,.82);
+      backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.14);
+      border-left: 3px solid #7ee787; border-radius: 10px; padding: 10px 13px;
+      font-size: 12px; line-height: 1.5; }
+    #validation b { color: #7ee787; }
+    #validation .muted { color: #8b949e; font-size: 11px; }
+
     /* Baum-Marker — Standard gruen; Farbe kann die RGB-Vitalitaet spiegeln */
     .tree-marker { width: 18px; height: 18px; border-radius: 50%;
       background: rgba(126, 231, 135, .25); border: 2px solid #7ee787;
@@ -132,6 +141,7 @@
   </div>
   <div id="variants"></div>
   <div id="lod"></div>
+  <div id="validation" hidden></div>
   <div id="legend">
     <b>RGB-Vitalität</b>
     <div class="row"><span class="sw vital"></span>vital</div>
@@ -268,6 +278,21 @@
       document.getElementById('legend').classList.toggle('on', has);
     }
 
+    // Validierungs-Panel: berechnete Marker gegen Datensatz-Ground-Truth
+    function buildValidation(scene) {
+      const v = scene.validation;
+      const el = document.getElementById('validation');
+      if (!v) return;
+      el.hidden = false;
+      el.innerHTML =
+        `<b>Validierung gegen Ground-Truth</b><br>` +
+        `Recall <b>${(v.recall * 100).toFixed(0)}%</b> · ` +
+        `Precision <b>${(v.precision * 100).toFixed(0)}%</b> · ` +
+        `Lagefehler <b>${v.pos_err_median_cm} cm</b> (Median)<br>` +
+        `<span class="muted">${v.matched}/${v.reference_trees} Referenzbäume getroffen ` +
+        `(≤ ${v.match_dist_m} m). ${v.method}</span>`;
+    }
+
     let cloud = null;   // lazy initialisiert beim ersten Wechsel in die 3D-Ansicht
     let viewer = null;
 
@@ -331,7 +356,8 @@
       if (levels.length < 2) return;
       levels.forEach((lv, i) => {
         const b = document.createElement('button');
-        const mb = (lv.count * 15 / 1e6).toFixed(0);
+        const mbNum = lv.count * 15 / 1e6;
+        const mb = mbNum >= 10 ? mbNum.toFixed(0) : mbNum.toFixed(1);
         b.textContent = `${lv.label || lv.id} (${mb} MB)`;
         if (i === 0) b.classList.add('active');
         b.onclick = async () => {
@@ -347,6 +373,15 @@
       });
     }
 
+    async function initCloud(scene) {
+      if (cloud) return;
+      cloud = new CloudViewer(document.getElementById('cloud'), (m) => showInfo(null, m));
+      window._cloud = cloud;   // Debug-/Test-Zugriff
+      const origin = (scene.source && scene.source.origin_xyz) || [0, 0, 0];
+      await cloud.loadBin(scene.pointcloud.bin_url, scene.pointcloud);
+      cloud.setMarkers(scene.markers || [], origin);
+    }
+
     async function init() {
       if (!sid) { location.href = 'index.html'; return; }
       const r = await fetch('data/scene-' + encodeURIComponent(sid) + '.json');
@@ -354,27 +389,39 @@
       const scene = await r.json();
       document.title = (scene.title || sid) + ' — 360Pano3D';
       document.getElementById('title').textContent = scene.title || sid;
+      buildLegend(scene);
+      buildValidation(scene);
+
+      const btnPano = document.getElementById('mode-pano');
+      const btn3d = document.getElementById('mode-3d');
+      const hasPano = !!scene.pano_url;
+      const hasCloud = !!(scene.pointcloud && scene.pointcloud.bin_url);
+
+      // Reine Punktwolken-Szene (z. B. TreeScope: Laserscan ohne Bilder)
+      if (!hasPano && hasCloud) {
+        btnPano.style.display = 'none';
+        btn3d.classList.add('active');
+        document.body.classList.add('mode-3d');
+        buildLod(scene);
+        btn3d.textContent = '3D lädt …';
+        await initCloud(scene);
+        btn3d.textContent = '3D-Punktwolke';
+        return;
+      }
 
       viewer = makeViewer(scene, scene.pano_url, null);
       buildVariants(scene);
       buildLod(scene);
-      buildLegend(scene);
 
       // 3D-Umschalter nur aktivieren, wenn eine Punktwolke vorliegt
-      const btnPano = document.getElementById('mode-pano');
-      const btn3d = document.getElementById('mode-3d');
-      if (scene.pointcloud && scene.pointcloud.bin_url) {
+      if (hasCloud) {
         btn3d.disabled = false;
         btn3d.onclick = async () => {
           document.body.classList.add('mode-3d');
           btn3d.classList.add('active'); btnPano.classList.remove('active');
           if (!cloud) {
             btn3d.textContent = '3D lädt …';
-            cloud = new CloudViewer(document.getElementById('cloud'), (m) => showInfo(null, m));
-            window._cloud = cloud;   // Debug-/Test-Zugriff
-            const origin = (scene.source && scene.source.origin_xyz) || [0, 0, 0];
-            await cloud.loadBin(scene.pointcloud.bin_url, scene.pointcloud);
-            cloud.setMarkers(scene.markers || [], origin);
+            await initCloud(scene);
             btn3d.textContent = '3D-Punktwolke';
           }
         };

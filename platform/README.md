@@ -84,6 +84,12 @@ Punktwolken-Koordinatensystem. `pointcloud` (optional) verweist auf die kompakte
 Web-Punktwolke für die 3D-Ansicht. Bei Neu-Verarbeitung einer Szene bleiben
 vorhandene Marker erhalten.
 
+**Wolken-only-Szenen:** Ist `pano` null (Laserscan ohne Bilder, z. B. TreeScope),
+startet der Viewer direkt in der 3D-Ansicht, der Panorama-Umschalter entfällt und
+die Wolke wird per Höhen-Farbverlauf eingefärbt (kein RGB). Trägt die Szene einen
+`validation`-Block (Recall/Precision/Lagefehler gegen Datensatz-Ground-Truth), wird
+er unten links eingeblendet.
+
 ## Zwei Ansichten pro Szene: Panorama ⇄ 3D-Punktwolke
 
 Der Szenen-Viewer bietet oben einen Umschalter **Panorama | 3D-Punktwolke**. Die
@@ -119,16 +125,44 @@ yaw = atan2(dy, dx)     pitch = asin(dz / |d|)     mit d = P_objekt − P_urspru
 Zwei Wege zu den Einzelbaumdaten:
 
 1. **Mitgelieferte Baseline** ([inventory_from_cloud.py](../scripts/inventory_from_cloud.py),
-   nur numpy): Bodenmodell → Brusthöhen-Scheibe (1,0–1,6 m) → Clusterung →
-   Kasa-Kreis-Fit je Stamm → Position + BHD, Höhe aus dem lokalen Maximum.
+   nur numpy): Bodenmodell → Detektionsband → Clusterung → Kasa-Kreis-Fit je Stamm.
+   Berechnet je Baum **BHD** (schmales Messfenster um 1,3 m, verjüngungsarm),
+   **Grundfläche** = π·(BHD/2)², sowie **Höhe** und **Schaftvolumen**
+   (= Grundfläche·Höhe·Formfaktor), letztere nur wenn die Wolke die Krone erfasst;
+   bei gekappten Low-Scans wird die Höhe ehrlich als „erfasst" markiert statt als
+   Baumhöhe ausgegeben. Detektions-Schwellen sind per CLI einstellbar (dichte TLS
+   vs. dünne Mobile-Scans):
    ```powershell
+   # dichte stationäre TLS (Renon E57):
    python scripts\inventory_from_cloud.py scan.e57 trees.csv --origin X Y Z --radius 18
+   # dünner mobiler Scan (TreeScope PCD):
+   python scripts\inventory_from_cloud.py scan.pcd trees.csv `
+       --min-points 15 --arc-min 50 --rms-max 5 --bh 0.5 2.5
    ```
-   Am ICOS-Renon-Setup 001 findet sie 87 Stämme (BHD 8–76 cm). Als Baseline
-   gedacht; für publikationsreife Genauigkeit gegen lidR/TreeLS oder 3DFin
-   vergleichen und an einer Referenzinventur validieren.
+   Renon-Setup 001: 87 Stämme (BHD 8–76 cm). Baseline; für höhere Genauigkeit
+   gegen lidR/TreeLS oder 3DFin vergleichen.
 2. Externe Ableitung (lidR/TreeLS in R, 3DFin in Python) → CSV mit Spalten
    `x,y,z,label,<Attribute…>`.
+
+### Validierung gegen Ground-Truth (TreeScope)
+
+Der **TreeScope**-Datensatz (tnl.treescope.org, mobiler Wald-Laserscan mit
+Per-Punkt-Instanz-Labels) liefert eine echte Referenz, gegen die die berechnete
+Erkennung geprüft wird — der publikationsrelevante Schritt „Werte wirklich
+berechnet **und** validiert" statt Augenschein:
+
+```powershell
+Rscript scripts\download_treescope.R 0 5                 # Kacheln laden
+python scripts\validate_treescope.py cloud1_0_all_points.pcd `
+    cloud1_0_all_points.labels cloud1_0_trees.csv --match-dist 0.5 --min-gt-points 20
+```
+
+liefert Recall / Precision / F1 + Lagefehler (Greedy-Nearest-Matching gegen die
+GT-Positionen aus den Instanz-Labels). Baseline auf WSF-19/Kachel 0:
+**Recall 91 %, Precision 72 %, Lagefehler 9 cm (Median)** bei 69 Referenzbäumen.
+[seed_treescope.py](dev/seed_treescope.py) spielt die Kachel als reine
+Punktwolken-Szene ein (Inventur → Validierung → Web-Wolke → Marker); die Kennzahlen
+landen im Manifest (`scene.validation`) und werden im Viewer eingeblendet.
 
 Dann die Positionen in Marker umrechnen und ins Manifest schreiben:
 

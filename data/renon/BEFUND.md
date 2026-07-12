@@ -62,6 +62,24 @@ python scripts/reproject_pano.py \
 - Viewer: `viewer/renon.html` (Pannellum). Lokal: `python -m http.server 8360` → `/viewer/renon.html`.
 - Offen: Nadir-Retusche (`scripts/nadir_tool.py`), Zenit-Band leicht verwaschen, Multi-Setup-Tour.
 
+## Layer 2 gebaut (2026-07-12)
+
+RGB-Punktwolke direkt aus derselben E57 (via `pye57`, kein Download, kein PotreeConverter),
+rezentriert auf den **identischen Ursprung** wie Layer 1 → beide Layer überlagern sich exakt.
+
+```bash
+python scripts/e57_to_pointsbin.py "data/renon/e57/Renon cp2- Setup 001.e57" \
+  viewer/data/renon_setup01_points.bin --max 2000000
+```
+
+- 7,79 Mio. Punkte gelesen, auf 2,0 Mio. zufalls-ausgedünnt (30 MB Web-Binär, Format `PCB1`:
+  Magic+uint32 count + float32[N·3] pos + uint8[N·3] rgb). z-up (E57) → y-up (three.js).
+- Viewer `viewer/points.html` (three.js 0.160, OrbitControls). Rendern verifiziert:
+  34,7 % Punkt-Pixel, mittlere Farbe [136,133,123] (Rinde/Laub/Boden), BBox-Radius 30,6 m.
+  Vorschau: `data/renon/layer2_view.jpg`.
+- Offen: volle 7,79 Mio. Punkte / echte Potree-Octree (LOD), Multi-Setup-Merge, First-Person
+  (PointerLockControls), Panorama als Skybox über der Wolke (Layer 1+2 kombiniert).
+
 ## Hinweis: `e57_inspect.R`
 
 Die R-Variante segfaultet unter Windows (R 4.4.2) reproduzierbar bereits beim XML-Lesen

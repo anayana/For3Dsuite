@@ -113,7 +113,7 @@ def list_scenes():
 @app.get("/api/scenes/{sid}")
 def get_scene(sid: str):
     scene = load_scene(sid)
-    scene["pano_url"] = media.url(scene["pano"])
+    scene["pano_url"] = media.url(scene["pano"]) if scene.get("pano") else None
     scene["thumb_url"] = media.url(scene["thumb"]) if scene.get("thumb") else None
     for v in scene.get("variants") or []:
         if v.get("pano"):

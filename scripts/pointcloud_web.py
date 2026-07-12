@@ -24,7 +24,8 @@ import numpy as np
 
 
 def load(path):
-    if path.lower().endswith(".e57"):
+    low = path.lower()
+    if low.endswith(".e57"):
         import pye57
         d = pye57.E57(path).read_scan(0, ignore_missing_fields=True,
                                       colors=True, intensity=True)
@@ -34,6 +35,10 @@ def load(path):
         else:
             rgb = None
         return xyz, rgb
+    if low.endswith(".pcd"):
+        from pcd_io import read_pcd
+        x, y, z, rgb = read_pcd(path)
+        return np.c_[x, y, z].astype(np.float32), (rgb.astype(np.float32) if rgb is not None else None)
     import laspy
     las = laspy.read(path)
     xyz = np.c_[las.x, las.y, las.z].astype(np.float32)
@@ -43,6 +48,17 @@ def load(path):
         if rgb.max() > 255:
             rgb /= 257.0
     return xyz, rgb
+
+
+def height_ramp(z):
+    """Terrain-Farbverlauf ueber die Hoehe (fuer Wolken ohne RGB, z. B. TreeScope):
+    dunkelblau -> gruen -> gelb -> weiss, robust auf 2.-98.-Perzentil skaliert."""
+    lo, hi = np.percentile(z, 2), np.percentile(z, 98)
+    t = np.clip((z - lo) / (hi - lo if hi > lo else 1), 0, 1)
+    stops = np.array([[30, 45, 90], [30, 120, 110], [130, 190, 80],
+                      [235, 225, 120], [250, 250, 250]], np.float32)
+    pos = np.linspace(0, 1, len(stops))
+    return np.stack([np.interp(t, pos, stops[:, k]) for k in range(3)], -1)
 
 
 def voxel_downsample(xyz, rgb, voxel):
@@ -59,6 +75,8 @@ def main():
     ap.add_argument("--radius", type=float, default=25.0)
     ap.add_argument("--max-points", type=int, default=800_000)
     ap.add_argument("--voxel", type=float, default=0.05)
+    ap.add_argument("--color-by-height", action="store_true",
+                    help="Wolken ohne RGB per Hoehen-Farbverlauf einfaerben (TreeScope)")
     args = ap.parse_args()
 
     xyz, rgb = load(args.cloud)
@@ -77,6 +95,8 @@ def main():
         xyz, rgb = xyz[sel], (rgb[sel] if rgb is not None else None)
     print(f"{len(xyz):,} Punkte nach Ausduennung (voxel {args.voxel} m)")
 
+    if rgb is None and args.color_by_height:
+        rgb = height_ramp(xyz[:, 2])               # vor dem Zentrieren (echte Hoehe)
     xyz = xyz - o                                  # auf Ursprung zentrieren
     if rgb is None:
         rgb = np.full((len(xyz), 3), 180, np.uint8)

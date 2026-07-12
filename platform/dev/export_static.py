@@ -63,8 +63,10 @@ def main():
                 shutil.copyfile(f, dst / f.name)
 
         rel = f"media/scenes/{sid}"
-        s["pano_url"] = f"{rel}/pano.jpg"
-        s["thumb_url"] = f"{rel}/thumb.jpg"
+        # Panorama nur setzen, wenn vorhanden (wolken-only-Szenen wie TreeScope
+        # haben keins -> pano_url = null, Viewer startet direkt in 3D)
+        s["pano_url"] = f"{rel}/pano.jpg" if s.get("pano") and (src / "pano.jpg").is_file() else None
+        s["thumb_url"] = f"{rel}/thumb.jpg" if (src / "thumb.jpg").is_file() else None
         for v in s.get("variants") or []:
             v["pano_url"] = rel + "/" + v["pano"].rsplit("/", 1)[-1]
         pc = s.get("pointcloud")
