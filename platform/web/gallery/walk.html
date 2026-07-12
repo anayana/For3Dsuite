@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Waldspaziergang — 360Pano3D</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; background: #000;
+                 font-family: system-ui, -apple-system, sans-serif; overflow: hidden; }
+    #stage { position: absolute; inset: 0; }
+    #walk { width: 100%; height: 100%; object-fit: cover; display: block; background: #000; }
+
+    #topbar { position: absolute; top: 14px; left: 14px; z-index: 10;
+              display: flex; gap: 10px; align-items: center; }
+    #topbar a, #title {
+      color: #eee; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+      padding: 8px 14px; font-size: 13px; text-decoration: none; }
+    #title { font-weight: 600; }
+
+    #hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+      z-index: 8; color: #fff; background: rgba(0,0,0,.5); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.15); border-radius: 12px; padding: 14px 20px;
+      font-size: 14px; text-align: center; pointer-events: none; transition: opacity .4s; }
+
+    #controls { position: absolute; bottom: 0; left: 0; right: 0; z-index: 10;
+      padding: 18px 20px 16px; display: flex; align-items: center; gap: 14px;
+      background: linear-gradient(to top, rgba(0,0,0,.7), rgba(0,0,0,0)); }
+    #controls button { background: rgba(255,255,255,.14); color: #fff; border: none;
+      width: 44px; height: 44px; border-radius: 50%; cursor: pointer; font-size: 17px;
+      flex: none; }
+    #controls button:hover { background: rgba(255,255,255,.26); }
+    #seek { flex: 1; accent-color: #7ee787; height: 4px; cursor: pointer; }
+    .ctl-group { display: flex; align-items: center; gap: 8px; color: #cfcfcf;
+      font-size: 12.5px; white-space: nowrap; }
+    #speed { accent-color: #7ee787; width: 90px; }
+    #time { font-variant-numeric: tabular-nums; min-width: 84px; text-align: right;
+      color: #cfcfcf; font-size: 12.5px; }
+
+    #caption { position: absolute; bottom: 74px; left: 20px; z-index: 9; max-width: 420px;
+      color: #d7e0ea; background: rgba(13,17,23,.72); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-left: 3px solid #7ee787;
+      border-radius: 10px; padding: 9px 12px; font-size: 11.5px; line-height: 1.5; }
+    #caption b { color: #7ee787; }
+  </style>
+</head>
+<body>
+  <div id="stage">
+    <video id="walk" muted playsinline loop preload="auto"></video>
+  </div>
+
+  <div id="topbar">
+    <a href="index.html">← Szenen</a>
+    <span id="title">Waldspaziergang</span>
+  </div>
+
+  <div id="hint">Klicken oder ▶ zum Loslaufen · Scrollen = vor/zurück gehen</div>
+
+  <div id="caption"></div>
+
+  <div id="controls">
+    <button id="play" title="Play/Pause">▶</button>
+    <input id="seek" type="range" min="0" max="1000" value="0" />
+    <span id="time">0:00 / 0:00</span>
+    <span class="ctl-group">Tempo
+      <input id="speed" type="range" min="0.5" max="3" step="0.25" value="1" />
+      <span id="speedval">1×</span>
+    </span>
+  </div>
+
+  <script>
+    const sid = new URLSearchParams(location.search).get('id') || 'finnwoods-walk';
+    const v = document.getElementById('walk');
+    const playBtn = document.getElementById('play');
+    const seek = document.getElementById('seek');
+    const timeEl = document.getElementById('time');
+    const hint = document.getElementById('hint');
+    let seeking = false;
+
+    const fmt = (s) => isFinite(s)
+      ? `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}` : '0:00';
+
+    function setPlaying(on) {
+      if (on) { v.play(); playBtn.textContent = '❚❚'; hint.style.opacity = 0; }
+      else { v.pause(); playBtn.textContent = '▶'; }
+    }
+    playBtn.onclick = () => setPlaying(v.paused);
+    document.getElementById('stage').onclick = () => setPlaying(v.paused);
+
+    v.addEventListener('timeupdate', () => {
+      if (seeking || !v.duration) return;
+      seek.value = (v.currentTime / v.duration) * 1000;
+      timeEl.textContent = `${fmt(v.currentTime)} / ${fmt(v.duration)}`;
+    });
+    seek.addEventListener('input', () => {
+      seeking = true;
+      if (v.duration) v.currentTime = (seek.value / 1000) * v.duration;
+    });
+    seek.addEventListener('change', () => { seeking = false; });
+
+    const speed = document.getElementById('speed');
+    speed.oninput = () => {
+      v.playbackRate = +speed.value;
+      document.getElementById('speedval').textContent = (+speed.value) + '×';
+    };
+
+    // Scrollen = am Weg vor/zurueck gehen (pausiert den Autolauf)
+    document.getElementById('stage').addEventListener('wheel', (e) => {
+      e.preventDefault();
+      if (!v.duration) return;
+      setPlaying(false);
+      hint.style.opacity = 0;
+      v.currentTime = Math.max(0, Math.min(v.duration,
+        v.currentTime + Math.sign(e.deltaY) * 0.25));
+    }, { passive: false });
+
+    async function fetchScene(id) {
+      // Dev: FastAPI; Static-Export biegt dies auf data/scene-<id>.json um
+      return (await fetch('/api/scenes/' + encodeURIComponent(id))).json();
+    }
+
+    async function init() {
+      let scene = {};
+      try { scene = await fetchScene(sid); } catch (e) {}
+      document.title = (scene.title || 'Waldspaziergang') + ' — 360Pano3D';
+      document.getElementById('title').textContent = scene.title || 'Waldspaziergang';
+      document.getElementById('caption').innerHTML = scene.description
+        ? scene.description : '';
+      v.src = scene.video_url || ('/media/scenes/' + sid + '/walk.mp4');
+      v.addEventListener('loadedmetadata', () => {
+        timeEl.textContent = `${fmt(0)} / ${fmt(v.duration)}`;
+      });
+      // Autostart (stumm -> von Browsern erlaubt)
+      v.addEventListener('canplay', () => setPlaying(true), { once: true });
+    }
+    init();
+  </script>
+</body>
+</html>

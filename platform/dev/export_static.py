@@ -48,6 +48,12 @@ def main():
     ], "scene.html")
     (OUT / "scene.html").write_text(scene, encoding="utf-8")
 
+    walk = patch((GALLERY / "walk.html").read_text(encoding="utf-8"), [
+        ("(await fetch('/api/scenes/' + encodeURIComponent(id))).json()",
+         "(await fetch('data/scene-' + encodeURIComponent(id) + '.json')).json()"),
+    ], "walk.html")
+    (OUT / "walk.html").write_text(walk, encoding="utf-8")
+
     shutil.copyfile(GALLERY / "cloudviewer.js", OUT / "cloudviewer.js")
 
     # ---- Szenen-JSONs + Medien ----
@@ -58,8 +64,8 @@ def main():
         src = sj.parent
         dst = OUT / "media" / "scenes" / sid
         dst.mkdir(parents=True)
-        for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken-Stufen)
-            if f.is_file() and f.suffix in (".jpg", ".bin"):
+        for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken, Walk-Video)
+            if f.is_file() and f.suffix in (".jpg", ".bin", ".mp4"):
                 shutil.copyfile(f, dst / f.name)
 
         rel = f"media/scenes/{sid}"
@@ -67,6 +73,8 @@ def main():
         # haben keins -> pano_url = null, Viewer startet direkt in 3D)
         s["pano_url"] = f"{rel}/pano.jpg" if s.get("pano") and (src / "pano.jpg").is_file() else None
         s["thumb_url"] = f"{rel}/thumb.jpg" if (src / "thumb.jpg").is_file() else None
+        if s.get("video") and (src / Path(s["video"]).name).is_file():
+            s["video_url"] = f"{rel}/{Path(s['video']).name}"
         for v in s.get("variants") or []:
             v["pano_url"] = rel + "/" + v["pano"].rsplit("/", 1)[-1]
         pc = s.get("pointcloud")
@@ -87,6 +95,7 @@ def main():
             "markers": len(s.get("markers", [])),
             "source_type": (s.get("source") or {}).get("type"),
             "has_3d": bool(s.get("pointcloud")),
+            "kind": "walk" if s.get("video") else "scene",
         })
     listing.sort(key=lambda x: x.get("created") or "", reverse=True)
     (OUT / "data" / "scenes.json").write_text(

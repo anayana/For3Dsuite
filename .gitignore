@@ -11,6 +11,7 @@ input/
 output/
 platform/dev-data/
 viewer/img/
+viewer/data/
 
 *.ARW
 *.e57

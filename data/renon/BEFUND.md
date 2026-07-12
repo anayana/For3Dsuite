@@ -77,8 +77,49 @@ python scripts/e57_to_pointsbin.py "data/renon/e57/Renon cp2- Setup 001.e57" \
 - Viewer `viewer/points.html` (three.js 0.160, OrbitControls). Rendern verifiziert:
   34,7 % Punkt-Pixel, mittlere Farbe [136,133,123] (Rinde/Laub/Boden), BBox-Radius 30,6 m.
   Vorschau: `data/renon/layer2_view.jpg`.
-- Offen: volle 7,79 Mio. Punkte / echte Potree-Octree (LOD), Multi-Setup-Merge, First-Person
-  (PointerLockControls), Panorama als Skybox über der Wolke (Layer 1+2 kombiniert).
+- Offen: volle 7,79 Mio. Punkte / echte Potree-Octree (LOD), Multi-Setup-Merge.
+
+## Layer 1 + 2 kombiniert: begehbarer Zwilling (2026-07-12)
+
+`viewer/walk.html` (three.js 0.160, PointerLockControls). Panorama als Shader-Skybox
+(folgt der Kamera), Punktwolke im Raum, First-Person (WASD + Maus + Space/Strg).
+
+- **Ausrichtung ohne manuellen Offset:** Skybox-Shader nutzt die *inverse* Reprojektions-
+  Mathematik. Exporter mappt E57(x,y,z)→three(x,z,−y) (echte Rotation, det +1), Skybox
+  invers: E57_x=d.x, E57_y=−d.z, E57_z=d.y → lon=atan2(E57_y,E57_x), lat=asin(E57_z).
+  Beide Skripte teilen denselben Ursprung → Foto und LiDAR fallen am Scanzentrum exakt
+  zusammen (Yaw-Regler nur zur Feinjustage, blieb bei 0°).
+- **Verifiziert:** zwei Blickrichtungen (0° und 90°) exportiert — Punktwolken-Stämme,
+  Bodenmarker und die ICOS-Kabelschlaufen decken sich mit dem Foto-Panorama.
+  Belege: `data/renon/walk_view_fwd.jpg`, `data/renon/walk_view_90.jpg`.
+- Beim Weggehen vom Ursprung entsteht Parallaxe (Skybox fix, Punkte real 3D) — erwartet.
+- Offen: First-Person mit Bodenkollision/Schwerkraft, Nadir-Retusche im Skybox,
+  Layer-Umschaltung 1/2/3/4 in einem Viewer.
+
+## Begehbare Multi-Setup-Tour (2026-07-12)
+
+**Kern-Befund vorab bestätigt:** Die Einzel-Setup-E57 liegen in EINEM gemeinsamen
+(registrierten) Frame — Scanner-Origins (header.translation) verschieden und plausibel:
+001 (31.80,−4.56,3.86), 002 (29.45,−2.79,3.22), 003 (26.01,−1.53,3.07),
+004 (22.81,0.26,2.84) → ~3 m Abstand, Pfad ~10 m. Kein externes 4×4 nötig.
+
+Pipeline `scripts/build_scene.py` (orchestriert extract→reproject→pointsbin, ALLE mit
+demselben Referenz-Ursprung = Setup 001):
+```bash
+python scripts/build_scene.py "data/renon/e57/*.e57" --w 4096 --max 800000
+```
+- Ausgabe je Standpunkt: `viewer/data/scene_<id>_pano.jpg` + `scene_<id>_points.bin`,
+  dazu `viewer/data/renon_scene.json` (Standpunkt-Positionen im Weltframe).
+- Viewer `viewer/tour.html`: alle 4 Wolken gemerged (3,2 Mio. Punkte, Scan-Schatten
+  gefüllt), Skybox = Panorama des aktiven Standpunkts. Navigation: **Marker anklicken /
+  Zahlentasten / Buttons** → gleitet zum Standpunkt und wechselt das Panorama.
+  Steuerung: Ziehen=umsehen (nur bei gedrückter Taste), WASD=gehen, Rad=vor/zurück.
+- Verifiziert: 4 Nodes geladen, Merge korrekt, Panorama-Wechsel + Marker-Klick springen
+  zum Standpunkt (Belege `data/renon/tour_node1.jpg`, `tour_node3.jpg`).
+- **Server:** `python scripts/serve_nocache.py 8360` (No-Cache-Header — sonst zeigt der
+  Browser alte Viewer-Versionen). Tour: `http://localhost:8360/viewer/tour.html`.
+- Offen: mehr Standpunkte (54 gesamt), Marker als Bodenringe, Crossfade beim Panorama-
+  Wechsel, Nadir-Retusche.
 
 ## Hinweis: `e57_inspect.R`
 

@@ -105,6 +105,7 @@ def list_scenes():
             "markers": len(s.get("markers", [])),
             "source_type": (s.get("source") or {}).get("type"),
             "has_3d": bool(s.get("pointcloud")),
+            "kind": "walk" if s.get("video") else "scene",
         })
     out.sort(key=lambda s: s.get("created") or "", reverse=True)
     return out
@@ -115,6 +116,8 @@ def get_scene(sid: str):
     scene = load_scene(sid)
     scene["pano_url"] = media.url(scene["pano"]) if scene.get("pano") else None
     scene["thumb_url"] = media.url(scene["thumb"]) if scene.get("thumb") else None
+    if scene.get("video"):
+        scene["video_url"] = media.url(scene["video"])
     for v in scene.get("variants") or []:
         if v.get("pano"):
             v["pano_url"] = media.url(v["pano"])

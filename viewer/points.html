@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Renon — RGB-Punktwolke (Setup 01) · Layer 2</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body { margin: 0; height: 100%; background: #0b0d10; overflow: hidden;
+                 font-family: system-ui, -apple-system, sans-serif; color: #eee; }
+    #app { width: 100%; height: 100%; display: block; }
+
+    #info {
+      position: absolute; top: 16px; left: 16px; z-index: 10; max-width: 320px;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 14px 16px;
+    }
+    #info h1 { margin: 0 0 6px; font-size: 15px; font-weight: 600; }
+    #info p  { margin: 4px 0; font-size: 12.5px; line-height: 1.45; color: #cfcfcf; }
+    #info .k { color: #9ecbff; }
+
+    #panel {
+      position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+      z-index: 10; display: flex; align-items: center; gap: 14px;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 8px 18px;
+      font-size: 12.5px;
+    }
+    #panel label { display: flex; align-items: center; gap: 8px; }
+    #panel input[type=range] { width: 120px; }
+    #panel button { border: 0; border-radius: 999px; padding: 6px 14px; cursor: pointer;
+                    background: #ffffff22; color: #eee; }
+    #panel button:hover { background: #ffffff33; }
+
+    #status { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+              z-index: 20; font-size: 14px; color: #9ecbff; }
+  </style>
+</head>
+<body>
+  <canvas id="app"></canvas>
+
+  <div id="info">
+    <h1>Renon / ICOS IT-Ren — Setup 01</h1>
+    <p><span class="k">Layer 2 · 3D LiDAR.</span> RGB-eingefärbte Punktwolke des
+       Leica BLK360, direkt aus der E57-Datei (2 Mio. von 7,79 Mio. Punkten,
+       zufalls-ausgedünnt). Ursprung identisch zum Layer-1-Panorama.</p>
+    <p style="color:#9a9a9a">Maus: drehen · Rad: zoomen · Rechts/Shift: schwenken.</p>
+  </div>
+
+  <div id="panel">
+    <label>Punktgröße <input id="size" type="range" min="1" max="60" value="18" /></label>
+    <label><input id="axes" type="checkbox" checked /> Achsen</label>
+    <button id="reset">Ansicht zurück</button>
+  </div>
+
+  <div id="status">Lade Punktwolke …</div>
+
+  <script type="importmap">
+  { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  } }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    const canvas = document.getElementById('app');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0b0d10);
+    scene.fog = new THREE.FogExp2(0x0b0d10, 0.012);
+
+    const camera = new THREE.PerspectiveCamera(60, 1, 0.05, 2000);
+    const START = new THREE.Vector3(0, 2, 26);
+    camera.position.copy(START);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.target.set(0, 8, 0);
+
+    const axes = new THREE.AxesHelper(5);
+    scene.add(axes);
+
+    let points = null;
+    const material = new THREE.PointsMaterial({
+      size: 0.018, vertexColors: true, sizeAttenuation: true
+    });
+
+    function resize() {
+      const w = canvas.clientWidth || innerWidth, h = canvas.clientHeight || innerHeight;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h; camera.updateProjectionMatrix();
+    }
+    addEventListener('resize', resize);
+
+    async function load() {
+      const status = document.getElementById('status');
+      try {
+        const buf = await (await fetch('./data/renon_setup01_points.bin')).arrayBuffer();
+        const dv = new DataView(buf);
+        const magic = String.fromCharCode(dv.getUint8(0), dv.getUint8(1), dv.getUint8(2), dv.getUint8(3));
+        if (magic !== 'PCB1') throw new Error('Falsches Format: ' + magic);
+        const n = dv.getUint32(4, true);
+        const posBytes = n * 3 * 4;
+        const positions = new Float32Array(buf, 8, n * 3);
+        const colorsU8 = new Uint8Array(buf, 8 + posBytes, n * 3);
+        const colors = new Float32Array(n * 3);
+        for (let i = 0; i < colors.length; i++) colors[i] = colorsU8[i] / 255;
+
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+        geo.computeBoundingSphere();
+        points = new THREE.Points(geo, material);
+        scene.add(points);
+        status.remove();
+        window.__three = { THREE, scene, camera, renderer, points, material, controls };
+        window.__ready = { n };
+      } catch (e) {
+        status.textContent = 'Fehler: ' + e.message;
+        status.style.color = '#ff8080';
+        window.__ready = { error: e.message };
+      }
+    }
+
+    document.getElementById('size').addEventListener('input', e => {
+      material.size = e.target.value / 1000;   // 1..60 -> 0.001..0.06 m
+    });
+    document.getElementById('axes').addEventListener('change', e => {
+      axes.visible = e.target.checked;
+    });
+    document.getElementById('reset').addEventListener('click', () => {
+      camera.position.copy(START); controls.target.set(0, 8, 0);
+    });
+
+    function tick() {
+      controls.update();
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+    resize(); load(); tick();
+  </script>
+</body>
+</html>

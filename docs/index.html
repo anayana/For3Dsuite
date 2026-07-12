@@ -30,6 +30,7 @@
     .chip { background: #21262d; border-radius: 20px; padding: 2px 9px; }
     .chip.markers { color: #7ee787; }
     .chip.d3 { color: #79c0ff; border: 1px solid #1f3d63; }
+    .chip.walk { color: #f0b429; border: 1px solid #6b4f10; }
     #empty { padding: 40px 32px; color: #8b949e; }
     footer { padding: 0 32px 32px; font-size: 12px; color: #6e7681; }
     footer a { color: #58a6ff; text-decoration: none; }
@@ -57,7 +58,8 @@
       for (const s of scenes) {
         const a = document.createElement('a');
         a.className = 'card';
-        a.href = 'scene.html?id=' + encodeURIComponent(s.id);
+        const isWalk = s.kind === 'walk';
+        a.href = (isWalk ? 'walk.html?id=' : 'scene.html?id=') + encodeURIComponent(s.id);
         a.innerHTML = `
           ${s.thumb_url ? `<img src="${s.thumb_url}" alt="" loading="lazy">` : '<img alt="">'}
           <div class="body">
@@ -65,6 +67,7 @@
             <p></p>
             <div class="meta">
               <span class="chip">${s.source_type || 'pano'}</span>
+              ${isWalk ? '<span class="chip walk">Waldspaziergang</span>' : ''}
               ${s.has_3d ? '<span class="chip d3">3D</span>' : ''}
               ${s.markers ? `<span class="chip markers">${s.markers} Marker</span>` : ''}
               <span class="chip">${(s.created || '').slice(0, 10)}</span>
