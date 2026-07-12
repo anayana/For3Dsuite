@@ -57,14 +57,43 @@
     #lod button.active { background: rgba(121,192,255,.22); color: #d3e8ff; }
     body.mode-3d #lod { display: flex; }
 
-    /* Baum-Marker */
+    /* Validierungs-Panel (unten links, bei vorhandenen Kennzahlen) */
+    #validation { position: absolute; bottom: 16px; left: 14px; z-index: 15;
+      max-width: 340px; color: #d7e0ea; background: rgba(13,17,23,.82);
+      backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.14);
+      border-left: 3px solid #7ee787; border-radius: 10px; padding: 10px 13px;
+      font-size: 12px; line-height: 1.5; }
+    #validation b { color: #7ee787; }
+    #validation .muted { color: #8b949e; font-size: 11px; }
+
+    /* Baum-Marker — Standard gruen; Farbe kann die RGB-Vitalitaet spiegeln */
     .tree-marker { width: 18px; height: 18px; border-radius: 50%;
       background: rgba(126, 231, 135, .25); border: 2px solid #7ee787;
       box-shadow: 0 0 8px rgba(126,231,135,.6); cursor: pointer; }
-    .tree-marker:hover { background: rgba(126, 231, 135, .55); }
+    .tree-marker:hover { filter: brightness(1.4); }
+    .tree-marker.vital { background: rgba(126,231,135,.30); border-color: #7ee787;
+      box-shadow: 0 0 9px rgba(126,231,135,.7); }
+    .tree-marker.unauffaellig { background: rgba(154,164,173,.20); border-color: #9aa4ad;
+      box-shadow: 0 0 6px rgba(154,164,173,.45); }
+    .tree-marker.auffaellig { background: rgba(240,136,62,.35); border-color: #f0883e;
+      box-shadow: 0 0 11px rgba(240,136,62,.85); }
     .tree-label { position: absolute; left: 22px; top: -2px; white-space: nowrap;
       color: #d8ffdb; font-size: 12px; text-shadow: 0 1px 3px #000;
       pointer-events: none; }
+
+    /* Vitalitaets-Legende (unten links, nur Panorama-Modus) */
+    #legend { position: absolute; bottom: 18px; left: 16px; z-index: 15;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(6px); color: #cfcfcf;
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+      padding: 9px 12px; font-size: 11.5px; display: none; }
+    #legend.on { display: block; } body.mode-3d #legend { display: none; }
+    #legend b { color: #eee; font-weight: 600; display: block; margin-bottom: 5px; }
+    #legend .row { display: flex; align-items: center; gap: 7px; margin: 3px 0; }
+    #legend .sw { width: 11px; height: 11px; border-radius: 50%; border: 2px solid; }
+    #legend .sw.vital { border-color: #7ee787; background: rgba(126,231,135,.3); }
+    #legend .sw.unauffaellig { border-color: #9aa4ad; background: rgba(154,164,173,.2); }
+    #legend .sw.auffaellig { border-color: #f0883e; background: rgba(240,136,62,.35); }
+    #legend .note { color: #6e7681; margin-top: 5px; max-width: 210px; line-height: 1.35; }
 
     /* Infobox */
     #infobox { position: absolute; right: 16px; top: 16px; z-index: 20;
@@ -81,7 +110,20 @@
       vertical-align: top; }
     #infobox td:first-child { color: #8b949e; padding-right: 10px; }
     #infobox .xyz { margin-top: 8px; font-size: 11px; color: #6e7681; }
-    #infobox button { margin-top: 10px; background: none; color: #58a6ff;
+    #infobox .sect { margin-top: 12px; font-size: 11px; text-transform: uppercase;
+      letter-spacing: .04em; color: #8b949e; }
+    #infobox .badge { display: inline-block; font-size: 11px; border-radius: 10px;
+      padding: 2px 9px; margin: 6px 0 2px; border: 1px solid; }
+    #infobox .badge.vital { color: #7ee787; border-color: #2ea043; }
+    #infobox .badge.unauffaellig { color: #c9d1d9; border-color: #6e7681; }
+    #infobox .badge.auffaellig { color: #f0883e; border-color: #bd561d; }
+    #ib-toggle { display: flex; margin-top: 10px; border: 1px solid #30363d;
+      border-radius: 8px; overflow: hidden; width: fit-content; }
+    #ib-toggle button { margin: 0; border: none; border-radius: 0; color: #cfcfcf;
+      background: none; padding: 5px 12px; font-size: 12px; cursor: pointer; }
+    #ib-toggle button.active { background: rgba(121,192,255,.22); color: #d3e8ff; }
+    #infobox .prognote { margin-top: 6px; font-size: 11px; color: #d29922; }
+    #infobox .close { margin-top: 12px; background: none; color: #58a6ff;
       border: 1px solid #30363d; border-radius: 8px; padding: 5px 12px;
       font-size: 12px; cursor: pointer; }
   </style>
@@ -99,28 +141,121 @@
   </div>
   <div id="variants"></div>
   <div id="lod"></div>
+  <div id="validation" hidden></div>
+  <div id="legend">
+    <b>RGB-Vitalität</b>
+    <div class="row"><span class="sw vital"></span>vital</div>
+    <div class="row"><span class="sw unauffaellig"></span>unauffällig</div>
+    <div class="row"><span class="sw auffaellig"></span>auffällig</div>
+    <div class="note">Bestandesrelativ (weniger grün als Median) — kein absolutes
+      Schadstufen-Urteil.</div>
+  </div>
   <div id="infobox">
     <h2 id="ib-label"></h2>
     <span class="demo" id="ib-demo" hidden>Demo-Werte</span>
+    <div id="ib-vital"></div>
+    <div id="ib-toggle" hidden>
+      <button id="ib-now" class="active">Heute</button>
+      <button id="ib-fut">Prognose</button>
+    </div>
+    <div class="prognote" id="ib-prognote" hidden></div>
     <table id="ib-attrs"></table>
     <div class="xyz" id="ib-xyz"></div>
-    <button onclick="document.getElementById('infobox').style.display='none'">Schließen</button>
+    <button class="close" onclick="document.getElementById('infobox').style.display='none'">Schließen</button>
   </div>
 
   <script type="module">
     import { CloudViewer } from './cloudviewer.js';
     const sid = new URLSearchParams(location.search).get('id');
 
+    // Anzeigenamen/Einheiten fuer die kuratierten Felder (Rest kommt generisch)
+    const LABELS = {
+      BHD_cm: ['BHD', 'cm'], Hoehe_m: ['Höhe', 'm'], Distanz_m: ['Distanz', 'm'],
+      Vital_gruen: ['Grünanteil', ''], Nichtgruen: ['nicht grün', ''],
+      ExG_mean: ['ExG', ''], GLI_mean: ['GLI', ''],
+      GLCM_Kontrast: ['GLCM-Kontrast', ''], GLCM_Entropie: ['GLCM-Entropie', ''],
+      Vital_zscore: ['z (Bestand)', ''], Ansichten: ['Ansichten', ''],
+      Status: ['Status', ''],
+    };
+    const STRUCT = ['BHD_cm', 'Hoehe_m'];
+    const RGB = ['Vital_gruen', 'ExG_mean', 'GLI_mean', 'GLCM_Kontrast',
+                 'GLCM_Entropie', 'Vital_zscore', 'Ansichten'];
+    const HIDDEN = new Set([...STRUCT, ...RGB, 'Vitalitaet', 'Nichtgruen',
+      'GLCM_Homogenitaet', 'GLCM_Energie', 'GLCM_Korrelation', 'Kronenpixel']);
+
+    function fmt(k, v) {
+      const unit = (LABELS[k] && LABELS[k][1]) ? ' ' + LABELS[k][1] : '';
+      return (typeof v === 'number' ? (Number.isInteger(v) ? v : +v.toFixed(3)) : v) + unit;
+    }
+    function addRow(table, k, v) {
+      const tr = table.insertRow();
+      tr.insertCell().textContent = (LABELS[k] && LABELS[k][0]) || k;
+      tr.insertCell().textContent = fmt(k, v);
+    }
+    function section(table, title) {
+      const tr = table.insertRow();
+      const td = tr.insertCell(); td.colSpan = 2; td.className = 'sect'; td.textContent = title;
+    }
+
+    function renderAttrs(m, mode) {
+      const table = document.getElementById('ib-attrs');
+      table.innerHTML = '';
+      const a = m.attributes || {};
+      // Struktur — heute oder Prognose
+      const prog = m.prognosis;
+      section(table, mode === 'fut' ? `Struktur — Prognose ${prog.Prognosejahr}` : 'Struktur (heute)');
+      const src = mode === 'fut' ? prog : a;
+      for (const k of STRUCT) if (src[k] != null) addRow(table, k, src[k]);
+      if (mode === 'fut' && prog.Status) addRow(table, 'Status', prog.Status);
+      if (mode !== 'fut' && a.Distanz_m != null) addRow(table, 'Distanz_m', a.Distanz_m);
+      // Vitalitaet (RGB) — nur "heute"
+      if (mode !== 'fut' && a.Vital_gruen != null) {
+        section(table, 'Vitalität (RGB, Stufe 1)');
+        for (const k of RGB) if (a[k] != null) addRow(table, k, a[k]);
+      }
+      // uebrige Attribute generisch (Robustheit fuer andere Szenen) — nur "heute";
+      // in der Prognose sind das die Struktur-QA-Werte von heute, hier fehl am Platz
+      const rest = mode === 'fut' ? []
+        : Object.keys(a).filter(k => !HIDDEN.has(k) && k !== 'Distanz_m');
+      if (rest.length) {
+        section(table, 'Weitere');
+        for (const k of rest) addRow(table, k, a[k]);
+      }
+    }
+
     function showInfo(_e, m) {
       document.getElementById('ib-label').textContent = m.label || m.id;
       document.getElementById('ib-demo').hidden = !m.demo;
-      const table = document.getElementById('ib-attrs');
-      table.innerHTML = '';
-      for (const [k, v] of Object.entries(m.attributes || {})) {
-        const tr = table.insertRow();
-        tr.insertCell().textContent = k;
-        tr.insertCell().textContent = v;
+
+      // Vitalitaets-Badge (Anzeige mit Umlaut, Klasse bleibt der ASCII-Wert)
+      const vb = document.getElementById('ib-vital');
+      const vit = (m.attributes || {}).Vitalitaet;
+      const VITTXT = { vital: 'vital', unauffaellig: 'unauffällig', auffaellig: 'auffällig' };
+      vb.innerHTML = vit
+        ? `<span class="badge ${vit}">RGB-Vitalität: ${VITTXT[vit] || vit}</span>` : '';
+
+      // Heute/Prognose-Umschalter nur bei vorhandener Prognose
+      const toggle = document.getElementById('ib-toggle');
+      const prognote = document.getElementById('ib-prognote');
+      const now = document.getElementById('ib-now'), fut = document.getElementById('ib-fut');
+      const setMode = (mode) => {
+        now.classList.toggle('active', mode !== 'fut');
+        fut.classList.toggle('active', mode === 'fut');
+        prognote.hidden = mode !== 'fut';
+        prognote.textContent = mode === 'fut'
+          ? 'Modellprognose (Demonstrator) — belastbar erst mit TreeGrOSS-Dienst.' : '';
+        renderAttrs(m, mode);
+      };
+      if (m.prognosis) {
+        toggle.hidden = false;
+        fut.textContent = 'Prognose ' + m.prognosis.Prognosejahr;
+        now.onclick = () => setMode('now');
+        fut.onclick = () => setMode('fut');
+      } else {
+        toggle.hidden = true;
       }
+      setMode('now');
+
       document.getElementById('ib-xyz').textContent = m.xyz
         ? `Punktwolken-Position: (${m.xyz.map(v => (+v).toFixed(2)).join(', ')}) m`
         : '';
@@ -129,10 +264,33 @@
 
     function markerDiv(div, m) {
       div.classList.add('tree-marker');
+      const vit = (m.attributes || {}).Vitalitaet;
+      if (vit) div.classList.add(vit);   // vital | unauffaellig | auffaellig
       const s = document.createElement('span');
       s.className = 'tree-label';
       s.textContent = m.label || '';
       div.appendChild(s);
+    }
+
+    // Legende einblenden, sobald irgendein Marker eine RGB-Vitalitaet traegt
+    function buildLegend(scene) {
+      const has = (scene.markers || []).some(m => (m.attributes || {}).Vitalitaet);
+      document.getElementById('legend').classList.toggle('on', has);
+    }
+
+    // Validierungs-Panel: berechnete Marker gegen Datensatz-Ground-Truth
+    function buildValidation(scene) {
+      const v = scene.validation;
+      const el = document.getElementById('validation');
+      if (!v) return;
+      el.hidden = false;
+      el.innerHTML =
+        `<b>Validierung gegen Ground-Truth</b><br>` +
+        `Recall <b>${(v.recall * 100).toFixed(0)}%</b> · ` +
+        `Precision <b>${(v.precision * 100).toFixed(0)}%</b> · ` +
+        `Lagefehler <b>${v.pos_err_median_cm} cm</b> (Median)<br>` +
+        `<span class="muted">${v.matched}/${v.reference_trees} Referenzbäume getroffen ` +
+        `(≤ ${v.match_dist_m} m). ${v.method}</span>`;
     }
 
     let cloud = null;   // lazy initialisiert beim ersten Wechsel in die 3D-Ansicht
@@ -198,7 +356,8 @@
       if (levels.length < 2) return;
       levels.forEach((lv, i) => {
         const b = document.createElement('button');
-        const mb = (lv.count * 15 / 1e6).toFixed(0);
+        const mbNum = lv.count * 15 / 1e6;
+        const mb = mbNum >= 10 ? mbNum.toFixed(0) : mbNum.toFixed(1);
         b.textContent = `${lv.label || lv.id} (${mb} MB)`;
         if (i === 0) b.classList.add('active');
         b.onclick = async () => {
@@ -214,6 +373,15 @@
       });
     }
 
+    async function initCloud(scene) {
+      if (cloud) return;
+      cloud = new CloudViewer(document.getElementById('cloud'), (m) => showInfo(null, m));
+      window._cloud = cloud;   // Debug-/Test-Zugriff
+      const origin = (scene.source && scene.source.origin_xyz) || [0, 0, 0];
+      await cloud.loadBin(scene.pointcloud.bin_url, scene.pointcloud);
+      cloud.setMarkers(scene.markers || [], origin);
+    }
+
     async function init() {
       if (!sid) { location.href = 'index.html'; return; }
       const r = await fetch('data/scene-' + encodeURIComponent(sid) + '.json');
@@ -221,26 +389,39 @@
       const scene = await r.json();
       document.title = (scene.title || sid) + ' — 360Pano3D';
       document.getElementById('title').textContent = scene.title || sid;
+      buildLegend(scene);
+      buildValidation(scene);
+
+      const btnPano = document.getElementById('mode-pano');
+      const btn3d = document.getElementById('mode-3d');
+      const hasPano = !!scene.pano_url;
+      const hasCloud = !!(scene.pointcloud && scene.pointcloud.bin_url);
+
+      // Reine Punktwolken-Szene (z. B. TreeScope: Laserscan ohne Bilder)
+      if (!hasPano && hasCloud) {
+        btnPano.style.display = 'none';
+        btn3d.classList.add('active');
+        document.body.classList.add('mode-3d');
+        buildLod(scene);
+        btn3d.textContent = '3D lädt …';
+        await initCloud(scene);
+        btn3d.textContent = '3D-Punktwolke';
+        return;
+      }
 
       viewer = makeViewer(scene, scene.pano_url, null);
       buildVariants(scene);
       buildLod(scene);
 
       // 3D-Umschalter nur aktivieren, wenn eine Punktwolke vorliegt
-      const btnPano = document.getElementById('mode-pano');
-      const btn3d = document.getElementById('mode-3d');
-      if (scene.pointcloud && scene.pointcloud.bin_url) {
+      if (hasCloud) {
         btn3d.disabled = false;
         btn3d.onclick = async () => {
           document.body.classList.add('mode-3d');
           btn3d.classList.add('active'); btnPano.classList.remove('active');
           if (!cloud) {
             btn3d.textContent = '3D lädt …';
-            cloud = new CloudViewer(document.getElementById('cloud'), (m) => showInfo(null, m));
-            window._cloud = cloud;   // Debug-/Test-Zugriff
-            const origin = (scene.source && scene.source.origin_xyz) || [0, 0, 0];
-            await cloud.loadBin(scene.pointcloud.bin_url, scene.pointcloud);
-            cloud.setMarkers(scene.markers || [], origin);
+            await initCloud(scene);
             btn3d.textContent = '3D-Punktwolke';
           }
         };
