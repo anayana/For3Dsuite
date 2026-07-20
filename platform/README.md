@@ -27,6 +27,7 @@ und zeigen sie per Klick in Infoboxen.
 ```powershell
 pip install fastapi "uvicorn[standard]" python-multipart pillow numpy
 python platform\dev\seed_demo.py                 # Demo-Szenen aus output/ übernehmen
+python platform\dev\seed_polyhaven.py            # 8 CC0-Wald-Panoramen von Poly Haven (API-Download)
 python -m uvicorn main:app --port 8361 --app-dir platform\app
 ```
 
