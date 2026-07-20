@@ -29,6 +29,37 @@
 
     #status { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
               z-index: 20; color: #9ecbff; font-size: 14px; }
+
+    /* Bestandeswerte-Panel (rechts oben) */
+    #stand { position: absolute; top: 14px; right: 14px; z-index: 10; width: 288px;
+             max-height: calc(100% - 28px); overflow-y: auto; font-size: 12px;
+             background: rgba(10,13,17,0.82); backdrop-filter: blur(8px); color: #dfe6ee;
+             border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; padding: 12px 14px; }
+    #stand h3 { margin: 0 0 2px; font-size: 13.5px; color: #fff; }
+    #stand .sub { color: #8b97a5; font-size: 11px; margin-bottom: 8px; }
+    #stand table { width: 100%; border-collapse: collapse; }
+    #stand td { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+                vertical-align: baseline; }
+    #stand td:first-child { color: #9aa6b2; padding-right: 8px; }
+    #stand td:last-child { text-align: right; color: #fff; font-variant-numeric: tabular-nums;
+                white-space: nowrap; }
+    #stand .grp { color: #7ee787; font-size: 10.5px; text-transform: uppercase;
+                letter-spacing: .5px; padding-top: 9px; }
+    #stand .qual { color: #cbd3db; font-size: 11px; line-height: 1.45; margin-top: 3px; }
+    #hist { display: flex; align-items: flex-end; gap: 3px; height: 46px; margin: 6px 0 2px; }
+    #hist .bar { flex: 1; background: linear-gradient(#7ee787, #2ea3ff); border-radius: 2px 2px 0 0;
+                min-height: 2px; position: relative; }
+    #hist .bar span { position: absolute; bottom: -14px; left: 0; right: 0; text-align: center;
+                font-size: 8.5px; color: #8b97a5; }
+    #stand .foot { color: #6c7683; font-size: 9.5px; margin-top: 12px; line-height: 1.4; }
+
+    /* Baum-Info-Popup */
+    #treeinfo { position: absolute; z-index: 12; display: none; min-width: 150px;
+                background: rgba(10,13,17,0.92); color: #eef3f8; font-size: 12px;
+                border: 1px solid #2ea3ff88; border-radius: 10px; padding: 9px 11px;
+                pointer-events: none; box-shadow: 0 4px 18px rgba(0,0,0,0.5); }
+    #treeinfo b { color: #7ee787; } #treeinfo table td { padding: 1px 0; }
+    #treeinfo td:first-child { color: #9aa6b2; padding-right: 10px; }
   </style>
 </head>
 <body>
@@ -45,8 +76,12 @@
     <label>Punktgröße <input id="size" type="range" min="1" max="60" value="16" /></label>
     <label><input id="tpts" type="checkbox" checked /> Punkte</label>
     <label><input id="tpano" type="checkbox" checked /> Panorama</label>
+    <label><input id="ttrees" type="checkbox" checked /> Bäume</label>
     <span id="nodes"></span>
   </div>
+
+  <div id="stand"></div>
+  <div id="treeinfo"></div>
 
   <script type="importmap">
   { "imports": {
@@ -82,6 +117,7 @@
 
     const material = new THREE.PointsMaterial({ size: 0.016, vertexColors: true, sizeAttenuation: true });
     const markerGroup = new THREE.Group(); scene.add(markerGroup);
+    const treeGroup = new THREE.Group(); scene.add(treeGroup);   // Baum-Marker (Inventur)
 
     // --- Drag-Look + WASD (Ansicht bewegt sich NUR bei gedrueckter Maustaste) ---
     let yaw = 0, pitch = 0, dragging = false, lastX = 0, lastY = 0;
@@ -112,9 +148,30 @@
       if (moved > 6) return;                       // war ein Drag, kein Klick
       mouse.set((e.clientX/innerWidth)*2-1, -(e.clientY/innerHeight)*2+1);
       ray.setFromCamera(mouse, camera);
+      // erst Baum-Marker (Inventur-Info), dann Standpunkt-Marker (springen)
+      const th = ray.intersectObjects(treeGroup.children, false)[0];
+      if (th) { showTree(th.object.userData.t, e.clientX, e.clientY); return; }
       const hit = ray.intersectObjects(markerGroup.children, false)[0];
       if (hit) goTo(hit.object.userData.i);
+      else document.getElementById('treeinfo').style.display = 'none';
     });
+
+    // --- Baum-Info-Popup ---
+    function showTree(t, px, py) {
+      const el = document.getElementById('treeinfo');
+      const row = (k, v, u) => v == null ? '' : `<tr><td>${k}</td><td><b>${v}</b> ${u||''}</td></tr>`;
+      el.innerHTML = `<div style="margin-bottom:4px"><b>${t.id}</b></div><table>`
+        + row('BHD', t.BHD_cm, 'cm')
+        + row('Höhe', t.Hoehe_m, 'm')
+        + row('Grundfläche', t.Grundflaeche_m2, 'm²')
+        + row('Volumen', t.Volumen_m3, 'm³')
+        + row('Schlankheit h/d', t.Schlankheit_hd, '')
+        + row('Fit-RMS', t.Fit_RMS_cm, 'cm')
+        + `</table>`;
+      el.style.display = 'block';
+      el.style.left = Math.min(px + 14, innerWidth - 180) + 'px';
+      el.style.top = Math.min(py + 6, innerHeight - 160) + 'px';
+    }
 
     function resize() { const w = canvas.clientWidth||innerWidth, h = canvas.clientHeight||innerHeight;
       renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix(); }
@@ -123,6 +180,7 @@
     document.getElementById('size').addEventListener('input', e => material.size = e.target.value/1000);
     document.getElementById('tpts').addEventListener('change', e => cloudGroup.visible = e.target.checked);
     document.getElementById('tpano').addEventListener('change', e => sky.visible = e.target.checked);
+    document.getElementById('ttrees').addEventListener('change', e => treeGroup.visible = e.target.checked);
 
     // --- Szene laden ---
     const cloudGroup = new THREE.Group(); scene.add(cloudGroup);
@@ -178,12 +236,70 @@
         const b = document.createElement('button'); b.textContent = nd.id;
         b.onclick = () => goTo(i); nb.appendChild(b);
       });
+
+      // --- Inventur: Baum-Marker + Bestandeswerte ---
+      try {
+        const inv = await (await fetch('./data/renon_stand.json')).json();
+        buildTrees(inv.trees);
+        buildStandPanel(inv.stand);
+      } catch (e) { console.warn('Inventur nicht geladen:', e); }
+
       document.getElementById('status').remove();
       window.__three = { THREE, scene, camera, renderer, nodes, goTo,
                          look:()=>({yaw,pitch}), setLook:(y,p)=>{yaw=y;pitch=p;} };
       camera.position.set(nodes[0].pos[0], nodes[0].pos[1], nodes[0].pos[2]);
       goTo(0);
       window.__ready = { nodes: nodes.length };
+    }
+
+    // BHD -> Farbe (dünn = gelb, dick = grün) und Kugelradius
+    function bhdColor(bhd) {
+      const t = Math.min(1, Math.max(0, (bhd - 8) / 52));   // 8..60 cm
+      return new THREE.Color().setHSL(0.12 + 0.28 * t, 0.75, 0.55);
+    }
+    function buildTrees(trees) {
+      const geo = new THREE.SphereGeometry(1, 12, 10);
+      for (const t of trees) {
+        const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({
+          color: bhdColor(t.BHD_cm), transparent: true, opacity: 0.9 }));
+        const rad = 0.10 + t.BHD_cm / 400;                   // sichtbar, ~ BHD
+        m.scale.setScalar(rad);
+        m.position.set(t.world[0], t.world[1], t.world[2]);
+        m.userData.t = t;
+        treeGroup.add(m);
+      }
+    }
+    function buildStandPanel(st) {
+      const q = st.quantitativ, ql = st.qualitativ, v = st.bhd_verteilung;
+      const r = (k, val, u) => val == null ? '' :
+        `<tr><td>${k}</td><td>${val} ${u || ''}</td></tr>`;
+      const maxc = Math.max(...v.anzahl, 1);
+      const bars = v.anzahl.map((c, i) =>
+        `<div class="bar" style="height:${Math.round(100 * c / maxc)}%" title="${v.kanten_cm[i]}-${v.kanten_cm[i]+10} cm: ${c}"><span>${v.kanten_cm[i]}</span></div>`).join('');
+      document.getElementById('stand').innerHTML = `
+        <h3>Bestandeswerte</h3>
+        <div class="sub">${st.n_standpunkte} TLS-Standpunkte · Plot r=${st.plot_radius_m} m (${(st.plot_area_ha*10000).toFixed(0)} m²) · aus LiDAR berechnet</div>
+        <table>
+          <tr><td class="grp" colspan="2">Dichte & Grundfläche</td></tr>
+          ${r('Stammzahl', q.Stammzahl_N + ' (' + q.Stammzahl_N_ha, '/ha)')}
+          ${r('Grundfläche G', q.Grundflaeche_m2_ha, 'm²/ha')}
+          ${r('SDI (Reineke)', q.SDI_Reineke, '')}
+          <tr><td class="grp" colspan="2">Dimension</td></tr>
+          ${r('Dg (Kreisflächenmittel)', q.Dg_cm, 'cm')}
+          ${r('BHD arithm. Mittel', q.BHD_mittel_cm, 'cm')}
+          ${r('BHD-Spanne', q.BHD_min_cm + '–' + q.BHD_max_cm, 'cm')}
+          ${r('Mittelhöhe', q.Hoehe_mittel_m, 'm')}
+          ${r('Oberhöhe h100', q.Oberhoehe_h100_m, 'm')}
+          ${r('Schlankheit h/d', q.Schlankheit_hd_mittel, '')}
+          <tr><td class="grp" colspan="2">Vorrat</td></tr>
+          ${r('Volumen', q.Vorrat_m3_ha, 'm³/ha')}
+        </table>
+        <div class="grp" style="padding-top:10px">BHD-Verteilung (cm)</div>
+        <div id="hist">${bars}</div>
+        <div class="qual"><b style="color:#7ee787">Art:</b> ${ql.Baumart}<br>
+          <b style="color:#7ee787">Struktur:</b> ${ql.Struktur}<br>
+          <b style="color:#7ee787">Erfassung:</b> ${ql.Vollstaendigkeit}</div>
+        <div class="foot">${st.methodik}</div>`;
     }
 
     const _d = new THREE.Vector3(), _r = new THREE.Vector3();

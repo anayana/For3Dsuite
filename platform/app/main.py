@@ -104,8 +104,8 @@ def list_scenes():
             "thumb_url": media.url(s["thumb"]) if s.get("thumb") else None,
             "markers": len(s.get("markers", [])),
             "source_type": (s.get("source") or {}).get("type"),
-            "has_3d": bool(s.get("pointcloud")),
-            "kind": "walk" if s.get("video") else "scene",
+            "has_3d": bool(s.get("pointcloud")) or s.get("kind") == "tour",
+            "kind": s.get("kind") or ("walk" if s.get("video") else "scene"),
         })
     out.sort(key=lambda s: s.get("created") or "", reverse=True)
     return out
