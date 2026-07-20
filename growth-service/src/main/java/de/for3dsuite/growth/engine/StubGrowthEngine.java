@@ -10,6 +10,7 @@ import de.for3dsuite.growth.model.Dtos.Tree;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
@@ -20,15 +21,29 @@ import org.springframework.stereotype.Component;
  * lineares Demonstrator-Wachstum. Fuer belastbare Prognosen die echte Engine
  * ({@link TreeGrossGrowthEngine}) aktivieren.
  *
- * Spiegelt bewusst die Formel des Python-Stubs (Round-Trip-Test) wider:
- *   BHD += 0.35 cm/Jahr, Hoehe += 0.18 m/Jahr; kleine Baeume scheiden spaet aus.
+ * Spiegelt bewusst die Formel des Python-Stubs (Round-Trip-Test, siehe
+ * scripts/treegross_export.py STUB_SPECIES_GROWTH) wider: artdifferenzierte,
+ * lineare Demonstrator-Zuwaechse; kleine Baeume scheiden spaet aus.
  */
 @Component
 @ConditionalOnProperty(name = "growth.engine", havingValue = "stub", matchIfMissing = true)
 public class StubGrowthEngine implements GrowthEngine {
 
-    private static final double DBH_PER_YEAR = 0.35;
-    private static final double HEIGHT_PER_YEAR = 0.18;
+    private static final double DBH_PER_YEAR = 0.35;    // Default (cm/Jahr)
+    private static final double HEIGHT_PER_YEAR = 0.18;  // Default (m/Jahr)
+
+    /** Artdifferenzierte Demonstrator-Zuwaechse je TreeGrOSS-Artcode:
+     *  {BHD cm/Jahr, Hoehe m/Jahr}. KEIN gefittetes Modell -- muss zur Python-
+     *  Seite (STUB_SPECIES_GROWTH) identisch bleiben (Round-Trip-Test). */
+    private static final Map<Integer, double[]> SPECIES_GROWTH = Map.of(
+            110, new double[]{0.28, 0.18},   // Eiche
+            211, new double[]{0.30, 0.20},   // Buche
+            421, new double[]{0.35, 0.22},   // Birke
+            511, new double[]{0.40, 0.25},   // Fichte
+            517, new double[]{0.38, 0.24},   // Tanne
+            611, new double[]{0.55, 0.35},   // Douglasie
+            711, new double[]{0.30, 0.18},   // Kiefer
+            811, new double[]{0.45, 0.28});  // Laerche
 
     @Override
     public SimulationResult simulate(SimulateRequest req) {
@@ -44,11 +59,13 @@ public class StubGrowthEngine implements GrowthEngine {
             for (Tree t : req.trees()) {
                 double dbh0 = t.dbh_cm() != null ? t.dbh_cm() : 0;
                 double h0 = t.height_m() != null ? t.height_m() : 0;
+                double[] rate = SPECIES_GROWTH.getOrDefault(
+                        t.species(), new double[]{DBH_PER_YEAR, HEIGHT_PER_YEAR});
                 boolean alive = !(dbh0 < 10 && s >= 15);
                 trees.add(new ProjectedTree(
                         t.id(),
-                        round1(dbh0 + DBH_PER_YEAR * s),
-                        round1(h0 + HEIGHT_PER_YEAR * s),
+                        round1(dbh0 + rate[0] * s),
+                        round1(h0 + rate[1] * s),
                         alive,
                         !alive));
             }

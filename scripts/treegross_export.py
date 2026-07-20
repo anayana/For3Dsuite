@@ -49,8 +49,21 @@ from datetime import date
 from pathlib import Path
 
 # Demonstrator-Wachstum (identisch zur Java-StubGrowthEngine)
-STUB_DBH_PER_YEAR = 0.35    # cm/Jahr
-STUB_HEIGHT_PER_YEAR = 0.18  # m/Jahr
+STUB_DBH_PER_YEAR = 0.35    # cm/Jahr (Default)
+STUB_HEIGHT_PER_YEAR = 0.18  # m/Jahr (Default)
+# Artdifferenzierte Demonstrator-Zuwaechse je TreeGrOSS-Artcode (BHD cm/Jahr,
+# Hoehe m/Jahr). KEIN gefittetes Modell -- nur plausibel abgestufte Platzhalter,
+# damit die Prognose artabhaengig variiert, bis die echte TreeGrOSS-Engine laeuft.
+STUB_SPECIES_GROWTH = {
+    110: (0.28, 0.18),  # Eiche
+    211: (0.30, 0.20),  # Buche
+    421: (0.35, 0.22),  # Birke
+    511: (0.40, 0.25),  # Fichte
+    517: (0.38, 0.24),  # Tanne
+    611: (0.55, 0.35),  # Douglasie
+    711: (0.30, 0.18),  # Kiefer
+    811: (0.45, 0.28),  # Laerche
+}
 
 # Klarname/Synonym -> BWINPro/TreeGrOSS-Artnummer (an SpeciesDef anpassen!)
 SPECIES = {
@@ -105,7 +118,7 @@ def trees_from_scene(scene, default_code, origin):
         x = round(xyz[0] - origin[0], 3) if xyz[0] is not None else None
         y = round(xyz[1] - origin[1], 3) if xyz[1] is not None else None
         t = {"id": mk["id"],
-             "species": species_code(a.get("Art") or a.get("species"), default_code),
+             "species": species_code(a.get("Art") or a.get("Baumart") or a.get("species"), default_code),
              "dbh_cm": round(dbh, 1), "height_m": round(h, 1)}
         if x is not None:
             t["x"], t["y"] = x, y
@@ -127,12 +140,36 @@ def trees_from_csv(rows, default_code):
             skipped += 1
             continue
         t = {"id": r.get("label") or r.get("id") or f"t{i:03d}",
-             "species": species_code(r.get("Art") or r.get("species"), default_code),
+             "species": species_code(r.get("Art") or r.get("Baumart") or r.get("species"),
+                                     default_code),
              "dbh_cm": round(dbh, 1), "height_m": round(h, 1), "out_of_stand": False}
         for src, dst in (("x", "x"), ("y", "y")):
             v = as_float(r.get(src))
             if v is not None:
                 t[dst] = round(v, 3)
+        trees.append(t)
+    return trees, skipped
+
+
+def trees_from_stand(data, default_code):
+    """Stand-Inventur (stand_inventory.py / species_renon.py-Ausgabe): trees[] mit
+    BHD_cm, Hoehe_m, world-Koordinate und erkannter Baumart je Baum."""
+    trees, skipped = [], 0
+    for i, r in enumerate(data.get("trees", []), 1):
+        dbh, h = as_float(r.get("BHD_cm")), as_float(r.get("Hoehe_m"))
+        if dbh is None or h is None:
+            skipped += 1
+            continue
+        t = {"id": r.get("id") or f"t{i:03d}",
+             "species": species_code(r.get("Baumart") or r.get("Art") or r.get("species"),
+                                     default_code),
+             "dbh_cm": round(dbh, 1), "height_m": round(h, 1), "out_of_stand": False}
+        w = r.get("world") or []
+        if len(w) >= 2 and w[0] is not None:
+            t["x"], t["y"] = round(w[0], 3), round(w[1], 3)
+        conf = as_float(r.get("Baumart_konfidenz"))
+        if conf is not None:
+            t["species_confidence"] = conf
         trees.append(t)
     return trees, skipped
 
@@ -143,6 +180,9 @@ def do_export(args):
         scene = json.loads(Path(args.scene).read_text(encoding="utf-8"))
         origin = (scene.get("source") or {}).get("origin_xyz") or [0, 0, 0]
         trees, skipped = trees_from_scene(scene, default_code, origin)
+    elif args.from_stand:
+        data = json.loads(Path(args.from_stand).read_text(encoding="utf-8"))
+        trees, skipped = trees_from_stand(data, default_code)
     else:
         with open(args.csv, newline="", encoding="utf-8-sig") as f:
             trees, skipped = trees_from_csv(list(csv.DictReader(f)), default_code)
@@ -175,10 +215,12 @@ def do_simulate(args):
         for t in req.get("trees", []):
             dbh0 = t.get("dbh_cm") or 0.0
             h0 = t.get("height_m") or 0.0
+            rd, rh = STUB_SPECIES_GROWTH.get(
+                t.get("species"), (STUB_DBH_PER_YEAR, STUB_HEIGHT_PER_YEAR))
             alive = not (dbh0 < 10 and s >= 15)   # kleine Baeume scheiden spaet aus
             trees.append({"id": t["id"],
-                          "dbh_cm": round(dbh0 + STUB_DBH_PER_YEAR * s, 1),
-                          "height_m": round(h0 + STUB_HEIGHT_PER_YEAR * s, 1),
+                          "dbh_cm": round(dbh0 + rd * s, 1),
+                          "height_m": round(h0 + rh * s, 1),
                           "alive": alive, "removed": not alive})
         periods.append({"year": base + s, "trees": trees})
     Path(args.out).write_text(
@@ -258,6 +300,8 @@ def main():
     src = ex.add_mutually_exclusive_group(required=True)
     src.add_argument("--scene", help="scene.json als Quelle")
     src.add_argument("--csv", help="Inventur-CSV (BHD_cm,Hoehe_m[,Art,x,y,label])")
+    src.add_argument("--from-stand", help="Stand-Inventur-JSON (stand_inventory/"
+                     "species_renon) mit trees[].Baumart je Baum")
     ex.add_argument("--out", required=True)
     ex.add_argument("--default-species", default="Picea abies",
                     help="Art, wenn nicht je Baum bekannt (Name oder Code)")
