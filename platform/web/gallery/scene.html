@@ -66,6 +66,28 @@
     #validation b { color: #7ee787; }
     #validation .muted { color: #8b949e; font-size: 11px; }
 
+    /* Standort-&-Kontext-Button + Panel (aus scene.metadata) */
+    #ctx-btn { color: #eee; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+      padding: 8px 14px; font-size: 13px; cursor: pointer; }
+    #ctx-btn.active { background: rgba(121,192,255,.22); color: #d3e8ff; }
+    #context { position: absolute; left: 14px; top: 62px; z-index: 18; width: 300px;
+      max-height: calc(100% - 150px); overflow-y: auto; color: #e6edf3;
+      background: rgba(13,17,23,.90); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.14); border-radius: 12px;
+      padding: 12px 15px; font-size: 12.5px; display: none; }
+    #context.on { display: block; }
+    #context .sect { margin-top: 12px; font-size: 11px; text-transform: uppercase;
+      letter-spacing: .04em; color: #8b949e; }
+    #context .sect:first-child { margin-top: 0; }
+    #context table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+    #context td { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,.07);
+      vertical-align: top; }
+    #context td:first-child { color: #8b949e; padding-right: 10px; white-space: nowrap; }
+    #context .src { color: #6e7681; font-size: 10.5px; margin-top: 2px; }
+    #context .prov { color: #6e7681; font-size: 10.5px; margin-top: 10px; line-height: 1.4; }
+    body.mode-3d #context { display: none; }
+
     /* Baum-Marker — Standard gruen; Farbe kann die RGB-Vitalitaet spiegeln */
     .tree-marker { width: 18px; height: 18px; border-radius: 50%;
       background: rgba(126, 231, 135, .25); border: 2px solid #7ee787;
@@ -134,7 +156,9 @@
   <div id="topbar">
     <a href="index.html">← Szenen</a>
     <span id="title"></span>
+    <button id="ctx-btn" hidden>ℹ Standort &amp; Kontext</button>
   </div>
+  <div id="context"></div>
   <div id="modes">
     <button id="mode-pano" class="active">Panorama</button>
     <button id="mode-3d" disabled>3D-Punktwolke</button>
@@ -293,6 +317,64 @@
         `(≤ ${v.match_dist_m} m). ${v.method}</span>`;
     }
 
+    // Standort-&-Kontext-Panel aus scene.metadata (Geo-Anreicherung + Bildanalyse)
+    function buildContext(scene) {
+      const md = scene.metadata;
+      const btn = document.getElementById('ctx-btn');
+      const el = document.getElementById('context');
+      if (!md) return;
+      const geo = md.geo_enriched || {}, img = md.image_derived || {};
+      const sun = (md.observed || {}).sun_position || {};
+      const rows = [];
+      const num = v => (v && typeof v === 'object' && 'value' in v) ? v.value : v;
+      const sect = t => rows.push(`<tr><td colspan="2" class="sect">${t}</td></tr>`);
+      const row = (k, v, u = '') => (v != null) &&
+        rows.push(`<tr><td>${k}</td><td>${v}${u ? ' ' + u : ''}</td></tr>`);
+
+      if (geo.relief && !geo.relief.error) {
+        sect('Standort');
+        row('Höhe', geo.relief.elevation_m, 'm');
+        row('Hangneigung', geo.relief.slope_deg, '°');
+        row('Exposition', geo.relief.aspect_deg, '°');
+      }
+      if (geo.soil && !geo.soil.error) {
+        sect('Boden (0–5 cm)');
+        row('pH', num(geo.soil.phh2o));
+        row('Ton', num(geo.soil.clay), '%');
+        row('Sand', num(geo.soil.sand), '%');
+        row('org. Kohlenstoff', num(geo.soil.soc), 'g/kg');
+        rows.push(`<tr><td colspan="2" class="src">${geo.soil.source} · ${geo.soil.license}</td></tr>`);
+      }
+      if (geo.osm_context && !geo.osm_context.error) {
+        const o = geo.osm_context;
+        if (o.landuse || o.leaf_type || o.name || o.protected_area) {
+          sect('Landbedeckung (OSM)');
+          row('Nutzung', o.landuse);
+          row('Blatttyp', o.leaf_type);
+          row('Name', o.name);
+          row('Schutzgebiet', o.protected_area === true ? 'ja' : o.protected_area);
+        }
+      }
+      if (img.gap_fraction != null) {
+        sect('Bildanalyse');
+        row('Kronenschluss offen', img.canopy_openness_pct, '%');
+        row('Greenness ExG', img.greenness_exg);
+        row('Greenness GLI', img.greenness_gli);
+        if (sun.elevation_deg != null)
+          row('Sonnenstand', `Az ${sun.azimuth_deg}° · H ${sun.elevation_deg}°`);
+      }
+      if (!rows.length) return;
+      const lic = (md.source || {}).license;
+      el.innerHTML = `<table>${rows.join('')}</table>` +
+        `<div class="prov">Abgeleitete Karten-/Bildwerte, keine Messung am Punkt.` +
+        (lic ? ` Bild: ${(md.source||{}).provider||''} ${lic}.` : '') + `</div>`;
+      btn.hidden = false;
+      btn.onclick = () => {
+        const on = el.classList.toggle('on');
+        btn.classList.toggle('active', on);
+      };
+    }
+
     let cloud = null;   // lazy initialisiert beim ersten Wechsel in die 3D-Ansicht
     let viewer = null;
 
@@ -391,6 +473,7 @@
       document.getElementById('title').textContent = scene.title || sid;
       buildLegend(scene);
       buildValidation(scene);
+      buildContext(scene);
 
       const btnPano = document.getElementById('mode-pano');
       const btn3d = document.getElementById('mode-3d');

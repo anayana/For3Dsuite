@@ -188,13 +188,16 @@ def raster_point_sample(path, lon, lat, band=1):
 def build_record(lon, lat, pano_id=None, image_url=None, license="unknown",
                  provider=None, coord_precision_m=None, coord_source=None,
                  pano=None, rasters=None):
-    geo = {"_note": "per Koordinate aus freien Fremdquellen",
-           "soil": soil_soilgrids(lon, lat),
-           "relief": elevation_relief(lon, lat),
-           "osm_context": osm_context(lon, lat),
-           "retrieved_at": date.today().isoformat()}
-    for label, path, band in (rasters or []):
-        geo.setdefault("rasters", {})[label] = raster_point_sample(path, lon, lat, band)
+    if lon is None or lat is None:
+        geo = {"_note": "keine Koordinate vorhanden — nur Bildanalyse"}
+    else:
+        geo = {"_note": "per Koordinate aus freien Fremdquellen",
+               "soil": soil_soilgrids(lon, lat),
+               "relief": elevation_relief(lon, lat),
+               "osm_context": osm_context(lon, lat),
+               "retrieved_at": date.today().isoformat()}
+        for label, path, band in (rasters or []):
+            geo.setdefault("rasters", {})[label] = raster_point_sample(path, lon, lat, band)
 
     observed = {"_note": "direkt aus dem Bild (qualitativ)",
                 "season": None, "phenology": None, "sun_position": None, "confidence": None}
@@ -226,7 +229,9 @@ def summarize(rec):
     g = rec["geo_enriched"]
     print(f"Koordinate: {rec['geometry']['coordinates']}")
     for key, label in (("soil", "Boden"), ("relief", "Relief"), ("osm_context", "OSM")):
-        b = g[key]
+        b = g.get(key)
+        if b is None:
+            continue
         if b.get("error"):
             print(f"  {label:7s}: FEHLER ({b['error']})")
         elif key == "soil":
@@ -272,13 +277,29 @@ def main():
 
     scene = None
     lon, lat = args.lon, args.lat
+    pano = args.pano
     if args.scene:
         scene = json.loads(open(args.scene, encoding="utf-8").read())
         geom = (scene.get("geometry") or {}).get("coordinates")
+        gps = (scene.get("source") or {}).get("gps") or {}
         if lon is None and geom:
             lon, lat = geom[0], geom[1]
+        elif lon is None and gps.get("lat") is not None:   # Poly-Haven: source.gps
+            lon, lat = gps["lon"], gps["lat"]
+        # Pano automatisch neben der scene.json nehmen, falls nicht angegeben
+        if pano is None:
+            cand = os.path.join(os.path.dirname(os.path.abspath(args.scene)), "pano.jpg")
+            if os.path.isfile(cand):
+                pano = cand
+        if args.id is None:
+            args.id = scene.get("id")
+        if args.license == "unknown":
+            args.license = (scene.get("source") or {}).get("license", "unknown")
+    if (lon is None or lat is None) and not pano:
+        sys.exit("--lon/--lat angeben (oder --scene mit geometry.coordinates/source.gps "
+                 "bzw. --pano fuer reine Bildanalyse)")
     if lon is None or lat is None:
-        sys.exit("--lon und --lat angeben (oder --scene mit geometry.coordinates)")
+        print("Hinweis: keine Koordinate — nur Bildanalyse (geo_enriched bleibt leer)")
 
     rasters = []
     for spec in args.raster:
@@ -294,7 +315,7 @@ def main():
     rec = build_record(lon, lat, pano_id=args.id or (scene or {}).get("id"),
                        image_url=args.image_url, license=args.license,
                        provider=args.provider, coord_precision_m=args.coord_precision_m,
-                       coord_source=args.coord_source, pano=args.pano, rasters=rasters)
+                       coord_source=args.coord_source, pano=pano, rasters=rasters)
     summarize(rec)
 
     if scene is not None:

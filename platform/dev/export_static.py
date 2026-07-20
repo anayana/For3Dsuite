@@ -13,6 +13,12 @@ import json
 import shutil
 from pathlib import Path
 
+from PIL import Image
+
+Image.MAX_IMAGE_PIXELS = None
+MAX_PANO_W = 4096   # Web-Viewer braucht kein 8k; haelt docs/ schlank + pushbar
+JPEG_Q = 82
+
 REPO = Path(__file__).resolve().parents[2]
 MEDIA = REPO / "platform" / "dev-data" / "media"
 GALLERY = REPO / "platform" / "web" / "gallery"
@@ -65,8 +71,17 @@ def main():
         dst = OUT / "media" / "scenes" / sid
         dst.mkdir(parents=True)
         for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken, Walk-Video)
-            if f.is_file() and f.suffix in (".jpg", ".bin", ".mp4"):
-                shutil.copyfile(f, dst / f.name)
+            if not (f.is_file() and f.suffix in (".jpg", ".bin", ".mp4")):
+                continue
+            # Panos auf MAX_PANO_W begrenzen (Thumbs/kleine Bilder bleiben unberuehrt)
+            if f.suffix == ".jpg" and f.name != "thumb.jpg":
+                with Image.open(f) as im:
+                    if im.width > MAX_PANO_W:
+                        h = round(im.height * MAX_PANO_W / im.width)
+                        im.convert("RGB").resize((MAX_PANO_W, h), Image.LANCZOS) \
+                          .save(dst / f.name, quality=JPEG_Q)
+                        continue
+            shutil.copyfile(f, dst / f.name)
 
         rel = f"media/scenes/{sid}"
         # Panorama nur setzen, wenn vorhanden (wolken-only-Szenen wie TreeScope

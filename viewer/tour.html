@@ -160,7 +160,9 @@
     function showTree(t, px, py) {
       const el = document.getElementById('treeinfo');
       const row = (k, v, u) => v == null ? '' : `<tr><td>${k}</td><td><b>${v}</b> ${u||''}</td></tr>`;
+      const art = t.Baumart ? `${t.Baumart} (${Math.round((t.Baumart_konfidenz||0)*100)} %)` : null;
       el.innerHTML = `<div style="margin-bottom:4px"><b>${t.id}</b></div><table>`
+        + row('Baumart (RGB)', art, '')
         + row('BHD', t.BHD_cm, 'cm')
         + row('Höhe', t.Hoehe_m, 'm')
         + row('Grundfläche', t.Grundflaeche_m2, 'm²')
@@ -296,10 +298,13 @@
         </table>
         <div class="grp" style="padding-top:10px">BHD-Verteilung (cm)</div>
         <div id="hist">${bars}</div>
-        <div class="qual"><b style="color:#7ee787">Art:</b> ${ql.Baumart}<br>
+        ${st.artenzusammensetzung_rgb ? `<div class="grp" style="padding-top:10px">Baumarten aus RGB</div>
+          <div class="qual">${Object.entries(st.artenzusammensetzung_rgb.anteile_prozent).map(([a,p])=>`${a} ${p} %`).join(' · ')}
+          <br><span style="color:#8b97a5">${st.artenzusammensetzung_rgb.n_klassifiziert} Stämme klassifiziert · ${st.artenzusammensetzung_rgb.modell}</span></div>` : ''}
+        <div class="qual"><b style="color:#7ee787">Art (Doku):</b> ${ql.Baumart}<br>
           <b style="color:#7ee787">Struktur:</b> ${ql.Struktur}<br>
           <b style="color:#7ee787">Erfassung:</b> ${ql.Vollstaendigkeit}</div>
-        <div class="foot">${st.methodik}</div>`;
+        <div class="foot">${st.methodik}${st.artenzusammensetzung_rgb ? ' · ' + st.artenzusammensetzung_rgb.hinweis : ''}</div>`;
     }
 
     const _d = new THREE.Vector3(), _r = new THREE.Vector3();

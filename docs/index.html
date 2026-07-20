@@ -31,6 +31,7 @@
     .chip.markers { color: #7ee787; }
     .chip.d3 { color: #79c0ff; border: 1px solid #1f3d63; }
     .chip.walk { color: #f0b429; border: 1px solid #6b4f10; }
+    .chip.tour { color: #7ee787; border: 1px solid #1f5c2e; }
     #empty { padding: 40px 32px; color: #8b949e; }
     footer { padding: 0 32px 32px; font-size: 12px; color: #6e7681; }
     footer a { color: #58a6ff; text-decoration: none; }
@@ -59,7 +60,9 @@
         const a = document.createElement('a');
         a.className = 'card';
         const isWalk = s.kind === 'walk';
-        a.href = (isWalk ? 'walk.html?id=' : 'scene.html?id=') + encodeURIComponent(s.id);
+        const isTour = s.kind === 'tour';
+        const page = isWalk ? 'walk.html?id=' : isTour ? 'tour.html?id=' : 'scene.html?id=';
+        a.href = page + encodeURIComponent(s.id);
         a.innerHTML = `
           ${s.thumb_url ? `<img src="${s.thumb_url}" alt="" loading="lazy">` : '<img alt="">'}
           <div class="body">
@@ -68,7 +71,9 @@
             <div class="meta">
               <span class="chip">${s.source_type || 'pano'}</span>
               ${isWalk ? '<span class="chip walk">Waldspaziergang</span>' : ''}
-              ${s.has_3d ? '<span class="chip d3">3D</span>' : ''}
+              ${isTour ? '<span class="chip tour">Begehbare Tour</span>' : ''}
+              ${s.has_3d && !isTour ? '<span class="chip d3">3D</span>' : ''}
+              ${isTour ? '<span class="chip d3">LiDAR + RGB</span>' : ''}
               ${s.markers ? `<span class="chip markers">${s.markers} Marker</span>` : ''}
               <span class="chip">${(s.created || '').slice(0, 10)}</span>
             </div>
