@@ -4,6 +4,8 @@
   <meta charset="utf-8" />
   <title>360Pano3D — Szenen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; }
@@ -32,6 +34,35 @@
     .chip.d3 { color: #79c0ff; border: 1px solid #1f3d63; }
     .chip.walk { color: #f0b429; border: 1px solid #6b4f10; }
     .chip.tour { color: #7ee787; border: 1px solid #1f5c2e; }
+    /* Ansicht-Umschalter Raster | Karte */
+    #views { display: flex; gap: 0; margin-top: 14px; width: fit-content;
+             border: 1px solid #30363d; border-radius: 9px; overflow: hidden; }
+    #views button { background: none; border: none; color: #8b949e; cursor: pointer;
+                    padding: 6px 16px; font-size: 13px; }
+    #views button.active { background: rgba(88,166,255,.18); color: #cfe4ff; }
+    /* Uebersichtskarte */
+    #map { display: none; height: clamp(380px, 70vh, 620px); margin: 24px 32px 48px;
+           border: 1px solid #30363d; border-radius: 12px; background: #161b22; }
+    body.view-map #map { display: block; }
+    body.view-map #grid { display: none; }
+    .leaflet-popup-content-wrapper { background: #161b22; color: #e6edf3;
+      border: 1px solid #30363d; border-radius: 12px; }
+    .leaflet-popup-tip { background: #161b22; border: 1px solid #30363d; }
+    .leaflet-popup-content { margin: 0; width: 232px !important; }
+    .pop { display: block; text-decoration: none; color: inherit; }
+    .pop img { width: 100%; aspect-ratio: 2/1; object-fit: cover; display: block;
+               border-radius: 11px 11px 0 0; background: #21262d; }
+    .pop .pb { padding: 9px 11px 11px; }
+    .pop h3 { margin: 0 0 3px; font-size: 13.5px; font-weight: 600; }
+    .pop p { margin: 0 0 7px; font-size: 11.5px; color: #8b949e; line-height: 1.35;
+             display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+             overflow: hidden; }
+    .pop .open { font-size: 12px; color: #58a6ff; }
+    .marker-dot { width: 15px; height: 15px; border-radius: 50%;
+      background: rgba(126,231,135,.45); border: 2px solid #7ee787;
+      box-shadow: 0 0 9px rgba(126,231,135,.7); }
+    #nocoord { padding: 0 32px 24px; color: #6e7681; font-size: 12px; display: none; }
+    body.view-map #nocoord { display: block; }
     #empty { padding: 40px 32px; color: #8b949e; }
     footer { padding: 0 32px 32px; font-size: 12px; color: #6e7681; }
     footer a { color: #58a6ff; text-decoration: none; }
@@ -43,14 +74,88 @@
     <p>Selbst gehostete 360°-Panoramen aus terrestrischen Laserscans (E57) und
        Fisheye-Aufnahmen. Marker in den Szenen verorten aus der Punktwolke
        abgeleitete Inventurdaten.</p>
+    <div id="views">
+      <button id="v-grid" class="active">Raster</button>
+      <button id="v-map">Karte</button>
+    </div>
   </header>
 
+  <div id="map"></div>
+  <div id="nocoord"></div>
   <div id="grid"></div>
   <div id="empty" hidden>Noch keine Szenen veröffentlicht. &nbsp;</div>
 
   <footer>Open-Source-Stack: Hugin · Pannellum · Garage · Caddy — <a href="https://github.com/anayana/For3Dsuite">Quellcode auf GitHub</a></footer>
 
   <script>
+    // Zielseite je Szenentyp (auch von der Karte genutzt)
+    function pageFor(s) {
+      const p = s.kind === 'walk' ? 'walk.html?id=' : s.kind === 'tour' ? 'tour.html?id='
+              : 'scene.html?id=';
+      return p + encodeURIComponent(s.id);
+    }
+
+    // Uebersichtskarte: Spot -> Vorschau (Bild + Kurzbeschreibung) -> Szene oeffnen
+    let map = null, mapBounds = null;
+    function buildMap(scenes) {
+      const located = scenes.filter(s => typeof s.lat === 'number' && typeof s.lon === 'number');
+      const missing = scenes.length - located.length;
+      document.getElementById('nocoord').textContent = missing
+        ? `${missing} von ${scenes.length} Szenen ohne hinterlegte Koordinate — nur im Raster sichtbar.`
+        : '';
+      if (!located.length || map) return;
+      map = L.map('map', { scrollWheelZoom: false });
+      // Dunkler Basemap passend zur UI; bei Ausfall auf OSM-Standard umschalten
+      const dark = L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        { attribution: '&copy; OpenStreetMap &middot; &copy; CARTO',
+          subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+      let failed = 0;
+      dark.on('tileerror', () => {
+        if (++failed === 3 && map.hasLayer(dark)) {   // dauerhaft nicht erreichbar
+          map.removeLayer(dark);
+          L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            { attribution: '&copy; OpenStreetMap', maxZoom: 19 }).addTo(map);
+        }
+      });
+
+      const bounds = [];
+      for (const s of located) {
+        bounds.push([s.lat, s.lon]);
+        const icon = L.divIcon({ className: '', html: '<div class="marker-dot"></div>',
+                                 iconSize: [15, 15], iconAnchor: [8, 8] });
+        const html = document.createElement('a');
+        html.className = 'pop';
+        html.href = pageFor(s);
+        html.innerHTML =
+          `${s.thumb_url ? `<img src="${s.thumb_url}" alt="" loading="lazy">` : ''}` +
+          `<div class="pb"><h3></h3><p></p><div class="open">Szene öffnen →</div></div>`;
+        html.querySelector('h3').textContent = s.title || s.id;
+        html.querySelector('p').textContent = s.description || '';
+        L.marker([s.lat, s.lon], { icon }).addTo(map).bindPopup(html, { closeButton: true });
+      }
+      mapBounds = bounds;
+      fitMap();
+    }
+
+    // Groesse erst nach dem Einblenden korrekt -> invalidateSize VOR fitBounds
+    function fitMap() {
+      if (!map || !mapBounds) return;
+      map.invalidateSize();
+      map.fitBounds(mapBounds, { padding: [50, 50], maxZoom: 9 });
+    }
+
+    function initViews(scenes) {
+      const bg = document.getElementById('v-grid'), bm = document.getElementById('v-map');
+      bg.onclick = () => { document.body.classList.remove('view-map');
+        bg.classList.add('active'); bm.classList.remove('active'); };
+      bm.onclick = () => { document.body.classList.add('view-map');
+        bm.classList.add('active'); bg.classList.remove('active');
+        buildMap(scenes);
+        requestAnimationFrame(fitMap);   // nach dem Layout neu einpassen
+      };
+    }
+
     async function load() {
       const scenes = await (await fetch('data/scenes.json')).json();
       const grid = document.getElementById('grid');
@@ -61,8 +166,7 @@
         a.className = 'card';
         const isWalk = s.kind === 'walk';
         const isTour = s.kind === 'tour';
-        const page = isWalk ? 'walk.html?id=' : isTour ? 'tour.html?id=' : 'scene.html?id=';
-        a.href = page + encodeURIComponent(s.id);
+        a.href = pageFor(s);
         a.innerHTML = `
           ${s.thumb_url ? `<img src="${s.thumb_url}" alt="" loading="lazy">` : '<img alt="">'}
           <div class="body">
@@ -82,6 +186,7 @@
         a.querySelector('p').textContent = s.description || '';
         grid.appendChild(a);
       }
+      initViews(scenes);
     }
     load();
   </script>

@@ -102,7 +102,7 @@ def main():
         (OUT / "data" / f"scene-{sid}.json").write_text(
             json.dumps(s, ensure_ascii=False), encoding="utf-8")
 
-        listing.append({
+        entry = {
             "id": sid, "title": s.get("title"),
             "description": s.get("description", ""),
             "created": s.get("created"),
@@ -111,7 +111,15 @@ def main():
             "source_type": (s.get("source") or {}).get("type"),
             "has_3d": bool(s.get("pointcloud")),
             "kind": "walk" if s.get("video") else "scene",
-        })
+        }
+        # Koordinate fuer die Uebersichtskarte (source.gps, sonst metadata.geometry)
+        gps = (s.get("source") or {}).get("gps") or {}
+        geom = ((s.get("metadata") or {}).get("geometry") or {}).get("coordinates")
+        if gps.get("lat") is not None:
+            entry["lat"], entry["lon"] = gps["lat"], gps["lon"]
+        elif geom:
+            entry["lon"], entry["lat"] = geom[0], geom[1]
+        listing.append(entry)
     listing.sort(key=lambda x: x.get("created") or "", reverse=True)
     (OUT / "data" / "scenes.json").write_text(
         json.dumps(listing, ensure_ascii=False), encoding="utf-8")
