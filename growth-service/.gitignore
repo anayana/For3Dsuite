@@ -1,4 +1,12 @@
 target/
-lib/*.jar
-!lib/.gitkeep
 *.class
+
+# TreeGrOSS (GPLv3) wird NICHT im Repo mitgeliefert -- lokal per
+# lib/fetch_treegross.sh von der NW-FVA holen (siehe README).
+lib/*
+!lib/.gitkeep
+!lib/fetch_treegross.sh
+
+# Artefakte des Standalone-Pruefstands
+tools/out/
+tools/*.tsv

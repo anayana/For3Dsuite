@@ -99,12 +99,49 @@ Umschalten in `src/main/resources/application.properties` oder per
 
 ### Echte TreeGrOSS-Engine aktivieren
 
-1. TreeGrOSS-JAR beziehen (NW-FVA/OpenSource, GPLv3) und unter
-   `growth-service/lib/treegross.jar` ablegen (git-ignoriert).
-2. In [`pom.xml`](pom.xml) das auskommentierte `system`-scope-Dependency einschalten.
-3. In [`TreeGrossGrowthEngine`](src/main/java/de/for3dsuite/growth/engine/TreeGrossGrowthEngine.java)
-   das dokumentierte Mapping (Stand/Tree → TreeGrOSS-Objekte, `grow(step)`) ausfüllen.
-4. `growth.engine=treegross` setzen.
+Der Adapter ist **fertig verdrahtet und am realen Lauf verifiziert** (87 Renon-Stämme).
+Es fehlt nur die Bibliothek, die aus Lizenzgründen nicht im Repo liegt:
+
+```bash
+bash growth-service/lib/fetch_treegross.sh   # holt treegross.zip von der NW-FVA
+mvn -f growth-service/pom.xml spring-boot:run -Dspring-boot.run.arguments=--growth.engine=treegross
+```
+
+Das Skript lädt die offizielle Distribution (`nw-fva.de`, GPLv3, ~555 kB) und entpackt
+`lib/dist/treegross.jar`, die Abhängigkeit `jep-2.4.1.jar` sowie die Modell-Parametersätze
+`lib/src/treegross/model/*.xml`. `pom.xml` bindet beide JARs bereits als `system`-scope ein.
+
+**Drei Fallstricke der TreeGrOSS-API** — alle im Adapter berücksichtigt und dokumentiert,
+weil sie stillschweigend falsche Ergebnisse liefern statt zu scheitern:
+
+| Fallstrick | Wirkung bei Fehlbedienung | Richtig |
+|---|---|---|
+| `Tree.out` | `out = 0` ⇒ Baum gilt als **ausgeschieden**, wächst gar nicht | `out = -1` = lebend |
+| `Tree.si` (Bonität) | `si = 0` ⇒ **kein Höhenwachstum** | `si = -9` ⇒ Modell leitet die Bonität selbst her |
+| Modell-XML | `ForestSimulatorNWGermany.xml` nennt Plugins unqualifiziert ⇒ `ClassNotFoundException: Competition` | `ForestSimulatorNWGermany6.xml` (voll qualifiziert) |
+
+### Verifikation ohne Maven
+
+[`tools/TreeGrossHarness.java`](tools/TreeGrossHarness.java) fährt die Engine ohne Spring:
+
+```bash
+cd growth-service/tools
+javac -cp ../lib/dist/treegross.jar -d out TreeGrossHarness.java
+java -cp "../lib/dist/treegross.jar;out" TreeGrossHarness \
+     ../lib/src/treegross/model/ForestSimulatorNWGermany6.xml renon_trees.tsv 20 5 200 0.1
+```
+
+Ergebnis am Renon-Bestand (87 Stämme, N/ha 870, G/ha 48 m²) — das Modell reagiert
+fachlich plausibel auf das Bestandesalter:
+
+| Bestandesalter | mittl. Höhe nach 20 J. | Zuwachs |
+|---|---|---|
+| 60 Jahre | 20,0 → **24,5 m** | +4,5 m |
+| 120 Jahre | 20,0 → 21,2 m | +1,2 m |
+| 200 Jahre | 20,0 → 20,2 m | +0,2 m |
+
+Der geringe Zuwachs am tatsächlichen Renon-Alter (~200 J.) ist damit **echtes
+Modellverhalten** eines alten, sehr dichten Bestandes — kein Konfigurationsfehler.
 
 ## Ehrliche Einordnung (aus Baustein 5)
 

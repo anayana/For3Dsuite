@@ -46,16 +46,24 @@
         </dependency>
 
         <!--
-          Echte TreeGrOSS-Engine aktivieren: JAR unter lib/treegross.jar ablegen
-          und dieses Dependency einschalten (system-scope, nicht redistribuiert).
+          Echte TreeGrOSS-Engine (NW-FVA, GPLv3). Die JARs liegen NICHT im Repo:
+          vorher `bash lib/fetch_treegross.sh` ausfuehren. system-scope = wird
+          nicht mitgeliefert/redistribuiert, bleibt sauber getrennt.
+        -->
         <dependency>
             <groupId>de.nwfva</groupId>
             <artifactId>treegross</artifactId>
             <version>local</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/treegross.jar</systemPath>
+            <systemPath>${project.basedir}/lib/dist/treegross.jar</systemPath>
         </dependency>
-        -->
+        <dependency>
+            <groupId>org.nfunk</groupId>
+            <artifactId>jep</artifactId>
+            <version>2.4.1</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/dist/lib/jep-2.4.1.jar</systemPath>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
