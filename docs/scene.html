@@ -57,6 +57,15 @@
     #lod button.active { background: rgba(121,192,255,.22); color: #d3e8ff; }
     body.mode-3d #lod { display: flex; }
 
+    /* Einfaerbung der Punktwolke (unten rechts, nur 3D-Modus) */
+    #coloring { position: absolute; bottom: 18px; right: 16px; z-index: 15;
+      display: none; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px; overflow: hidden; }
+    #coloring button { background: none; border: none; color: #cfcfcf; cursor: pointer;
+      padding: 7px 16px; font-size: 12.5px; }
+    #coloring button.active { background: rgba(126,231,135,.22); color: #d8ffdb; }
+    body.mode-3d #coloring.on { display: flex; }
+
     /* Validierungs-Panel (unten links, bei vorhandenen Kennzahlen) */
     #validation { position: absolute; bottom: 16px; left: 14px; z-index: 15;
       max-width: 340px; color: #d7e0ea; background: rgba(13,17,23,.82);
@@ -165,6 +174,7 @@
   </div>
   <div id="variants"></div>
   <div id="lod"></div>
+  <div id="coloring"></div>
   <div id="validation" hidden></div>
   <div id="legend">
     <b>RGB-Vitalität</b>
@@ -432,6 +442,17 @@
     }
 
     // Dichte-Stufen der Punktwolke (Ausgedünnt | Voll), nur in der 3D-Ansicht
+    // Aktuelle Dichte-Stufe und Einfaerbung; beide bestimmen die geladene .bin
+    let curLevel = null, curColoring = 'rgb';
+
+    function binUrlFor(lv, coloring) {
+      return (coloring === 'itcd' && lv.bin_itcd_url) ? lv.bin_itcd_url : lv.bin_url;
+    }
+    async function loadCloud() {
+      if (!cloud || !curLevel) return;
+      await cloud.loadBin(binUrlFor(curLevel, curColoring), curLevel);
+    }
+
     function buildLod(scene) {
       const bar = document.getElementById('lod');
       const levels = (scene.pointcloud && scene.pointcloud.levels) || [];
@@ -448,7 +469,34 @@
           b.classList.add('active');
           const t = b.textContent;
           b.textContent = 'lädt …';
-          await cloud.loadBin(lv.bin_url, lv);
+          curLevel = lv;
+          await loadCloud();
+          b.textContent = t;
+        };
+        bar.appendChild(b);
+      });
+    }
+
+    // Einfaerbung: Original-RGB oder ITCD-Segmentierung (segment_itcd.py)
+    function buildColoring(scene) {
+      const bar = document.getElementById('coloring');
+      const levels = (scene.pointcloud && scene.pointcloud.levels)
+                  || (scene.pointcloud ? [scene.pointcloud] : []);
+      if (!levels.some(lv => lv.bin_itcd_url)) return;   // nichts segmentiert
+      bar.classList.add('on');
+      [['rgb', 'RGB'], ['itcd', 'Einzelbäume']].forEach(([id, label], i) => {
+        const b = document.createElement('button');
+        b.textContent = label;
+        if (i === 0) b.classList.add('active');
+        b.onclick = async () => {
+          if (b.classList.contains('active') || !cloud) return;
+          if (id === 'itcd' && !(curLevel && curLevel.bin_itcd_url)) return;
+          bar.querySelectorAll('button').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+          const t = b.textContent;
+          b.textContent = 'lädt …';
+          curColoring = id;
+          await loadCloud();
           b.textContent = t;
         };
         bar.appendChild(b);
@@ -460,7 +508,9 @@
       cloud = new CloudViewer(document.getElementById('cloud'), (m) => showInfo(null, m));
       window._cloud = cloud;   // Debug-/Test-Zugriff
       const origin = (scene.source && scene.source.origin_xyz) || [0, 0, 0];
-      await cloud.loadBin(scene.pointcloud.bin_url, scene.pointcloud);
+      const levels = scene.pointcloud.levels || [];
+      curLevel = levels[0] || scene.pointcloud;   // Default = erste (schnellste) Stufe
+      await loadCloud();
       cloud.setMarkers(scene.markers || [], origin);
     }
 
@@ -486,6 +536,7 @@
         btn3d.classList.add('active');
         document.body.classList.add('mode-3d');
         buildLod(scene);
+        buildColoring(scene);
         btn3d.textContent = '3D lädt …';
         await initCloud(scene);
         btn3d.textContent = '3D-Punktwolke';
@@ -495,6 +546,7 @@
       viewer = makeViewer(scene, scene.pano_url, null);
       buildVariants(scene);
       buildLod(scene);
+      buildColoring(scene);
 
       // 3D-Umschalter nur aktivieren, wenn eine Punktwolke vorliegt
       if (hasCloud) {

@@ -97,6 +97,10 @@ def main():
             pc["bin_url"] = rel + "/" + pc["bin"].rsplit("/", 1)[-1]
             for lv in pc.get("levels") or []:
                 lv["bin_url"] = rel + "/" + lv["bin"].rsplit("/", 1)[-1]
+                # ITCD-Einfaerbung (segment_itcd.py), falls erzeugt
+                seg = lv.get("bin_itcd")
+                if seg and (src / seg.rsplit("/", 1)[-1]).is_file():
+                    lv["bin_itcd_url"] = rel + "/" + seg.rsplit("/", 1)[-1]
         elif pc:
             s["pointcloud"] = None
         (OUT / "data" / f"scene-{sid}.json").write_text(
