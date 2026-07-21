@@ -11,6 +11,7 @@ import de.for3dsuite.growth.model.Dtos.SimulateSpec;
 import de.for3dsuite.growth.model.Dtos.SimulationResult;
 import de.for3dsuite.growth.model.Dtos.Stand;
 import de.for3dsuite.growth.model.Dtos.Tree;
+import java.time.Year;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -27,13 +28,16 @@ class StubGrowthEngineTest {
 
         List<Period> p = res.periods();
         assertEquals(5, p.size());                  // 0,5,10,15,20
-        assertEquals(2024 + 20, p.get(4).year());   // relativ zum aktuellen Jahr geprueft in name-Test
-        var t1_2044 = p.get(4).trees().get(0);
-        assertTrue(t1_2044.dbh_cm() > 50.0);        // gewachsen
-        assertTrue(t1_2044.height_m() > 25.0);
+        // Basisjahr ist das aktuelle Jahr -> relativ pruefen, nicht fest verdrahten
+        int base = Year.now().getValue();
+        assertEquals(base, p.get(0).year());
+        assertEquals(base + 20, p.get(4).year());
+        var last = p.get(4).trees().get(0);
+        assertTrue(last.dbh_cm() > 50.0);           // gewachsen
+        assertTrue(last.height_m() > 25.0);
         // kleiner Baum scheidet spaet aus
-        var t2_2044 = p.get(4).trees().get(1);
-        assertFalse(t2_2044.alive());
-        assertTrue(t2_2044.removed());
+        var small_last = p.get(4).trees().get(1);
+        assertFalse(small_last.alive());
+        assertTrue(small_last.removed());
     }
 }

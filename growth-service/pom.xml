@@ -77,6 +77,11 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- system-scope-JARs (treegross, jep) werden sonst NICHT ins
+                         Fat-JAR gepackt -> NoClassDefFoundError treegross/base/Stand -->
+                    <includeSystemScope>true</includeSystemScope>
+                </configuration>
             </plugin>
         </plugins>
     </build>

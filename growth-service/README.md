@@ -68,6 +68,21 @@ cd growth-service
 mvn spring-boot:run          # startet auf Port 8362 (Default-Engine: stub)
 ```
 
+Mit der echten Engine als Fat-JAR (am Renon-Bestand verifiziert, HTTP 200 in ~2 s
+fuer 85 Baeume ueber 20 Jahre):
+
+```bash
+mvn -B package
+java -jar target/growth-service-0.1.0.jar \
+    --growth.engine=treegross \
+    --growth.treegross.model=lib/src/treegross/model/ForestSimulatorNWGermany6.xml
+```
+
+> **Fallstrick Fat-JAR:** `treegross`/`jep` haengen per `system`-scope am Projekt,
+> und Maven packt solche JARs standardmaessig **nicht** ins Boot-JAR — der Dienst
+> startet dann mit `NoClassDefFoundError: treegross/base/Stand`. Deshalb steht im
+> `spring-boot-maven-plugin` `<includeSystemScope>true</includeSystemScope>`.
+
 Test des ganzen Weges gegen eine Demo-Szene:
 
 ```bash
