@@ -277,7 +277,8 @@
         fut.classList.toggle('active', mode === 'fut');
         prognote.hidden = mode !== 'fut';
         prognote.textContent = mode === 'fut'
-          ? 'Modellprognose (Demonstrator) — belastbar erst mit TreeGrOSS-Dienst.' : '';
+          ? 'TreeGrOSS/BWINPro (NW-FVA, GPLv3) · Alter 200 J., Bonität 32 · '
+            + 'Fichte angenommen (Marker tragen keine Art).' : '';
         renderAttrs(m, mode);
       };
       if (m.prognosis) {
