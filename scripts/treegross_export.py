@@ -153,7 +153,18 @@ def trees_from_csv(rows, default_code):
 
 def trees_from_stand(data, default_code):
     """Stand-Inventur (stand_inventory.py / species_renon.py-Ausgabe): trees[] mit
-    BHD_cm, Hoehe_m, world-Koordinate und erkannter Baumart je Baum."""
+    BHD_cm, Hoehe_m, world-Koordinate und erkannter Baumart je Baum.
+
+    Dies ist der Weg fuer ARTSPEZIFISCHE Prognosen, weil hier BHD, Hoehe und
+    Baumart aus derselben Quelle stammen.
+
+    ACHTUNG -- nicht stattdessen die Arten in die Szenen-Marker mergen:
+    Stand-Inventur und Szenen-Marker sind zwei unabhaengige Detektionslaeufe,
+    die beide nach BHD absteigend durchnummerieren. Gleiche IDs meinen also
+    NICHT denselben Baum (am Renon-Setup: Median-Lagedifferenz 14 m). Ein Merge
+    ueber die ID verteilt die Arten still auf die falschen Staemme; nur ein
+    Positions-Matching mit enger Toleranz waere zulaessig.
+    """
     trees, skipped = [], 0
     for i, r in enumerate(data.get("trees", []), 1):
         dbh, h = as_float(r.get("BHD_cm")), as_float(r.get("Hoehe_m"))
