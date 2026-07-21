@@ -348,7 +348,9 @@
         row('Hangneigung', geo.relief.slope_deg, '°');
         row('Exposition', geo.relief.aspect_deg, '°');
       }
-      if (geo.soil && !geo.soil.error) {
+      // Boden nur, wenn wirklich Werte vorliegen (SoilGrids liefert nicht ueberall)
+      if (geo.soil && !geo.soil.error &&
+          ['phh2o', 'clay', 'sand', 'soc'].some(k => num(geo.soil[k]) != null)) {
         sect('Boden (0–5 cm)');
         row('pH', num(geo.soil.phh2o));
         row('Ton', num(geo.soil.clay), '%');

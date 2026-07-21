@@ -42,6 +42,10 @@ ASSETS = {
     "niederwihl_forest": "Totholz und Moos",
     "woods": "Herbstliches Waldstueck am Fluss",
     "nature_reserve_forest": "Wald im Naturschutzgebiet",
+    # Hecken/Formschnitt -- Gehoelzstrukturen ausserhalb des Waldes
+    "symmetrical_garden_02": "Formgarten mit geschnittenen Heckenreihen",
+    "quadrangle_sunny": "Innenhof, von hohen Schnitthecken gerahmt",
+    "furstenstein": "Schlossgarten mit Formschnitt-Kegeln und Heckenbaendern",
 }
 
 
