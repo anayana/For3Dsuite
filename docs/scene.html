@@ -57,6 +57,35 @@
     #lod button.active { background: rgba(121,192,255,.22); color: #d3e8ff; }
     body.mode-3d #lod { display: flex; }
 
+    /* Navigationsart (oben rechts, nur 3D-Modus) */
+    #nav { position: absolute; top: 14px; right: 16px; z-index: 16; display: none;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px; overflow: hidden; }
+    #nav button { background: none; border: none; color: #cfcfcf; cursor: pointer;
+      padding: 7px 16px; font-size: 12.5px; }
+    #nav button.active { background: rgba(126,231,135,.22); color: #d8ffdb; }
+    body.mode-3d #nav { display: flex; }
+
+    /* Fadenkreuz + Tastenhilfe, nur waehrend des Begehens */
+    #crosshair { position: absolute; left: 50%; top: 50%; z-index: 14;
+      width: 14px; height: 14px; margin: -7px 0 0 -7px; display: none;
+      pointer-events: none; }
+    #crosshair::before, #crosshair::after { content: ''; position: absolute;
+      background: rgba(255,255,255,.75); box-shadow: 0 0 2px #000; }
+    #crosshair::before { left: 6px; top: 0; width: 2px; height: 14px; }
+    #crosshair::after { top: 6px; left: 0; height: 2px; width: 14px; }
+    body.walking #crosshair { display: block; }
+
+    #walkhint { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+      z-index: 17; display: none; text-align: center; color: #e6edf3;
+      background: rgba(13,17,23,.86); backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,.15); border-radius: 12px;
+      padding: 16px 22px; font-size: 13px; line-height: 1.7; cursor: pointer; }
+    #walkhint b { color: #7ee787; }
+    #walkhint kbd { background: rgba(255,255,255,.12); border-radius: 4px;
+      padding: 1px 6px; font-family: inherit; font-size: 12px; }
+    body.mode-3d.nav-walk:not(.walking) #walkhint { display: block; }
+
     /* Einfaerbung der Punktwolke (unten rechts, nur 3D-Modus) */
     #coloring { position: absolute; bottom: 18px; right: 16px; z-index: 15;
       display: none; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
@@ -171,6 +200,20 @@
   <div id="modes">
     <button id="mode-pano" class="active">Panorama</button>
     <button id="mode-3d" disabled>3D-Punktwolke</button>
+  </div>
+  <div id="nav">
+    <button id="nav-orbit" class="active">Umkreisen</button>
+    <button id="nav-walk">Begehen</button>
+  </div>
+  <div id="crosshair"></div>
+  <div id="walkhint">
+    <b>Klicken zum Loslaufen</b><br>
+    <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> gehen ·
+    <kbd>Maus</kbd> umsehen<br>
+    <kbd>Leertaste</kbd> / <kbd>C</kbd> höher / tiefer ·
+    <kbd>Shift</kbd> schneller<br>
+    <kbd>Klick</kbd> auf einen Baum zeigt seine Kennwerte ·
+    <kbd>Esc</kbd> beendet
   </div>
   <div id="variants"></div>
   <div id="lod"></div>
@@ -506,9 +549,34 @@
       });
     }
 
+    // Umkreisen (Orbit) <-> Begehen (First-Person, Pointer-Lock)
+    function buildNav() {
+      const orbit = document.getElementById('nav-orbit');
+      const walk = document.getElementById('nav-walk');
+      const pick = (mode) => {
+        if (!cloud) return;
+        orbit.classList.toggle('active', mode === 'orbit');
+        walk.classList.toggle('active', mode === 'walk');
+        document.body.classList.toggle('nav-walk', mode === 'walk');
+        cloud.setNav(mode);
+        if (mode === 'walk') cloud.requestLock();
+      };
+      orbit.onclick = () => pick('orbit');
+      walk.onclick = () => pick('walk');
+      document.getElementById('walkhint').onclick = () => cloud && cloud.requestLock();
+    }
+
     async function initCloud(scene) {
       if (cloud) return;
-      cloud = new CloudViewer(document.getElementById('cloud'), (m) => showInfo(null, m));
+      cloud = new CloudViewer(document.getElementById('cloud'), (m) => {
+        // Infobox waere im Pointer-Lock nicht bedienbar -> Zeiger freigeben
+        if (cloud.locked) document.exitPointerLock();
+        showInfo(null, m);
+      });
+      // Fadenkreuz nur zeigen, solange der Zeiger wirklich gefangen ist
+      cloud.onNavChange = (mode, locked) =>
+        document.body.classList.toggle('walking', mode === 'walk' && locked);
+      buildNav();
       window._cloud = cloud;   // Debug-/Test-Zugriff
       const origin = (scene.source && scene.source.origin_xyz) || [0, 0, 0];
       const levels = scene.pointcloud.levels || [];
@@ -567,6 +635,10 @@
       btnPano.onclick = () => {
         document.body.classList.remove('mode-3d');
         btnPano.classList.add('active'); btn3d.classList.remove('active');
+        if (cloud) cloud.setNav('orbit');    // Pointer-Lock nicht ins Pano mitnehmen
+        document.body.classList.remove('nav-walk');
+        document.getElementById('nav-orbit').classList.add('active');
+        document.getElementById('nav-walk').classList.remove('active');
       };
     }
     init();

@@ -165,6 +165,37 @@ GT-Positionen aus den Instanz-Labels). Baseline auf WSF-19/Kachel 0:
 Punktwolken-Szene ein (Inventur → Validierung → Web-Wolke → Marker); die Kennzahlen
 landen im Manifest (`scene.validation`) und werden im Viewer eingeblendet.
 
+### SYSSIFOSS — Blatt-Holz-getrennte Einzelbäume
+
+Der **SYSSIFOSS**-Datensatz (heiDATA [doi:10.11588/DATA/UUMEDI](https://doi.org/10.11588/DATA/UUMEDI),
+CC-BY-4.0, RIEGL VZ-400) liefert elf manuell blatt-/holz-separierte Einzelbäume aus
+den Waldplots bei Bretten und Karlsruhe — die `classification` im LAZ ist damit
+**Ground Truth statt Schätzung** (0 = Holz, 1 = Blatt).
+[seed_syssifoss.py](dev/seed_syssifoss.py) baut daraus drei Szenen:
+
+```powershell
+python platform\dev\seed_syssifoss.py            # alle drei
+```
+
+| Szene | Inhalt | Lage |
+|---|---|---|
+| `syssifoss-br01` | Rotbuche + Traubeneiche | **echt** (EPSG:25832, 50 m Abstand, 12,6 m Höhenversatz) |
+| `syssifoss-ka09` | Waldkiefer + Roteiche | **echt** (32 m Abstand) |
+| `syssifoss-arboretum` | alle 11 Bäume, 6 Arten | **synthetisch** im 16-m-Raster (Originalstandorte ~20 km auseinander) |
+
+Zwei Fallstricke, die dabei teuer waren:
+
+- **float32 reicht für UTM nicht.** Bei Rechtswerten um 5,4·10⁶ bleiben in float32
+  keine 0,5 m Auflösung — der Stammquerschnitt wird zum Quantisierungsraster und
+  der BHD-Fit zu Rauschen. Erst nach Abzug des Szenen-Ursprungs auf float32 gehen.
+- **Der BHD-Ring braucht eine Einschnürung.** Die Wolken sind aus dem Plotscan
+  ausgeschnitten, im Brusthöhenring liegen also auch Nachbarstämme. Ein Kreis-Fit
+  über alles liefert Radien im Kilometerbereich; der Fit läuft daher iterativ vom
+  dichtesten Stammpixel aus und zieht den Fangradius je Runde auf das 1,35-fache
+  des aktuellen Stammradius. Erst damit werden die Werte plausibel (Douglasie
+  47,3 m / 84,8 cm, junge Roteiche 10,8 m / 8,8 cm) — vorher stand dieselbe
+  Roteiche mit 110 cm da.
+
 Dann die Positionen in Marker umrechnen und ins Manifest schreiben:
 
 ```powershell
@@ -174,6 +205,29 @@ python scripts\markers_from_xyz.py trees.csv --scene pfad\zu\scene.json
 alternativ `--origin X Y Z` und `--out markers.json`. Feinjustierung danach im
 Studio-Marker-Editor (Klick ins Panorama setzt neue Marker, Attribute als JSON
 editierbar).
+
+## Freilauf im 3D-Viewer
+
+Punktwolken-Szenen haben oben rechts zwei Navigationsarten:
+
+- **Umkreisen** — Orbit um die Wolke (Standard, funktioniert auch auf Touch).
+- **Begehen** — First-Person mit Pointer-Lock: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>
+  gehen, Maus umsehen, <kbd>Leertaste</kbd>/<kbd>C</kbd> höher/tiefer,
+  <kbd>Shift</kbd> dreifaches Tempo, <kbd>Esc</kbd> beendet. Klick auf einen Baum
+  öffnet dessen Kennwerte (der Zeiger wird dafür freigegeben). Damit bewegt man
+  sich **stufenlos durch den Bestand**, statt von Standpunkt zu Standpunkt zu
+  springen.
+
+Zwei Umsetzungsdetails in [cloudviewer.js](web/gallery/cloudviewer.js):
+
+- Three.js' `PointerLockControls` ist **nicht verwendbar**: es rechnet mit
+  YXZ-Euler und setzt damit Y = oben voraus, die Szene ist aber (wie das E57)
+  Z-oben. Yaw/Pitch werden deshalb selbst geführt und per `lookAt` angewandt.
+- Vorwärts bleibt **waagerecht**, auch beim Hochschauen — Höhe ausschließlich über
+  <kbd>Leertaste</kbd>/<kbd>C</kbd>. Das läuft sich deutlich vorhersehbarer als
+  echtes Fliegen, wenn man in einer Wolke ohne Kollisionsgeometrie unterwegs ist.
+  Ein Bodenraster nach Größe der Wolke gibt dabei die einzige verlässliche
+  Höhen- und Richtungsreferenz.
 
 ## API-Kurzreferenz
 
