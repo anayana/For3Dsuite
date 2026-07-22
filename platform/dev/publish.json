@@ -1,0 +1,24 @@
+{
+  "_comment": [
+    "Kuratierung fuer export_static.py: WAS geht oeffentlich nach docs/.",
+    "Leitlinie: je Methode/Datensatz/Anwendung genau EIN Beispiel. Der lokale",
+    "Dev-Bestand unter platform/dev-data/ bleibt vollstaendig -- hier wird nur",
+    "ausgewaehlt, nicht geloescht. Eine Szene wieder aufnehmen = Zeile ergaenzen",
+    "und export_static.py laufen lassen; die Seeds bauen alles jederzeit neu.",
+    "Fehlt diese Datei, exportiert export_static.py wie frueher alles."
+  ],
+  "publish": {
+    "renon-setup01": "E57 -> Panorama + Punktwolke + 87 Inventurmarker + TreeGrOSS-Prognose (Flaggschiff)",
+    "syssifoss-arboretum": "TLS mit Blatt-Holz-Ground-Truth; Anwendung: Artvergleich ueber 6 Arten",
+    "syssifoss-br01": "derselbe Datensatz, andere Anwendung: echte EPSG:25832-Lage, begehbarer Plot",
+    "hedgerow-be-alder": "TLS-Einzelbaeume mit Baumzugehoerigkeit als Ground Truth (Hecke)",
+    "finnwoods-walk": "Video-Waldspaziergang aus Trail-Frames (optischer Fluss)",
+    "hechingen-site3": "eigene Aufnahme, Fisheye-Stitching per Hugin",
+    "ph-mossy-forest": "CC0-Referenzpanorama (Poly Haven) -- ein Beispiel steht fuer alle 11"
+  },
+  "_zurueckgehalten": {
+    "ph-*": "10 weitere Poly-Haven-Panos: gleiche Methode, keine Marker, kein 3D (~75 MB)",
+    "hedgerow-be-birch": "Dublette zu -alder, gleicher Datensatz und gleiche Auswertung",
+    "syssifoss-ka09": "Dublette zu -br01, gleiche Auswertung an einem zweiten Plot"
+  }
+}

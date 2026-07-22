@@ -206,6 +206,43 @@ alternativ `--origin X Y Z` und `--out markers.json`. Feinjustierung danach im
 Studio-Marker-Editor (Klick ins Panorama setzt neue Marker, Attribute als JSON
 editierbar).
 
+## Kronenanalyse: LAI auf zwei unabhängigen Wegen
+
+[canopy_lai.py](../scripts/canopy_lai.py) + [canopy_lai.R](../scripts/canopy_lai.R)
+rechnen für **denselben Standpunkt** beide in der Forstpraxis üblichen
+Schätzungen — das geht nur, weil eine E57-Szene Panorama *und* Punktwolke aus
+einer Aufnahme liefert:
+
+```powershell
+python scripts\canopy_lai.py platform\dev-data\media\scenes\renon-setup01 `
+    --e57 "data\Renon\e57\Renon cp2- Setup 001.e57"
+```
+
+| Weg | Kette | Ergebnis Renon Setup 01 |
+|---|---|---|
+| optisch | Panorama → äquidistantes Zenit-Fisheye ([hemi_from_pano.py](../scripts/hemi_from_pano.py)) → `hemispheR` | LAI **1,56** (effektiv 1,41, Clumping 0,90), Himmelsanteil 36,6 % |
+| strukturell | E57 → LAS → `lidR`: CSF-Bodenklassifikation, TIN-Normalisierung, `LAD()` (MacArthur-Horn, 1-m-Schichten ab 2 m) | LAI **3,64**, Bestandeshöhe P95 16,7 m |
+
+**Das ist kein Validierungspaar, und die Differenz ist der Punkt.** Beide Wege
+haben gegenläufige Verzerrungen: das Panorama ist aus Scanner-Pinhole-Bildern
+reprojiziert (keine Fisheye-Optik) und bei überstrahltem Himmel wird helles
+Nadelwerk als Lücke gezählt — LAI zu niedrig. MacArthur-Horn wiederum unterstellt
+senkrechte Durchdringung wie bei ALS, angewandt auf einen *einzelnen*
+terrestrischen Standpunkt zieht Verdeckung hinter Stämmen den Wert nach unten.
+Der Viewer zeigt deshalb beide Zahlen samt Vorbehalt nebeneinander, nicht eine
+gemittelte „Wahrheit".
+
+Eine Stellschraube ist dabei keine: `gamma = 2.2` linearisiert das sRGB-JPG. Mit
+`gamma = 1` setzt Otsu die Schwelle bei 138 statt 107 und der LAI fällt um ein
+Drittel auf 1,04 — der Wert folgt aus der Kodierung der Datei, nicht aus einer
+Vorliebe. Die Auswertung läuft auf dem verlustfreien `hemi.png`; die `hemi.jpg`
+daneben ist nur die Anzeigekopie (JPEG-Artefakte würden die Otsu-Schwelle
+verschieben).
+
+> `leafR` wäre die naheliegende Wahl für den strukturellen Weg, ist aber auf CRAN
+> archiviert und unter R 4.4 nicht installierbar. `lidR` bringt `LAD()` und
+> `gap_fraction_profile()` selbst mit — dieselbe Methode aus dem gepflegten Paket.
+
 ## Freilauf im 3D-Viewer
 
 Punktwolken-Szenen haben oben rechts zwei Navigationsarten:
@@ -228,6 +265,21 @@ Zwei Umsetzungsdetails in [cloudviewer.js](web/gallery/cloudviewer.js):
   echtes Fliegen, wenn man in einer Wolke ohne Kollisionsgeometrie unterwegs ist.
   Ein Bodenraster nach Größe der Wolke gibt dabei die einzige verlässliche
   Höhen- und Richtungsreferenz.
+
+## Was öffentlich geht: publish.json
+
+[publish.json](dev/publish.json) kuratiert den statischen Export. Leitlinie: **je
+Methode/Datensatz/Anwendung genau ein Beispiel** — 19 gebaute Szenen, 7 online,
+`docs/` dadurch von 198 auf 99 MB.
+
+Zurückgehalten werden nur Dubletten: 10 weitere Poly-Haven-Panoramen (gleiche
+Methode, keine Marker, kein 3D), `hedgerow-be-birch` (gleiche Auswertung wie
+`-alder`) und `syssifoss-ka09` (gleiche Auswertung wie `-br01`).
+
+Nichts davon wird gelöscht: `platform/dev-data/` behält alle Szenen, die lokale
+Gallery zeigt sie weiter, und die Seed-Skripte bauen jede jederzeit neu. Eine
+Szene wieder online stellen = Zeile in `publish.json` ergänzen, `export_static.py`
+laufen lassen. Fehlt die Datei, exportiert das Skript wie früher alles.
 
 ## API-Kurzreferenz
 

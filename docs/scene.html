@@ -57,6 +57,22 @@
     #lod button.active { background: rgba(121,192,255,.22); color: #d3e8ff; }
     body.mode-3d #lod { display: flex; }
 
+    /* Kronenanalyse (rechts, nur Panorama-Modus) */
+    #canopy { position: absolute; top: 62px; right: 16px; z-index: 15; width: 268px;
+      color: #d7e0ea; background: rgba(13,17,23,.84); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.14); border-left: 3px solid #79c0ff;
+      border-radius: 10px; padding: 10px 13px; font-size: 12px; line-height: 1.5; }
+    #canopy b { color: #79c0ff; }
+    #canopy img { width: 100%; border-radius: 8px; margin: 8px 0 6px;
+      display: block; background: #000; }
+    #canopy table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+    #canopy td { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,.07);
+      white-space: nowrap; }
+    #canopy td:first-child { width: 45%; white-space: normal; }
+    #canopy .muted { color: #8b949e; font-size: 10.5px; line-height: 1.45;
+      white-space: normal; }
+    body.mode-3d #canopy { display: none; }
+
     /* Navigationsart (oben rechts, nur 3D-Modus) */
     #nav { position: absolute; top: 14px; right: 16px; z-index: 16; display: none;
       background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
@@ -219,6 +235,7 @@
   <div id="lod"></div>
   <div id="coloring"></div>
   <div id="validation" hidden></div>
+  <div id="canopy" hidden></div>
   <div id="legend">
     <b>RGB-Vitalität</b>
     <div class="row"><span class="sw vital"></span>vital</div>
@@ -369,6 +386,28 @@
         `Lagefehler <b>${v.pos_err_median_cm} cm</b> (Median)<br>` +
         `<span class="muted">${v.matched}/${v.reference_trees} Referenzbäume getroffen ` +
         `(≤ ${v.match_dist_m} m). ${v.method}</span>`;
+    }
+
+    // Kronenanalyse: zwei unabhaengige LAI-Schaetzungen nebeneinander
+    // (hemispheR aus dem Panorama, lidR aus der Punktwolke) -- bewusst MIT der
+    // Differenz, denn die ist die eigentliche Aussage.
+    function buildCanopy(scene) {
+      const c = scene.canopy;
+      const el = document.getElementById('canopy');
+      if (!c) return;
+      const o = c.optisch || {}, s = c.strukturell || {};
+      const n = (v, d = 2) => (v == null ? '—' : Number(v).toFixed(d));
+      el.hidden = false;
+      el.innerHTML =
+        `<b>Kronenschluss — zwei Wege</b>` +
+        (c.fisheye_url ? `<img id="hemi-img" src="${c.fisheye_url}" alt="Hemisphärische Ansicht">` : '') +
+        `<table>` +
+        `<tr><td>optisch <span class="muted">hemispheR</span></td>` +
+        `<td>LAI <b>${n(o.lai)}</b></td><td>Himmel ${n(o.openness_pct, 1)} %</td></tr>` +
+        `<tr><td>strukturell <span class="muted">lidR</span></td>` +
+        `<td>LAI <b>${n(s.lai)}</b></td><td>Höhe ${n(s.hoehe_p95_m, 1)} m</td></tr>` +
+        `</table>` +
+        `<div class="muted">${c.limits || ''}</div>`;
     }
 
     // Standort-&-Kontext-Panel aus scene.metadata (Geo-Anreicherung + Bildanalyse)
@@ -594,6 +633,7 @@
       document.getElementById('title').textContent = scene.title || sid;
       buildLegend(scene);
       buildValidation(scene);
+      buildCanopy(scene);
       buildContext(scene);
 
       const btnPano = document.getElementById('mode-pano');

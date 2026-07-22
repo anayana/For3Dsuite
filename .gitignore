@@ -7,6 +7,12 @@ data/renon/*
 !data/renon/trees_setup001.csv
 !data/renon/STANDORT.md
 !data/renon/renon_stand.json
+# Trainings-Rezept fuer 3DGS (Text, kein Rohdatum) -- gehoert versioniert,
+# sonst liegt die Korrektur am Notebook nur lokal
+!data/renon/colmap/
+data/renon/colmap/*
+!data/renon/colmap/README_TRAINING.md
+!data/renon/colmap/train_colab.ipynb
 input/
 output/
 platform/dev-data/

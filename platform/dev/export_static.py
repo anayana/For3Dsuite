@@ -25,6 +25,18 @@ GALLERY = REPO / "platform" / "web" / "gallery"
 OUT = REPO / "docs"
 
 
+def load_publish_list():
+    """Kuratierung aus publish.json: (Menge der IDs | None, Liste fuer Notizen).
+
+    None heisst 'keine Datei da' -- dann wird wie frueher alles exportiert.
+    """
+    pf = Path(__file__).with_name("publish.json")
+    if not pf.is_file():
+        return None, []
+    ids = set(json.loads(pf.read_text(encoding="utf-8"))["publish"])
+    return ids, []
+
+
 def patch(text, replacements, name):
     for old, new in replacements:
         if old not in text:
@@ -63,10 +75,14 @@ def main():
     shutil.copyfile(GALLERY / "cloudviewer.js", OUT / "cloudviewer.js")
 
     # ---- Szenen-JSONs + Medien ----
+    publish, held = load_publish_list()
     listing = []
     for sj in sorted(MEDIA.glob("scenes/*/scene.json")):
         s = json.loads(sj.read_text(encoding="utf-8"))
         sid = s["id"]
+        if publish is not None and sid not in publish:
+            held.append(sid)
+            continue
         src = sj.parent
         dst = OUT / "media" / "scenes" / sid
         dst.mkdir(parents=True)
@@ -92,6 +108,9 @@ def main():
             s["video_url"] = f"{rel}/{Path(s['video']).name}"
         for v in s.get("variants") or []:
             v["pano_url"] = rel + "/" + v["pano"].rsplit("/", 1)[-1]
+        can = s.get("canopy")
+        if can and can.get("fisheye") and (src / "hemi.jpg").is_file():
+            can["fisheye_url"] = f"{rel}/hemi.jpg"
         pc = s.get("pointcloud")
         if pc and (src / pc["bin"].rsplit("/", 1)[-1]).is_file():
             pc["bin_url"] = rel + "/" + pc["bin"].rsplit("/", 1)[-1]
@@ -127,6 +146,12 @@ def main():
     listing.sort(key=lambda x: x.get("created") or "", reverse=True)
     (OUT / "data" / "scenes.json").write_text(
         json.dumps(listing, ensure_ascii=False), encoding="utf-8")
+
+    if publish is not None:
+        fehlt = publish - {e["id"] for e in listing}
+        if fehlt:
+            print(f"!! in publish.json gelistet, aber nicht gebaut: {sorted(fehlt)}")
+        print(f"   zurueckgehalten ({len(held)}): {', '.join(sorted(held))}")
 
     total = sum(f.stat().st_size for f in OUT.rglob("*") if f.is_file())
     print(f"-> {OUT}  ({len(listing)} Szenen, {total/1e6:.1f} MB)")
