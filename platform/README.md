@@ -206,6 +206,47 @@ alternativ `--origin X Y Z` und `--out markers.json`. Feinjustierung danach im
 Studio-Marker-Editor (Klick ins Panorama setzt neue Marker, Attribute als JSON
 editierbar).
 
+## Hedge Vertical Index aus offenem ALS
+
+[seed_hvi_ahn.py](dev/seed_hvi_ahn.py) + [hvi_ahn_scene.R](dev/hvi_ahn_scene.R)
+bringen den HVI aus dem Nachbarrepo `shrub_div` auf eine offene ALS-Kachel
+(AHN, Niederlande, ~21 Pkt/m², CC-BY-4.0) und machen daraus eine Szene:
+**214 Heckensegmente auf 1 km², HVI 0,17–0,80**. Heckenpunkte tragen die Farbe
+ihres Indexwerts, Boden und Umfeld bleiben gedämpft — der Index wird damit im
+begehbaren Raum sichtbar, nicht nur in der Tabelle.
+
+```powershell
+python platform\dev\seed_hvi_ahn.py            # rechnet und baut
+python platform\dev\seed_hvi_ahn.py --skip-r   # nur neu paketieren
+```
+
+Der Index verhält sich plausibel: Segment mit HVI 0,80 hat 5 Schichten,
+FHD 2,31 und 6,3 m Höhe; das schwächste (0,17) 2 Schichten, FHD 0,70, 1,4 m.
+
+Vier Dinge, die dabei zu klären waren:
+
+- **`hvi_ahn_hedges()` aus shrub_div ist für Netze unbrauchbar.** Es verwirft
+  Polygone über 1500 m², ein zusammenhängendes Heckennetz *ist* aber genau ein
+  großes Polygon — im ersten Test blieben 2 Fragmente von 86 Netzteilen übrig.
+  Ersetzt durch: Schmalheitstest (Fläche/Umfang ≈ halbe Streifenbreite, hier
+  1,7 m — längenunabhängig, trennt Hecke von Waldblock), danach Schnitt mit
+  einem 20-m-Raster. 20 m ist die übliche Erhebungseinheit in Heckenkartierungen
+  und liefert genug Segmente, damit die *relative* HVI-Normierung überhaupt trägt.
+- **`cover_frac` ist konstant 1,00** über alle 214 Segmente und trägt damit
+  nichts bei — die Segmente werden aus der Vegetationsmaske abgeleitet, also ist
+  die Deckung darin zwangsläufig vollständig. Der Subindex Volumen/Größe
+  schrumpft faktisch auf die Höhe. Mit *kartierten* Polygonen (UKCEH für
+  England) würde `cover_frac` Lücken in der Heckenlinie messen und wieder
+  Information tragen — das ist das stärkste Argument für den lizenzierten Layer.
+- **Der HVI ist relativ**, nicht absolut: `hvi_rescale()` normiert auf das
+  2.–98.-Perzentil *dieses Ausschnitts*. Werte aus zwei Ländern sind ohne
+  gemeinsame Referenz nicht vergleichbar.
+- **Nicht die ganze Kachel einlesen.** `hvi_ahn_run()` liest erst alles und
+  schneidet dann zu — bei 340 Mio. Punkten unmöglich. Der `-keep_xy`-Filter
+  greift beim Lesen; er muss die Kachel trotzdem komplett dekomprimieren (~6 min,
+  unabhängig von der Fenstergröße), deshalb wird die normalisierte Wolke
+  zwischengespeichert.
+
 ## Kronenanalyse: LAI auf zwei unabhängigen Wegen
 
 [canopy_lai.py](../scripts/canopy_lai.py) + [canopy_lai.R](../scripts/canopy_lai.R)

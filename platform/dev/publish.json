@@ -12,6 +12,7 @@
     "syssifoss-arboretum": "TLS mit Blatt-Holz-Ground-Truth; Anwendung: Artvergleich ueber 6 Arten",
     "syssifoss-br01": "derselbe Datensatz, andere Anwendung: echte EPSG:25832-Lage, begehbarer Plot",
     "hedgerow-be-alder": "TLS-Einzelbaeume mit Baumzugehoerigkeit als Ground Truth (Hecke)",
+    "hvi-ahn-hedges": "ALS statt TLS: Heckennetz aus offenem AHN-LiDAR, 214 Segmente nach Hedge Vertical Index eingefaerbt",
     "finnwoods-walk": "Video-Waldspaziergang aus Trail-Frames (optischer Fluss)",
     "hechingen-site3": "eigene Aufnahme, Fisheye-Stitching per Hugin",
     "ph-mossy-forest": "CC0-Panorama Poly Haven -- Suedafrika, KwaZulu-Natal (-29.01/29.41): Bergwald mit Bach",
