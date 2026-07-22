@@ -269,12 +269,17 @@ Zwei Umsetzungsdetails in [cloudviewer.js](web/gallery/cloudviewer.js):
 ## Was öffentlich geht: publish.json
 
 [publish.json](dev/publish.json) kuratiert den statischen Export. Leitlinie: **je
-Methode/Datensatz/Anwendung genau ein Beispiel** — 19 gebaute Szenen, 7 online,
-`docs/` dadurch von 198 auf 99 MB.
+Methode/Datensatz/Anwendung genau ein Beispiel** — 19 gebaute Szenen, 10 online,
+`docs/` dadurch von 198 auf 126 MB.
 
-Zurückgehalten werden nur Dubletten: 10 weitere Poly-Haven-Panoramen (gleiche
-Methode, keine Marker, kein 3D), `hedgerow-be-birch` (gleiche Auswertung wie
-`-alder`) und `syssifoss-ka09` (gleiche Auswertung wie `-br01`).
+Ausnahme von der Ein-Beispiel-Regel sind die CC0-Panoramen: davon bleiben **vier**
+online, je eines pro Region, damit die Übersichtskarte nicht auf einen Punkt
+zusammenfällt — Dublin (53,3 °N), Sachsen (51,0 °N), Gauteng (−26,2 °S) und
+KwaZulu-Natal (−29,0 °S), zusammen 82 Breitengrade.
+
+Zurückgehalten werden Dubletten: 7 Poly-Haven-Panoramen, die eine dieser Regionen
+doppeln oder gar keine Koordinate tragen, `hedgerow-be-birch` (gleiche Auswertung
+wie `-alder`) und `syssifoss-ka09` (gleiche Auswertung wie `-br01`).
 
 Nichts davon wird gelöscht: `platform/dev-data/` behält alle Szenen, die lokale
 Gallery zeigt sie weiter, und die Seed-Skripte bauen jede jederzeit neu. Eine
