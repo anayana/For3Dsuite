@@ -1,0 +1,68 @@
+{
+  "baum": "QuePet_BR01_01_2019-07-03_q2_TLS-on_c.laz",
+  "punkte": {
+    "gesamt": 479034,
+    "holz": 268902,
+    "holz_anteil_pct": 56.1,
+    "verwendet": 150000,
+    "quelle_holz": "LAS-classification 0 = Holz (manuell annotiert, Ground Truth)"
+  },
+  "modell": {
+    "paket": "aRchi 2.1.4",
+    "voxel_m": 0.04,
+    "zylinder": 31224,
+    "max_verzweigungsordnung": 8
+  },
+  "metriken": {
+    "hoehe_holz_m": 13.22,
+    "holzvolumen_l": 459.65,
+    "holzoberflaeche_m2": 61.75,
+    "bhd_aus_qsm_cm": 21.1,
+    "path_fraction": null,
+    "gabelungsrate": null
+  },
+  "volumen_je_ordnung": [
+    {
+      "ordnung": 1,
+      "volumen_l": 153.54,
+      "zylinder": 501
+    },
+    {
+      "ordnung": 2,
+      "volumen_l": 49.51,
+      "zylinder": 2907
+    },
+    {
+      "ordnung": 3,
+      "volumen_l": 84.24,
+      "zylinder": 8272
+    },
+    {
+      "ordnung": 4,
+      "volumen_l": 96.18,
+      "zylinder": 10995
+    },
+    {
+      "ordnung": 5,
+      "volumen_l": 59.39,
+      "zylinder": 6737
+    },
+    {
+      "ordnung": 6,
+      "volumen_l": 15.4,
+      "zylinder": 1676
+    },
+    {
+      "ordnung": 7,
+      "volumen_l": 1.33,
+      "zylinder": 130
+    },
+    {
+      "ordnung": 8,
+      "volumen_l": 0.06,
+      "zylinder": 6
+    }
+  ],
+  "wbe": {},
+  "limits": "Einzelscan-QSM: verdeckte Kronenteile fehlen, das Holzvolumen ist damit eher eine Untergrenze. Die Radien stammen aus dem Median je 0,5-m-Abschnitt -- an duennen Aesten unterhalb der Punktdichte wird der Radius systematisch ueberschaetzt. Fuer belastbare Volumina gegen geerntete Referenzbaeume oder TreeQSM/SimpleForest gegenpruefen."
+}

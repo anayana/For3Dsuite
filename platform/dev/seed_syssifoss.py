@@ -248,6 +248,29 @@ def build(sid, spec, files, pos):
                  "Blattanteil_pct": leaf_share, "Punkte": int(len(txyz))}
         if bhd:
             attrs["BHD_cm"] = bhd
+        # QSM-Kennwerte anhaengen, falls fuer den Baum gerechnet (data/qsm/<key>.json,
+        # aus scripts/qsm_tree.R). Das Zylindermodell liefert Groessen, die aus der
+        # Punktwolke allein nicht ablesbar sind: Holzvolumen, Oberflaeche,
+        # Verzweigungsordnung -- plus den BHD als unabhaengige Gegenprobe zum Kreis-Fit.
+        qsm_f = REPO / "data" / "qsm" / f"{k}.json"
+        if qsm_f.is_file():
+            q = json.loads(qsm_f.read_text(encoding="utf-8"))
+            qm, qmod = q.get("metriken", {}), q.get("modell", {})
+            if qm.get("holzvolumen_l"):
+                attrs["QSM_Holzvolumen_l"] = qm["holzvolumen_l"]
+            if qm.get("holzoberflaeche_m2"):
+                attrs["QSM_Oberflaeche_m2"] = qm["holzoberflaeche_m2"]
+            if qmod.get("max_verzweigungsordnung"):
+                attrs["QSM_Verzweigungsordnung"] = qmod["max_verzweigungsordnung"]
+            if qmod.get("zylinder"):
+                attrs["QSM_Zylinder"] = qmod["zylinder"]
+            # QSM-BHD nur als Gegenprobe zeigen, wenn er zum Kreis-Fit passt
+            # (<=25 %). Bei dicken, einseitig verdeckten Staemmen zerlegt die
+            # Skelettierung den Stamm in duenne Parallelzylinder -> QSM-BHD
+            # unbrauchbar (Buche: 11 statt 38 cm). Dann lieber weglassen.
+            qb = qm.get("bhd_aus_qsm_cm")
+            if qb and bhd and abs(qb - bhd) / bhd <= 0.25:
+                attrs["QSM_BHD_cm"] = qb
         dx, dy, dz = x - origin[0], y - origin[1], (base + 1.3) - origin[2]
         dist = math.sqrt(dx * dx + dy * dy + dz * dz) or 1e-6
         markers.append({

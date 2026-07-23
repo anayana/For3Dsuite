@@ -32,3 +32,7 @@ platform/.env
 share/
 data/Treescope/
 data/hvi_ahn/
+# QSM-Ergebnisse (klein, teuer zu rechnen -- versionieren)
+!data/qsm/
+data/qsm/*
+!data/qsm/*.json
