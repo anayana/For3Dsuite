@@ -25,6 +25,37 @@ GALLERY = REPO / "platform" / "web" / "gallery"
 OUT = REPO / "docs"
 
 
+def dataset_tags(s):
+    """Welche Datenarten die Szene bietet -- fuer die Extrazeile je Galerie-Karte.
+
+    Rein aus dem Manifest abgeleitet, damit neue Szenen automatisch die richtigen
+    Marken bekommen. Reihenfolge = Anzeigereihenfolge (Rohdaten zuerst, daraus
+    Abgeleitetes danach).
+    """
+    markers = s.get("markers") or []
+    attr_keys = {k for m in markers for k in (m.get("attributes") or {})}
+    tags = []
+    if s.get("pano_url"):
+        tags.append("RGB-Panorama")
+    if s.get("video_url"):
+        tags.append("Video-Rundgang")
+    if s.get("pointcloud"):
+        tags.append("LiDAR-Punktwolke")
+    if any(k.startswith("QSM_") for k in attr_keys):
+        tags.append("QSM")
+    if any("ExG" in k or k == "Vitalitaet" for k in attr_keys):
+        tags.append("RGB-Bildanalyse")
+    if s.get("canopy"):
+        tags.append("Kronenanalyse (LAI)")
+    if any(m.get("prognosis") for m in markers):
+        tags.append("Wachstumsprognose")
+    if s.get("hedge_colorings"):
+        tags += ["NDVI (CIR)", "Arteignung"]
+    if markers:
+        tags.append("Inventur-Marker")
+    return tags
+
+
 def load_publish_list():
     """Kuratierung aus publish.json: (Menge der IDs | None, Liste fuer Notizen).
 
@@ -134,6 +165,7 @@ def main():
             "source_type": (s.get("source") or {}).get("type"),
             "has_3d": bool(s.get("pointcloud")),
             "kind": "walk" if s.get("video") else "scene",
+            "datasets": dataset_tags(s),
         }
         # Koordinate fuer die Uebersichtskarte (source.gps, sonst metadata.geometry)
         gps = (s.get("source") or {}).get("gps") or {}

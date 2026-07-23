@@ -28,9 +28,15 @@
     .card p { margin: 0 0 8px; font-size: 12.5px; color: #8b949e; line-height: 1.4;
               display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
               overflow: hidden; }
-    .meta { display: flex; gap: 8px; font-size: 11.5px; color: #8b949e; }
+    .meta { display: flex; gap: 8px; font-size: 11.5px; color: #8b949e; flex-wrap: wrap; }
     .chip { background: #21262d; border-radius: 20px; padding: 2px 9px; }
     .chip.markers { color: #7ee787; }
+    /* Extrazeile: welche Datenarten die Szene bietet */
+    .datasets { display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+      margin-top: 8px; font-size: 10.5px; }
+    .datasets .dl { color: #6e7681; text-transform: uppercase; letter-spacing: .04em; }
+    .datasets .ds { background: #1c2b1c; color: #9ecb8a; border: 1px solid #2b4a2b;
+      border-radius: 5px; padding: 1px 7px; }
     .chip.d3 { color: #79c0ff; border: 1px solid #1f3d63; }
     .chip.walk { color: #f0b429; border: 1px solid #6b4f10; }
     .chip.tour { color: #7ee787; border: 1px solid #1f5c2e; }
@@ -181,6 +187,8 @@
               ${s.markers ? `<span class="chip markers">${s.markers} Marker</span>` : ''}
               <span class="chip">${(s.created || '').slice(0, 10)}</span>
             </div>
+            ${(s.datasets || []).length ? `<div class="datasets"><span class="dl">Daten:</span>${
+              s.datasets.map(d => `<span class="ds">${d}</span>`).join('')}</div>` : ''}
           </div>`;
         a.querySelector('h2').textContent = s.title || s.id;
         a.querySelector('p').textContent = s.description || '';
