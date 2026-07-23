@@ -94,12 +94,29 @@ def ramp(t, stops=HVI_RAMP):
     return np.stack([np.interp(t, pos, stops[:, k]) for k in range(3)], -1)
 
 
-def run_r():
+def fetch_ndvi():
+    """CIR-Pseudo-NDVI fuer die AOI von PDOK ziehen (einmalig gecacht)."""
+    out = WORK / "ndvi.asc"
+    if out.is_file():
+        print(f"NDVI aus Cache: {out.name}")
+        return out
+    WORK.mkdir(parents=True, exist_ok=True)
+    cmd = [sys.executable, str(Path(__file__).parents[1] / "scripts" / "ndvi_pdok.py"),
+           *[str(v) for v in AOI], str(out), "--res", "0.5"]
+    try:
+        subprocess.run(cmd, check=True)
+        return out
+    except subprocess.CalledProcessError as e:
+        print(f"NDVI-Download fehlgeschlagen ({e}) -- Szene ohne NDVI")
+        return None
+
+
+def run_r(ndvi=None):
     rscript = next((str(p) for p in Path(r"C:/Program Files/R").glob("R-*/bin/Rscript.exe")),
                    "Rscript")
     WORK.mkdir(parents=True, exist_ok=True)
     cmd = [rscript, str(Path(__file__).with_name("hvi_ahn_scene.R")), str(TILE),
-           *[str(v) for v in AOI], str(WORK), str(SHRUB)]
+           *[str(v) for v in AOI], str(WORK), str(SHRUB), str(ndvi or "")]
     print("$", " ".join(Path(c).name if c.endswith(('.R', '.LAZ')) else c for c in cmd))
     subprocess.run(cmd, check=True, cwd=SHRUB)
 
@@ -122,7 +139,7 @@ def main():
     args = ap.parse_args()
 
     if not args.skip_r:
-        run_r()
+        run_r(ndvi=fetch_ndvi())
 
     res = json.loads((WORK / "hvi_result.json").read_text(encoding="utf-8"))
     segs = res["segmentliste"]
@@ -201,12 +218,18 @@ def main():
         if s.get("hedge_type") is not None:
             attrs["Habitattyp"] = f"Cluster {int(s['hedge_type'])}"
         # Arteignung: die R-Spalten heissen nach der Art (nicht "HSI_*"), daher
-        # ueber SPECIES nachschlagen. Beste Art zusaetzlich als Klartext.
+        # ueber SPECIES nachschlagen. Je Art streng (Liebig) UND tolerant
+        # (arithm. Mittel) -- die Luecke dazwischen zeigt, wieviel die anderen
+        # Kennwerte beitragen, wenn die Hoehe nicht vetoen darf.
         best_sp, best_v = None, -1.0
         for _sid, disp, col, _note in SPECIES:
             v = s.get(col)
+            vt = s.get(col + "__tol")
             if isinstance(v, (int, float)) and math.isfinite(v):
-                attrs[f"Eignung_{disp}"] = round(float(v), 3)
+                if isinstance(vt, (int, float)) and math.isfinite(vt):
+                    attrs[f"Eignung_{disp}"] = f"{v:.2f} streng · {vt:.2f} tolerant"
+                else:
+                    attrs[f"Eignung_{disp}"] = round(float(v), 3)
                 if v > best_v:
                     best_sp, best_v = disp, float(v)
         if best_sp:
@@ -224,16 +247,19 @@ def main():
     # ohne weitere Dateien. HVI wird auf seinen Bereich gespreizt; die
     # Arteignung ist bereits 0..1 und wird direkt genommen.
     hvis = [float(s["HVI"]) for s in segs]
-    def col_values(getter):
-        return {str(int(s["hedge_id"])): getter(s) for s in segs}
     options = [{"id": "HVI", "label": "Struktur (HVI)", "ramp": "hvi",
                 "range": [round(min(hvis), 3), round(max(hvis), 3)],
-                "values": col_values(lambda s: round(float(s["HVI"]), 4))}]
+                "values": {str(int(s["hedge_id"])): round(float(s["HVI"]), 4)
+                           for s in segs}}]
+    # Je Art beide Aggregationen; der Viewer waehlt ueber "aggregation" aus.
     for _sid, disp, col, note in SPECIES:
-        vals = {str(int(s["hedge_id"])): round(float(s.get(col) or 0.0), 4) for s in segs}
+        vs = {str(int(s["hedge_id"])): round(float(s.get(col) or 0.0), 4) for s in segs}
+        vt = {str(int(s["hedge_id"])): round(float(s.get(col + "__tol") or 0.0), 4)
+              for s in segs}
         options.append({"id": _sid, "label": disp, "ramp": "suit",
-                        "range": [0.0, 1.0], "note": note, "values": vals})
-    hedge_colorings = {"default": "HVI",
+                        "range": [0.0, 1.0], "note": note,
+                        "values": vs, "values_tolerant": vt})
+    hedge_colorings = {"default": "HVI", "aggregation": "strict",
                        "ramps": {"hvi": HVI_RAMP, "suit": SUIT_RAMP},
                        "options": options}
 

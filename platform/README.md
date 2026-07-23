@@ -259,11 +259,42 @@ Was die Einfärbung an diesem 1-km²-Ausschnitt zeigt, ist ökologisch stimmig u
 ehrlich: das Gebiet ist von **hohen, durchgehenden Hecken** geprägt
 (Median h_p95 ≈ 6,7 m). Das macht es zu erstklassigem **Fledermaus-Leitraum**
 (Eignung Median 0,99, 203 von 214 Segmenten > 0,5), aber zu schlechtem Habitat
-für Sträucher-Vögel, die 1,5–3 m hohe Hecken brauchen: Neuntöter (20 Segmente),
-Dorngrasmücke (8), Goldammer (0). Die Wildbienen-Kurve bleibt zusätzlich flach,
-weil sie NDVI verlangt — das fehlt ohne Spektralraster. Zwei der fünf Arten
-färben also fast einheitlich; das ist eine Aussage über die Landschaft, kein
-Fehler. Die Antwortkurven selbst sind unkalibrierte Startwerte.
+für Sträucher-Vögel, die 1,5–3 m hohe Hecken brauchen.
+
+#### NDVI (CIR-Pseudo) und die Aggregationsfrage
+
+Zwei Zusätze beantworten die Frage „hängt die Eignung nur an der Höhe?".
+
+**NDVI** kommt aus dem offenen niederländischen CIR-Luftbild (PDOK,
+[ndvi_pdok.py](../scripts/ndvi_pdok.py)): (NIR−Rot)/(NIR+Rot) aus dem
+Falschfarben-Composite, als georeferenziertes `.asc`. Das ist *Pseudo*-NDVI aus
+8-Bit-JPEG, nicht kalibrierte Oberflächenreflexion — median 0,42 über den
+Hecken. Es aktiviert den HVI-Zustandssubindex (Median 0,85, vorher leer) und die
+NDVI-Komponente der Wildbienen-Eignung. HVI verschob sich dadurch auf 0,23–0,81.
+
+**Aber NDVI allein änderte die Arteignung nicht** — Wildbienen blieb trotz guter
+Greenness bei 0. Der eigentliche Hebel ist die **Aggregation**: `shrub_div`
+nutzt das Liebig-Minimumgesetz (geometrisches Mittel), bei dem *ein* schlechter
+Kennwert die Eignung kippt. In diesem Gebiet ist das die Höhe. Der Viewer bietet
+deshalb einen **streng/tolerant-Umschalter** — dieselben Antwortkurven, einmal
+geometrisch (Liebig), einmal arithmetisch gemittelt:
+
+| Art | streng, Segmente > 0,5 | tolerant, Segmente > 0,5 |
+|---|---|---|
+| Goldammer | **0** | **24** |
+| Wildbienen | 0 | 12 |
+| Neuntöter | 20 | 44 |
+| Dorngrasmücke | 8 | 14 |
+| Fledermaus | 203 | 213 |
+
+Die Goldammer-Zeile ist der Beweis: unter Liebig vetoiert die Höhe alles, unter
+dem arithmetischen Mittel zeigen die übrigen Kennwerte (Krautsaum-Offenheit,
+Schichtzahl, NDVI) 24 geeignete Segmente. Fledermaus ändert sich kaum, weil sie
+auf allen Achsen gut ist. Streng bleibt der Default (ökologisch defensiver: ein
+auf einer Achse unbrauchbarer Lebensraum *ist* unbrauchbar); tolerant macht
+sichtbar, wieviel die Nicht-Höhen-Kennwerte beitragen. Die Antwortkurven selbst
+sind unkalibrierte Startwerte — der nächste echte Schritt wäre Kalibrierung
+gegen Vorkommensdaten.
 - **Nicht die ganze Kachel einlesen.** `hvi_ahn_run()` liest erst alles und
   schneidet dann zu — bei 340 Mio. Punkten unmöglich. Der `-keep_xy`-Filter
   greift beim Lesen; er muss die Kachel trotzdem komplett dekomprimieren (~6 min,

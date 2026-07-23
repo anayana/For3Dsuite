@@ -18,13 +18,22 @@ suppressMessages({
   library(lidR); library(sf); library(terra); library(jsonlite)
 })
 
+# PROJ_LIB zeigt auf dieser Maschine auf eine veraltete PostgreSQL/PostGIS-
+# proj.db, die terras eigene ueberschattet -- jede EPSG-Aufloesung scheitert dann
+# mit "empty srs". Auf die mit terra gelieferte Datenbank umbiegen.
+local({
+  p <- system.file("proj", package = "terra")
+  if (nzchar(p)) Sys.setenv(PROJ_LIB = p, PROJ_DATA = p)
+})
+
 args <- commandArgs(trailingOnly = TRUE)
-if (length(args) < 6) stop("Aufruf: hvi_ahn_scene.R <laz> <xmin> <ymin> <xmax> <ymax> <outdir> [shrub_div]")
+if (length(args) < 6) stop("Aufruf: hvi_ahn_scene.R <laz> <xmin> <ymin> <xmax> <ymax> <outdir> [shrub_div] [ndvi.asc]")
 laz <- args[1]
 xmin <- as.numeric(args[2]); ymin <- as.numeric(args[3])
 xmax <- as.numeric(args[4]); ymax <- as.numeric(args[5])
 outdir <- args[6]
-shrub <- if (length(args) >= 7) args[7] else "C:/Users/A/Desktop/R/shrub_div"
+shrub <- if (length(args) >= 7 && nzchar(args[7])) args[7] else "C:/Users/A/Desktop/R/shrub_div"
+ndvi_path <- if (length(args) >= 8 && nzchar(args[8])) args[8] else NA
 
 dir.create(outdir, recursive = TRUE, showWarnings = FALSE)
 source(file.path(shrub, "R", "hvi_metrics.R"))
@@ -109,7 +118,21 @@ cat(sprintf("   %d Segmente\n", nrow(hedges)))
 # ---- 4) HVI ----------------------------------------------------------------
 cat("4) Metriken + Index je Segment\n")
 chm <- hvi_chm(las, res = 0.5)
-M <- hvi_segment_table(las, hedges, chm = chm)
+
+# NDVI-Analog (CIR-Pseudo-NDVI, ndvi_pdok.py) optional dazunehmen: aktiviert den
+# HVI-Zustandssubindex (Gewicht 0,10) und die NDVI-Komponente der Wildbienen-
+# Eignung. Das .asc traegt seine Georeferenz selbst, nur das CRS fehlt.
+ndvi_rast <- NULL
+if (!is.na(ndvi_path) && file.exists(ndvi_path)) {
+  ndvi_rast <- terra::rast(ndvi_path)
+  # CRS vom CHM uebernehmen statt aus dem String zu parsen -- terra 1.9 lehnt
+  # das direkte "EPSG:28992" beim .asc mit "empty srs" ab; das CHM traegt es.
+  terra::crs(ndvi_rast) <- terra::crs(chm)
+  ndvi_rast[ndvi_rast <= -9990] <- NA
+  cat(sprintf("   NDVI: median %.2f (CIR-Pseudo, PDOK)\n",
+              median(terra::values(ndvi_rast), na.rm = TRUE)))
+}
+M <- hvi_segment_table(las, hedges, chm = chm, ndvi_rast = ndvi_rast)
 M <- M[!is.na(M$h_p95), ]
 hedges <- hedges[hedges$hedge_id %in% M$hedge_id, ]
 idx <- hvi_compute(M)
@@ -117,11 +140,44 @@ res <- cbind(M, idx[, c("vertical_complexity", "volume_size",
                         "heterogeneity", "condition", "HVI")])
 if (nrow(idx) >= 4) res$hedge_type <- hvi_classify(idx, k = 4)
 
+# Arteignung auf ZWEI Arten aggregieren, um die Frage "haengt das nur an der
+# Hoehe?" beantwortbar zu machen:
+#   streng   = Liebig-Minimumgesetz (geom. Mittel, wie shrub_div): ein schlechter
+#              Kennwert kippt die Eignung -- in diesem Gebiet ist das die Hoehe.
+#   tolerant = gewichtetes arithmetisches Mittel derselben Antwortkurven: ein
+#              schwacher Kennwert wird von den anderen ausgeglichen. Zeigt, wieviel
+#              die NICHT-Hoehen-Kennwerte beitragen, wenn die Hoehe nicht vetoen darf.
+# Beide aus denselben Memberships -- der Unterschied ist allein die Aggregation.
+suitability_two <- function(M, req) {
+  M <- as.data.frame(M); species <- unique(req$species)
+  strict <- tol <- matrix(NA_real_, nrow(M), length(species),
+                          dimnames = list(NULL, species))
+  for (sp in species) {
+    r <- req[req$species == sp, ]
+    memb <- matrix(NA_real_, nrow(M), nrow(r))
+    for (j in seq_len(nrow(r))) {
+      p <- as.numeric(r[j, c("p1", "p2", "p3", "p4")]); p <- p[!is.na(p)]
+      memb[, j] <- vapply(M[[r$metric[j]]], hvi_membership, numeric(1),
+                          type = r$type[j], p = p)
+    }
+    w <- r$weight / sum(r$weight)
+    keep <- !is.na(memb[1, ])                    # Kennwerte ohne Daten (NDVI-NA) raus
+    wk <- w[keep] / sum(w[keep]); mk <- memb[, keep, drop = FALSE]
+    strict[, sp] <- exp(as.numeric(log(pmax(mk, 1e-6)) %*% wk))   # geom. Mittel
+    tol[, sp]    <- as.numeric(mk %*% wk)                          # arithm. Mittel
+  }
+  list(strict = as.data.frame(strict), tolerant = as.data.frame(tol))
+}
+
 req_path <- file.path(shrub, "data", "species_requirements.csv")
 if (file.exists(req_path)) {
   req <- read.csv(req_path)
-  hsi <- try(hvi_species_suitability(M, req), silent = TRUE)
-  if (!inherits(hsi, "try-error")) res <- cbind(res, hsi)
+  two <- try(suitability_two(M, req), silent = TRUE)
+  if (!inherits(two, "try-error")) {
+    res <- cbind(res, two$strict)
+    tol <- two$tolerant; names(tol) <- paste0(names(tol), "__tol")
+    res <- cbind(res, tol)
+  }
 }
 cat(sprintf("   HVI %.2f bis %.2f (Median %.2f)\n",
             min(res$HVI), max(res$HVI), median(res$HVI)))
