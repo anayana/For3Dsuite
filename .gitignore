@@ -13,6 +13,7 @@ data/renon/*
 data/renon/colmap/*
 !data/renon/colmap/README_TRAINING.md
 !data/renon/colmap/train_colab.ipynb
+!data/renon/colmap/train_kaggle.ipynb
 input/
 output/
 platform/dev-data/
