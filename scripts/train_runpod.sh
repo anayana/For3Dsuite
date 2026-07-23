@@ -19,6 +19,14 @@ echo "=========================================================="
 command -v nvidia-smi >/dev/null || { echo "FEHLER: keine GPU/nvidia-smi"; exit 1; }
 nvidia-smi -L
 
+# ---- Werkzeuge sicherstellen (viele RunPod-Images haben kein git/unzip) ----
+# unzip ersetzen wir spaeter durch Python; git wird von beiden Pfaden gebraucht.
+if ! command -v git >/dev/null; then
+  echo "git fehlt -- installiere ..."
+  (apt-get update -qq && apt-get install -y -qq git) \
+    || { echo "FEHLER: git-Installation fehlgeschlagen (apt nicht verfuegbar?)"; exit 1; }
+fi
+
 python - <<'PY'
 import torch
 print("torch      :", torch.__version__)
@@ -44,7 +52,12 @@ if [ -z "$ZIP" ] || [ ! -f "$ZIP" ]; then
   curl -fsSL "$REPO_ZIP" -o "$ZIP" || { echo "FEHLER: Download fehlgeschlagen"; exit 1; }
 fi
 rm -rf /workspace/renon && mkdir -p /workspace/renon
-unzip -q -o "$ZIP" -d /workspace/renon
+# Entpacken mit Python statt unzip -- unzip fehlt auf vielen RunPod-Images
+python - "$ZIP" /workspace/renon <<'PY'
+import sys, zipfile
+zipfile.ZipFile(sys.argv[1]).extractall(sys.argv[2])
+print("entpackt:", sys.argv[1])
+PY
 DATA=/workspace/renon
 [ -d "$DATA/sparse" ] || DATA="$(dirname "$(find /workspace/renon -maxdepth 2 -name sparse -type d | head -1)")"
 N=$(ls "$DATA/images/"*.jpg 2>/dev/null | wc -l)
