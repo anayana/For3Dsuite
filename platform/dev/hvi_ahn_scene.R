@@ -64,6 +64,17 @@ if (file.exists(cache)) {
   writeLAS(las, cache)
 }
 
+# ---- 2b) Infrastruktur raus ------------------------------------------------
+# AHN klassifiziert Gebaeude (6), Wasser (9) und Sonstiges/Brueckchen (26). Ohne
+# Filter landen Hausdaecher/-waende im 1-8-m-Band des Kronenmodells und werden
+# als "Hecken" segmentiert (im Testausschnitt ~128k Gebaeudepunkte genau dort).
+# Rausschneiden bereinigt Segmentierung UND Ansicht; die Hoehennormalisierung
+# ist da bereits erledigt, die Bodenpunkte (2) werden nicht mehr gebraucht.
+n_vor <- npoints(las)
+las <- filter_poi(las, !(Classification %in% c(6L, 9L, 26L)))
+cat(sprintf("2b) Infrastruktur entfernt: %s Punkte (Gebaeude/Wasser)\n",
+            format(n_vor - npoints(las), big.mark = " ")))
+
 # ---- 3) Heckensegmente aus dem CHM -----------------------------------------
 # Nicht hvi_ahn_hedges(): das verwirft Polygone ueber 1500 m2, ein
 # zusammenhaengendes Heckennetz ist aber GENAU ein grosses Polygon und fliegt

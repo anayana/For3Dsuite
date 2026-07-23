@@ -295,6 +295,12 @@ auf einer Achse unbrauchbarer Lebensraum *ist* unbrauchbar); tolerant macht
 sichtbar, wieviel die Nicht-Höhen-Kennwerte beitragen. Die Antwortkurven selbst
 sind unkalibrierte Startwerte — der nächste echte Schritt wäre Kalibrierung
 gegen Vorkommensdaten.
+- **Infrastruktur muss raus.** AHN klassifiziert Gebäude (6), Wasser (9) und
+  Sonstiges (26). Ungefiltert landen Hausdächer und -wände im 1–8-m-Band des
+  Kronenmodells und werden als „Hecken" segmentiert — im Testausschnitt 128k
+  Gebäudepunkte genau dort, sichtbar als rechteckige „Hecken". Klasse 6/9/26
+  nach der Höhennormalisierung wegschneiden räumt Segmentierung *und* Ansicht auf
+  (214 → 173 Segmente, 0 Gebäudepunkte im Ergebnis).
 - **Nicht die ganze Kachel einlesen.** `hvi_ahn_run()` liest erst alles und
   schneidet dann zu — bei 340 Mio. Punkten unmöglich. Der `-keep_xy`-Filter
   greift beim Lesen; er muss die Kachel trotzdem komplett dekomprimieren (~6 min,
