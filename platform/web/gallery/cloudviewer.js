@@ -178,13 +178,23 @@ export class CloudViewer {
   }
 
   async loadBin(url, meta) {
-    // Blockformat aus pointcloud_web.py: float32-xyz-Block, dann uint8-rgb-Block
+    // Blockformat aus pointcloud_web.py: float32-xyz-Block, dann uint8-rgb-Block.
+    // Optional folgt ein uint16-Block mit der Segment-ID je Punkt (meta.segmented),
+    // damit die Wolke im Browser nach Kennwert umgefaerbt werden kann.
     const ab = await (await fetch(url)).arrayBuffer();
     const n = meta.count;
     const positions = new Float32Array(ab, 0, n * 3);   // zero-copy
     const rgb = new Uint8Array(ab, n * 12, n * 3);
     const colors = new Float32Array(n * 3);
     for (let i = 0; i < n * 3; i++) colors[i] = rgb[i] / 255;
+
+    // Segment-ID-Spur nur lesen, wenn deklariert UND wirklich im Puffer (der
+    // uint16-Block ist ggf. nicht an 2 Byte ausgerichtet -> kopieren, nicht mappen)
+    this.segids = null;
+    if (meta.segmented && ab.byteLength >= n * 15 + n * 2) {
+      this.segids = new Uint16Array(new Uint8Array(ab, n * 15, n * 2).slice().buffer);
+    }
+    this._baseColors = colors.slice();   // fuer Rueckkehr zur Grundeinfaerbung
 
     if (this.points) {                                   // Stufen-Wechsel
       this.scene.remove(this.points);
@@ -200,6 +210,27 @@ export class CloudViewer {
     this.points = new THREE.Points(geo, mat);
     this.scene.add(this.points);
     this._fitGround(meta);
+  }
+
+  // Punktwolke nach Segment umfaerben. segColor: {segid -> [r,g,b] in 0..255}.
+  // Punkte ohne Segment (id 0) oder ohne Eintrag behalten ihre Grundfarbe --
+  // so bleibt die Kulisse gedaempft, waehrend nur die Hecke die Wertfarbe traegt.
+  recolorBySegment(segColor) {
+    if (!this.points || !this.segids || !this._baseColors) return;
+    const col = this.points.geometry.attributes.color;
+    const a = col.array, base = this._baseColors, seg = this.segids;
+    for (let i = 0, n = seg.length; i < n; i++) {
+      const c = segColor[seg[i]];
+      if (c) { a[3*i] = c[0] / 255; a[3*i+1] = c[1] / 255; a[3*i+2] = c[2] / 255; }
+      else   { a[3*i] = base[3*i]; a[3*i+1] = base[3*i+1]; a[3*i+2] = base[3*i+2]; }
+    }
+    col.needsUpdate = true;
+  }
+
+  resetColors() {
+    if (!this.points || !this._baseColors) return;
+    this.points.geometry.attributes.color.array.set(this._baseColors);
+    this.points.geometry.attributes.color.needsUpdate = true;
   }
 
   setMarkers(markers, origin) {

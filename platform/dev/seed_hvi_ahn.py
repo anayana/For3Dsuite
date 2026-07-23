@@ -42,8 +42,28 @@ LEVELS = [("lite", "Ausgedünnt", "cloud_lite.bin", 160_000),
 
 # Sequenzieller Verlauf fuer den HVI (niedrig -> hoch): blass-sandig zu
 # tiefgruen. Bewusst einfarbig-sequenziell, weil der Index eine Rangfolge ist.
-HVI_RAMP = np.array([[222, 214, 176], [190, 205, 140], [140, 190, 110],
-                     [ 84, 165, 100], [ 40, 130,  95], [ 20,  92,  80]], np.float32)
+HVI_RAMP = [[222, 214, 176], [190, 205, 140], [140, 190, 110],
+            [84, 165, 100], [40, 130, 95], [20, 92, 80]]
+# Arteignung ist eine EIGNUNG (ungeeignet -> geeignet): grau ueber gelb nach
+# magenta/violett -- klar von der gruenen Struktur-Rampe unterscheidbar.
+SUIT_RAMP = [[70, 74, 82], [150, 140, 90], [216, 179, 60],
+             [225, 110, 90], [190, 60, 140], [130, 40, 130]]
+
+# Zielarten wie in shrub_div/data/species_requirements.csv. Die R-Ausgabe
+# fuehrt sie unter ihrem vollen Namen als Spalte; hier je ein kurzer id- und
+# ein Anzeige-Name plus die treibende Struktur in einem Satz.
+SPECIES = [
+    ("neuntoeter", "Neuntöter", "Neuntoeter (Lanius collurio)",
+     "Dornsträucher 1,5–3 m mit offenem Krautsaum zur Bodenjagd"),
+    ("dorngrasmuecke", "Dorngrasmücke", "Dorngrasmuecke (Sylvia communis)",
+     "niedrige bis mittlere dichte Sträucher, halboffener Saum"),
+    ("goldammer", "Goldammer", "Goldammer (Emberiza citrinella)",
+     "Hecke mit einzelnen hohen Singwarten und Krautsaum"),
+    ("fledermaus", "Fledermaus-Leitlinie", "Fledermaus-Leitstruktur (Myotis/Plecotus)",
+     "hohe, durchgehende Hecke ohne Lücken als Leitlinie"),
+    ("wildbienen", "Wildbienen/Saum", "Wildbienen/Bestaeuber (Saumgilde)",
+     "besonnter offener Krautsaum, niedrige Struktur"),
+]
 
 
 def rd_to_wgs84(x, y):
@@ -66,11 +86,12 @@ def rd_to_wgs84(x, y):
     return {"lat": round(lat, 6), "lon": round(lon, 6)}
 
 
-def ramp(t):
-    """t in [0,1] -> RGB nach HVI_RAMP (linear interpoliert)."""
+def ramp(t, stops=HVI_RAMP):
+    """t in [0,1] -> RGB nach der Farbrampe (linear interpoliert)."""
+    stops = np.asarray(stops, np.float32)
     t = np.clip(np.asarray(t, np.float32), 0, 1)
-    pos = np.linspace(0, 1, len(HVI_RAMP))
-    return np.stack([np.interp(t, pos, HVI_RAMP[:, k]) for k in range(3)], -1)
+    pos = np.linspace(0, 1, len(stops))
+    return np.stack([np.interp(t, pos, stops[:, k]) for k in range(3)], -1)
 
 
 def run_r():
@@ -132,6 +153,8 @@ def main():
     origin = np.array([xyz[:, 0].mean(), xyz[:, 1].mean(), 0.0])
     local = (xyz - origin).astype(np.float32)
 
+    seg_pt = np.where(in_hedge, np.clip(hid, 0, 65535), 0).astype("<u2")
+
     dest = MEDIA / "scenes" / SID
     dest.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(0)
@@ -144,10 +167,16 @@ def main():
         n_o = min(len(idx_o), maxpts - n_h)
         sel = np.concatenate([rng.choice(idx_h, n_h, replace=False),
                               rng.choice(idx_o, n_o, replace=False)])
-        p, c = local[sel], np.clip(rgb[sel], 0, 255).astype(np.uint8)
-        (dest / fname).write_bytes(np.ascontiguousarray(p, "<f4").tobytes() + c.tobytes())
+        p = local[sel]
+        c = np.clip(rgb[sel], 0, 255).astype(np.uint8)
+        # Blockformat wie pointcloud_web.py, PLUS eine dritte Spur: die
+        # Segment-ID je Punkt (uint16). Damit kann der Viewer die Hecke live
+        # nach HVI oder Arteignung umfaerben, ohne eine zweite Datei zu laden.
+        # Aeltere Viewer lesen nur die ersten zwei Bloecke und ignorieren den Rest.
+        (dest / fname).write_bytes(np.ascontiguousarray(p, "<f4").tobytes()
+                                   + c.tobytes() + seg_pt[sel].tobytes())
         levels.append({"id": lid, "label": label, "bin": f"scenes/{SID}/{fname}",
-                       "count": int(len(p)),
+                       "count": int(len(p)), "segmented": True,
                        "bbox_min": [float(v) for v in p.min(0)],
                        "bbox_max": [float(v) for v in p.max(0)]})
         print(f"  {label}: {len(p):,} Punkte ({n_h:,} Hecke)")
@@ -171,9 +200,17 @@ def main():
                 attrs[k] = round(float(v), 3)
         if s.get("hedge_type") is not None:
             attrs["Habitattyp"] = f"Cluster {int(s['hedge_type'])}"
-        for k, v in s.items():                       # Arteignungen (HSI_*)
-            if k.startswith("HSI") and isinstance(v, (int, float)):
-                attrs[k] = round(float(v), 3)
+        # Arteignung: die R-Spalten heissen nach der Art (nicht "HSI_*"), daher
+        # ueber SPECIES nachschlagen. Beste Art zusaetzlich als Klartext.
+        best_sp, best_v = None, -1.0
+        for _sid, disp, col, _note in SPECIES:
+            v = s.get(col)
+            if isinstance(v, (int, float)) and math.isfinite(v):
+                attrs[f"Eignung_{disp}"] = round(float(v), 3)
+                if v > best_v:
+                    best_sp, best_v = disp, float(v)
+        if best_sp:
+            attrs["Beste_Eignung"] = f"{best_sp} ({best_v:.2f})"
         markers.append({
             "id": f"h{i:03d}", "label": f"Segment {int(s['hedge_id'])} · HVI {float(s['HVI']):.2f}",
             "yaw": round(math.degrees(math.atan2(dy, dx)), 3),
@@ -181,9 +218,27 @@ def main():
             "xyz": [round(dx, 3), round(dy, 3), round(top, 3)],
             "attributes": attrs, "demo": False})
 
+    # ---- Umschaltbare Einfaerbung: HVI + je Zielart --------------------------
+    # Kompakte Tabelle segment_id -> Werte, plus Rampen und Wertebereiche. Der
+    # Viewer faerbt damit die Punktwolke (ueber die Segment-ID-Spur) live um,
+    # ohne weitere Dateien. HVI wird auf seinen Bereich gespreizt; die
+    # Arteignung ist bereits 0..1 und wird direkt genommen.
+    hvis = [float(s["HVI"]) for s in segs]
+    def col_values(getter):
+        return {str(int(s["hedge_id"])): getter(s) for s in segs}
+    options = [{"id": "HVI", "label": "Struktur (HVI)", "ramp": "hvi",
+                "range": [round(min(hvis), 3), round(max(hvis), 3)],
+                "values": col_values(lambda s: round(float(s["HVI"]), 4))}]
+    for _sid, disp, col, note in SPECIES:
+        vals = {str(int(s["hedge_id"])): round(float(s.get(col) or 0.0), 4) for s in segs}
+        options.append({"id": _sid, "label": disp, "ramp": "suit",
+                        "range": [0.0, 1.0], "note": note, "values": vals})
+    hedge_colorings = {"default": "HVI",
+                       "ramps": {"hvi": HVI_RAMP, "suit": SUIT_RAMP},
+                       "options": options}
+
     cx = (AOI[0] + AOI[2]) / 2
     cy = (AOI[1] + AOI[3]) / 2
-    hvis = [float(s["HVI"]) for s in segs]
     scene = {
         "id": SID,
         "title": "Heckennetz Niederlande — Hedge Vertical Index (ALS)",
@@ -202,7 +257,12 @@ def main():
             f"schrumpft damit faktisch auf die Hoehe. Mit kartierten "
             f"Heckenpolygonen (z. B. UKCEH fuer England) wuerde cover_frac "
             f"Luecken in der Heckenlinie messen und wieder Information tragen. "
-            f"Quelle: AHN, CC-BY-4.0; Index: shrub_div/HVI."),
+            f"Ueber dem 3D-Bild laesst sich die Einfaerbung umschalten: nach "
+            f"HVI-Struktur oder nach Habitateignung fuer fuenf Zielarten "
+            f"(Neuntoeter, Dorngrasmuecke, Goldammer, Fledermaus-Leitlinie, "
+            f"Wildbienen-Saum) -- die Eignung ist ein gewichtetes Fuzzy-Mittel "
+            f"aus Antwortkurven je Kennwert (shrub_div), die Kurven sind "
+            f"unkalibrierte Startwerte. Quelle: AHN, CC-BY-4.0; Index: shrub_div/HVI."),
         "created": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "pano": None, "thumb": f"scenes/{SID}/thumb.jpg",
         "width": None, "height": None, "variants": [],
@@ -212,6 +272,7 @@ def main():
                    "gps": rd_to_wgs84(cx, cy)},
         "pointcloud": {**{k: levels[0][k] for k in ("bin", "count", "bbox_min", "bbox_max")},
                        "levels": levels},
+        "hedge_colorings": hedge_colorings,
         "markers": markers,
     }
     (dest / "scene.json").write_text(json.dumps(scene, ensure_ascii=False, indent=2),

@@ -241,6 +241,29 @@ Vier Dinge, die dabei zu klären waren:
 - **Der HVI ist relativ**, nicht absolut: `hvi_rescale()` normiert auf das
   2.–98.-Perzentil *dieses Ausschnitts*. Werte aus zwei Ländern sind ohne
   gemeinsame Referenz nicht vergleichbar.
+
+### Arteignung: umschaltbare Einfärbung
+
+Neben dem HVI leitet `hvi_species_suitability()` je Segment die Habitateignung
+für fünf Zielarten ab (gewichtetes Fuzzy-Mittel aus Antwortkurven je Kennwert,
+`species_requirements.csv`). Die Punktwolke trägt eine **Segment-ID-Spur**
+(uint16, dritter Block im `.bin` nach xyz und rgb), sodass der Viewer über einen
+Dropdown live zwischen HVI-Struktur und jeder Art umfärbt — ohne weitere
+Downloads. Jeder Marker führt die fünf Eignungswerte plus die beste Art im Klartext.
+
+> Ein Marker-Bug fiel dabei auf: die Eignung wurde berechnet, aber nie
+> angezeigt — der Sammel-Filter suchte Spalten mit Präfix `HSI`, die R-Ausgabe
+> benennt sie aber nach der Art. Jetzt über die Artenliste nachgeschlagen.
+
+Was die Einfärbung an diesem 1-km²-Ausschnitt zeigt, ist ökologisch stimmig und
+ehrlich: das Gebiet ist von **hohen, durchgehenden Hecken** geprägt
+(Median h_p95 ≈ 6,7 m). Das macht es zu erstklassigem **Fledermaus-Leitraum**
+(Eignung Median 0,99, 203 von 214 Segmenten > 0,5), aber zu schlechtem Habitat
+für Sträucher-Vögel, die 1,5–3 m hohe Hecken brauchen: Neuntöter (20 Segmente),
+Dorngrasmücke (8), Goldammer (0). Die Wildbienen-Kurve bleibt zusätzlich flach,
+weil sie NDVI verlangt — das fehlt ohne Spektralraster. Zwei der fünf Arten
+färben also fast einheitlich; das ist eine Aussage über die Landschaft, kein
+Fehler. Die Antwortkurven selbst sind unkalibrierte Startwerte.
 - **Nicht die ganze Kachel einlesen.** `hvi_ahn_run()` liest erst alles und
   schneidet dann zu — bei 340 Mio. Punkten unmöglich. Der `-keep_xy`-Filter
   greift beim Lesen; er muss die Kachel trotzdem komplett dekomprimieren (~6 min,
