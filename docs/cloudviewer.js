@@ -212,6 +212,54 @@ export class CloudViewer {
     this._fitGround(meta);
   }
 
+  // QSM-Zylindermodell laden und als InstancedMesh rendern. Format der .bin:
+  // float32-Bloecke Start n*3, Ende n*3, Radius n, dann uint8 Ordnung n.
+  async loadQSM(url, meta) {
+    const raw = await (await fetch(url)).arrayBuffer();
+    const n = meta.count;
+    const S = new Float32Array(raw, 0, n * 3);
+    const E = new Float32Array(raw, n * 12, n * 3);
+    const R = new Float32Array(raw, n * 24, n);
+    const O = new Uint8Array(raw, n * 28, n);
+    const ramp = (meta.ramp || [[150, 108, 68], [100, 190, 95]])
+      .map(c => new THREE.Color(c[0] / 255, c[1] / 255, c[2] / 255));
+    const omax = meta.order_max || 8;
+
+    // Wenig Radialsegmente (6) -- bei ~60k Instanzen zaehlt jeder Dreieckszug.
+    const geo = new THREE.CylinderGeometry(1, 1, 1, 6, 1, true);
+    const mat = new THREE.MeshBasicMaterial({ vertexColors: true });
+    const mesh = new THREE.InstancedMesh(geo, mat, n);
+    const up = new THREE.Vector3(0, 1, 0);
+    const s = new THREE.Vector3(), e = new THREE.Vector3(), dir = new THREE.Vector3();
+    const mid = new THREE.Vector3(), q = new THREE.Quaternion();
+    const scl = new THREE.Vector3(), m = new THREE.Matrix4();
+    for (let i = 0; i < n; i++) {
+      s.set(S[3*i], S[3*i+1], S[3*i+2]);
+      e.set(E[3*i], E[3*i+1], E[3*i+2]);
+      const L = dir.subVectors(e, s).length() || 1e-4;
+      mid.addVectors(s, e).multiplyScalar(0.5);
+      q.setFromUnitVectors(up, dir.normalize());
+      scl.set(Math.max(R[i], 0.004), L, Math.max(R[i], 0.004));
+      m.compose(mid, q, scl);
+      mesh.setMatrixAt(i, m);
+      // Farbe nach Verzweigungsordnung (1 = Stamm .. omax = Feinast)
+      const t = omax > 1 ? (O[i] - 1) / (omax - 1) : 0;
+      const seg = Math.min(ramp.length - 2, Math.floor(t * (ramp.length - 1)));
+      const f = t * (ramp.length - 1) - seg;
+      mesh.setColorAt(i, ramp[seg].clone().lerp(ramp[seg + 1], f));
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+
+    if (this.qsm) { this.scene.remove(this.qsm); this.qsm.geometry.dispose(); }
+    this.qsm = mesh;
+    this.qsm.visible = false;                 // Default: Punkte zeigen
+    this.scene.add(this.qsm);
+  }
+
+  setQSMVisible(v) { if (this.qsm) this.qsm.visible = v; }
+  setPointsVisible(v) { if (this.points) this.points.visible = v; }
+
   // Punktwolke nach Segment umfaerben. segColor: {segid -> [r,g,b] in 0..255}.
   // Punkte ohne Segment (id 0) oder ohne Eintrag behalten ihre Grundfarbe --
   // so bleibt die Kulisse gedaempft, waehrend nur die Hecke die Wertfarbe traegt.
@@ -299,6 +347,7 @@ export class CloudViewer {
     document.removeEventListener('pointerlockchange', this._onLockChange);
     this.renderer.dispose();
     if (this.points) { this.points.geometry.dispose(); this.points.material.dispose(); }
+    if (this.qsm) { this.qsm.geometry.dispose(); this.qsm.material.dispose(); }
     if (this.ground) this.ground.geometry.dispose();
     this.renderer.domElement.remove();
   }

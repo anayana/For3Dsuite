@@ -60,6 +60,16 @@ ns-train splatfacto --data /pfad/zu/data/renon/colmap colmap
 # oder gsplat direkt: examples/simple_trainer.py mit COLMAP-Parser
 ```
 
+### Kaggle (kein Google-Konto-Zwang, 16-GB-T4/P100 gratis)
+
+[`train_kaggle.ipynb`](train_kaggle.ipynb) hochladen. Rechts im Panel **zwei**
+Schalter setzen, die Kaggle standardmäßig anders hat als Colab:
+**Accelerator → GPU T4 x2** und **Internet → On** (ohne Internet scheitern
+`git clone`/`pip`). Den Datensatz nicht per Upload-Dialog, sondern als
+**Dataset** anhängen (Add Input → New Dataset → `colmap_renon4.zip`); Zelle 3
+findet ihn unter `/kaggle/input/` selbst. Ergebnis landet in `/kaggle/working/`
+und ist über den **Output**-Tab herunterladbar.
+
 ### Colab
 
 [`train_colab.ipynb`](train_colab.ipynb) in Colab öffnen, Laufzeit auf GPU (T4)

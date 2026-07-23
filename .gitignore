@@ -37,3 +37,4 @@ data/hvi_ahn/
 !data/qsm/
 data/qsm/*
 !data/qsm/*.json
+!data/qsm/*_cyl.bin

@@ -117,7 +117,7 @@ def main():
         src = sj.parent
         dst = OUT / "media" / "scenes" / sid
         dst.mkdir(parents=True)
-        for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken, Walk-Video)
+        for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken, Walk-Video, QSM)
             if not (f.is_file() and f.suffix in (".jpg", ".bin", ".mp4")):
                 continue
             # Panos auf MAX_PANO_W begrenzen (Thumbs/kleine Bilder bleiben unberuehrt)
@@ -142,6 +142,11 @@ def main():
         can = s.get("canopy")
         if can and can.get("fisheye") and (src / "hemi.jpg").is_file():
             can["fisheye_url"] = f"{rel}/hemi.jpg"
+        qsm = s.get("qsm")
+        if qsm and (src / "qsm.bin").is_file():
+            qsm["bin_url"] = f"{rel}/qsm.bin"
+        elif qsm:
+            s["qsm"] = None
         pc = s.get("pointcloud")
         if pc and (src / pc["bin"].rsplit("/", 1)[-1]).is_file():
             pc["bin_url"] = rel + "/" + pc["bin"].rsplit("/", 1)[-1]

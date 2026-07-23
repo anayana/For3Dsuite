@@ -280,6 +280,48 @@ def build(sid, spec, files, pos):
             "xyz": [round(x, 3), round(y, 3), round(base + 1.3, 3)],
             "attributes": attrs, "demo": False})
 
+    # ---- QSM-Zylindermodell (falls exportiert) fuer die 3D-Ansicht ----------
+    # Nur bei ECHTER Lage: dort landen Punktwolke UND Zylinder beide bei
+    # (original - origin), liegen also automatisch im selben Frame. Die
+    # Zylinder liegen lokal (um ihren Stammfuss); welt = lokal + off, Szene =
+    # welt - origin. off steckt in <baum>_cyl.json.
+    qsm_scene = None
+    if spec["layout"] == "real":
+        starts_all, ends_all, rad_all, ord_all = [], [], [], []
+        for k in keys:
+            cj = REPO / "data" / "qsm" / f"{k}_cyl.json"
+            cb = REPO / "data" / "qsm" / f"{k}_cyl.bin"
+            if not (cj.is_file() and cb.is_file()):
+                continue
+            meta = json.loads(cj.read_text(encoding="utf-8"))
+            nc = int(meta["count"])
+            off = np.array(meta["off"], np.float64)
+            buf = np.frombuffer(cb.read_bytes(), np.float32)
+            starts = buf[0:nc * 3].reshape(nc, 3).astype(np.float64)
+            ends = buf[nc * 3:nc * 6].reshape(nc, 3).astype(np.float64)
+            rad = buf[nc * 6:nc * 7]
+            order = buf[nc * 7:nc * 8]
+            shift = off - origin
+            starts_all.append((starts + shift).astype(np.float32))
+            ends_all.append((ends + shift).astype(np.float32))
+            rad_all.append(rad); ord_all.append(order.astype(np.uint8))
+        if starts_all:
+            S = np.concatenate(starts_all); E = np.concatenate(ends_all)
+            R = np.concatenate(rad_all); O = np.concatenate(ord_all)
+            dest.mkdir(parents=True, exist_ok=True)
+            (dest / "qsm.bin").write_bytes(
+                np.ascontiguousarray(S, "<f4").tobytes()
+                + np.ascontiguousarray(E, "<f4").tobytes()
+                + np.ascontiguousarray(R, "<f4").tobytes()
+                + O.tobytes())
+            # Ordnungsfarben: Stamm (1) braun -> Feinaeste (max) hellgruen
+            omax = int(O.max())
+            ramp = [[150, 108, 68], [150, 130, 70], [120, 165, 80],
+                    [100, 190, 95], [150, 215, 120]]
+            qsm_scene = {"bin": f"scenes/{sid}/qsm.bin", "count": int(len(S)),
+                         "order_max": omax, "ramp": ramp}
+            print(f"  QSM-Zylinder: {len(S):,} (Ordnung bis {omax})")
+
     artliste = ", ".join(f"{n}x {a}" for a, n in sorted(arten.items()))
     if spec["layout"] == "real":
         plot = keys[0].split("_")[1]
@@ -310,6 +352,7 @@ def build(sid, spec, files, pos):
                    "dataset": DATASET, "url": DOI, "license": "CC-BY-4.0"},
         "pointcloud": {**{k: levels[0][k] for k in ("bin", "count", "bbox_min", "bbox_max")},
                        "levels": levels},
+        "qsm": qsm_scene,
         "markers": markers,
     }
     if spec["layout"] == "real":

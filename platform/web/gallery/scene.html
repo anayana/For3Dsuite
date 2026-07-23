@@ -108,6 +108,15 @@
     #nav button.active { background: rgba(126,231,135,.22); color: #d8ffdb; }
     body.mode-3d #nav { display: flex; }
 
+    /* Darstellung: Punktwolke / QSM-Zylindermodell (oben rechts unter #nav) */
+    #repr { position: absolute; top: 56px; right: 16px; z-index: 16; display: none;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px; overflow: hidden; }
+    #repr button { background: none; border: none; color: #cfcfcf; cursor: pointer;
+      padding: 7px 14px; font-size: 12.5px; }
+    #repr button.active { background: rgba(150,190,110,.28); color: #eaffd8; }
+    body.mode-3d.has-qsm #repr { display: flex; }
+
     /* Fadenkreuz + Tastenhilfe, nur waehrend des Begehens */
     #crosshair { position: absolute; left: 50%; top: 50%; z-index: 14;
       width: 14px; height: 14px; margin: -7px 0 0 -7px; display: none;
@@ -246,6 +255,11 @@
   <div id="nav">
     <button id="nav-orbit" class="active">Umkreisen</button>
     <button id="nav-walk">Begehen</button>
+  </div>
+  <div id="repr" hidden>
+    <button data-repr="points" class="active">Punktwolke</button>
+    <button data-repr="qsm">QSM-Modell</button>
+    <button data-repr="both">beides</button>
   </div>
   <div id="crosshair"></div>
   <div id="walkhint">
@@ -728,6 +742,23 @@
       buildColorBy(scene);          // vor loadCloud, damit die erste Ladung faerbt
       await loadCloud();
       cloud.setMarkers(scene.markers || [], origin);
+      await buildRepr(scene);       // QSM-Zylindermodell (falls vorhanden)
+    }
+
+    // Darstellung Punktwolke / QSM-Zylindermodell. Nur wenn scene.qsm da ist.
+    async function buildRepr(scene) {
+      const q = scene.qsm;
+      if (!q || !q.bin_url || !cloud) return;
+      await cloud.loadQSM(q.bin_url, q);
+      document.body.classList.add('has-qsm');
+      const pick = (mode) => {
+        cloud.setPointsVisible(mode !== 'qsm');
+        cloud.setQSMVisible(mode !== 'points');
+        document.querySelectorAll('#repr button').forEach(
+          b => b.classList.toggle('active', b.dataset.repr === mode));
+      };
+      document.querySelectorAll('#repr button').forEach(
+        b => { b.onclick = () => pick(b.dataset.repr); });
     }
 
     async function init() {
