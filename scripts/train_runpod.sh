@@ -37,7 +37,7 @@ export TORCH_CUDA_ARCH_LIST="$(cat /tmp/arch)"
 echo "Baue fuer Compute Capability $TORCH_CUDA_ARCH_LIST"
 
 # ---- 2) Datensatz finden (oder aus dem Repo laden) -----------------------
-REPO_ZIP="https://raw.githubusercontent.com/anayana/For3Dsuite/main/data/Renon/colmap_renon4.zip"
+REPO_ZIP="https://raw.githubusercontent.com/anayana/For3Dsuite/main/data/renon/colmap_renon4.zip"
 ZIP="${1:-}"
 if [ -z "$ZIP" ]; then
   ZIP="$(find /workspace . -maxdepth 3 -name colmap_renon4.zip 2>/dev/null | head -1)"
