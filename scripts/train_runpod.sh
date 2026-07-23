@@ -73,9 +73,13 @@ if [ "$CUDA_NUM" -lt 1240 ]; then
   cd /workspace
   [ -d gaussian-splatting ] || git clone --recursive --depth 1 https://github.com/graphdeco-inria/gaussian-splatting
   cd gaussian-splatting
-  pip install -q ninja plyfile opencv-python joblib
+  pip install -q ninja plyfile opencv-python joblib tqdm
   pip install -q --no-build-isolation ./submodules/diff-gaussian-rasterization \
       ./submodules/simple-knn ./submodules/fused-ssim
+  # torch 2.1 (cu118-Images) ist NICHT mit NumPy 2.x lauffaehig -> fixieren, sonst
+  # crasht schon "import torch" ("compiled using NumPy 1.x ... run in NumPy 2").
+  # Zuletzt installieren, damit opencv/andere nicht wieder numpy>=2 hochziehen.
+  pip install -q "numpy<2"
   echo "== Training (30k, -r 2) =="
   python train.py -s "$DATA" -m /workspace/output/renon --iterations 30000 -r 2
   cp /workspace/output/renon/point_cloud/iteration_30000/point_cloud.ply "$OUTPLY"
