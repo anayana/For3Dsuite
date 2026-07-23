@@ -99,17 +99,19 @@ saveget <- function(expr, default = NA) {
 num1 <- function(x) if (is.null(x) || all(is.na(x))) NA_real_ else
   round(as.numeric(if (is.data.frame(x)) x[[ncol(x)]][1] else x[1]), 4)
 
-# TreeVolume() summiert QSM$Volume (gross geschrieben). add_radius() legt die
-# Spalte aber als "volume" an -- die Gross-/Kleinschreibung passt in aRchi 2.1.4
-# nicht zusammen, und weil sum(NULL) in R 0 ergibt, liefert TreeVolume()
-# stillschweigend 0 statt eines Fehlers. Daher direkt die vorhandene Spalte.
-stopifnot(all(c("radius", "length", "volume") %in% names(qsm)))
-if (all(qsm$radius == 0)) stop("add_radius() hat keine Radien geliefert")
+# Volumen aus aRchis eigener Spalte "volume". TreeVolume() sucht dagegen "Volume"
+# (gross) und liefert wegen sum(NULL)==0 still 0. Die Spalte "radius" gibt es nur
+# nach Make_Path -- die Geometrie steckt immer in "radius_cyl". Gegenprobe:
+# sum(volume) == sum(pi*radius_cyl^2*length) auf 4 Stellen -> radius_cyl ist der
+# RADIUS (nicht der Durchmesser); der Stamm-radius_cyl 0,106 m ergibt BHD 21 cm
+# gegen 19,4 cm aus dem Kreis-Fit, das passt.
+stopifnot(all(c("radius_cyl", "length", "volume") %in% names(qsm)))
+if (all(qsm$radius_cyl == 0)) stop("add_radius() hat keine Radien geliefert")
 qsm[, vol_m3 := volume]
+qsm[, surf_m2 := 2 * pi * radius_cyl * length]   # Mantelflaeche je Zylinder
 
 pf    <- saveget(quote(PathFraction(a)))
 fork  <- saveget(quote(ForkRate(a)))
-surf  <- saveget(quote(WoodSurface(a)))
 wbe   <- saveget(quote(WBEparameters(a)))
 
 hoehe <- max(qsm$endZ, na.rm = TRUE) - min(qsm$startZ, na.rm = TRUE)
@@ -128,12 +130,12 @@ if ("branching_order" %in% names(qsm)) {
          volumen_l = vo$volumen_l[i], zylinder = as.integer(vo$zylinder[i])))
 }
 
-# Stammdurchmesser in Brusthoehe direkt aus dem Modell -- unabhaengige
-# Gegenprobe zum Kreis-Fit aus seed_syssifoss.py
-# Zylinder, die die 1,3-m-Ebene schneiden; ein einzelner Treffer ist Zufall,
-# daher ein 20-cm-Fenster um Brusthoehe.
+# BHD in Brusthoehe direkt aus dem Modell -- unabhaengige Gegenprobe zum
+# Kreis-Fit. Zylinder, die die 1,3-m-Ebene schneiden (20-cm-Fenster, damit nicht
+# ein Einzeltreffer entscheidet); radius_cyl ist der Radius -> BHD = 2*r.
 bh <- qsm[startZ <= 1.4 & endZ >= 1.2 & branching_order <= 1]
-bhd_qsm <- if (nrow(bh)) round(2 * median(bh$radius) * 100, 1) else NA_real_
+bhd_qsm <- if (nrow(bh)) round(2 * median(bh$radius_cyl) * 100, 1) else NA_real_
+surf_gesamt <- round(sum(qsm$surf_m2, na.rm = TRUE), 2)
 
 res <- list(
   baum = basename(laz),
@@ -147,7 +149,7 @@ res <- list(
   metriken = list(
     hoehe_holz_m = round(hoehe, 2),
     holzvolumen_l = vol_gesamt_l,
-    holzoberflaeche_m2 = num1(surf),
+    holzoberflaeche_m2 = surf_gesamt,
     bhd_aus_qsm_cm = bhd_qsm,
     path_fraction = num1(pf),
     gabelungsrate = num1(fork)
@@ -167,4 +169,4 @@ write(toJSON(res, auto_unbox = TRUE, pretty = TRUE, digits = 6, na = "null"), ou
 cat(sprintf("   %d Zylinder, Ordnung bis %s, Holzhoehe %.1f m\n", n_zyl,
             as.character(ordnungen), hoehe))
 cat(sprintf("   Volumen %.1f l, Oberflaeche %.1f m2, BHD(QSM) %s cm, PathFraction %s\n",
-            vol_gesamt_l, num1(surf), as.character(bhd_qsm), as.character(num1(pf))))
+            vol_gesamt_l, surf_gesamt, as.character(bhd_qsm), as.character(num1(pf))))
