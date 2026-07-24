@@ -60,25 +60,30 @@ def main():
     arr, names = read_ply(args.ply)
     xyz = np.stack([arr["x"], arr["y"], arr["z"]], 1).astype(np.float32)
 
+    focus = np.median(xyz, 0)                          # dichter Kern (~Objekt), robust
+
     # Up-Achse: manuell, sonst aus der Bodenebene schaetzen (PCA-Normale).
     # 3DGS/COLMAP-Szenen sind beliebig orientiert -> ein festes [0,-1,0] kippt.
     if args.camera_up is None:
-        cen = xyz.mean(0)
-        _, V = np.linalg.eigh(np.cov((xyz - cen).T))
+        _, V = np.linalg.eigh(np.cov((xyz - xyz.mean(0)).T))
         up = V[:, 0]                                   # kleinster Eigenwert = Ebenennormale
-        proj = (xyz - cen) @ up                        # Vorzeichen: Tail (Baeume) = oben
-        if proj.mean() < np.median(proj):
+        # Vorzeichen: nach OBEN reicht der Hintergrund/die Kronen weit, nach UNTEN
+        # (unter dem Boden) terminiert die Wolke schnell -> Seite mit groesserer
+        # Reichweite ist oben.
+        d = (xyz - focus) @ up
+        if abs(np.percentile(d, 1)) > abs(np.percentile(d, 99)):
             up = -up
         args.camera_up = [float(c) for c in up]
-        print(f"  Up-Achse automatisch (Bodenebene): "
-              f"[{up[0]:.2f}, {up[1]:.2f}, {up[2]:.2f}]")
+        print(f"  Up-Achse automatisch: [{up[0]:.2f}, {up[1]:.2f}, {up[2]:.2f}]  "
+              f"(Reichweite oben {np.percentile((xyz-focus)@up,99):.1f} / "
+              f"unten {np.percentile((xyz-focus)@up,1):.1f})")
     fdc = np.stack([arr.get(f"f_dc_{i}") if hasattr(arr, "get") else arr[f"f_dc_{i}"]
                     for i in range(3)], 1)
     col = np.clip(0.5 + C0 * fdc, 0, 1)
     col = (col * 255).astype(np.uint8)
-    # robuste bbox (2..98 %) -> ignoriert Rest-Ausreisser bei der Kamera
-    lo = np.percentile(xyz, 2, 0); hi = np.percentile(xyz, 98, 0)
-    focus = np.median(xyz, 0)                       # dichter Kern (~Stumpf) = Blickziel
+    # enge bbox um den Kern (25..75 %) -> Kamera-Distanz aus der Objektgroesse,
+    # nicht aus fernen Ausreisser-Gaussians (die die Szene auf 70 m aufblaehen)
+    lo = np.percentile(xyz, 25, 0); hi = np.percentile(xyz, 75, 0)
 
     dest = MEDIA / "scenes" / args.id
     dest.mkdir(parents=True, exist_ok=True)

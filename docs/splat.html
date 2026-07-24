@@ -88,23 +88,18 @@
       const center = sp.focus ? new THREE.Vector3(...sp.focus)
                               : mn.clone().add(mx).multiplyScalar(0.5);
       const radius = mn.distanceTo(mx) / 2 || 8;
-      // tiefster Punkt entlang der Up-Achse -> Augenhoehe 1,6 m darueber
-      const minAlong = Math.min(mn.dot(upv), mx.dot(upv));
-      // Boden-Zentrum (Stumpf), davon menschliche Augenhoehe hoch + ein Stueck
-      // horizontal zurueck -> stehende Sicht schraeg von oben auf das Objekt
-      const groundC = center.clone().sub(upv.clone().multiplyScalar(center.dot(upv) - minAlong));
       // horizontale Basis (senkrecht zur Up-Achse)
       const ref = Math.abs(upv.z) < 0.9 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(1, 0, 0);
       const t1 = new THREE.Vector3().crossVectors(ref, upv).normalize();
       const t2 = new THREE.Vector3().crossVectors(upv, t1).normalize();
 
-      // Startpose: 1,7 m Augenhoehe, menschlicher Standabstand (nicht szenenskaliert,
-      // sonst steht man bei grossen Szenen 30 m weg und schaut durch alles durch)
-      const backDist = Math.min(radius * 0.9, 4.0);
-      const eye = groundC.clone()
+      // Startpose: 1,7 m UEBER dem Kern (focus), ein Stueck zurueck, Blick auf den Kern.
+      // Alles relativ zum Fokuspunkt -- unabhaengig von fernen Ausreisser-Gaussians.
+      const backDist = Math.min(radius * 1.5, 4.0);
+      const eye = center.clone()
         .add(upv.clone().multiplyScalar(1.7))
         .add(t1.clone().multiplyScalar(backDist));
-      const lookT = groundC.clone().add(upv.clone().multiplyScalar(0.3));
+      const lookT = center.clone();
       const ld0 = lookT.clone().sub(eye).normalize();
       const yaw0 = Math.atan2(ld0.dot(t2), ld0.dot(t1));
       const pitch0 = Math.asin(Math.max(-1, Math.min(1, ld0.dot(upv))));
