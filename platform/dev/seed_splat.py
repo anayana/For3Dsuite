@@ -49,13 +49,26 @@ def main():
     ap.add_argument("--id", required=True)
     ap.add_argument("--title", required=True)
     ap.add_argument("--description", default="Begehbares 3D-Gaussian-Splatting-Ergebnis.")
-    ap.add_argument("--camera-up", nargs=3, type=float, default=[0, -1, 0],
-                    help="Up-Achse (3DGS-Standard 0 -1 0)")
+    ap.add_argument("--camera-up", nargs=3, type=float, default=None,
+                    help="Up-Achse manuell; ohne Angabe automatisch aus der Bodenebene (PCA)")
     ap.add_argument("--note", default="Trainiertes 3DGS (Neuansichts-Synthese).")
     args = ap.parse_args()
 
     arr, names = read_ply(args.ply)
     xyz = np.stack([arr["x"], arr["y"], arr["z"]], 1).astype(np.float32)
+
+    # Up-Achse: manuell, sonst aus der Bodenebene schaetzen (PCA-Normale).
+    # 3DGS/COLMAP-Szenen sind beliebig orientiert -> ein festes [0,-1,0] kippt.
+    if args.camera_up is None:
+        cen = xyz.mean(0)
+        _, V = np.linalg.eigh(np.cov((xyz - cen).T))
+        up = V[:, 0]                                   # kleinster Eigenwert = Ebenennormale
+        proj = (xyz - cen) @ up                        # Vorzeichen: Tail (Baeume) = oben
+        if proj.mean() < np.median(proj):
+            up = -up
+        args.camera_up = [float(c) for c in up]
+        print(f"  Up-Achse automatisch (Bodenebene): "
+              f"[{up[0]:.2f}, {up[1]:.2f}, {up[2]:.2f}]")
     fdc = np.stack([arr.get(f"f_dc_{i}") if hasattr(arr, "get") else arr[f"f_dc_{i}"]
                     for i in range(3)], 1)
     col = np.clip(0.5 + C0 * fdc, 0, 1)

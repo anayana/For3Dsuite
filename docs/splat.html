@@ -88,16 +88,27 @@
       const radius = mn.distanceTo(mx) / 2 || 8;
       // tiefster Punkt entlang der Up-Achse -> Augenhoehe 1,6 m darueber
       const minAlong = Math.min(mn.dot(upv), mx.dot(upv));
-      const eye = center.clone().sub(upv.clone().multiplyScalar(center.dot(upv) - minAlong - 1.6));
+      // Boden-Zentrum (Stumpf), davon menschliche Augenhoehe hoch + ein Stueck
+      // horizontal zurueck -> stehende Sicht schraeg von oben auf das Objekt
+      const groundC = center.clone().sub(upv.clone().multiplyScalar(center.dot(upv) - minAlong));
       // horizontale Basis (senkrecht zur Up-Achse)
       const ref = Math.abs(upv.z) < 0.9 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(1, 0, 0);
       const t1 = new THREE.Vector3().crossVectors(ref, upv).normalize();
       const t2 = new THREE.Vector3().crossVectors(upv, t1).normalize();
 
+      // Startpose: 1,7 m Augenhoehe, ~0,9*radius horizontal zurueck, Blick auf den Stumpf
+      const eye = groundC.clone()
+        .add(upv.clone().multiplyScalar(1.7))
+        .add(t1.clone().multiplyScalar(radius * 0.9));
+      const lookT = groundC.clone().add(upv.clone().multiplyScalar(0.3));
+      const ld0 = lookT.clone().sub(eye).normalize();
+      const yaw0 = Math.atan2(ld0.dot(t2), ld0.dot(t1));
+      const pitch0 = Math.asin(Math.max(-1, Math.min(1, ld0.dot(upv))));
+
       const viewer = new GaussianSplats3D.Viewer({
         cameraUp: upv.toArray(),
         initialCameraPosition: eye.toArray(),
-        initialCameraLookAt: eye.clone().add(t1).toArray(),
+        initialCameraLookAt: lookT.toArray(),
         sharedMemoryForWorkers: false,   // ohne COOP/COEP -> laeuft auf GitHub Pages
         useBuiltInControls: false,       // eigene Begehung, damit sich der Raum nicht dreht
       });
@@ -112,10 +123,7 @@
       const cam = viewer.camera;
       cam.up.copy(upv);
       let mode = 'walk';
-      // Startblick horizontal zum Wolken-Zentrum (nicht ins Leere)
-      const toC = center.clone().sub(eye);
-      let yaw = Math.atan2(toC.dot(t2), toC.dot(t1)) || 0;
-      let pitch = -0.03;
+      let yaw = yaw0, pitch = pitch0;   // Start: stehend, Blick schraeg auf den Stumpf
       const pos = eye.clone();
       const step = Math.max(0.05, radius * 0.012);      // Schrittweite an Szenengroesse
       let orbYaw = 0, orbPitch = 0.35, orbR = radius * 1.8;   // Umkreisen
