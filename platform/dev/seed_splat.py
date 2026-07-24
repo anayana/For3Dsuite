@@ -78,6 +78,7 @@ def main():
     col = (col * 255).astype(np.uint8)
     # robuste bbox (2..98 %) -> ignoriert Rest-Ausreisser bei der Kamera
     lo = np.percentile(xyz, 2, 0); hi = np.percentile(xyz, 98, 0)
+    focus = np.median(xyz, 0)                       # dichter Kern (~Stumpf) = Blickziel
 
     dest = MEDIA / "scenes" / args.id
     dest.mkdir(parents=True, exist_ok=True)
@@ -85,6 +86,7 @@ def main():
 
     splat = {"camera_up": args.camera_up,
              "bbox": {"bbox_min": lo.tolist(), "bbox_max": hi.tolist()},
+             "focus": focus.tolist(),
              "note": args.note}
     if args.external_url:                          # extern gehostet (Release/CDN)
         splat["url"] = args.external_url

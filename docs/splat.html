@@ -84,7 +84,9 @@
       const bb = sp.bbox || (scene.pointcloud || {});
       const mn = new THREE.Vector3(...(bb.bbox_min || [-5, -5, -5]));
       const mx = new THREE.Vector3(...(bb.bbox_max || [5, 5, 5]));
-      const center = mn.clone().add(mx).multiplyScalar(0.5);
+      // Blickziel: dichter Kern (focus, Median) falls vorhanden, sonst bbox-Mitte
+      const center = sp.focus ? new THREE.Vector3(...sp.focus)
+                              : mn.clone().add(mx).multiplyScalar(0.5);
       const radius = mn.distanceTo(mx) / 2 || 8;
       // tiefster Punkt entlang der Up-Achse -> Augenhoehe 1,6 m darueber
       const minAlong = Math.min(mn.dot(upv), mx.dot(upv));
@@ -96,10 +98,12 @@
       const t1 = new THREE.Vector3().crossVectors(ref, upv).normalize();
       const t2 = new THREE.Vector3().crossVectors(upv, t1).normalize();
 
-      // Startpose: 1,7 m Augenhoehe, ~0,9*radius horizontal zurueck, Blick auf den Stumpf
+      // Startpose: 1,7 m Augenhoehe, menschlicher Standabstand (nicht szenenskaliert,
+      // sonst steht man bei grossen Szenen 30 m weg und schaut durch alles durch)
+      const backDist = Math.min(radius * 0.9, 4.0);
       const eye = groundC.clone()
         .add(upv.clone().multiplyScalar(1.7))
-        .add(t1.clone().multiplyScalar(radius * 0.9));
+        .add(t1.clone().multiplyScalar(backDist));
       const lookT = groundC.clone().add(upv.clone().multiplyScalar(0.3));
       const ld0 = lookT.clone().sub(eye).normalize();
       const yaw0 = Math.atan2(ld0.dot(t2), ld0.dot(t1));
