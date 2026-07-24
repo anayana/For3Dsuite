@@ -54,6 +54,9 @@ def main():
                     help="raeumliches Kern-Perzentil (Punkte weiter draussen fliegen raus)")
     ap.add_argument("--max-scale", type=float, default=0.6, help="max. Gaussian-Radius [m]")
     ap.add_argument("--min-opacity", type=float, default=0.12, help="min. Deckkraft (0..1)")
+    ap.add_argument("--sh0", action="store_true",
+                    help="view-abhaengige SH-Koeffizienten (f_rest_*) droppen -> ~3,6x kleiner")
+    ap.add_argument("--max", type=int, help="auf N Gaussians ausduennen (nach Deckkraft)")
     args = ap.parse_args()
 
     arr, names = read_ply(args.inp)
@@ -72,9 +75,25 @@ def main():
         keep &= op >= args.min_opacity
 
     out = arr[keep]
+
+    # Ausduennen: die deckkraeftigsten N behalten (tragen das Bild)
+    if args.max and len(out) > args.max:
+        op = out["opacity"] if "opacity" in names else np.zeros(len(out))
+        out = out[np.argsort(op)[::-1][:args.max]]
+
+    # SH0: nur Basisfarbe behalten (f_rest_* raus) -> deutlich kleiner
+    if args.sh0:
+        keep_names = [nm for nm in names if not nm.startswith("f_rest_")]
+        nd = np.empty(len(out), dtype=np.dtype([(nm, "<f4") for nm in keep_names]))
+        for nm in keep_names:
+            nd[nm] = out[nm]
+        out, names = nd, keep_names
+
     write_ply(args.out, out, names)
-    print(f"-> {args.out}: {len(out):,}/{n0:,} Gaussians behalten "
-          f"({100*len(out)/n0:.1f}%), {n0-len(out):,} Floater/Hintergrund entfernt")
+    import os
+    print(f"-> {args.out}: {len(out):,}/{n0:,} Gaussians ({100*len(out)/n0:.1f}%), "
+          f"{os.path.getsize(args.out)/1e6:.0f} MB"
+          + (" (SH0)" if args.sh0 else ""))
 
 
 if __name__ == "__main__":
