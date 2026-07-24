@@ -39,6 +39,8 @@ def dataset_tags(s):
         tags.append("RGB-Panorama")
     if s.get("video_url"):
         tags.append("Video-Rundgang")
+    if s.get("splat"):
+        tags.append("Gaussian Splatting")
     if s.get("pointcloud"):
         tags.append("LiDAR-Punktwolke")
     if any(k.startswith("QSM_") for k in attr_keys):
@@ -103,6 +105,12 @@ def main():
     ], "walk.html")
     (OUT / "walk.html").write_text(walk, encoding="utf-8")
 
+    splat = patch((GALLERY / "splat.html").read_text(encoding="utf-8"), [
+        ("fetch('/api/scenes/' + encodeURIComponent(sid))",
+         "fetch('data/scene-' + encodeURIComponent(sid) + '.json')"),
+    ], "splat.html")
+    (OUT / "splat.html").write_text(splat, encoding="utf-8")
+
     shutil.copyfile(GALLERY / "cloudviewer.js", OUT / "cloudviewer.js")
 
     # ---- Szenen-JSONs + Medien ----
@@ -117,8 +125,8 @@ def main():
         src = sj.parent
         dst = OUT / "media" / "scenes" / sid
         dst.mkdir(parents=True)
-        for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken, Walk-Video, QSM)
-            if not (f.is_file() and f.suffix in (".jpg", ".bin", ".mp4")):
+        for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken, Video, QSM, Splat)
+            if not (f.is_file() and f.suffix in (".jpg", ".bin", ".mp4", ".ply")):
                 continue
             # Panos auf MAX_PANO_W begrenzen (Thumbs/kleine Bilder bleiben unberuehrt)
             if f.suffix == ".jpg" and f.name != "thumb.jpg":
@@ -147,6 +155,11 @@ def main():
             qsm["bin_url"] = f"{rel}/qsm.bin"
         elif qsm:
             s["qsm"] = None
+        sp = s.get("splat")
+        if sp and (src / sp["file"]).is_file():
+            sp["url"] = f"{rel}/{sp['file']}"
+        elif sp:
+            s["splat"] = None
         pc = s.get("pointcloud")
         if pc and (src / pc["bin"].rsplit("/", 1)[-1]).is_file():
             pc["bin_url"] = rel + "/" + pc["bin"].rsplit("/", 1)[-1]
@@ -169,7 +182,7 @@ def main():
             "markers": len(s.get("markers", [])),
             "source_type": (s.get("source") or {}).get("type"),
             "has_3d": bool(s.get("pointcloud")),
-            "kind": "walk" if s.get("video") else "scene",
+            "kind": "walk" if s.get("video") else "splat" if s.get("splat") else "scene",
             "datasets": dataset_tags(s),
         }
         # Koordinate fuer die Uebersichtskarte (source.gps, sonst metadata.geometry)

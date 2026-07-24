@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Splat — 360Pano3D</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+  <style>
+    html, body { margin: 0; height: 100%; background: #000; overflow: hidden;
+                 font-family: system-ui, -apple-system, sans-serif; }
+    #topbar { position: absolute; top: 14px; left: 14px; z-index: 30;
+              display: flex; gap: 10px; align-items: center; }
+    #topbar a, #title { color: #eee; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px;
+      padding: 8px 14px; font-size: 13px; text-decoration: none; }
+    #title { font-weight: 600; }
+    #note { position: absolute; bottom: 16px; left: 14px; z-index: 30; max-width: 420px;
+      color: #cbd5e1; background: rgba(13,17,23,.82); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.14); border-left: 3px solid #d29922;
+      border-radius: 10px; padding: 9px 13px; font-size: 12px; line-height: 1.5; }
+    #err { position: absolute; inset: 0; display: none; place-items: center; z-index: 40;
+      color: #ffb4b4; background: #000; text-align: center; padding: 24px; font-size: 14px; }
+    #help { position: absolute; bottom: 16px; right: 14px; z-index: 30; color: #cbd5e1;
+      background: rgba(13,17,23,.72); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 12px;
+      font-size: 11.5px; line-height: 1.6; }
+    #help b { color: #eee; }
+    #modeBar { position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      z-index: 30; display: flex; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px; overflow: hidden; }
+    #modeBar button { background: none; border: none; color: #cfcfcf; cursor: pointer;
+      padding: 7px 15px; font-size: 12.5px; }
+    #modeBar button.active { background: rgba(126,231,135,.22); color: #d8ffdb; }
+  </style>
+</head>
+<body>
+  <div id="topbar">
+    <a href="index.html">← Szenen</a>
+    <span id="title"></span>
+  </div>
+  <div id="modeBar">
+    <button id="m-walk" class="active">Begehen</button>
+    <button id="m-orbit">Umkreisen</button>
+  </div>
+  <div id="note" hidden></div>
+  <div id="help">
+    <b>Begehen:</b> Maus ziehen = umschauen · <b>W A S D</b> = gehen ·
+    <b>Q / E</b> = tiefer / höher · <b>Shift</b> = schneller
+  </div>
+  <div id="err"></div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import * as GaussianSplats3D from
+      'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.7/build/gaussian-splats-3d.module.js';
+
+    const sid = new URLSearchParams(location.search).get('id');
+    const fail = (m) => { const e = document.getElementById('err');
+      e.textContent = m; e.style.display = 'grid'; };
+
+    async function init() {
+      if (!sid) { location.href = 'index.html'; return; }
+      const r = await fetch('data/scene-' + encodeURIComponent(sid) + '.json');
+      if (!r.ok) return fail('Szene nicht gefunden');
+      const scene = await r.json();
+      document.title = (scene.title || sid) + ' — 360Pano3D';
+      document.getElementById('title').textContent = scene.title || sid;
+
+      const sp = scene.splat || {};
+      const url = sp.url || sp.splat_url;
+      if (!url) return fail('Diese Szene hat kein Splat-Modell (splat.url fehlt).');
+      if (sp.note) { const n = document.getElementById('note');
+        n.textContent = sp.note; n.hidden = false; }
+
+      // ---- Geometrie: Up-Achse, Zentrum, Boden-Augenhoehe --------------------
+      const upv = new THREE.Vector3(...(sp.camera_up || [0, -1, 0])).normalize();
+      const bb = sp.bbox || (scene.pointcloud || {});
+      const mn = new THREE.Vector3(...(bb.bbox_min || [-5, -5, -5]));
+      const mx = new THREE.Vector3(...(bb.bbox_max || [5, 5, 5]));
+      const center = mn.clone().add(mx).multiplyScalar(0.5);
+      const radius = mn.distanceTo(mx) / 2 || 8;
+      // tiefster Punkt entlang der Up-Achse -> Augenhoehe 1,6 m darueber
+      const minAlong = Math.min(mn.dot(upv), mx.dot(upv));
+      const eye = center.clone().sub(upv.clone().multiplyScalar(center.dot(upv) - minAlong - 1.6));
+      // horizontale Basis (senkrecht zur Up-Achse)
+      const ref = Math.abs(upv.z) < 0.9 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(1, 0, 0);
+      const t1 = new THREE.Vector3().crossVectors(ref, upv).normalize();
+      const t2 = new THREE.Vector3().crossVectors(upv, t1).normalize();
+
+      const viewer = new GaussianSplats3D.Viewer({
+        cameraUp: upv.toArray(),
+        initialCameraPosition: eye.toArray(),
+        initialCameraLookAt: eye.clone().add(t1).toArray(),
+        sharedMemoryForWorkers: false,   // ohne COOP/COEP -> laeuft auf GitHub Pages
+        useBuiltInControls: false,       // eigene Begehung, damit sich der Raum nicht dreht
+      });
+      try {
+        await viewer.addSplatScene(url, { showLoadingUI: true });
+        viewer.start();
+      } catch (e) {
+        return fail('Splat-Modell konnte nicht geladen werden: ' + (e && e.message || e));
+      }
+
+      // ---- eigene Steuerung: Begehen (First-Person) / Umkreisen --------------
+      const cam = viewer.camera;
+      cam.up.copy(upv);
+      let mode = 'walk';
+      let yaw = 0, pitch = -0.03;                       // Blick (um Up-Achse / hoch-runter)
+      const pos = eye.clone();
+      let orbYaw = 0, orbPitch = 0.35, orbR = radius * 1.8;   // Umkreisen
+      const keys = {};
+      const look = new THREE.Vector3(), fwd = new THREE.Vector3(), right = new THREE.Vector3();
+
+      function lookVec(y, p) {
+        const cp = Math.cos(p);
+        return t1.clone().multiplyScalar(cp * Math.cos(y))
+          .add(t2.clone().multiplyScalar(cp * Math.sin(y)))
+          .add(upv.clone().multiplyScalar(Math.sin(p)));
+      }
+      function frame() {
+        if (mode === 'walk') {
+          // horizontale Bewegungsrichtung (auf dem "Boden")
+          fwd.copy(t1).multiplyScalar(Math.cos(yaw)).add(t2.clone().multiplyScalar(Math.sin(yaw)));
+          right.crossVectors(fwd, upv).normalize();
+          const sp0 = (keys['shift'] ? 0.9 : 0.28);
+          if (keys['w']) pos.addScaledVector(fwd, sp0);
+          if (keys['s']) pos.addScaledVector(fwd, -sp0);
+          if (keys['d']) pos.addScaledVector(right, sp0);
+          if (keys['a']) pos.addScaledVector(right, -sp0);
+          if (keys['e']) pos.addScaledVector(upv, sp0);
+          if (keys['q']) pos.addScaledVector(upv, -sp0);
+          cam.position.copy(pos);
+          cam.up.copy(upv);
+          cam.lookAt(look.copy(pos).add(lookVec(yaw, pitch)));
+        } else {
+          const d = lookVec(orbYaw, orbPitch);
+          cam.up.copy(upv);
+          cam.position.copy(center.clone().addScaledVector(d, orbR));
+          cam.lookAt(center);
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+
+      // Maus-Umschauen (ziehen)
+      let drag = false, px = 0, py = 0;
+      const cv = viewer.renderer.domElement;
+      cv.style.cursor = 'grab';
+      cv.addEventListener('pointerdown', e => { drag = true; px = e.clientX; py = e.clientY;
+        cv.style.cursor = 'grabbing'; cv.setPointerCapture(e.pointerId); });
+      cv.addEventListener('pointerup', e => { drag = false; cv.style.cursor = 'grab'; });
+      cv.addEventListener('pointermove', e => {
+        if (!drag) return;
+        const dx = (e.clientX - px) * 0.005, dy = (e.clientY - py) * 0.005;
+        px = e.clientX; py = e.clientY;
+        const clamp = v => Math.max(-1.5, Math.min(1.5, v));
+        if (mode === 'walk') { yaw -= dx; pitch = clamp(pitch - dy); }
+        else { orbYaw -= dx; orbPitch = clamp(orbPitch + dy); }
+      });
+      cv.addEventListener('wheel', e => { e.preventDefault();
+        if (mode === 'orbit') orbR = Math.max(radius * 0.2, orbR * (1 + Math.sign(e.deltaY) * 0.1));
+        else pos.addScaledVector(lookVec(yaw, pitch), -Math.sign(e.deltaY) * 1.5);
+      }, { passive: false });
+      addEventListener('keydown', e => { keys[e.key.toLowerCase()] = true;
+        keys['shift'] = e.shiftKey; });
+      addEventListener('keyup', e => { keys[e.key.toLowerCase()] = false;
+        keys['shift'] = e.shiftKey; });
+
+      // Modus-Umschalter
+      const bw = document.getElementById('m-walk'), bo = document.getElementById('m-orbit');
+      const setMode = m => { mode = m; bw.classList.toggle('active', m === 'walk');
+        bo.classList.toggle('active', m === 'orbit');
+        document.getElementById('help').style.display = m === 'walk' ? 'block' : 'none'; };
+      bw.onclick = () => setMode('walk');
+      bo.onclick = () => setMode('orbit');
+    }
+    init().catch(e => fail('Fehler: ' + (e && e.message || e)));
+  </script>
+</body>
+</html>

@@ -97,7 +97,7 @@
     // Zielseite je Szenentyp (auch von der Karte genutzt)
     function pageFor(s) {
       const p = s.kind === 'walk' ? 'walk.html?id=' : s.kind === 'tour' ? 'tour.html?id='
-              : 'scene.html?id=';
+              : s.kind === 'splat' ? 'splat.html?id=' : 'scene.html?id=';
       return p + encodeURIComponent(s.id);
     }
 
