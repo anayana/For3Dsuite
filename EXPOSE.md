@@ -29,6 +29,10 @@ der Punktwolke, die qualitative RGB-Auswertung je segmentiertem Baum, bis zur
 Wachstumsprognose über einen legal hostbaren, quelloffenen Modellkern (TreeGrOSS, GPLv3).
 Alle Schritte sind reproduzierbar, abhängigkeitsarm und selbst hostbar.
 
+Das Spektrum der so je Baum und Bestand ableitbaren Größen — Struktur, Vitalität/
+Waldschadenszustand, Rindenschäden, Wertholzfaktoren, Habitatstrukturen — ist mit
+Modalität und ehrlicher Machbarkeitsstufe in [METRIKEN.md](METRIKEN.md) katalogisiert.
+
 **(b) Der Validierungshebel — der methodische Kern.** Qualitative (RGB) und quantitative
 (LiDAR/QSM) Merkmale werden am **selben Objekt kreuzvalidiert**: Eine bildseitig gemeldete
 Kronenverlichtung muss sich in geringerer QSM-Astdichte und Punktdichte der Oberkrone
