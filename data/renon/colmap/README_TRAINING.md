@@ -60,6 +60,21 @@ ns-train splatfacto --data /pfad/zu/data/renon/colmap colmap
 # oder gsplat direkt: examples/simple_trainer.py mit COLMAP-Parser
 ```
 
+### RunPod / vast.ai / Uni-Cluster (kein Google, kein Telefon)
+
+Gemietete Linux-GPU, telefonfrei (RunPod: Kreditkarte, ~0,20 € für den Lauf).
+Pod mit **CUDA-devel-Template** (RunPod „PyTorch 2.x", hat `nvcc`), GPU ≥ 12 GB.
+Im Web-Terminal genügt **ein Befehl** — [`scripts/train_runpod.sh`](../../../scripts/train_runpod.sh)
+lädt Datensatz + 3DGS selbst, baut die Submodule und trainiert:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/anayana/For3Dsuite/main/scripts/train_runpod.sh | bash
+```
+
+Ergebnis nach ~30 Min: `/workspace/renon_gaussians.ply` (JupyterLab-Dateibrowser
+→ Download). Auf dem Uni-Cluster identisch, nur `curl … | bash` in der GPU-Queue
+starten (bzw. `bash train_runpod.sh`, wenn das Repo schon da ist).
+
 ### Kaggle (kein Google-Konto-Zwang, 16-GB-T4/P100 gratis)
 
 [`train_kaggle.ipynb`](train_kaggle.ipynb) hochladen. Rechts im Panel **zwei**

@@ -52,6 +52,9 @@ def main():
     ap.add_argument("--camera-up", nargs=3, type=float, default=None,
                     help="Up-Achse manuell; ohne Angabe automatisch aus der Bodenebene (PCA)")
     ap.add_argument("--note", default="Trainiertes 3DGS (Neuansichts-Synthese).")
+    ap.add_argument("--external-url",
+                    help="Splat-.ply extern hosten (z. B. GitHub-Release): URL statt "
+                    "Kopie ins Repo. Die .ply wird nur fuer bbox/Up/Thumbnail gelesen.")
     args = ap.parse_args()
 
     arr, names = read_ply(args.ply)
@@ -78,8 +81,16 @@ def main():
 
     dest = MEDIA / "scenes" / args.id
     dest.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(args.ply, dest / "model.ply")
     thumbnail(xyz, col, args.camera_up, dest / "thumb.jpg")
+
+    splat = {"camera_up": args.camera_up,
+             "bbox": {"bbox_min": lo.tolist(), "bbox_max": hi.tolist()},
+             "note": args.note}
+    if args.external_url:                          # extern gehostet (Release/CDN)
+        splat["url"] = args.external_url
+    else:                                          # ins Repo kopieren (kleine Dateien)
+        shutil.copyfile(args.ply, dest / "model.ply")
+        splat["file"] = "model.ply"
 
     scene = {
         "id": args.id, "title": args.title, "description": args.description,
@@ -87,19 +98,14 @@ def main():
         "pano": None, "thumb": f"scenes/{args.id}/thumb.jpg",
         "width": None, "height": None, "variants": [],
         "source": {"type": "3dgs"},
-        "splat": {
-            "file": "model.ply",
-            "camera_up": args.camera_up,
-            "bbox": {"bbox_min": lo.tolist(), "bbox_max": hi.tolist()},
-            "note": args.note,
-        },
+        "splat": splat,
         "markers": [],
     }
     (dest / "scene.json").write_text(json.dumps(scene, ensure_ascii=False, indent=2),
                                      encoding="utf-8")
-    mb = (dest / "model.ply").stat().st_size / 1e6
-    print(f"Szene '{args.id}': {len(xyz):,} Gaussians, {mb:.1f} MB")
-    print(f"  -> publish.json ergaenzen + export_static.py laufen lassen")
+    mb = Path(args.ply).stat().st_size / 1e6
+    where = f"extern: {args.external_url}" if args.external_url else "im Repo (docs)"
+    print(f"Szene '{args.id}': {len(xyz):,} Gaussians, {mb:.1f} MB ({where})")
 
 
 if __name__ == "__main__":

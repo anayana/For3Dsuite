@@ -156,8 +156,10 @@ def main():
         elif qsm:
             s["qsm"] = None
         sp = s.get("splat")
-        if sp and (src / sp["file"]).is_file():
-            sp["url"] = f"{rel}/{sp['file']}"
+        if sp and sp.get("file") and (src / sp["file"]).is_file():
+            sp["url"] = f"{rel}/{sp['file']}"      # lokal im Repo
+        elif sp and sp.get("url"):
+            pass                                    # extern gehostet (Release/CDN)
         elif sp:
             s["splat"] = None
         pc = s.get("pointcloud")
