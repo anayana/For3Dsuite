@@ -112,10 +112,15 @@
       const cam = viewer.camera;
       cam.up.copy(upv);
       let mode = 'walk';
-      let yaw = 0, pitch = -0.03;                       // Blick (um Up-Achse / hoch-runter)
+      // Startblick horizontal zum Wolken-Zentrum (nicht ins Leere)
+      const toC = center.clone().sub(eye);
+      let yaw = Math.atan2(toC.dot(t2), toC.dot(t1)) || 0;
+      let pitch = -0.03;
       const pos = eye.clone();
+      const step = Math.max(0.05, radius * 0.012);      // Schrittweite an Szenengroesse
       let orbYaw = 0, orbPitch = 0.35, orbR = radius * 1.8;   // Umkreisen
       const keys = {};
+      window._pos = pos; window._cam = cam;             // fuer Funktionstest
       const look = new THREE.Vector3(), fwd = new THREE.Vector3(), right = new THREE.Vector3();
 
       function lookVec(y, p) {
@@ -129,7 +134,7 @@
           // horizontale Bewegungsrichtung (auf dem "Boden")
           fwd.copy(t1).multiplyScalar(Math.cos(yaw)).add(t2.clone().multiplyScalar(Math.sin(yaw)));
           right.crossVectors(fwd, upv).normalize();
-          const sp0 = (keys['shift'] ? 0.9 : 0.28);
+          const sp0 = step * (keys['shift'] ? 3 : 1);
           if (keys['w']) pos.addScaledVector(fwd, sp0);
           if (keys['s']) pos.addScaledVector(fwd, -sp0);
           if (keys['d']) pos.addScaledVector(right, sp0);
