@@ -104,12 +104,17 @@
       const yaw0 = Math.atan2(ld0.dot(t2), ld0.dot(t1));
       const pitch0 = Math.asin(Math.max(-1, Math.min(1, ld0.dot(upv))));
 
+      // Echtes Headset-VR (WebXR), falls die Lib es kennt: der Viewer schaltet
+      // dann selbst auf den XR-Render-Loop um und blendet einen "Enter VR"-Knopf
+      // ein. Ohne Headset/HTTPS bleibt der Knopf inaktiv, der Rest laeuft normal.
+      const xrVR = (GaussianSplats3D.WebXRMode && GaussianSplats3D.WebXRMode.VR);
       const viewer = new GaussianSplats3D.Viewer({
         cameraUp: upv.toArray(),
         initialCameraPosition: eye.toArray(),
         initialCameraLookAt: lookT.toArray(),
         sharedMemoryForWorkers: false,   // ohne COOP/COEP -> laeuft auf GitHub Pages
         useBuiltInControls: false,       // eigene Begehung, damit sich der Raum nicht dreht
+        webXRMode: xrVR,                 // Headset-VR aktivieren (Quest etc.)
       });
       try {
         await viewer.addSplatScene(url, { showLoadingUI: true });
@@ -138,6 +143,10 @@
           .add(upv.clone().multiplyScalar(Math.sin(p)));
       }
       function frame() {
+        // Im Headset (WebXR) steuert die Brille die Kamera -> eigene Steuerung aus.
+        if (viewer.renderer && viewer.renderer.xr && viewer.renderer.xr.isPresenting) {
+          requestAnimationFrame(frame); return;
+        }
         if (mode === 'walk') {
           // horizontale Bewegungsrichtung (auf dem "Boden")
           fwd.copy(t1).multiplyScalar(Math.cos(yaw)).add(t2.clone().multiplyScalar(Math.sin(yaw)));
