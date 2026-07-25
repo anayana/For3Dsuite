@@ -126,7 +126,7 @@ def main():
         dst = OUT / "media" / "scenes" / sid
         dst.mkdir(parents=True)
         for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken, Video, QSM, Splat)
-            if not (f.is_file() and f.suffix in (".jpg", ".bin", ".mp4", ".ply")):
+            if not (f.is_file() and f.suffix in (".jpg", ".bin", ".mp4", ".ply", ".splat")):
                 continue
             # Panos auf MAX_PANO_W begrenzen (Thumbs/kleine Bilder bleiben unberuehrt)
             if f.suffix == ".jpg" and f.name != "thumb.jpg":

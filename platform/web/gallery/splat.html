@@ -114,6 +114,7 @@
       try {
         await viewer.addSplatScene(url, { showLoadingUI: true });
         viewer.start();
+        window._viewer = viewer;          // Debug-/Test-Zugriff (Frame erzwingen)
       } catch (e) {
         return fail('Splat-Modell konnte nicht geladen werden: ' + (e && e.message || e));
       }
