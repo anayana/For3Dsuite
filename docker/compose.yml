@@ -1,0 +1,14 @@
+# For3Dsuite -- reproduzierbarer CPU-Stack (Gallery/Viewer + Offline-Reproduktion).
+#   docker compose -f docker/compose.yml up --build
+#   -> http://localhost:8000/   (Startseite, Szenen, begehbarer Viewer)
+#
+# Der Container fuehrt beim Start die Offline-Wuchsprognose auf den committeten
+# Renon-Daten aus (Log) und serviert dann die statische Suite.
+services:
+  suite:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000"
+    command: ["serve"]

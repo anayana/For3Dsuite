@@ -1,0 +1,10 @@
+# CPU-Pipeline der For3Dsuite (Inventur, RGB-Analyse, Wuchsmodell-Export, Viewer).
+# Bewusst schlank; schwere/optionale Leser (E57, GeoTIFF) siehe docker/README.md.
+numpy
+pillow
+opencv-python-headless
+laspy
+scikit-learn
+fastapi
+uvicorn[standard]
+python-multipart

@@ -1,0 +1,26 @@
+# For3Dsuite -- 3D Gaussian Splatting Training (GPU/CUDA).
+# Containerisierter Zwilling zu scripts/train_runpod.sh: dieselbe Logik, aber als
+# reproduzierbares Image fuer jede CUDA-Maschine (Workstation, HPC via Apptainer,
+# Cloud). Alternativ ohne Container: scripts/train_runpod.sh auf einem RunPod-Pod.
+#
+# CUDA-*devel* (enthaelt nvcc) ist Pflicht -- die 3DGS-Kernel werden kompiliert.
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-pip git curl unzip build-essential ninja-build \
+    && ln -sf /usr/bin/python3 /usr/bin/python \
+    && rm -rf /var/lib/apt/lists/*
+
+# torch passend zu CUDA 12.4; die Trainingsskripte waehlen danach den gsplat-Pfad
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cu124
+
+WORKDIR /workspace
+COPY scripts/train_mipnerf.sh scripts/train_runpod.sh scripts/
+COPY data/renon/colmap_renon4.zip data/renon/colmap_renon4.zip
+
+# Nutzung:
+#   docker build -f docker/Dockerfile.gpu -t for3d-gpu .
+#   docker run --gpus all -v $PWD/out:/workspace for3d-gpu bash scripts/train_mipnerf.sh stump
+#   -> /workspace/<szene>_gaussians.ply   (danach clean_splat.py + seed_splat.py)
+ENTRYPOINT ["bash"]

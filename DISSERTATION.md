@@ -57,7 +57,8 @@ Wuchsmodell.
 ## Mantel / Synthese
 Verklammert P1–P3 zum Gesamtbeitrag; ordnet Grenzen und Ausblick ein. Optionales
 **viertes, leichteres Paper** zur offenen Plattform (SoftwareX / Environmental Modelling
-& Software).
+& Software) — Gliederung: [SOFTWAREPAPER.md](SOFTWAREPAPER.md), reproduzierbar via
+[docker/](docker/README.md).
 
 ---
 
