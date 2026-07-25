@@ -54,8 +54,11 @@ Einzelscan-Verdeckung, TLS-BHD-Kalibrierung, Artansprache aus Panoramen begrenzt
 braucht dichte Aufnahme, Bonität/Alter extern. (Details: [EXPOSE.md](EXPOSE.md) §5.)
 
 ## Vor der Einreichung noch zu erledigen
-- Automatisierte **Tests + CI** (GitHub Actions) — fehlt aktuell.
-- **Zenodo-Release → DOI** + `CITATION.cff`.
+- ~~Automatisierte **Tests + CI** (GitHub Actions)~~ ✓ [tests/test_core.py](tests/test_core.py)
+  (6 Unit-Tests der Kernfunktionen) + [.github/workflows/tests.yml](.github/workflows/tests.yml)
+  (pytest auf Python 3.10/3.11 bei jedem Push).
+- ~~`CITATION.cff`~~ ✓ ([CITATION.cff](CITATION.cff)); **Zenodo-Release → DOI** noch offen.
+- Lizenz festlegen + LICENSE-Datei (in CITATION.cff als TODO markiert; TreeGrOSS ist GPL).
 - GPU-Image auf einer CUDA-Maschine bauen/verifizieren.
 - Ein kompaktes Architektur-Diagramm.
 
