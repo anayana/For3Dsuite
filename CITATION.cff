@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "For3Dsuite: Von 360°-Panoramen und Laserscans zur begehbaren 3D-Waldinventur"
+abstract: >-
+  Open-Source-Pipeline und Web-Viewer, die terrestrische/luftgestuetzte
+  Laserscans und RGB-Panoramen zu interaktiven, begehbaren 3D-Waldszenen
+  verarbeitet und aus den Punktwolken Inventurkennwerte (Baumart, BHD, Hoehe,
+  QSM-Holzvolumen, Kronenschluss/LAI, Hecken-Strukturindex) ableitet.
+type: software
+authors:
+  # TODO: durch den echten Namen ersetzen (Vor-/Nachname).
+  - given-names: "Angel"
+    family-names: "Naya"
+    email: "angel.naya@posteo.de"
+    alias: "anayana"
+repository-code: "https://github.com/anayana/For3Dsuite"
+url: "https://anayana.github.io/For3Dsuite/"
+# TODO: Lizenz festlegen und LICENSE-Datei ergaenzen, dann hier den SPDX-Bezeichner
+# eintragen (z. B. "MIT" oder "GPL-3.0-or-later"). Beachten: TreeGrOSS ist GPL --
+# solange die Engine ausserhalb des Repos/Images bleibt, ist der Kern frei waehlbar.
+keywords:
+  - "forest inventory"
+  - "LiDAR"
+  - "point cloud"
+  - "gaussian splatting"
+  - "QSM"
+  - "hedgerow"
+  - "360 panorama"
