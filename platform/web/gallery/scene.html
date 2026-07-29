@@ -331,13 +331,16 @@
     // Anzeigenamen/Einheiten fuer die kuratierten Felder (Rest kommt generisch)
     const LABELS = {
       BHD_cm: ['BHD', 'cm'], Hoehe_m: ['Höhe', 'm'], Distanz_m: ['Distanz', 'm'],
+      Kronenansatz_m: ['Kronenansatz', 'm'], Kronenlaenge_m: ['Kronenlänge', 'm'],
+      Kronendurchmesser_m: ['Kronendurchmesser', 'm'], Kronenvolumen_m3: ['Kronenvolumen', 'm³'],
       Vital_gruen: ['Grünanteil', ''], Nichtgruen: ['nicht grün', ''],
       ExG_mean: ['ExG', ''], GLI_mean: ['GLI', ''],
       GLCM_Kontrast: ['GLCM-Kontrast', ''], GLCM_Entropie: ['GLCM-Entropie', ''],
       Vital_zscore: ['z (Bestand)', ''], Ansichten: ['Ansichten', ''],
       Status: ['Status', ''],
     };
-    const STRUCT = ['BHD_cm', 'Hoehe_m'];
+    const STRUCT = ['BHD_cm', 'Hoehe_m', 'Kronenansatz_m', 'Kronenlaenge_m',
+                    'Kronendurchmesser_m', 'Kronenvolumen_m3'];
     const RGB = ['Vital_gruen', 'ExG_mean', 'GLI_mean', 'GLCM_Kontrast',
                  'GLCM_Entropie', 'Vital_zscore', 'Ansichten'];
     const HIDDEN = new Set([...STRUCT, ...RGB, 'Vitalitaet', 'Nichtgruen',

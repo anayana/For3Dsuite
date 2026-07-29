@@ -60,8 +60,47 @@ def load_trees():
     return sites
 
 
+def crown_metrics(pts, base, height, cx, cy):
+    """Kronenmetriken aus dem vertikalen Radiusprofil um die Stammachse (cx,cy).
+
+    Der Stamm ist ein duenner Zylinder (kleiner Radius), die Krone weitet sich
+    abrupt. Kronenansatz = tiefste Hoehe (>1,3 m), ab der der 90%-Radius je
+    Hoehenband einen Bruchteil des Maximalradius erreicht und bis zur Spitze
+    breit bleibt. Volumen voxelbasiert (kein scipy noetig).
+    """
+    z = pts[:, 2] - base
+    top = height
+    if top < 2.0:
+        return None
+    rad = np.hypot(pts[:, 0] - cx, pts[:, 1] - cy)
+    nb = max(6, int(top / 0.5))
+    edges = np.linspace(0, top, nb + 1)
+    idx = np.clip(np.digitize(z, edges) - 1, 0, nb - 1)
+    r90 = np.array([np.percentile(rad[idx == b], 90) if (idx == b).sum() >= 8 else 0.0
+                    for b in range(nb)])
+    rmax = float(r90.max()) if r90.size else 0.0
+    if rmax < 0.4:
+        return None                                   # keine erkennbare Krone
+    wide = [b for b in range(nb) if r90[b] >= 0.35 * rmax and edges[b] >= 1.3]
+    if not wide:
+        return None
+    cbh = float(edges[wide[0]])                        # Kronenansatz ueber Grund (m)
+    crown_len = float(top - cbh)
+    if crown_len < 1.0:
+        return None
+    cp = pts[z >= cbh]                                 # Kronenpunkte
+    v = 0.3                                            # Voxelkante (m)
+    k = np.floor(cp / v).astype(np.int64)
+    nvox = len(np.unique(k[:, 0] * 73856093 ^ k[:, 1] * 19349663 ^ k[:, 2] * 83492791))
+    vol = nvox * v ** 3
+    return {"Kronenansatz_m": round(cbh, 1),
+            "Kronenlaenge_m": round(crown_len, 1),
+            "Kronendurchmesser_m": round(2 * rmax, 1),
+            "Kronenvolumen_m3": round(vol, 1)}
+
+
 def tree_metrics(pts):
-    """Hoehe ueber Stammfuss und BHD aus dem Brusthoehen-Ring (Kasa-Fit)."""
+    """Hoehe, BHD (Brusthoehen-Ring, Kasa-Fit) und Kronenmetriken je Baum."""
     base = float(np.percentile(pts[:, 2], 1))
     height = float(pts[:, 2].max() - base)
     sl = pts[(pts[:, 2] - base >= 1.0) & (pts[:, 2] - base <= 1.6)]
@@ -73,7 +112,8 @@ def tree_metrics(pts):
             if 0.02 <= r <= 0.8 and rms <= 0.05:
                 bhd = round(2 * r * 100, 1)
     xy = sl[:, :2].mean(0) if len(sl) else pts[:, :2].mean(0)
-    return float(xy[0]), float(xy[1]), base, height, bhd
+    crown = crown_metrics(pts, base, height, float(xy[0]), float(xy[1]))
+    return float(xy[0]), float(xy[1]), base, height, bhd, crown
 
 
 def write_bin(path, xyz, rgb, origin):
@@ -121,11 +161,13 @@ def build(site, trees):
 
     markers, arten = [], {}
     for i, (name, art, pts) in enumerate(trees, 1):
-        x, y, base, height, bhd = tree_metrics(pts)
+        x, y, base, height, bhd, crown = tree_metrics(pts)
         arten[art] = arten.get(art, 0) + 1
         attrs = {"Art": art, "Hoehe_m": round(height, 1), "Punkte": int(len(pts))}
         if bhd:
             attrs["BHD_cm"] = bhd
+        if crown:
+            attrs.update(crown)
         dx, dy, dz = x - origin[0], y - origin[1], (base + 1.3) - origin[2]
         dist = math.sqrt(dx * dx + dy * dy + dz * dz) or 1e-6
         markers.append({

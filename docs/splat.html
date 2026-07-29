@@ -67,7 +67,7 @@
 
     async function init() {
       if (!sid) { location.href = 'index.html'; return; }
-      const r = await fetch('/api/scenes/' + encodeURIComponent(sid));
+      const r = await fetch('data/scene-' + encodeURIComponent(sid) + '.json');
       if (!r.ok) return fail('Szene nicht gefunden');
       const scene = await r.json();
       document.title = (scene.title || sid) + ' — 360Pano3D';
