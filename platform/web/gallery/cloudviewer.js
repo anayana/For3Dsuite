@@ -227,7 +227,11 @@ export class CloudViewer {
 
     // Wenig Radialsegmente (6) -- bei ~60k Instanzen zaehlt jeder Dreieckszug.
     const geo = new THREE.CylinderGeometry(1, 1, 1, 6, 1, true);
-    const mat = new THREE.MeshBasicMaterial({ vertexColors: true });
+    // KEIN vertexColors: die Zylindergeometrie hat kein color-Attribut, dann
+    // multipliziert der Shader mit (0,0,0) -> alles schwarz. Die Per-Instanz-
+    // Farbe (instanceColor, unten via setColorAt) greift bei InstancedMesh von
+    // selbst (USE_INSTANCING_COLOR) und faerbt die Zylinder nach Astordnung.
+    const mat = new THREE.MeshBasicMaterial();
     const mesh = new THREE.InstancedMesh(geo, mat, n);
     const up = new THREE.Vector3(0, 1, 0);
     const s = new THREE.Vector3(), e = new THREE.Vector3(), dir = new THREE.Vector3();
