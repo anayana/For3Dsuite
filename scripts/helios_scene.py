@@ -107,6 +107,13 @@ def main():
     ap.add_argument("--positions", type=int, default=6)
     ap.add_argument("--height", type=float, default=1.5, help="Scanner-Hoehe (m)")
     ap.add_argument("--res", type=float, default=0.04, help="Winkelaufloesung (Grad)")
+    # Achtung Zeilenfrequenz: eine GROBE Aufloesung hat weniger Pulse pro Zeile,
+    # also mehr Zeilen/s -> die Scan-(Zeilen-)Frequenz steigt und kann das
+    # Scanner-Limit (VZ400: 120 Hz) reissen. Gegenmittel: pulseFreq senken.
+    # Faustregel hier: ~90 kHz + res 0.3 haelt die Frequenz unter dem Limit und
+    # bleibt schnell; feine res (<=0.09) geht auch bei 300 kHz, ist aber dicht/langsam.
+    ap.add_argument("--pulsefreq", type=int, default=300000,
+                    help="Pulsfrequenz (Hz); bei grober --res ggf. senken (~90000)")
     args = ap.parse_args()
 
     rows = list(csv.DictReader(open(args.csv)))
@@ -140,7 +147,7 @@ def main():
         for x, y, z in pos)
     survey = f'''<?xml version="1.0" encoding="UTF-8"?>
 <document>
-  <scannerSettings id="tls" active="true" pulseFreq_hz="300000"
+  <scannerSettings id="tls" active="true" pulseFreq_hz="{args.pulsefreq}"
     scanAngle_deg="180" headRotatePerSec_deg="30"
     headRotateStart_deg="0" headRotateStop_deg="360"
     verticalResolution_deg="{args.res}" horizontalResolution_deg="{args.res}" />
