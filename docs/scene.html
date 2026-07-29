@@ -206,6 +206,22 @@
     #legend .sw.auffaellig { border-color: #f0883e; background: rgba(240,136,62,.35); }
     #legend .note { color: #6e7681; margin-top: 5px; max-width: 210px; line-height: 1.35; }
 
+    /* Generische Farblegende aus scene.legend (unten links, nur 3D-Modus) */
+    #cloudlegend { position: absolute; bottom: 16px; left: 14px; z-index: 15;
+      max-width: 300px; display: none; color: #d7e0ea;
+      background: rgba(13,17,23,.84); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,.14); border-left: 3px solid #f0883e;
+      border-radius: 10px; padding: 10px 13px; font-size: 12px; line-height: 1.5; }
+    body.mode-3d #cloudlegend.on { display: block; }
+    #cloudlegend b { color: #eee; display: block; }
+    #cloudlegend .sub { color: #8b949e; font-size: 10.5px; margin: 1px 0 7px;
+      line-height: 1.35; }
+    #cloudlegend .row { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+    #cloudlegend .sw { width: 13px; height: 13px; border-radius: 3px; flex: none;
+      border: 1px solid rgba(255,255,255,.25); }
+    #cloudlegend .note { color: #8b949e; font-size: 10.5px; margin-top: 7px;
+      line-height: 1.4; }
+
     /* Infobox */
     #infobox { position: absolute; right: 16px; top: 16px; z-index: 20;
       width: 300px; max-height: calc(100% - 100px); overflow-y: auto;
@@ -284,6 +300,7 @@
     <div id="colorby-note"></div>
   </div>
   <div id="validation" hidden></div>
+  <div id="cloudlegend"></div>
   <div id="canopy" hidden></div>
   <div id="legend">
     <b>RGB-Vitalität</b>
@@ -420,6 +437,23 @@
     function buildLegend(scene) {
       const has = (scene.markers || []).some(m => (m.attributes || {}).Vitalitaet);
       document.getElementById('legend').classList.toggle('on', has);
+    }
+
+    // Generische Farblegende aus scene.legend (z. B. Verdeckungskarte).
+    // Erklaert, was die Punktfarben bedeuten -- nur im 3D-Modus sichtbar.
+    function buildCloudLegend(scene) {
+      const lg = scene.legend;
+      const el = document.getElementById('cloudlegend');
+      if (!lg || !(lg.items || []).length) return;
+      const rows = lg.items.map(it =>
+        `<div class="row"><span class="sw" style="background:${it.color}"></span>` +
+        `<span>${it.label}</span></div>`).join('');
+      el.innerHTML =
+        `<b>${lg.title || 'Legende'}</b>` +
+        (lg.subtitle ? `<div class="sub">${lg.subtitle}</div>` : '') +
+        rows +
+        (lg.note ? `<div class="note">${lg.note}</div>` : '');
+      el.classList.add('on');
     }
 
     // Validierungs-Panel: berechnete Marker gegen Datensatz-Ground-Truth
@@ -769,6 +803,7 @@
       document.title = (scene.title || sid) + ' — 360Pano3D';
       document.getElementById('title').textContent = scene.title || sid;
       buildLegend(scene);
+      buildCloudLegend(scene);
       buildValidation(scene);
       buildCanopy(scene);
       buildContext(scene);

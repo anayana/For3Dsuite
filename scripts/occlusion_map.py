@@ -88,6 +88,23 @@ def main():
     rgb_full = vis_ramp(frac)
     local = (xyz - origin).astype(np.float32)
 
+    # Legende (vom Viewer als Panel gerendert): dieselben 5 Rampenstufen wie
+    # vis_ramp, beschriftet mit der Zahl der Standpunkte, die sie bedeuten.
+    def _rgb(t):
+        c = vis_ramp(np.array([t]))[0]
+        return f"rgb({int(c[0])},{int(c[1])},{int(c[2])})"
+    mids = [1, 2, (nlegs + 1) // 2, max(nlegs - 1, 2), nlegs]
+    labels = [f"1 Standpunkt — einseitig, verdeckungsgefährdet", "2 Standpunkte",
+              f"~{mids[2]}", f"~{mids[3]}", f"{nlegs} — rundum frei sichtbar"]
+    legend = {
+        "title": "Sichtbarkeit / Verdeckung",
+        "subtitle": f"aus wie vielen der {nlegs} TLS-Standpunkte ein Punkt gesehen wird",
+        "items": [{"color": _rgb(t), "label": lab}
+                  for t, lab in zip(np.linspace(0, 1, 5), labels)],
+        "note": f"{100*(vis<=1).mean():.0f}% aller Punkte nur von EINEM Standpunkt "
+                f"gesehen — dort ist eine Einzelscan-Inventur blind.",
+    }
+
     dest = MEDIA / "scenes" / args.id
     dest.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(0)
@@ -133,6 +150,7 @@ def main():
                    "gps": {"lat": 46.58686, "lon": 11.43369}},
         "pointcloud": {**{k: levels[0][k] for k in ("bin", "count", "bbox_min", "bbox_max")},
                        "levels": levels},
+        "legend": legend,
         "markers": [],
     }
     (dest / "scene.json").write_text(json.dumps(scene, ensure_ascii=False, indent=2),
