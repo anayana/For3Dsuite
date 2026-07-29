@@ -67,7 +67,7 @@
 
     async function init() {
       if (!sid) { location.href = 'index.html'; return; }
-      const r = await fetch('data/scene-' + encodeURIComponent(sid) + '.json');
+      const r = await fetch('/api/scenes/' + encodeURIComponent(sid));
       if (!r.ok) return fail('Szene nicht gefunden');
       const scene = await r.json();
       document.title = (scene.title || sid) + ' — 360Pano3D';
@@ -104,10 +104,18 @@
       const yaw0 = Math.atan2(ld0.dot(t2), ld0.dot(t1));
       const pitch0 = Math.asin(Math.max(-1, Math.min(1, ld0.dot(upv))));
 
-      // Echtes Headset-VR (WebXR), falls die Lib es kennt: der Viewer schaltet
-      // dann selbst auf den XR-Render-Loop um und blendet einen "Enter VR"-Knopf
-      // ein. Ohne Headset/HTTPS bleibt der Knopf inaktiv, der Rest laeuft normal.
-      const xrVR = (GaussianSplats3D.WebXRMode && GaussianSplats3D.WebXRMode.VR);
+      // Echtes Headset-VR (WebXR) NUR aktivieren, wenn das Geraet immersive-vr
+      // wirklich kann (Quest o.ae.). Sonst schaltet der Viewer renderer.xr.enabled
+      // ein und der Desktop-Render-Loop bleibt schwarz (Daten laden zwar, aber es
+      // wird nichts gezeichnet) -- genau das hatte den begehbaren Splat auf dem
+      // Desktop unsichtbar gemacht. Auf dem Desktop also den alten, normalen Pfad.
+      let xrVR = (GaussianSplats3D.WebXRMode && GaussianSplats3D.WebXRMode.None) || 0;
+      if (navigator.xr && GaussianSplats3D.WebXRMode) {
+        try {
+          if (await navigator.xr.isSessionSupported('immersive-vr'))
+            xrVR = GaussianSplats3D.WebXRMode.VR;
+        } catch (e) { /* kein XR -> Desktop */ }
+      }
       const viewer = new GaussianSplats3D.Viewer({
         cameraUp: upv.toArray(),
         initialCameraPosition: eye.toArray(),
