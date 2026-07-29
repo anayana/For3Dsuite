@@ -15,6 +15,7 @@
     "renon-helios-synth": "Synthetischer TLS-Scan (HELIOS++) der Renon-Inventur -- Wuchsmodell->Sensor-Strang, Punktwolke mit bekannter Wahrheit",
     "renon-occlusion": "Verdeckungs-/Sichtbarkeitskarte (CANOPy-Konzept) auf dem synthetischen Scan -- welche Bestandsteile sind einseitig gesehen und damit verdeckungsgefaehrdet",
     "renon-setup02": "Reale RGB-Punktwolke eines zweiten Renon-Standpunkts (E57) -- gemessene Farbe je Punkt, andere Scan-Schatten als Setup 001",
+    "renon-combined": "Vier registrierte Renon-Standpunkte (E57) verschmolzen -- 28,8 Mio -> dichte RGB-Wolke, fuellt die Scan-Schatten des Einzelscans (weniger Verdeckung, belastbarere Metriken)",
     "renon-splat": "Trainiertes 3D Gaussian Splatting des EIGENEN Renon-Standorts (700k Gaussians aus 20 Bildern) -- begehbar, schliesst den Kreis: dieselbe Flaeche als Pano, Punktwolke, QSM und jetzt fotoreal",
     "stump-3dgs": "Referenz-Splat (Mip-NeRF stump) -- zeigt 3DGS-Qualitaet bei dichter Aufnahme, Kontrast zum duennen Renon-Satz",
     "hvi-ahn-hedges": "ALS statt TLS: Heckennetz aus offenem AHN-LiDAR, 214 Segmente nach Hedge Vertical Index eingefaerbt",

@@ -8,7 +8,11 @@ lite/full) samt scene.json und Thumbnail. So wird eine weitere reale Renon-E57
 (z. B. Setup 002) zur echten RGB-Punktwolken-Szene -- kein synthetischer Scan,
 sondern gemessene Farbe je Punkt.
 
-  python scripts/e57_scene.py <datei.e57> <szenen-id> [--title "..."] [--voxel 0.02]
+  python scripts/e57_scene.py <szenen-id> <datei.e57> [<datei2.e57> ...] \
+      [--title "..."] [--voxel 0.02]
+
+Mehrere E57 desselben (registrierten) Frames werden VERSCHMOLZEN -- das fuellt die
+Scan-Schatten des Einzelstandpunkts (weniger Verdeckung, dichtere Wolke).
 """
 import argparse
 import json
@@ -34,19 +38,26 @@ def voxel_idx(xyz, voxel):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("e57"); ap.add_argument("id")
+    ap.add_argument("id")
+    ap.add_argument("e57", nargs="+", help="eine oder mehrere E57 (gleicher Frame -> verschmolzen)")
     ap.add_argument("--title", default=None)
     ap.add_argument("--voxel", type=float, default=0.02)
     args = ap.parse_args()
 
-    e = pye57.E57(args.e57)
-    d = e.read_scan(0, ignore_missing_fields=True, colors=True)
-    xyz = np.c_[d["cartesianX"], d["cartesianY"], d["cartesianZ"]].astype(np.float64)
-    rgb = np.c_[d["colorRed"], d["colorGreen"], d["colorBlue"]]
-    if rgb.max() > 255:                       # 16-bit-Farbe -> 8 bit
-        rgb = (rgb.astype(np.float64) / rgb.max() * 255)
-    rgb = rgb.astype(np.uint8)
-    print(f"gelesen: {len(xyz):,} Punkte")
+    xyz_parts, rgb_parts = [], []
+    for path in args.e57:
+        e = pye57.E57(path)
+        d = e.read_scan(0, ignore_missing_fields=True, colors=True)
+        p = np.c_[d["cartesianX"], d["cartesianY"], d["cartesianZ"]].astype(np.float64)
+        c = np.c_[d["colorRed"], d["colorGreen"], d["colorBlue"]]
+        if c.max() > 255:                       # 16-bit-Farbe -> 8 bit
+            c = (c.astype(np.float64) / c.max() * 255)
+        xyz_parts.append(p); rgb_parts.append(c.astype(np.uint8))
+        print(f"gelesen: {len(p):,} Punkte aus {Path(path).name}")
+    xyz = np.concatenate(xyz_parts)
+    rgb = np.concatenate(rgb_parts).astype(np.uint8)
+    if len(args.e57) > 1:
+        print(f"verschmolzen: {len(xyz):,} Punkte aus {len(args.e57)} Standpunkten")
 
     idx = voxel_idx(xyz, args.voxel)
     xyz, rgb = xyz[idx], rgb[idx]
