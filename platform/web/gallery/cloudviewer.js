@@ -259,6 +259,35 @@ export class CloudViewer {
     this.qsm = mesh;
     this.qsm.visible = false;                 // Default: Punkte zeigen
     this.scene.add(this.qsm);
+
+    // Zylinderdaten fuer das Anklicken behalten. ACHTUNG: die .bin verkettet
+    // MEHRERE Baeume eines Plots -> baumweite Summen (Stammlaenge, Kronenansatz)
+    // waeren hier falsch. Ganzbaum-QSM-Werte haengen je Baum am Marker
+    // (QSM_Holzvolumen etc.). Hier nur Segment-Kennzahlen + ein Plot-Bodenniveau
+    // fuer die relative Hoehe.
+    let zmin = Infinity;
+    const len = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const L = Math.hypot(E[3*i] - S[3*i], E[3*i+1] - S[3*i+1], E[3*i+2] - S[3*i+2]);
+      len[i] = L;
+      zmin = Math.min(zmin, S[3*i+2], E[3*i+2]);
+    }
+    this._qsm = { S, E, R, O, len, n, omax, zmin };
+  }
+
+  // Kennzahlen eines angeklickten Zylinders (Segment). Ganzbaum-Werte kommen
+  // ueber den Marker, weil die .bin mehrere Baeume enthaelt.
+  _qsmInfo(i) {
+    const q = this._qsm; if (!q || i == null || i < 0 || i >= q.n) return null;
+    const o = q.O[i], L = q.len[i], r = q.R[i];
+    return {
+      order: o,
+      is_trunk: o <= 1,
+      diameter_cm: 2 * r * 100,
+      length_m: L,
+      segment_volume_l: Math.PI * r * r * L * 1000,
+      z_from_ground_m: (q.S[3*i+2] + q.E[3*i+2]) / 2 - q.zmin,
+    };
   }
 
   setQSMVisible(v) { if (this.qsm) this.qsm.visible = v; }
@@ -312,7 +341,15 @@ export class CloudViewer {
     }
     this.raycaster.setFromCamera(this._pointer, this.camera);
     const hit = this.raycaster.intersectObjects(this.markerObjs, false)[0];
-    if (hit && this.onMarkerClick) this.onMarkerClick(hit.object.userData.marker);
+    if (hit && this.onMarkerClick) { this.onMarkerClick(hit.object.userData.marker); return; }
+    // Sonst: sichtbares QSM-Zylindermodell anklickbar (Stamm/Ast-Kennzahlen)
+    if (this.qsm && this.qsm.visible && this._qsm && this.onQSMPick) {
+      const qh = this.raycaster.intersectObject(this.qsm, false)[0];
+      if (qh && qh.instanceId != null) {
+        const info = this._qsmInfo(qh.instanceId);
+        if (info) this.onQSMPick(info);
+      }
+    }
   }
 
   _size() {

@@ -426,6 +426,34 @@
       document.getElementById('infobox').style.display = 'block';
     }
 
+    // Klick auf einen QSM-Zylinder: Kennzahlen des Segments (Stamm/Ast) + des
+    // ganzen Baums. "gruen/tot" steckt NICHT in der QSM-Geometrie (braeuchte
+    // Blatt-Holz-/Vitalitaetsdaten) -- daher der tiefste Ast als Kronenansatz.
+    function showQSMInfo(info) {
+      const n = (v, d = 1) => (v == null ? '—' : Number(v).toFixed(d));
+      document.getElementById('ib-label').textContent =
+        info.is_trunk ? 'Stamm' : `Ast — Ordnung ${info.order}`;
+      document.getElementById('ib-demo').hidden = true;
+      document.getElementById('ib-vital').innerHTML = '';
+      document.getElementById('ib-toggle').hidden = true;
+      document.getElementById('ib-prognote').hidden = true;
+      const table = document.getElementById('ib-attrs');
+      table.innerHTML = '';
+      section(table, 'Segment (angeklickter Zylinder)');
+      const row = (k, v) => { const tr = table.insertRow();
+        tr.insertCell().textContent = k; tr.insertCell().textContent = v; };
+      row('Durchmesser', n(info.diameter_cm, 1) + ' cm');
+      row('Länge', n(info.length_m, 2) + ' m');
+      row('Segment-Holzvolumen', n(info.segment_volume_l, 2) + ' L');
+      row('Höhe über Grund', n(info.z_from_ground_m, 1) + ' m');
+      row('Verzweigungsordnung', info.is_trunk ? 'Stamm (1)' : info.order);
+      document.getElementById('ib-xyz').textContent =
+        'Ganzbaum-QSM-Werte (Holzvolumen, BHD, Verzweigungsordnung) am jeweiligen '
+        + 'Baum-Marker. grün/tot ist aus der QSM-Geometrie nicht ableitbar '
+        + '(braucht Blatt-Holz-/Vitalitätsdaten).';
+      document.getElementById('infobox').style.display = 'block';
+    }
+
     function markerDiv(div, m) {
       div.classList.add('tree-marker');
       const vit = (m.attributes || {}).Vitalitaet;
@@ -771,6 +799,10 @@
       // Fadenkreuz nur zeigen, solange der Zeiger wirklich gefangen ist
       cloud.onNavChange = (mode, locked) =>
         document.body.classList.toggle('walking', mode === 'walk' && locked);
+      cloud.onQSMPick = (info) => {
+        if (cloud.locked) document.exitPointerLock();
+        showQSMInfo(info);
+      };
       buildNav();
       window._cloud = cloud;   // Debug-/Test-Zugriff
       const origin = (scene.source && scene.source.origin_xyz) || [0, 0, 0];
