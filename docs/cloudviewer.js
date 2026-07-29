@@ -9,6 +9,18 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+// QSM-Segmentklassen: Stamm (Ordnung 1) / Ast (2-3) / Zweig (>=4).
+// Klare, kraeftige Farben statt eines feinen Verlaufs, damit die Segmentierung
+// im Modell sofort erkennbar ist.
+const QSM_CLASSES = [
+  { name: 'Stamm', color: [155, 100, 60] },     // braun
+  { name: 'Ast', color: [235, 150, 55] },       // orange
+  { name: 'Zweig', color: [110, 205, 110] },    // gruen
+];
+const QSM_CLASS_IDX = (o) => (o <= 1 ? 0 : (o <= 3 ? 1 : 2));
+const QSM_CLASS_COLOR = (o) => QSM_CLASSES[QSM_CLASS_IDX(o)].color;
+const QSM_CLASS_NAME = (o) => QSM_CLASSES[QSM_CLASS_IDX(o)].name;
+
 const EYE = 1.7;            // Augenhoehe ueber Szenen-Boden (m)
 const SPEED = 4.0;          // Gehgeschwindigkeit (m/s), Shift verdreifacht
 const LOOK = 0.0022;        // rad je Pixel Mausbewegung
@@ -221,8 +233,6 @@ export class CloudViewer {
     const E = new Float32Array(raw, n * 12, n * 3);
     const R = new Float32Array(raw, n * 24, n);
     const O = new Uint8Array(raw, n * 28, n);
-    const ramp = (meta.ramp || [[150, 108, 68], [100, 190, 95]])
-      .map(c => new THREE.Color(c[0] / 255, c[1] / 255, c[2] / 255));
     const omax = meta.order_max || 8;
 
     // Wenig Radialsegmente (6) -- bei ~60k Instanzen zaehlt jeder Dreieckszug.
@@ -230,27 +240,31 @@ export class CloudViewer {
     // KEIN vertexColors: die Zylindergeometrie hat kein color-Attribut, dann
     // multipliziert der Shader mit (0,0,0) -> alles schwarz. Die Per-Instanz-
     // Farbe (instanceColor, unten via setColorAt) greift bei InstancedMesh von
-    // selbst (USE_INSTANCING_COLOR) und faerbt die Zylinder nach Astordnung.
+    // selbst (USE_INSTANCING_COLOR).
     const mat = new THREE.MeshBasicMaterial();
     const mesh = new THREE.InstancedMesh(geo, mat, n);
     const up = new THREE.Vector3(0, 1, 0);
     const s = new THREE.Vector3(), e = new THREE.Vector3(), dir = new THREE.Vector3();
     const mid = new THREE.Vector3(), q = new THREE.Quaternion();
     const scl = new THREE.Vector3(), m = new THREE.Matrix4();
+    const col = new THREE.Color();
     for (let i = 0; i < n; i++) {
       s.set(S[3*i], S[3*i+1], S[3*i+2]);
       e.set(E[3*i], E[3*i+1], E[3*i+2]);
       const L = dir.subVectors(e, s).length() || 1e-4;
       mid.addVectors(s, e).multiplyScalar(0.5);
       q.setFromUnitVectors(up, dir.normalize());
-      scl.set(Math.max(R[i], 0.004), L, Math.max(R[i], 0.004));
+      // Mindestradius je Klasse, damit auch feine Zweige sichtbar bleiben
+      // (echte Radien sind teils <1 px). Reihenfolge Stamm > Ast > Zweig.
+      const o = O[i];
+      const minR = o <= 1 ? 0.02 : (o <= 3 ? 0.012 : 0.008);
+      const r = Math.max(R[i], minR);
+      scl.set(r, L, r);
       m.compose(mid, q, scl);
       mesh.setMatrixAt(i, m);
-      // Farbe nach Verzweigungsordnung (1 = Stamm .. omax = Feinast)
-      const t = omax > 1 ? (O[i] - 1) / (omax - 1) : 0;
-      const seg = Math.min(ramp.length - 2, Math.floor(t * (ramp.length - 1)));
-      const f = t * (ramp.length - 1) - seg;
-      mesh.setColorAt(i, ramp[seg].clone().lerp(ramp[seg + 1], f));
+      // KATEGORIALE Segmentierung: Stamm / Ast / Zweig in klaren Farben.
+      const c = QSM_CLASS_COLOR(o);
+      mesh.setColorAt(i, col.setRGB(c[0] / 255, c[1] / 255, c[2] / 255));
     }
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
@@ -283,6 +297,7 @@ export class CloudViewer {
     return {
       order: o,
       is_trunk: o <= 1,
+      klasse: QSM_CLASS_NAME(o),
       diameter_cm: 2 * r * 100,
       length_m: L,
       segment_volume_l: Math.PI * r * r * L * 1000,

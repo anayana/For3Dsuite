@@ -206,6 +206,19 @@
     #legend .sw.auffaellig { border-color: #f0883e; background: rgba(240,136,62,.35); }
     #legend .note { color: #6e7681; margin-top: 5px; max-width: 210px; line-height: 1.35; }
 
+    /* QSM-Segmentlegende (Stamm/Ast/Zweig), nur wenn das Modell gezeigt wird */
+    #qsmlegend { position: absolute; bottom: 16px; left: 14px; z-index: 15;
+      display: none; color: #d7e0ea; background: rgba(13,17,23,.84);
+      backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,.14);
+      border-left: 3px solid #96be6e; border-radius: 10px; padding: 9px 13px;
+      font-size: 12px; line-height: 1.5; }
+    body.mode-3d.show-qsmleg #qsmlegend { display: block; }
+    #qsmlegend b { color: #eee; display: block; margin-bottom: 3px; }
+    #qsmlegend .row { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+    #qsmlegend .sw { width: 13px; height: 13px; border-radius: 3px; flex: none;
+      border: 1px solid rgba(255,255,255,.25); }
+    #qsmlegend .note { color: #8b949e; font-size: 10.5px; margin-top: 5px; }
+
     /* Generische Farblegende aus scene.legend (unten links, nur 3D-Modus) */
     #cloudlegend { position: absolute; bottom: 16px; left: 14px; z-index: 15;
       max-width: 300px; display: none; color: #d7e0ea;
@@ -301,6 +314,13 @@
   </div>
   <div id="validation" hidden></div>
   <div id="cloudlegend"></div>
+  <div id="qsmlegend">
+    <b>QSM-Segmente (anklickbar)</b>
+    <div class="row"><span class="sw" style="background:rgb(155,100,60)"></span>Stamm (Ordnung 1)</div>
+    <div class="row"><span class="sw" style="background:rgb(235,150,55)"></span>Ast (Ordnung 2–3)</div>
+    <div class="row"><span class="sw" style="background:rgb(110,205,110)"></span>Zweig (Ordnung ≥ 4)</div>
+    <div class="note">Klick auf ein Segment zeigt Durchmesser, Länge, Volumen, Höhe.</div>
+  </div>
   <div id="canopy" hidden></div>
   <div id="legend">
     <b>RGB-Vitalität</b>
@@ -432,7 +452,7 @@
     function showQSMInfo(info) {
       const n = (v, d = 1) => (v == null ? '—' : Number(v).toFixed(d));
       document.getElementById('ib-label').textContent =
-        info.is_trunk ? 'Stamm' : `Ast — Ordnung ${info.order}`;
+        info.is_trunk ? 'Stamm' : `${info.klasse} — Ordnung ${info.order}`;
       document.getElementById('ib-demo').hidden = true;
       document.getElementById('ib-vital').innerHTML = '';
       document.getElementById('ib-toggle').hidden = true;
@@ -823,6 +843,7 @@
       const pick = (mode) => {
         cloud.setPointsVisible(mode !== 'qsm');
         cloud.setQSMVisible(mode !== 'points');
+        document.body.classList.toggle('show-qsmleg', mode !== 'points');
         document.querySelectorAll('#repr button').forEach(
           b => b.classList.toggle('active', b.dataset.repr === mode));
       };
