@@ -263,6 +263,11 @@
       background: none; padding: 5px 12px; font-size: 12px; cursor: pointer; }
     #ib-toggle button.active { background: rgba(121,192,255,.22); color: #d3e8ff; }
     #infobox .prognote { margin-top: 6px; font-size: 11px; color: #d29922; }
+    #ib-horizon { margin-top: 10px; }
+    #ib-horizon .hz-head { font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+      color: #8b949e; margin-bottom: 6px; }
+    #ib-horizon input[type=range] { width: 100%; accent-color: #7ee787; margin: 0; }
+    #ib-horizon .hz-out { color: #7ee787; font-size: 12.5px; font-weight: 600; margin-top: 4px; }
     #ib-bench:not(:empty) { margin-top: 12px; border-top: 1px solid rgba(255,255,255,.1);
       padding-top: 8px; }
     #ib-bench .bench-h { font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
@@ -352,6 +357,11 @@
       <button id="ib-now" class="active">Heute</button>
       <button id="ib-fut">Prognose</button>
     </div>
+    <div id="ib-horizon" hidden>
+      <div class="hz-head">Wachstumsprognose (TreeGrOSS) — Zeithorizont</div>
+      <input type="range" id="hz-slider" />
+      <div class="hz-out" id="hz-out"></div>
+    </div>
     <div class="prognote" id="ib-prognote" hidden></div>
     <table id="ib-attrs"></table>
     <div id="ib-bench"></div>
@@ -410,12 +420,13 @@
       const td = tr.insertCell(); td.colSpan = 2; td.className = 'sect'; td.textContent = title;
     }
 
-    function renderAttrs(m, mode) {
+    function renderAttrs(m, mode, prog) {
       const table = document.getElementById('ib-attrs');
       table.innerHTML = '';
       const a = m.attributes || {};
-      // Struktur — heute oder Prognose
-      const prog = m.prognosis;
+      // Struktur — heute oder Prognose (prog: entweder m.prognosis oder ein
+      // Punkt der prognosis_series, auf BHD_cm/Hoehe_m normalisiert)
+      prog = prog || m.prognosis || {};
       section(table, mode === 'fut' ? `Struktur — Prognose ${prog.Prognosejahr}` : 'Struktur (heute)');
       const src = mode === 'fut' ? prog : a;
       for (const k of STRUCT) if (src[k] != null) addRow(table, k, src[k]);
@@ -452,18 +463,9 @@
       vb.innerHTML = vit
         ? `<span class="badge ${vit}">RGB-Vitalität: ${VITTXT[vit] || vit}</span>` : '';
 
-      // Heute/Prognose-Umschalter nur bei vorhandener Prognose
-      const toggle = document.getElementById('ib-toggle');
+      // TreeGrOSS-Hinweistext (Bestandesangaben je Szene, nicht fest verdrahtet)
       const prognote = document.getElementById('ib-prognote');
-      const now = document.getElementById('ib-now'), fut = document.getElementById('ib-fut');
-      const setMode = (mode) => {
-        now.classList.toggle('active', mode !== 'fut');
-        fut.classList.toggle('active', mode === 'fut');
-        prognote.hidden = mode !== 'fut';
-        // Bestandesangaben aus der Szene statt fest verdrahtet: sie stammen je
-        // Szene aus der Herleitung (scripts/tree_age_from_height.py) und waren
-        // hier zuvor als "Alter 200, Bonität 32" fest eingetragen -- was fuer
-        // JEDEN Baum galt, auch den 8-cm-Stamm im Unterstand.
+      const progNote = () => {
         const st = window.__scene && window.__scene.stand;
         let txt = 'TreeGrOSS/BWINPro (NW-FVA, GPLv3) · ';
         if (st) {
@@ -472,21 +474,51 @@
           if (m.attributes && m.attributes.Alter != null)
             txt += ` — dieser Baum ${m.attributes.Alter} J.`;
           txt += ' · Fichte angenommen (Marker tragen keine Art).';
-        } else {
-          txt += 'Fichte angenommen (Marker tragen keine Art).';
-        }
-        prognote.textContent = mode === 'fut' ? txt : '';
-        renderAttrs(m, mode);
+        } else { txt += 'Fichte angenommen (Marker tragen keine Art).'; }
+        return txt;
       };
-      if (m.prognosis) {
-        toggle.hidden = false;
-        fut.textContent = 'Prognose ' + m.prognosis.Prognosejahr;
-        now.onclick = () => setMode('now');
-        fut.onclick = () => setMode('fut');
+
+      const toggle = document.getElementById('ib-toggle');
+      const horizon = document.getElementById('ib-horizon');
+      const now = document.getElementById('ib-now'), fut = document.getElementById('ib-fut');
+      const ser = m.prognosis_series;
+      if (ser && ser.length) {
+        // Interaktiver Zeithorizont aus der Perioden-Serie
+        toggle.hidden = true; horizon.hidden = false;
+        const y0 = ser[0].year, yN = ser[ser.length - 1].year;
+        const sl = document.getElementById('hz-slider');
+        sl.min = y0; sl.max = yN; sl.value = y0;
+        sl.step = ser.length > 1 ? ser[1].year - y0 : 5;
+        const upd = () => {
+          const y = +sl.value, dy = y - y0;
+          const pt = ser.find(s => s.year === y) || ser[0];
+          document.getElementById('hz-out').textContent =
+            dy === 0 ? `heute (${y})` : `+${dy} Jahre → ${y}`;
+          prognote.hidden = dy === 0;
+          prognote.textContent = dy === 0 ? '' : progNote();
+          renderAttrs(m, dy === 0 ? 'now' : 'fut',
+            dy === 0 ? null : {Prognosejahr: y, BHD_cm: pt.dbh_cm, Hoehe_m: pt.height_m,
+                               Status: pt.alive ? 'stehend' : 'ausgeschieden'});
+        };
+        sl.oninput = upd; upd();
       } else {
-        toggle.hidden = true;
+        // Fallback: fester Einzeljahr-Toggle (aeltere Szenen mit m.prognosis)
+        horizon.hidden = true;
+        const setMode = (mode) => {
+          now.classList.toggle('active', mode !== 'fut');
+          fut.classList.toggle('active', mode === 'fut');
+          prognote.hidden = mode !== 'fut';
+          prognote.textContent = mode === 'fut' ? progNote() : '';
+          renderAttrs(m, mode);
+        };
+        if (m.prognosis) {
+          toggle.hidden = false;
+          fut.textContent = 'Prognose ' + m.prognosis.Prognosejahr;
+          now.onclick = () => setMode('now');
+          fut.onclick = () => setMode('fut');
+        } else { toggle.hidden = true; }
+        setMode('now');
       }
-      setMode('now');
       renderDbhBench(m);
 
       document.getElementById('ib-xyz').textContent = m.xyz

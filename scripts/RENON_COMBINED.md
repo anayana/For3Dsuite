@@ -67,12 +67,16 @@ cp data/Renon/qsm_combined.bin platform/dev-data/media/scenes/renon-combined/qsm
 python scripts/tree_age_from_height.py <scene.json> --area-ha 0.1257 --top-age 200     --out-stand data/Renon/renon_combined_stand.json
 
 # 7. Prognose mit der ECHTEN TreeGrOSS-Engine (Dienst muss laufen, s. growth-service/)
+#    50 Jahre in 5-Jahres-Schritten -> volle Perioden-Serie fuer den Zeithorizont-Regler
 python scripts/treegross_export.py export --scene <scene.json> --out data/Renon/_tg_trees.json \
-    --default-species "Picea abies" --stand-config data/Renon/renon_combined_stand.json     --years 30 --step 10
+    --default-species "Picea abies" --stand-config data/Renon/renon_combined_stand.json     --years 50 --step 5
 curl -s -X POST localhost:8362/simulate -H "Content-Type: application/json" \
      -d @data/Renon/_tg_trees.json > data/Renon/_tg_future.json
-python scripts/treegross_export.py import --result data/Renon/_tg_future.json \
-    --scene <scene.json> --year 2056 --attach-key prognosis
+
+# 8. Finalisieren: BHD-Methodenvergleich entfernen, Fehldetektionen (BHD_Guete
+#    'unsicher') rauswerfen und die volle Perioden-Serie an die Marker haengen
+#    (der Viewer zeigt daraus einen interaktiven Zeithorizont-Regler)
+python scripts/renon_combined_finalize.py <scene.json> data/Renon/_tg_future.json
 
 python platform/dev/export_static.py
 ```
