@@ -37,17 +37,57 @@ also nicht an einer Baumart oder an einem Scanner.
 | CspStandSegmentation 0.2.0 | R | 141 | 57,4 % | 27,7 % |
 | **3DFin (INI der Autoren)** | Python | 70 | **98,5 %** | **95,7 %** |
 
-**Befund, unbequem und eindeutig: 3DFin ist den übrigen Verfahren deutlich
-überlegen** — 67 von 68 Stämmen bei 3 Fehlalarmen. Die eigene numpy-Baseline und
-der lidR-Eigenbau produzieren beide mehr Fehlalarme als Treffer. Das relativiert
-die Baseline-Zahlen aller bisherigen Szenen und ist der Grund, 3DFin künftig als
-Detektor zu setzen statt als Vergleichsverfahren.
+**Befund, unbequem und eindeutig: 3DFin ist den übrigen Verfahren auf diesen
+Wolken deutlich überlegen** — 67 von 68 Stämmen bei 3 Fehlalarmen. Die eigene
+numpy-Baseline und der lidR-Eigenbau produzieren beide mehr Fehlalarme als
+Treffer. Das relativiert die Baseline-Zahlen aller bisherigen Szenen und ist der
+Grund, 3DFin auf plotweiten TLS-Wolken als Detektor zu setzen statt als
+Vergleichsverfahren. Wo die Aussage endet, steht im nächsten Abschnitt —
+auf Einzelbäumen und auf dünn abgedeckten Wolken gilt sie **nicht**.
 
 Zu Csp fairerweise: die Ausgabe hat eine Spalte `quality_flag`, die aber nicht
 trennt (139 von 141 Detektionen tragen denselben Wert) — ein Filter darüber würde
 die Precision nicht retten. Csp ist zudem primär eine **Segmentierung**, nicht ein
 Stammdetektor; die niedrige Precision heißt, dass es viele Nicht-Baum-Objekte als
 eigene Segmente führt, nicht dass die Segmentierung schlecht wäre.
+
+## Reichweite dieser Aussage — und wo sie endet
+
+Die Zahlen oben gelten für **plotweite TLS-Wolken mit brauchbarer Umfangs­abdeckung**.
+Sie übertragen sich nachweislich **nicht** auf die übrigen Wolken der Suite:
+
+| Datensatz | 3DFin | Einordnung |
+|---|---|---|
+| SegmentedForests plot_06/07 | 95–100 % Precision | Referenzfall |
+| **SYSSIFOSS** (Einzelbäume, Feld-GT) | **MAE 7,8 cm** — schlechter als der simple Kreisfit (5,8) und qsm_wood (5,7) | zweckentfremdet: 3DFin ist für Plots gebaut, nicht für isolierte Einzelbäume |
+| **Renon** (kein GT) | 37 Detektionen, davon nur **8 mit akzeptiertem BHD**; Überlappung mit unserer Inventur < 50 % | siehe unten |
+
+### Warum 3DFin am Renon-Bestand kaum misst — es liegt nicht an der Konfiguration
+
+Naheliegende Vermutung war das Bodenmodell: 3DFin warnt dort über die
+Gelände­modellierung, und `terrain_probe.py` bestätigt einen echten Unterschied —
+Renon hat **11,9 cm Geländerauheit** gegen 2,8–3,8 cm auf den Wienerwald-Plots,
+bei 35 % Bodenlücken. Ein Durchlauf über `res_cloth` = 0,45 / 0,70 / 1,00 / 1,50
+(sonst exakt die Autoren-Parameter) widerlegt das aber: 37–39 Detektionen, 2–4 mit
+BHD, Warnung in **allen** Läufen. Das Bodenmodell ist nicht der Engpass.
+
+Der Engpass ist die **Umfangsabdeckung der Stämme**:
+
+| Plot | Bogen Median | Anteil ≥ 202° | Punkte je BH-Scheibe |
+|---|--:|--:|--:|
+| Renon (4 verschmolzene Standpunkte) | **180°** | **28 %** | **223** |
+| plot_06 Buche | 360° | 86 % | 4 604 |
+| plot_07 Fichte | 280° | 88 % | 3 263 |
+
+3DFin fordert per Voreinstellung 9 von 16 Sektoren = **202°**. Am Renon-Bestand
+erfüllen das nur 28 % der Stämme, auf den Wienerwald-Plots 86–88 %; dazu kommt die
+20-fach geringere Punktzahl je Brusthöhen-Scheibe. **3DFins Weigerung ist damit
+korrektes Verhalten, kein Versagen** — die Daten tragen dort keinen Durchmesser.
+
+Die unbequeme Kehrseite: unsere eigenen Verfahren liefern an genau diesen Stämmen
+trotzdem Zahlen. Sie ruhen dann auf 180°-Bögen. Das ist kein Vorteil unserer
+Verfahren, sondern eine Aussage über die Renon-Wolke — vier Standpunkte auf engem
+Raum ersetzen keine verteilte Mehrscan-Kampagne.
 
 ## Worauf die Fehlalarme sitzen
 
