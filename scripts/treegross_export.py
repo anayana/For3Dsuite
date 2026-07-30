@@ -65,13 +65,18 @@ STUB_SPECIES_GROWTH = {
     811: (0.45, 0.28),  # Laerche
 }
 
-# Klarname/Synonym -> BWINPro/TreeGrOSS-Artnummer (an SpeciesDef anpassen!)
+# Klarname/Synonym -> TreeGrOSS-Artnummer (InternalCode aus ForestSimulatorNWGermany6.xml)
 SPECIES = {
     "eiche": 110, "quercus": 110,
-    "buche": 211, "fagus": 211, "fagus sylvatica": 211,
+    "stieleiche": 111, "quercus robur": 111,
+    "traubeneiche": 112, "quercus petraea": 112,
+    "roteiche": 113, "quercus rubra": 113,
+    "buche": 211, "rotbuche": 211, "fagus": 211, "fagus sylvatica": 211,
+    "ahorn": 320, "acer": 320,
+    "bergahorn": 321, "acer pseudoplatanus": 321,
     "fichte": 511, "picea": 511, "picea abies": 511,
-    "douglasie": 611, "pseudotsuga": 611,
-    "kiefer": 711, "pinus": 711, "pinus sylvestris": 711,
+    "douglasie": 611, "pseudotsuga": 611, "pseudotsuga menziesii": 611,
+    "kiefer": 711, "waldkiefer": 711, "pinus": 711, "pinus sylvestris": 711,
     "laerche": 811, "larix": 811,
     "tanne": 517, "abies": 517, "abies alba": 517,
     "birke": 421, "betula": 421,

@@ -37,8 +37,10 @@ METHOD_LABELS = {
 CONSENSUS_METHODS = ("kreisfit", "geofit", "ransac", "zylinder")
 GUETE_TEXT = {
     "gut": "Datenlage gut (Bogen >= 180 Grad, >= 200 Punkte in der Scheibe)",
-    "schwach": "Datenlage schwach -- wenig Punkte oder kurzer Bogen",
-    "unsicher": "kein eindeutiger Stamm in der Scheibe -- Werte zurueckgehalten",
+    "schwach": "Datenlage schwach (wenig Punkte oder kurzer Bogen) -- die Werte "
+               "stehen trotzdem da, die Spanne der Verfahren zeigt, was sie taugen",
+    "unsicher": "Die Brusthoehen-Scheibe passt nicht zum detektierten Stammradius -- "
+                "moeglicherweise ein Nachbarstamm in der Scheibe. Werte mit Vorbehalt.",
 }
 
 
@@ -74,6 +76,26 @@ def main():
     if args.qsm:
         qsm = json.loads(Path(args.qsm).read_text(encoding="utf-8")).get("baeume", {})
 
+    # Fehldetektionen aussortieren: was in 1,3 m rund aussieht, aber darueber
+    # keinen Schaft hat, ist kein Baum (liegendes Holz, Wurzelteller, Gestruepp).
+    # Ohne diesen Schritt stehen Marker im Bestand, wo gar kein Stamm ist.
+    dropped = []
+    if dbh:
+        keep = []
+        for mk in markers:
+            d = dbh.get(mk.get("label"))
+            if d and d.get("schaft_durchgehend") == "nein":
+                dropped.append((mk.get("label"), d.get("schaft_bandanteil")))
+            else:
+                keep.append(mk)
+        markers = keep
+        scene["markers"] = markers
+        if dropped:
+            print(f"{len(dropped)} Fehldetektionen entfernt (kein durchgehender "
+                  f"Schaft ueber 1,3 m): "
+                  + ", ".join(f"{n} ({s})" for n, s in dropped[:8])
+                  + (" ..." if len(dropped) > 8 else ""))
+
     n_dbh = n_crown = n_qsm = 0
     for mk in markers:
         label = mk.get("label")
@@ -89,6 +111,22 @@ def main():
                     a[k] = v
             if num(c.get("Punkte_ITCD")) is not None:
                 a["Punkte_ITCD"] = int(float(c["Punkte_ITCD"]))
+            # Baumhoehe aus der EIGENEN Krone statt aus "hoechster Punkt im
+            # 1,5-m-Umkreis". Der Umkreis greift im dichten Bestand in die
+            # Nachbarkrone: 8,3-cm-Staemmchen kamen so auf 20,7 m Hoehe. Mit der
+            # ITCD-Zuordnung sind es 9,1 m, und die Korrelation zwischen BHD und
+            # Hoehe steigt ueber alle Baeume von 0,27 auf 0,40.
+            # 'Hoehe_m' aus dem Kronen-CSV = eigene Kronenpunkte PLUS die nicht
+            # zugeordneten darueber; 'Kronenhoehe_m' waeren nur die eigenen.
+            hi = num(c.get("Hoehe_m")) or num(c.get("Kronenhoehe_m"))
+            if hi is not None:
+                if num(a.get("Hoehe_m")) is not None:
+                    a["Hoehe_Umkreis_m"] = num(a["Hoehe_m"])
+                a["Hoehe_m"] = hi
+                a["Hoehe_Quelle"] = "ITCD-Segmentierung (eigene Kronenpunkte)"
+                g = num(a.get("Grundflaeche_m2"))
+                if g is not None:      # Schaftvolumen mit der neuen Hoehe
+                    a["Volumen_m3"] = round(g * hi * 0.5, 3)
             n_crown += 1
 
         # ---- QSM-Kennzahlen ----
@@ -134,15 +172,32 @@ def main():
             }
             # Konsens als gemessener BHD fuehren -- er ist der Median mehrerer
             # Verfahren, der Einzelfit der Detektion war nur eines davon.
-            a["BHD_cm"] = cons
+            # Kopfzahl: normalerweise der Konsens der Verfahren. Bei 'unsicher'
+            # passt die Brusthoehen-Scheibe nicht zum detektierten Stammradius --
+            # dort liegen alle Scheiben-Verfahren einvernehmlich daneben (bis
+            # 137 cm in einem Bestand mit 62,5 cm Maximum). Dann gilt der Wert der
+            # Stammdetektion: auch der ist ein ERMITTELTER Wert mit eigener
+            # Guetepruefung (Residuum <= 3 cm, Bogen >= 100 Grad), nur eben aus
+            # der zusammenhaengenden Stammkomponente statt aus der Scheibe.
+            # Sichtbar bleibt trotzdem alles: die Verfahrenstabelle zeigt jeden
+            # einzelnen Wert samt Abweichung.
+            det = num(d.get("kreisfit"))
+            if guete == "unsicher" and num(a.get("BHD_cm")) is not None:
+                mk["dbh_benchmark"]["detection_cm"] = num(a["BHD_cm"])
+            else:
+                a["BHD_cm"] = cons
             a["BHD_Verfahren"] = len([m for m in methods if m["consensus"]])
             a["BHD_Guete"] = guete
+            if d.get("hinweis"):
+                a["BHD_Hinweis"] = d["hinweis"]
             n_dbh += 1
-        elif guete == "unsicher":
-            # Kein belastbarer BHD: die Zahl der Detektion NICHT als Messwert
-            # stehen lassen, sondern den Vorbehalt sichtbar machen.
-            a["BHD_Guete"] = guete
-            a["BHD_Hinweis"] = d.get("hinweis") or GUETE_TEXT[guete]
+        else:
+            # Kein Verfahren hat gerechnet (zu wenig Punkte in der Scheibe). Der
+            # BHD der Detektion bleibt stehen -- er hat seine eigene Guetepruefung
+            # bestanden (Residuum, Winkelabdeckung) und ist ein ermittelter Wert.
+            a["BHD_Guete"] = guete or "nur Detektion"
+            if d.get("hinweis"):
+                a["BHD_Hinweis"] = d["hinweis"]
 
     spath.write_text(json.dumps(scene, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"{len(markers)} Marker: {n_dbh} mit BHD-Methodenvergleich, "

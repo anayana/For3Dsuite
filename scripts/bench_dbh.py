@@ -132,9 +132,8 @@ def main():
     rows = []
     for laz in sorted(glob.glob(str(lasdir / "*.laz"))):
         tid = "_".join(Path(laz).stem.split("_")[:3])   # Art_Plot_NN
-        g = gt.get(tid)
-        if not g:
-            continue                                     # nur Baeume mit Feld-BHD
+        g = gt.get(tid) or {}
+        field = g.get("DBH_cm")                          # None, falls kein Feld-BHD
         xyz, cls = read_laz(laz)
         base = bh_circle_dbh(xyz)
         wood = bh_circle_dbh(xyz[cls == 0]) if (cls == 0).any() else None
@@ -143,12 +142,12 @@ def main():
             las_p = lasout / f"{tid}.las"; write_local_las(xyz, las_p)
             tdf = dbh_3dfin(las_p, lasout / tid)
         cv = csp.get(tid)
-        row = {"id": tid, "species": g["species"], "field_DBH_cm": g["DBH_cm"],
+        row = {"id": tid, "species": g.get("species"), "field_DBH_cm": field,
                "baseline_DBH_cm": base, "qsm_wood_DBH_cm": wood,
                "3dfin_DBH_cm": tdf,
                "csp_DBH_cm": float(cv) if cv not in (None, "", "NA") else None}
         rows.append(row)
-        print(f"{tid:20} Feld {g['DBH_cm']:5.1f} | base {base} wood {wood} "
+        print(f"{tid:20} Feld {field if field else '  --'} | base {base} wood {wood} "
               f"3dfin {tdf} csp {row['csp_DBH_cm']}")
 
     # Ergebnis + MAE (ohne Baeume <=15 cm, an denen alle Stammfits scheitern)

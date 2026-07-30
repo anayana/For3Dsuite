@@ -91,6 +91,29 @@ def arc_ok(r):
     return (r.get("Bogen_deg") or 0) >= GOOD_ARC
 
 
+def stem_continuity(sub, h, sx, sy, r0, lo=1.3, hi=6.0, dz=0.5, min_pts=5,
+                    min_share=0.6):
+    """Setzt sich der Stamm ueber der Brusthoehe nach oben fort?
+
+    Ein Kreisfit in EINER Scheibe beweist keinen Baum: ein liegender Stamm, ein
+    Wurzelteller oder ein dichter Strauch koennen in 1,3 m Hoehe genauso rund
+    aussehen. Ein Baum unterscheidet sich davon dadurch, dass in JEDER Schicht
+    darueber Holz an derselben Stelle steht.
+
+    Geprueft wird der Anteil der 0,5-m-Schichten zwischen lo und hi, die im
+    Umkreis r0 + 20 cm um die Stammachse mindestens min_pts Punkte haben.
+    """
+    d = np.hypot(sub[:, 0] - sx, sub[:, 1] - sy)
+    near = d <= r0 + 0.20
+    edges = np.arange(lo, hi + dz, dz)
+    hit = 0
+    for a, b in zip(edges[:-1], edges[1:]):
+        if int(np.count_nonzero(near & (h >= a) & (h < b))) >= min_pts:
+            hit += 1
+    share = hit / max(len(edges) - 1, 1)
+    return round(share, 2), "ja" if share >= min_share else "nein"
+
+
 def ground_at(g, x, y):
     key = int(math.floor(x / CELL_GROUND)) * 1_000_003 + int(math.floor(y / CELL_GROUND))
     return g.get(key)
@@ -480,12 +503,13 @@ def main():
         # groesster gepruefter Stamm 62,5 cm hat. Solche Staemme werden hier NICHT
         # mit einer Zahl veroeffentlicht, sondern als unmessbar gekennzeichnet.
         r_det = float(st["BHD_cm"]) / 200.0 if st.get("BHD_cm") else None
-        if r_det and abs(r0 - r_det) > max(0.10, 0.5 * r_det):
-            r["guete"] = "unsicher"
+        unsicher = bool(r_det and abs(r0 - r_det) > max(0.10, 0.5 * r_det))
+        if unsicher:
             r["hinweis"] = (f"Mantelschale bei r={100*r0:.0f} cm, Detektion "
-                            f"r={100*r_det:.0f} cm -- kein eindeutiger Stamm")
-            rows.append(r)
-            continue
+                            f"r={100*r_det:.0f} cm -- Scheibe evtl. nicht dieser Stamm")
+        # Gerechnet wird trotzdem: einen ermittelten Wert wegzulassen ist keine
+        # Vorsicht, sondern ein Datenverlust. Der Vorbehalt gehoert NEBEN die Zahl
+        # (Spalte 'guete', im Viewer als Warnung), nicht an ihre Stelle.
         if len(sl) >= 12:
             r["kreisfit"], r["Fit_RMS_cm"], arc = m_kreisfit(sl)
             r["Bogen_deg"] = arc
@@ -503,13 +527,20 @@ def main():
             r["konsens"] = round(float(np.median(vals)), 1)
             r["n_verfahren"] = len(vals)
             r["spanne_cm"] = round(max(vals) - min(vals), 1)
-        r["guete"] = ("gut" if (arc_ok(r) and len(sl) >= GOOD_PTS) else "schwach")
+        r["guete"] = ("unsicher" if unsicher
+                      else "gut" if (arc_ok(r) and len(sl) >= GOOD_PTS) else "schwach")
+        # Schaftkontrolle: hat der Stamm ueber der Brusthoehe ueberhaupt Bestand?
+        # Trennt echte Baeume von Fehldetektionen (Totholz, Wurzelteller, dichtes
+        # Gestruepp), die einen sauberen Kreis in EINER Scheibe liefern koennen.
+        r["schaft_bandanteil"], r["schaft_durchgehend"] = stem_continuity(
+            sub, h, sx, sy, max(r0, 0.05))
         rows.append(r)
 
     fields = (["id", "x", "y"] + METHODS
               + ["konsens", "n_verfahren", "spanne_cm", "guete", "Fit_RMS_cm",
                  "Bogen_deg", "RANSAC_Inlier_pct", "Neigung_deg", "3dfin_Abstand_m",
-                 "Punkte_Scheibe", "Schale_r_cm", "hinweis"])
+                 "Punkte_Scheibe", "Schale_r_cm", "schaft_bandanteil",
+                 "schaft_durchgehend", "hinweis"])
     with open(args.out, "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         w.writeheader()

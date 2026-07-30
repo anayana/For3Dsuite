@@ -12,18 +12,21 @@ zwar so, dass jeder Schritt aus dem Rohdatum reproduzierbar ist.
 | | Wert |
 |---|--:|
 | Kernflaeche (r = 20 m) | 0,126 ha |
-| Detektierte Staemme | 82 |
-| Stammzahl | 652 /ha |
-| Grundflaeche | 46,4 m²/ha |
-| BHD Median / Max | 19,3 / 62,5 cm |
-| Baumhoehe Median / Max | 21,3 / 28,0 m |
+| Detektionen / davon Baeume | 82 / **64** |
+| Stammzahl | 509 /ha |
+| Grundflaeche | 45,8 m²/ha |
+| BHD Median / Max | 23,6 / 61,8 cm |
+| Baumhoehe Median / Max | 17,9 / 28,8 m |
+| Alter je Baum (hergeleitet) | 54-298 J., Median 157 |
+| Bonitaet SI (hergeleitet) | 10,5 m |
 | Baeume mit BHD-Methodenvergleich | 56 |
-| Baeume mit QSM | 60 (7.822 Zylinder) |
-| Baeume mit TreeGrOSS-Prognose | 79 |
+| Baeume mit QSM | 50 (7.822 Zylinder) |
+| Baeume mit TreeGrOSS-Prognose | 64 |
 
-Stammzahl und Grundflaeche passen zur unabhaengig ausgewerteten Einzelscan-Szene
-`renon-setup01` (dort 870 /ha, 48 m²/ha) — die Groessenordnung ist also nicht aus
-einer einzelnen Detektion herausgefallen.
+Die Grundflaeche passt zur unabhaengig ausgewerteten Einzelscan-Szene
+`renon-setup01` (dort 48 m²/ha) — die Groessenordnung ist also nicht aus einer
+einzelnen Detektion herausgefallen. Die Stammzahl liegt niedriger als dort
+(870 /ha), weil hier 18 Fehldetektionen ohne durchgehenden Schaft entfernt sind.
 
 ## Kette
 
@@ -59,9 +62,13 @@ python scripts/scene_enrich_trees.py platform/dev-data/media/scenes/renon-combin
     --qsm data/Renon/qsm_combined.json
 cp data/Renon/qsm_combined.bin platform/dev-data/media/scenes/renon-combined/qsm.bin
 
+# 6b. Alter je Baum + Bonitaet herleiten (SONST rechnet der Dienst jeden Stamm
+#     mit dem Bestandesalter -- und dann waechst nichts mehr)
+python scripts/tree_age_from_height.py <scene.json> --area-ha 0.1257 --top-age 200     --out-stand data/Renon/renon_combined_stand.json
+
 # 7. Prognose mit der ECHTEN TreeGrOSS-Engine (Dienst muss laufen, s. growth-service/)
 python scripts/treegross_export.py export --scene <scene.json> --out data/Renon/_tg_trees.json \
-    --default-species "Picea abies" --area-ha 0.1257 --age 200 --site-index 32 --years 30 --step 10
+    --default-species "Picea abies" --stand-config data/Renon/renon_combined_stand.json     --years 30 --step 10
 curl -s -X POST localhost:8362/simulate -H "Content-Type: application/json" \
      -d @data/Renon/_tg_trees.json > data/Renon/_tg_future.json
 python scripts/treegross_export.py import --result data/Renon/_tg_future.json \
@@ -90,8 +97,8 @@ und `QSM` bringen eine eigene Detektion bzw. ein eigenes Modell mit und werden
 | 3DFin (dendromatics) | **nein** | 4 | +1,95 | 3,05 cm |
 | QSM-Schafttaper | **nein** | 19 | −2,04 | 3,74 cm |
 
-Median-Spanne der Konsens-Verfahren: **2,2 cm** (an 22 von 82 Staemmen mit guter
-Datenlage bewertet).
+Median-Spanne der Konsens-Verfahren: **2,2 cm** (an 22 Staemmen mit guter Datenlage
+bewertet; Werte berechnet werden fuer alle).
 
 **Befunde:**
 
@@ -125,8 +132,10 @@ sie stehen hier, weil sie sich beim naechsten Datensatz wiederholen werden.
    waren sich einig. Loesung: `stem_shell()` schneidet die Mantelschale um die
    Stammachse anhand des **Modus des Abstandshistogramms** heraus (ohne Kreisfit,
    also ohne das Ergebnis vorwegzunehmen), plus Plausibilitaetsvergleich mit der
-   Detektion. 26 Staemme gelten seitdem als *unsicher* und werden **ohne Zahl**
-   veroeffentlicht, statt mit einer falschen.
+   Detektion. Betroffene Staemme sind als *unsicher* gekennzeichnet; als Kopfzahl
+   gilt dort der Wert der Stammdetektion (eigene Guetepruefung), die Verfahrenswerte
+   stehen alle in der Tabelle. **Zurueckgehalten wird nichts** — ein ermittelter Wert
+   gehoert hin, der Vorbehalt daneben.
 2. **Holzfilter am falschen Merkmal.** Die Oberflaeche eines 62-cm-Stammes ist im
    12-cm-Umfeld eine **Ebene**, keine Linie. Ein Linearitaetsfilter `(l1−l2)/l1`
    wirft damit genau den Stamm weg und behaelt die Zweige: das QSM folgte einem Ast
@@ -184,6 +193,57 @@ Geometrie-Heuristik; Nadeln, die als Holz durchgehen, treiben die Radien feiner 
 nach oben. Verdeckte Kronenteile fehlen ganz und wirken gegenlaeufig. Schaft und
 QSM-BHD stammen aus Kreisfits am dicht gescannten Stamm und sind belastbarer — was
 sie wert sind, zeigt die Zeile „QSM-Schafttaper" in der Tabelle oben.
+
+## Alter je Baum — und warum das vorher alles entwertet hat
+
+Renon ist laut Standortbeschreibung ein **ungleichaltriger, mehrschichtiger**
+Fichtenbestand; „~200 Jahre" gilt fuer die **Oberschicht**. Der Wachstumsdienst
+nimmt `age_years` je Baum, faellt aber auf das **Bestandesalter** zurueck, wenn
+keins mitkommt — also lief die erste Fassung mit 200 Jahren fuer *jeden* Stamm,
+auch den 8-cm-Stamm im Unterstand. Ein 200-jaehriger Baum waechst im Modell
+praktisch nicht mehr: **deshalb stand die Prognose auf der Stelle.** Ebenso
+wirkungslos war die uebergebene Bonitaet — der Adapter setzt `si = -9`, die Engine
+leitet sie selbst her.
+
+`tree_age_from_height.py` kehrt jetzt die **Bonitaetsfunktion der eingesetzten
+Parameterdatei** um (Fichte, NAGEL 1999):
+
+1. Oberhoehe h100 = **22,1 m** (mittlere Hoehe der 13 dicksten Baeume auf 0,126 ha,
+   nur aus sauber gemessenen Staemmen)
+2. daraus beim dokumentierten Oberschicht-Alter 200: **Bonitaet SI = 10,5 m**
+3. je Baum die Gleichung nach dem Alter aufgeloest → **54 bis 298 Jahre**, Median 157
+
+Damit steckt genau **eine** Annahme in der Kette (das extern belegte Alter der
+Oberschicht); alles andere folgt aus gemessenen Hoehen und der Modellkurve.
+
+**Grenze:** die Funktion ist fuer Nordwestdeutschland kalibriert und wird hier auf
+einen subalpinen Standort (~1730 m) extrapoliert. SI 10,5 ist fuer diese Hoehenlage
+plausibel, aber es ist keine Ertragstafel fuer Renon.
+
+## Baumhoehe: der schwaechste Punkt der Kette
+
+Beide naheliegenden Schaetzer sind verzerrt, und zwar **gegenlaeufig**:
+
+| Schaetzer | Korr. mit BHD | Problem |
+|---|--:|---|
+| hoechster Punkt im 1,5-m-Umkreis | 0,27 | greift in die **Nachbarkrone** — 8,3-cm-Staemmchen kamen auf 20,7 m |
+| nur eigene ITCD-Punkte | 0,40 | **unterschaetzt**, Kronenspitze oft nicht zugeordnet (Oberhoehe fiel auf 15 m) |
+| eigene + nicht zugeordnete darueber (verwendet) | 0,41 | Kompromiss, aber am Unterstand weiter zu hoch |
+
+Verwendet wird der dritte. Er bringt die Oberhoehe auf plausible 22,1 m, **loest das
+Problem am Unterstand aber nicht**: ein 8,3-cm-Stamm bekommt weiter 17 m Hoehe und
+daraus 148 Jahre Alter. Diese Kombination ist forstlich unmoeglich. Fuer die
+Oberhoehe und damit die Bonitaet ist das folgenlos (sie kommt aus den dicksten
+Staemmen), fuer das **Alter kleiner Staemme** ist es die offene Baustelle.
+
+## Fehldetektionen: 18 Marker entfernt
+
+Ein Kreisfit in *einer* Scheibe beweist keinen Baum — liegendes Holz, ein
+Wurzelteller oder dichtes Gestruepp sehen in 1,3 m Hoehe genauso rund aus. Die
+Schaftkontrolle prueft, ob in den 0,5-m-Schichten zwischen 1,3 und 6 m Holz an
+derselben Stelle steht. **18 der 82 Detektionen hatten keinen durchgehenden
+Schaft** (bei 8 davon ueberhaupt keine Punkte darueber) und sind aus der Szene
+entfernt. Uebrig bleiben 64 Baeume: 509 Staemme/ha, 45,8 m²/ha.
 
 ## Prognose: echte TreeGrOSS-Engine
 

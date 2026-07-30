@@ -293,14 +293,39 @@ def main():
 
     # ---- Kronenmetriken je Baum ----
     if args.crowns:
+        # Baumhoehe: eigene Kronenpunkte PLUS die nicht zugeordneten darueber.
+        # Beide naheliegenden Schaetzer sind verzerrt, und zwar gegenlaeufig:
+        # "hoechster Punkt im 1,5-m-Umkreis" greift im dichten Bestand in die
+        # NACHBARKRONE (8-cm-Staemmchen kamen so auf 20 m), waehrend die reine
+        # ITCD-Zuordnung die Kronenspitze oft NICHT mehr erfasst und die Hoehe
+        # damit unterschaetzt (die Oberhoehe des Bestandes fiel dadurch von 23
+        # auf 15 m). Nicht zugeordnete Punkte senkrecht ueber einem Baum gehoeren
+        # mit grosser Wahrscheinlichkeit zu ihm -- sie werden fuer die HOEHE
+        # mitgezaehlt, nicht aber fuer Kronenbreite und -volumen.
         rows = []
+        unassigned = label < 0
+        ux = xyz[unassigned]
+        uh = h[unassigned]
+        utree = cKDTree(ux[:, :2]) if len(ux) else None
         for i, name in enumerate(labels_txt):
             m = label == i
             r = {"label": name, "Punkte_ITCD": int(m.sum())}
             if m.sum() >= 50:
                 r.update(crown_metrics(xyz[m], h[m], ground[m], sdbh[i]))
+                own = float(h[m].max())
+                r["Kronenhoehe_m"] = round(own, 1)
+                top = own
+                if utree is not None:
+                    rad = min(max(r.get("Kronendurchmesser_m", 2.0) / 2, 1.0), 4.0)
+                    near = utree.query_ball_point(sxy[i], rad)
+                    if near:
+                        cand = uh[near]
+                        cand = cand[cand <= own + 8.0]   # keine fremde Oberkrone
+                        if len(cand):
+                            top = max(top, float(cand.max()))
+                r["Hoehe_m"] = round(top, 1)
             rows.append(r)
-        fields = ["label", "Punkte_ITCD", "Kronenhoehe_m", "Kronenansatz_m",
+        fields = ["label", "Punkte_ITCD", "Hoehe_m", "Kronenhoehe_m", "Kronenansatz_m",
                   "Kronenlaenge_m", "Kronendurchmesser_m", "Kronenvolumen_m3"]
         with open(args.crowns, "w", newline="", encoding="utf-8") as f:
             w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")

@@ -460,9 +460,22 @@
         now.classList.toggle('active', mode !== 'fut');
         fut.classList.toggle('active', mode === 'fut');
         prognote.hidden = mode !== 'fut';
-        prognote.textContent = mode === 'fut'
-          ? 'TreeGrOSS/BWINPro (NW-FVA, GPLv3) · Alter 200 J., Bonität 32 · '
-            + 'Fichte angenommen (Marker tragen keine Art).' : '';
+        // Bestandesangaben aus der Szene statt fest verdrahtet: sie stammen je
+        // Szene aus der Herleitung (scripts/tree_age_from_height.py) und waren
+        // hier zuvor als "Alter 200, Bonität 32" fest eingetragen -- was fuer
+        // JEDEN Baum galt, auch den 8-cm-Stamm im Unterstand.
+        const st = window.__scene && window.__scene.stand;
+        let txt = 'TreeGrOSS/BWINPro (NW-FVA, GPLv3) · ';
+        if (st) {
+          txt += `Bonität ${st.site_index} m (h100=${st.h100_m} m bei `
+               + `${st.top_age_years} J. Oberschicht) · Alter je Baum aus der Höhe`;
+          if (m.attributes && m.attributes.Alter != null)
+            txt += ` — dieser Baum ${m.attributes.Alter} J.`;
+          txt += ' · Fichte angenommen (Marker tragen keine Art).';
+        } else {
+          txt += 'Fichte angenommen (Marker tragen keine Art).';
+        }
+        prognote.textContent = mode === 'fut' ? txt : '';
         renderAttrs(m, mode);
       };
       if (m.prognosis) {
@@ -934,6 +947,7 @@
       const r = await fetch('data/scene-' + encodeURIComponent(sid) + '.json');
       if (!r.ok) { document.getElementById('title').textContent = 'Szene nicht gefunden'; return; }
       const scene = await r.json();
+      window.__scene = scene;        // Bestandesangaben fuer die Prognose-Fussnote
       document.title = (scene.title || sid) + ' — 360Pano3D';
       document.getElementById('title').textContent = scene.title || sid;
       buildLegend(scene);
