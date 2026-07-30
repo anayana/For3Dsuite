@@ -242,6 +242,10 @@
       border: 1px solid rgba(255,255,255,.14); border-radius: 12px;
       padding: 14px 16px; display: none; }
     #infobox h2 { margin: 0 0 2px; font-size: 15px; }
+    /* [hidden] muss gewinnen: eine eigene display-Regel schlaegt sonst das
+       hidden-Attribut aus dem Browser-Stylesheet -- der Hinweis "Demo-Werte"
+       stand dadurch an JEDEM Baum, obwohl kein einziger Marker demo=true traegt. */
+    #infobox .demo[hidden] { display: none; }
     #infobox .demo { display: inline-block; font-size: 10.5px; color: #f0b429;
       border: 1px solid #f0b429; border-radius: 10px; padding: 1px 7px; margin: 4px 0 6px; }
     #infobox table { width: 100%; border-collapse: collapse; margin-top: 8px;
