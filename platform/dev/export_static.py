@@ -47,6 +47,8 @@ def dataset_tags(s):
         tags.append("QSM")
     if any("ExG" in k or k == "Vitalitaet" for k in attr_keys):
         tags.append("RGB-Bildanalyse")
+    if any(lv.get("bin_gt_url") for lv in ((s.get("pointcloud") or {}).get("levels") or [])):
+        tags.append("Semantik-Ground-Truth")
     if s.get("canopy"):
         tags.append("Kronenanalyse (LAI)")
     if any(m.get("prognosis") for m in markers):
@@ -173,10 +175,12 @@ def main():
             pc["bin_url"] = rel + "/" + pc["bin"].rsplit("/", 1)[-1]
             for lv in pc.get("levels") or []:
                 lv["bin_url"] = rel + "/" + lv["bin"].rsplit("/", 1)[-1]
-                # ITCD-Einfaerbung (segment_itcd.py), falls erzeugt
-                seg = lv.get("bin_itcd")
-                if seg and (src / seg.rsplit("/", 1)[-1]).is_file():
-                    lv["bin_itcd_url"] = rel + "/" + seg.rsplit("/", 1)[-1]
+                # Zusaetzliche Einfaerbungen: ITCD (berechnet) und Ground Truth
+                # (manuell annotiert, z. B. SegmentedForests) -- falls erzeugt
+                for key in ("bin_itcd", "bin_gt"):
+                    seg = lv.get(key)
+                    if seg and (src / seg.rsplit("/", 1)[-1]).is_file():
+                        lv[key + "_url"] = rel + "/" + seg.rsplit("/", 1)[-1]
         elif pc:
             s["pointcloud"] = None
         (OUT / "data" / f"scene-{sid}.json").write_text(

@@ -452,6 +452,15 @@
       }
     }
 
+    // Der BHD-Methodenvergleich gehoert zur HEUTIGEN Messung. In der Prognose
+    // stuende er neben einem modellierten Zukunfts-BHD, den kein Verfahren
+    // gemessen hat -- das stellte Messverfahren und Rechenwert nebeneinander,
+    // als waeren sie dasselbe.
+    function showBench(on) {
+      const el = document.getElementById('ib-bench');
+      if (el) el.style.display = on ? '' : 'none';
+    }
+
     function showInfo(_e, m) {
       document.getElementById('ib-label').textContent = m.label || m.id;
       document.getElementById('ib-demo').hidden = !m.demo;
@@ -499,6 +508,7 @@
           renderAttrs(m, dy === 0 ? 'now' : 'fut',
             dy === 0 ? null : {Prognosejahr: y, BHD_cm: pt.dbh_cm, Hoehe_m: pt.height_m,
                                Status: pt.alive ? 'stehend' : 'ausgeschieden'});
+          showBench(dy === 0);
         };
         sl.oninput = upd; upd();
       } else {
@@ -510,6 +520,7 @@
           prognote.hidden = mode !== 'fut';
           prognote.textContent = mode === 'fut' ? progNote() : '';
           renderAttrs(m, mode);
+          showBench(mode !== 'fut');
         };
         if (m.prognosis) {
           toggle.hidden = false;
@@ -520,6 +531,7 @@
         setMode('now');
       }
       renderDbhBench(m);
+      showBench(true);   // beim Oeffnen immer "heute"
 
       document.getElementById('ib-xyz').textContent = m.xyz
         ? `Punktwolken-Position: (${m.xyz.map(v => (+v).toFixed(2)).join(', ')}) m`
@@ -787,8 +799,18 @@
     // Aktuelle Dichte-Stufe und Einfaerbung; beide bestimmen die geladene .bin
     let curLevel = null, curColoring = 'rgb';
 
+    // Verfuegbare Einfaerbungen einer Dichte-Stufe. Reihenfolge = Anzeigereihenfolge:
+    // gemessene Farbe, dann die manuell annotierte Wahrheit, dann unsere Rechnung --
+    // so steht der eigene Algorithmus direkt neben dem, woran er zu messen ist.
+    const COLORINGS = [
+      ['rgb', 'RGB', lv => lv.bin_url],
+      ['gt', 'Ground Truth', lv => lv.bin_gt_url],
+      ['itcd', 'Einzelbäume', lv => lv.bin_itcd_url],
+    ];
+
     function binUrlFor(lv, coloring) {
-      return (coloring === 'itcd' && lv.bin_itcd_url) ? lv.bin_itcd_url : lv.bin_url;
+      const c = COLORINGS.find(c => c[0] === coloring);
+      return (c && c[2](lv)) || lv.bin_url;
     }
     async function loadCloud() {
       if (!cloud || !curLevel) return;
@@ -894,15 +916,18 @@
       const bar = document.getElementById('coloring');
       const levels = (scene.pointcloud && scene.pointcloud.levels)
                   || (scene.pointcloud ? [scene.pointcloud] : []);
-      if (!levels.some(lv => lv.bin_itcd_url)) return;   // nichts segmentiert
+      // Nur anbieten, was es auch gibt -- 'rgb' allein ist kein Umschalter
+      const avail = COLORINGS.filter(
+        ([id, , url]) => id === 'rgb' || levels.some(lv => url(lv)));
+      if (avail.length < 2) return;
       bar.classList.add('on');
-      [['rgb', 'RGB'], ['itcd', 'Einzelbäume']].forEach(([id, label], i) => {
+      avail.forEach(([id, label, url], i) => {
         const b = document.createElement('button');
         b.textContent = label;
         if (i === 0) b.classList.add('active');
         b.onclick = async () => {
           if (b.classList.contains('active') || !cloud) return;
-          if (id === 'itcd' && !(curLevel && curLevel.bin_itcd_url)) return;
+          if (!(curLevel && (id === 'rgb' || url(curLevel)))) return;
           bar.querySelectorAll('button').forEach(x => x.classList.remove('active'));
           b.classList.add('active');
           const t = b.textContent;

@@ -139,12 +139,16 @@ def stem_shell(pts, sx, sy, tol=0.08, bin_w=0.02):
     ist bewusst weit gegenueber den 1-3 cm, um die es beim Verfahrensvergleich
     geht: das Fenster grenzt den Nachbarn aus, bestimmt aber nicht den Durchmesser.
     """
+    # Alle Rueckgabepfade liefern (Punkte, Schalenradius) -- bei zu wenig Punkten
+    # gibt es keinen Radius, dann nan. Zwei der Pfade gaben frueher nur die Punkte
+    # zurueck; am Renon-Bestand wurden sie nie erreicht, auf einem duenner
+    # besetzten Plot sofort (ValueError beim Entpacken).
     if len(pts) < 8:
-        return pts
+        return pts, float("nan")
     d = np.hypot(pts[:, 0] - sx, pts[:, 1] - sy)
     m = (d >= R_MIN) & (d <= R_MAX)
     if m.sum() < 8:
-        return pts[m]
+        return pts[m], float("nan")
     hist, edges = np.histogram(d[m], bins=np.arange(R_MIN, R_MAX + bin_w, bin_w))
     r0 = 0.5 * (edges[hist.argmax()] + edges[hist.argmax() + 1])
     keep = m & (np.abs(d - r0) <= tol)
@@ -493,7 +497,7 @@ def main():
         sl, r0 = stem_shell(sub[(h >= SLICE_LO) & (h <= SLICE_HI)], sx, sy,
                             args.shell_tol)
         r["Punkte_Scheibe"] = int(len(sl))
-        r["Schale_r_cm"] = round(100 * r0, 1)
+        r["Schale_r_cm"] = None if math.isnan(r0) else round(100 * r0, 1)
         # Plausibilitaet der Schale gegen die Detektion: die Stammdetektion hat
         # den Radius schon einmal mit Guetepruefung (Residuum, Bogen) bestimmt.
         # Weicht der Modus des Abstandshistogramms davon stark ab, liegt die
@@ -503,7 +507,8 @@ def main():
         # groesster gepruefter Stamm 62,5 cm hat. Solche Staemme werden hier NICHT
         # mit einer Zahl veroeffentlicht, sondern als unmessbar gekennzeichnet.
         r_det = float(st["BHD_cm"]) / 200.0 if st.get("BHD_cm") else None
-        unsicher = bool(r_det and abs(r0 - r_det) > max(0.10, 0.5 * r_det))
+        unsicher = bool(r_det and not math.isnan(r0)
+                        and abs(r0 - r_det) > max(0.10, 0.5 * r_det))
         if unsicher:
             r["hinweis"] = (f"Mantelschale bei r={100*r0:.0f} cm, Detektion "
                             f"r={100*r_det:.0f} cm -- Scheibe evtl. nicht dieser Stamm")
@@ -532,8 +537,12 @@ def main():
         # Schaftkontrolle: hat der Stamm ueber der Brusthoehe ueberhaupt Bestand?
         # Trennt echte Baeume von Fehldetektionen (Totholz, Wurzelteller, dichtes
         # Gestruepp), die einen sauberen Kreis in EINER Scheibe liefern koennen.
+        # Radius fuer die Schaftkontrolle: Schale, sonst die Detektion, sonst ein
+        # Mindestmass. Mit nan wuerde jeder Vergleich False und JEDER Stamm als
+        # Fehldetektion gelten -- ein stiller Totalausfall des Filters.
+        r_cont = r0 if not math.isnan(r0) else (r_det if r_det else 0.15)
         r["schaft_bandanteil"], r["schaft_durchgehend"] = stem_continuity(
-            sub, h, sx, sy, max(r0, 0.05))
+            sub, h, sx, sy, max(r_cont, 0.05))
         rows.append(r)
 
     fields = (["id", "x", "y"] + METHODS

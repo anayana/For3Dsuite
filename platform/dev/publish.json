@@ -15,6 +15,8 @@
     "renon-helios-synth": "Synthetischer TLS-Scan (HELIOS++) der Renon-Inventur -- Wuchsmodell->Sensor-Strang, Punktwolke mit bekannter Wahrheit",
     "renon-occlusion": "Verdeckungs-/Sichtbarkeitskarte (CANOPy-Konzept) auf dem synthetischen Scan -- welche Bestandsteile sind einseitig gesehen und damit verdeckungsgefaehrdet",
     "renon-setup02": "Reale RGB-Punktwolke eines zweiten Renon-Standpunkts (E57) -- gemessene Farbe je Punkt, andere Scan-Schatten als Setup 001",
+    "segforests-vienna-spruce": "SegmentedForests plot_07 (Wienerwald, Fichten-Mischbestand, Riegl VZ-400i): das Ground-Truth-Gegenstueck zur Renon-Szene -- gleiche Baumart, gleiche Aufnahmeart, aber 128 gelabelte Referenzstaemme. Hier laesst sich messen, was die Renon-Zahlen wert sind",
+    "segforests-vienna-beech": "SegmentedForests plot_06 (Wienerwald, Rotbuche, Riegl VZ-2000i): jeder Punkt manuell semantisch klassiert. Erste Szene mit Ground Truth auf Punktebene -- Detektion und Segmentierung werden hier gemessen statt nur untereinander verglichen",
     "renon-combined": "Vier registrierte Renon-Standpunkte (E57) verschmolzen -- 28,8 Mio -> dichte RGB-Wolke, und darauf die VOLLE Kette an einer Flaeche: 82 Staemme, ITCD ueber kuerzeste Wege, BHD nach 6 Verfahren mit Konsens, QSM-Zylindermodell, TreeGrOSS-Prognose je Baum (scripts/RENON_COMBINED.md)",
     "renon-splat": "Trainiertes 3D Gaussian Splatting des EIGENEN Renon-Standorts (700k Gaussians aus 20 Bildern) -- begehbar, schliesst den Kreis: dieselbe Flaeche als Pano, Punktwolke, QSM und jetzt fotoreal",
     "stump-3dgs": "Referenz-Splat (Mip-NeRF stump) -- zeigt 3DGS-Qualitaet bei dichter Aufnahme, Kontrast zum duennen Renon-Satz",

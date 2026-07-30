@@ -110,6 +110,12 @@ def main():
     ap.add_argument("--species", type=int, default=511, help="TreeGrOSS-Artcode")
     ap.add_argument("--top-age", type=float, default=200.0,
                     help="dokumentiertes Alter der Oberschicht [Jahre]")
+    ap.add_argument("--site-index", type=float,
+                    help="Bonitaet (h100 im Alter 100) direkt vorgeben, statt sie "
+                         "aus --top-age herzuleiten. Fuer Flaechen ohne dokumentiertes "
+                         "Bestandesalter: die Standortguete ist regional belegbar, "
+                         "das Alter waere geraten. Beides sind Annahmen -- welche "
+                         "gilt, steht danach in scene.stand.age_source.")
     ap.add_argument("--area-ha", type=float, required=True,
                     help="Bezugsflaeche fuer die Oberhoehe (100 dickste je ha)")
     ap.add_argument("--out-stand", help="Bestandes-JSON fuer treegross_export --stand-config")
@@ -138,11 +144,18 @@ def main():
     h100 = sum(m["attributes"]["Hoehe_m"] for m in top) / len(top)
     print(f"Oberhoehe aus {len(clean)} von {len(trees)} Baeumen mit sauberer "
           f"BHD-Messung (Guete 'gut')")
-    si = si_from_height(h100, args.top_age, k)
     print(f"Oberhoehe h100 = {h100:.1f} m (aus den {n_top} dicksten Baeumen auf "
           f"{args.area_ha:.4f} ha)")
-    print(f"Bonitaet SI = {si:.1f} m  (h100 im Alter 100, hergeleitet aus "
-          f"Oberschicht-Alter {args.top_age:.0f})")
+    if args.site_index is not None:
+        si = args.site_index
+        top_age = age_from_height(h100, si, k)
+        print(f"Bonitaet SI = {si:.1f} m  (VORGEGEBEN) -> Oberschicht rechnerisch "
+              f"{top_age:.0f} Jahre")
+    else:
+        si = si_from_height(h100, args.top_age, k)
+        top_age = args.top_age
+        print(f"Bonitaet SI = {si:.1f} m  (h100 im Alter 100, hergeleitet aus "
+              f"Oberschicht-Alter {args.top_age:.0f})")
 
     ages = []
     for m in markers:
@@ -161,8 +174,11 @@ def main():
     scene.setdefault("stand", {})
     scene["stand"].update({
         "h100_m": round(h100, 1), "site_index": round(si, 1),
-        "top_age_years": args.top_age, "area_ha": args.area_ha,
+        "top_age_years": round(top_age, 0) if top_age else None,
+        "area_ha": args.area_ha,
         "species_code": args.species,
+        "site_index_source": ("vorgegeben" if args.site_index is not None
+                              else "aus dokumentiertem Oberschicht-Alter hergeleitet"),
         "age_source": ("Alter je Baum aus der Hoehe ueber die Bonitaetsfunktion der "
                        "eingesetzten TreeGrOSS-Parameterdatei (Fichte, NAGEL 1999), "
                        f"verankert am dokumentierten Oberschicht-Alter von "

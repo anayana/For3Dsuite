@@ -190,6 +190,36 @@ def trees_from_stand(data, default_code):
     return trees, skipped
 
 
+def shift_positive(trees, margin=1.0):
+    """Baumkoordinaten in den positiven Quadranten schieben.
+
+    NICHT kosmetisch, sondern ein stiller Ergebnisfehler: TreeGrOSS leitet die
+    Bestandesecken selbst her, wenn keine gesetzt sind, und behandelt Baeume
+    ausserhalb dieses Polygons als NICHT ZUM BESTAND GEHOEREND. Solche Baeume
+    dienen nur als Konkurrenten und bekommen keinen Zuwachs -- ohne Fehlermeldung,
+    ohne Warnung, sie stehen ganz normal in der Antwort.
+
+    Unsere Koordinaten sind relativ zum Szenenursprung und damit zur Haelfte
+    negativ. Gemessen am Renon-Bestand: 38 von 64 Baeumen wuchsen exakt null;
+    nach dem Verschieben 0 von 64, mittlerer 30-Jahres-Zuwachs +3,5 -> +8,2 cm.
+
+    Die Verschiebung ist eine reine Translation -- alle Abstaende und damit die
+    ganze Konkurrenzrechnung bleiben unveraendert.
+    """
+    xs = [t["x"] for t in trees if t.get("x") is not None]
+    ys = [t["y"] for t in trees if t.get("y") is not None]
+    if not xs or (min(xs) >= 0 and min(ys) >= 0):
+        return None
+    dx, dy = margin - min(xs), margin - min(ys)
+    for t in trees:
+        if t.get("x") is not None:
+            t["x"] = round(t["x"] + dx, 3)
+            t["y"] = round(t["y"] + dy, 3)
+    print(f"Koordinaten um ({dx:+.2f}, {dy:+.2f}) m in den positiven Quadranten "
+          f"verschoben (TreeGrOSS laesst Baeume ausserhalb der Flaeche nicht wachsen)")
+    return dx, dy
+
+
 def do_export(args):
     default_code = species_code(args.default_species, 511)
     if args.scene:
@@ -204,6 +234,8 @@ def do_export(args):
             trees, skipped = trees_from_csv(list(csv.DictReader(f)), default_code)
     if not trees:
         sys.exit("Keine Baeume mit BHD und Hoehe gefunden")
+
+    shift_positive(trees)
 
     payload = {"stand": load_stand(args), "trees": trees}
     if args.years:
@@ -265,6 +297,17 @@ def do_import(args):
     proj = {t["id"]: t for t in period.get("trees", [])}
     scene = json.loads(Path(args.scene).read_text(encoding="utf-8"))
 
+    # Volle Perioden-Serie je Baum: damit zeigt der Viewer einen Zeithorizont-
+    # Regler statt eines festen Prognosejahres. Ein einzelnes Zieljahr sagt nicht,
+    # ob der Zuwachs gleichmaessig laeuft oder abflacht -- die Serie schon.
+    series = {}
+    if args.series:
+        for p in result.get("periods", []):
+            for t in p.get("trees", []):
+                series.setdefault(t["id"], []).append(
+                    {"year": p.get("year"), "dbh_cm": t.get("dbh_cm"),
+                     "height_m": t.get("height_m"), "alive": bool(t.get("alive", True))})
+
     updated, removed = 0, 0
     kept_markers = []
     for mk in scene.get("markers", []):
@@ -286,6 +329,8 @@ def do_import(args):
                 block["Hoehe_m"] = round(float(t["height_m"]), 1)
             block["Status"] = "ausgeschieden" if gone else "stehend"
             mk[args.attach_key] = block
+            if args.series and series.get(mk["id"]):
+                mk["prognosis_series"] = series[mk["id"]]
         else:
             a = mk.setdefault("attributes", {})
             if gone:
@@ -348,6 +393,9 @@ def main():
     im.add_argument("--title-suffix", help="an den Szenentitel anhaengen, z. B. '(2044)'")
     im.add_argument("--attach-key", help="Prognose unter marker[KEY] ablegen statt "
                     "die Heute-Attribute zu ueberschreiben (z. B. 'prognosis')")
+    im.add_argument("--series", action="store_true",
+                    help="volle Perioden-Serie je Baum anhaengen (prognosis_series) "
+                         "-- der Viewer zeigt dann einen Zeithorizont-Regler")
     im.add_argument("--drop-removed", action="store_true",
                     help="ausgeschiedene Baeume aus den Markern entfernen")
     im.set_defaults(func=do_import)
