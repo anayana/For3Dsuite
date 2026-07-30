@@ -235,6 +235,23 @@ def build(sid, spec, files, pos):
         if lid == "lite":
             thumbnail(dest / "thumb.jpg", xyz[idx], rgb[idx])
 
+    # BHD-Methoden-Benchmark je Baum (scripts/bench_dbh.py -> gemessene Feld-GT +
+    # BHD je Verfahren). Wird als eigener Block an den Marker gehaengt und im
+    # Viewer als Methodenvergleich angezeigt. Nur Baeume mit Feld-BHD sind drin.
+    bench = {}
+    bench_csv = REPO / "platform" / "web" / "gallery" / "bench_dbh_results.csv"
+    if bench_csv.is_file():
+        import csv as _csv
+        METHS = [("baseline_DBH_cm", "Baseline (Laub)"), ("qsm_wood_DBH_cm", "QSM-Holz"),
+                 ("3dfin_DBH_cm", "3DFin"), ("csp_DBH_cm", "CspStandSeg.")]
+        for r in _csv.DictReader(open(bench_csv, encoding="utf-8")):
+            fld = r.get("field_DBH_cm")
+            if not fld:
+                continue
+            ms = [{"name": lab, "dbh_cm": float(r[col])}
+                  for col, lab in METHS if r.get(col) not in (None, "", "NA")]
+            bench[r["id"]] = {"field_cm": float(fld), "methods": ms}
+
     markers, arten = [], {}
     for i, (k, txyz, tcls, shift) in enumerate(trees, 1):
         art = SPECIES.get(k.split("_")[0], k.split("_")[0])
@@ -273,12 +290,15 @@ def build(sid, spec, files, pos):
                 attrs["QSM_BHD_cm"] = qb
         dx, dy, dz = x - origin[0], y - origin[1], (base + 1.3) - origin[2]
         dist = math.sqrt(dx * dx + dy * dy + dz * dz) or 1e-6
-        markers.append({
+        mk = {
             "id": f"t{i:03d}", "label": f"{art} {k}",
             "yaw": round(math.degrees(math.atan2(dy, dx)), 3),
             "pitch": round(math.degrees(math.asin(dz / dist)), 3),
             "xyz": [round(x, 3), round(y, 3), round(base + 1.3, 3)],
-            "attributes": attrs, "demo": False})
+            "attributes": attrs, "demo": False}
+        if k in bench:
+            mk["dbh_benchmark"] = bench[k]
+        markers.append(mk)
 
     # ---- QSM-Zylindermodell (falls exportiert) fuer die 3D-Ansicht ----------
     # Nur bei ECHTER Lage: dort landen Punktwolke UND Zylinder beide bei

@@ -263,6 +263,20 @@
       background: none; padding: 5px 12px; font-size: 12px; cursor: pointer; }
     #ib-toggle button.active { background: rgba(121,192,255,.22); color: #d3e8ff; }
     #infobox .prognote { margin-top: 6px; font-size: 11px; color: #d29922; }
+    #ib-bench:not(:empty) { margin-top: 12px; border-top: 1px solid rgba(255,255,255,.1);
+      padding-top: 8px; }
+    #ib-bench .bench-h { font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+      color: #8b949e; margin-bottom: 4px; }
+    #ib-bench table.bench { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    #ib-bench table.bench th { color: #6e7681; font-weight: 600; text-align: right;
+      padding: 2px 0; font-size: 11px; }
+    #ib-bench table.bench th:first-child { text-align: left; }
+    #ib-bench table.bench td { padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,.06);
+      text-align: right; }
+    #ib-bench table.bench td:first-child { text-align: left; color: #c9d1d9; }
+    #ib-bench tr.fld td { color: #7ee787; font-weight: 600; }
+    #ib-bench td.ok { color: #7ee787; } #ib-bench td.off { color: #f0883e; }
+    #ib-bench .bench-note { color: #6e7681; font-size: 10.5px; margin-top: 5px; }
     #infobox .close { margin-top: 12px; background: none; color: #58a6ff;
       border: 1px solid #30363d; border-radius: 8px; padding: 5px 12px;
       font-size: 12px; cursor: pointer; }
@@ -340,6 +354,7 @@
     </div>
     <div class="prognote" id="ib-prognote" hidden></div>
     <table id="ib-attrs"></table>
+    <div id="ib-bench"></div>
     <div class="xyz" id="ib-xyz"></div>
     <button class="close" onclick="document.getElementById('infobox').style.display='none'">Schließen</button>
   </div>
@@ -439,11 +454,34 @@
         toggle.hidden = true;
       }
       setMode('now');
+      renderDbhBench(m);
 
       document.getElementById('ib-xyz').textContent = m.xyz
         ? `Punktwolken-Position: (${m.xyz.map(v => (+v).toFixed(2)).join(', ')}) m`
         : '';
       document.getElementById('infobox').style.display = 'block';
+    }
+
+    // BHD-Methodenvergleich am Baum (m.dbh_benchmark aus scripts/bench_dbh.py):
+    // gemessenes Feld-BHD + je Verfahren die Schaetzung und die Abweichung.
+    function renderDbhBench(m) {
+      const el = document.getElementById('ib-bench');
+      const b = m.dbh_benchmark;
+      if (!b || !(b.methods || []).length) { el.innerHTML = ''; return; }
+      const f = b.field_cm;
+      const rows = b.methods.map(mm => {
+        const d = mm.dbh_cm - f;
+        const cls = Math.abs(d) <= 5 ? 'ok' : 'off';
+        return `<tr><td>${mm.name}</td><td>${mm.dbh_cm.toFixed(1)}</td>` +
+               `<td class="${cls}">${d >= 0 ? '+' : ''}${d.toFixed(1)}</td></tr>`;
+      }).join('');
+      el.innerHTML =
+        `<div class="bench-h">BHD-Methodenvergleich</div>` +
+        `<table class="bench"><thead><tr><th>Verfahren</th><th>BHD</th><th>Δ</th></tr></thead>` +
+        `<tr class="fld"><td>Feld (gemessen)</td><td>${f.toFixed(1)}</td><td>cm</td></tr>` +
+        rows + `</table>` +
+        `<div class="bench-note">Δ = Abweichung vom Feld-BHD (cm). ` +
+        `<a href="benchmark.html">alle Bäume →</a></div>`;
     }
 
     // Klick auf einen QSM-Zylinder: Kennzahlen des Segments (Stamm/Ast) + des

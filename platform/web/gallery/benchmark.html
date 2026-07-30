@@ -38,7 +38,7 @@
     <h1>BHD-Methoden-Benchmark gegen Feld-Ground-Truth</h1>
     <p class="sub">Wie genau schätzen verschiedene TLS-Verfahren den Brusthöhen­durchmesser (BHD)?
       Dieselben dichten Einzelbaum-Wolken (SYSSIFOSS), verglichen gegen die
-      <b>unabhängige Feld-Inventur</b> — kein geratener Wert, jede Zahl ein echter Lauf.</p>
+      <b>unabhängige Feld-Inventur</b>.</p>
 
     <h2>Ergebnis (cm)</h2>
     <div class="card">
@@ -64,20 +64,20 @@
     <ul>
       <li><b>Baseline</b> <span class="pill">Python</span> — numpy-Kreisfit an der Brusthöhen-Scheibe, <b>laubbelaubte</b> ganze Wolke.</li>
       <li><b>QSM-Holz</b> <span class="pill">Python</span> — derselbe Fit, aber nur auf <b>Holzpunkten</b> (Classification 0, SYSSIFOSS-Ground-Truth). Das ist per Definition das QSM-BHD (2·Median-Stammradius bei 1,3 m).</li>
-      <li><b>3DFin</b> <span class="pill">Python</span> — <a href="https://github.com/3DFin/3DFin">3DFin</a> (dendromatics), spanisch.</li>
-      <li><b>Csp</b> <span class="pill">R</span> — <a href="https://github.com/JulFrey/CspStandSegmentation">CspStandSegmentation</a> (Frey &amp; Schindler, Uni Freiburg), baut auf lidR.</li>
+      <li><b>3DFin</b> <span class="pill">Python</span> — <a href="https://github.com/3DFin/3DFin">3DFin</a>, auf Basis der dendromatics-Bibliothek.</li>
+      <li><b>Csp</b> <span class="pill">R</span> — <a href="https://github.com/JulFrey/CspStandSegmentation">CspStandSegmentation</a> (Frey &amp; Schindler, Universität Freiburg), auf Basis von lidR.</li>
     </ul>
 
-    <h2>Was das ehrlich zeigt</h2>
+    <h2>Interpretation</h2>
     <ul>
-      <li><b>Alle scheitern am 11-cm-Jungbaum</b> (QueRub_KA09): der Stamm ist zu dünn, die Krone reicht in die Brusthöhe. Der laubbelaubte Baseline-Fit explodiert (228 cm), die Holz-only-Variante ist besser (91,8), aber auch daneben — 3DFin/Csp geben gar kein Ergebnis (ehrlicher als eine falsche Zahl).</li>
-      <li><b>PinSyl_KA10 überschätzen ALLE</b> (46–51 statt 35 cm). Dass sich die Methoden einig sind, deutet auf den Baum bzw. die Feld-Messhöhe — kein Methodenfehler.</li>
-      <li><b>QSM-Holz ist am genauesten</b> (5,7 cm) — es nutzt die Blatt-Holz-Trennung und einen sauberen Stamm. Zum Vergleich: das SYSSIFOSS-Paper nennt für seine sorgfältige TLS-Methode 3,5 cm RMSE.</li>
+      <li><b>Alle Verfahren versagen am 11-cm-Jungbaum</b> (QueRub_KA09): der Stamm ist zu dünn und die Krone reicht bis in die Brusthöhe. Der laubbelaubte Baseline-Fit liefert einen groben Ausreißer (228 cm), der Holz-only-Fit ist besser (91,8 cm), aber weiterhin ungenau; 3DFin und Csp geben kein Ergebnis aus.</li>
+      <li><b>PinSyl_KA10 wird von allen überschätzt</b> (46–51 statt 35 cm). Die Übereinstimmung der Verfahren deutet auf eine Eigenschaft des Baums oder eine abweichende Feld-Messhöhe hin, nicht auf einen Methodenfehler.</li>
+      <li><b>QSM-Holz erreicht die höchste Genauigkeit</b> (5,7 cm) durch die Blatt-Holz-Trennung und einen sauberen Stamm. Zum Vergleich: das SYSSIFOSS-Paper berichtet für seine sorgfältige TLS-Methode 3,5 cm RMSE.</li>
     </ul>
 
     <h2>Grenzen</h2>
     <ul>
-      <li><b>n = 5</b>: nur so viele lokale Bäume haben ein Feld-BHD in der pytreedb-Datenbank. Klein, aber echt.</li>
+      <li><b>n = 5</b>: nur für so viele lokal vorliegende Bäume ist ein Feld-BHD in der pytreedb-Datenbank hinterlegt. Kleine Stichprobe.</li>
       <li><b>FORTLS</b> bewusst ausgelassen — es setzt Einzelscan-Radialgeometrie voraus und passt nicht auf die kombinierten Mehr-Scan-Wolken.</li>
       <li><b>aRchi</b> (R-QSM-Bibliothek) ist aus CRAN archiviert; das QSM-BHD entspricht aber dem hier gerechneten Holz-Stamm-Fit.</li>
     </ul>

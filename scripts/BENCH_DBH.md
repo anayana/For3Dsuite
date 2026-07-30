@@ -1,15 +1,14 @@
 # BHD-Methoden-Benchmark gegen Feld-Ground-Truth
 
 Vergleicht die **BHD-Genauigkeit** mehrerer TLS-Verfahren auf denselben dichten
-Einzelbaum-Wolken (SYSSIFOSS) gegen die **unabhängige Feld-Inventur** — kein
-geratener Wert, jede Zahl ein echter Lauf gegen gemessene Wahrheit.
+Einzelbaum-Wolken (SYSSIFOSS) gegen die **unabhängige Feld-Inventur**.
 
 ## Methoden
 | Methode | Sprache | Kurz |
 |---|---|---|
 | `baseline` | Python | numpy-Kreisfit an der Brusthöhen-Scheibe, **laubbelaubte** ganze Wolke |
 | `qsm_wood` | Python | derselbe Fit, aber nur **Holzpunkte** (Classification 0, SYSSIFOSS-GT) — das ist per Definition das QSM-BHD (2·Median-Stammradius bei 1,3 m) |
-| `3dfin` | Python | [3DFin](https://github.com/3DFin/3DFin) (dendromatics), spanisch |
+| `3dfin` | Python | [3DFin](https://github.com/3DFin/3DFin) (dendromatics-Bibliothek) |
 | `csp` | R | [CspStandSegmentation](https://github.com/JulFrey/CspStandSegmentation) (Frey & Schindler, Uni Freiburg), baut auf lidR |
 
 **FORTLS** ist bewusst NICHT dabei: es setzt Einzelscan-Radialgeometrie voraus und
