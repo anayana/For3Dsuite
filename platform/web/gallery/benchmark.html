@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>BHD-Methoden-Benchmark — 360Pano3D</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { color-scheme: dark; }
+    html, body { margin: 0; background: #0d1117; color: #e6edf3;
+      font-family: system-ui, -apple-system, sans-serif; line-height: 1.55; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+    a { color: #58a6ff; } a.back { text-decoration: none; font-size: 13px; }
+    h1 { font-size: 22px; margin: 14px 0 4px; }
+    h2 { font-size: 15px; margin: 26px 0 8px; color: #adbac7;
+      text-transform: uppercase; letter-spacing: .04em; }
+    p, li { color: #c9d1d9; font-size: 14px; }
+    .sub { color: #8b949e; font-size: 13px; margin-top: 0; }
+    .card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px; padding: 4px 14px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 560px; }
+    th, td { padding: 8px 6px; text-align: right; border-bottom: 1px solid rgba(255,255,255,.08); }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: #8b949e; font-weight: 600; }
+    td.gt { color: #7ee787; font-weight: 600; }
+    td.best { color: #d8ffdb; }
+    tr.mae td { border-top: 2px solid rgba(255,255,255,.2); border-bottom: none;
+      font-weight: 700; padding-top: 10px; }
+    .fail { color: #f0883e; }
+    .pill { display: inline-block; font-size: 11px; color: #8b949e;
+      border: 1px solid rgba(255,255,255,.16); border-radius: 10px; padding: 1px 8px; }
+    .note { color: #8b949e; font-size: 12.5px; }
+    code { background: rgba(255,255,255,.08); border-radius: 4px; padding: 1px 5px; font-size: 12.5px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="index.html">← Szenen</a>
+    <h1>BHD-Methoden-Benchmark gegen Feld-Ground-Truth</h1>
+    <p class="sub">Wie genau schätzen verschiedene TLS-Verfahren den Brusthöhen­durchmesser (BHD)?
+      Dieselben dichten Einzelbaum-Wolken (SYSSIFOSS), verglichen gegen die
+      <b>unabhängige Feld-Inventur</b> — kein geratener Wert, jede Zahl ein echter Lauf.</p>
+
+    <h2>Ergebnis (cm)</h2>
+    <div class="card">
+      <table>
+        <thead><tr>
+          <th>Baum</th><th>Art</th><th>Feld</th>
+          <th>Baseline</th><th>QSM-Holz</th><th>3DFin</th><th>Csp</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>FagSyl_BR05</td><td>Buche</td><td class="gt">61,7</td><td>58,2</td><td class="best">59,5</td><td>51,9</td><td>67,7</td></tr>
+          <tr><td>PinSyl_KA09</td><td>Kiefer</td><td class="gt">49,7</td><td>45,1</td><td class="best">45,8</td><td>44,5</td><td>44,9</td></tr>
+          <tr><td>PinSyl_KA10</td><td>Kiefer</td><td class="gt">35,0</td><td>49,3</td><td>50,8</td><td>46,1</td><td>49,9</td></tr>
+          <tr><td>QueRub_KA09</td><td>Roteiche</td><td class="gt">11,1</td><td class="fail">228 ✗</td><td class="fail">91,8 ✗</td><td class="fail">—</td><td class="fail">—</td></tr>
+          <tr><td>QueRub_KA11</td><td>Roteiche</td><td class="gt">34,7</td><td>35,5</td><td class="best">33,8</td><td>29,5</td><td>22,4</td></tr>
+          <tr class="mae"><td>MAE</td><td class="note">ohne 11-cm-Jungbaum</td><td></td><td>5,8</td><td class="best">5,7</td><td>7,8</td><td>9,5</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">MAE = mittlerer absoluter Fehler. <a href="bench_dbh_results.csv">Rohdaten (CSV)</a> ·
+      Methodik &amp; Setup: <a href="https://github.com/anayana/For3Dsuite/blob/main/scripts/BENCH_DBH.md">BENCH_DBH.md</a></p>
+
+    <h2>Methoden</h2>
+    <ul>
+      <li><b>Baseline</b> <span class="pill">Python</span> — numpy-Kreisfit an der Brusthöhen-Scheibe, <b>laubbelaubte</b> ganze Wolke.</li>
+      <li><b>QSM-Holz</b> <span class="pill">Python</span> — derselbe Fit, aber nur auf <b>Holzpunkten</b> (Classification 0, SYSSIFOSS-Ground-Truth). Das ist per Definition das QSM-BHD (2·Median-Stammradius bei 1,3 m).</li>
+      <li><b>3DFin</b> <span class="pill">Python</span> — <a href="https://github.com/3DFin/3DFin">3DFin</a> (dendromatics), spanisch.</li>
+      <li><b>Csp</b> <span class="pill">R</span> — <a href="https://github.com/JulFrey/CspStandSegmentation">CspStandSegmentation</a> (Frey &amp; Schindler, Uni Freiburg), baut auf lidR.</li>
+    </ul>
+
+    <h2>Was das ehrlich zeigt</h2>
+    <ul>
+      <li><b>Alle scheitern am 11-cm-Jungbaum</b> (QueRub_KA09): der Stamm ist zu dünn, die Krone reicht in die Brusthöhe. Der laubbelaubte Baseline-Fit explodiert (228 cm), die Holz-only-Variante ist besser (91,8), aber auch daneben — 3DFin/Csp geben gar kein Ergebnis (ehrlicher als eine falsche Zahl).</li>
+      <li><b>PinSyl_KA10 überschätzen ALLE</b> (46–51 statt 35 cm). Dass sich die Methoden einig sind, deutet auf den Baum bzw. die Feld-Messhöhe — kein Methodenfehler.</li>
+      <li><b>QSM-Holz ist am genauesten</b> (5,7 cm) — es nutzt die Blatt-Holz-Trennung und einen sauberen Stamm. Zum Vergleich: das SYSSIFOSS-Paper nennt für seine sorgfältige TLS-Methode 3,5 cm RMSE.</li>
+    </ul>
+
+    <h2>Grenzen</h2>
+    <ul>
+      <li><b>n = 5</b>: nur so viele lokale Bäume haben ein Feld-BHD in der pytreedb-Datenbank. Klein, aber echt.</li>
+      <li><b>FORTLS</b> bewusst ausgelassen — es setzt Einzelscan-Radialgeometrie voraus und passt nicht auf die kombinierten Mehr-Scan-Wolken.</li>
+      <li><b>aRchi</b> (R-QSM-Bibliothek) ist aus CRAN archiviert; das QSM-BHD entspricht aber dem hier gerechneten Holz-Stamm-Fit.</li>
+    </ul>
+  </div>
+</body>
+</html>

@@ -113,6 +113,12 @@ def main():
 
     shutil.copyfile(GALLERY / "cloudviewer.js", OUT / "cloudviewer.js")
 
+    # Statische Zusatzseiten (Benchmark-Ergebnis + Rohdaten), 1:1 kopiert
+    for extra in ("benchmark.html", "bench_dbh_results.csv"):
+        src = GALLERY / extra
+        if src.exists():
+            shutil.copyfile(src, OUT / extra)
+
     # ---- Szenen-JSONs + Medien ----
     publish, held = load_publish_list()
     listing = []

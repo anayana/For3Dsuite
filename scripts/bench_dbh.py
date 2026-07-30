@@ -116,7 +116,8 @@ def main():
     ap.add_argument("--data", default=str(REPO / "data" / "dataverse_files"))
     ap.add_argument("--no-3dfin", action="store_true")
     ap.add_argument("--csp-csv", default=None, help="Ergebnis von bench_dbh_csp.R")
-    ap.add_argument("--out", default=str(REPO / "docs" / "bench_dbh_results.csv"))
+    ap.add_argument("--out", default=str(REPO / "platform" / "web" / "gallery"
+                                         / "bench_dbh_results.csv"))
     args = ap.parse_args()
 
     print("Feld-GT aus pytreedb laden ...")
