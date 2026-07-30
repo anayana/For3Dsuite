@@ -38,6 +38,11 @@ R_MIN, R_MAX = 0.04, 0.75  # m, plausibler Stammradius (BHD 8..150 cm)
 
 def load_points(path):
     low = path.lower()
+    if low.endswith(".npz"):
+        # Analyse-Wolke aus e57_merge.py: float32 relativ zu 'shift' (welt = xyz + shift)
+        d = np.load(path)
+        p = d["xyz"].astype(np.float64) + d["shift"]
+        return p[:, 0], p[:, 1], p[:, 2]
     if low.endswith(".e57"):
         import pye57
         d = pye57.E57(path).read_scan(0, ignore_missing_fields=True)
@@ -109,6 +114,11 @@ def main():
                     help="Schaftformfaktor fuer das Volumen (Fichte ~0,5)")
     ap.add_argument("--nms-dist", type=float, default=0.6,
                     help="Mindestabstand zwischen Staemmen [m] (Duplikat-Unterdrueckung)")
+    ap.add_argument("--core-radius", type=float,
+                    help="nur Staemme innerhalb dieses Umkreises ausgeben, ausgewertet "
+                         "wird aber die ganze --radius-Wolke. Trennt Auswertungsflaeche "
+                         "von Randzone: Baumhoehe und Bodenmodell am Rand der "
+                         "Kernflaeche brauchen die Punkte dahinter.")
     args = ap.parse_args()
     bh_lo, bh_hi = args.bh
 
@@ -209,6 +219,15 @@ def main():
         if all(math.hypot(t["x"] - k["x"], t["y"] - k["y"]) >= args.nms_dist for k in kept):
             kept.append(t)
     dups = len(trees) - len(kept)
+    outside = 0
+    if args.core_radius and args.origin:
+        ox, oy, _ = args.origin
+        inside = [t for t in kept
+                  if math.hypot(t["x"] - ox, t["y"] - oy) <= args.core_radius]
+        outside = len(kept) - len(inside)
+        kept = inside
+        print(f"{outside} Staemme ausserhalb der Kernflaeche "
+              f"(r = {args.core_radius:.0f} m) nicht ausgegeben")
     trees = sorted(kept, key=lambda t: -t["BHD_cm"])
     for i, t in enumerate(trees, 1):
         t["label"] = f"Baum {i:02d}"
