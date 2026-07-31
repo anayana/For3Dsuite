@@ -206,23 +206,20 @@ monks 24,9·0,11 / 27,9·0,07 · mossy 19,8·0,14 / 28,2·0,07 · nature-reserve
   Nachjustierung — ein erfahrener Anwender würde einige davon von Hand retten.
   Genau das ist aber der Punkt: die Kette soll **automatisch** laufen.
 
-## 5.3 Aufwand und Laufzeit
-Zeit je Standpunkt (Aufnahme → veröffentlichte Szene) über die drei Geräteklassen;
-Rechenzeit je Schritt; Grad der Automatisierung (manuelle Eingriffe).
-Gemessen bislang nur der Rechenteil: Stitching 14,6 s, Reprojektion 2,1 s je
-Panorama (2048×1024, 6–8 Eingangsbilder, Consumer-CPU).
+## 5.3 Aufwand, Laufzeit und Automatisierungsgrad
+Beide Zweige laufen **vollautomatisch, ohne manuelle Kontrollpunkte** — die
+Stitching-Kette detektiert im Median 156 Kontrollpunkte je Panorama selbst
+(`cpfind`/`autooptimiser`). Rechenzeit je Panorama (2048×1024, 6–8 Eingangs-
+bilder, Consumer-CPU): Stitching Median 16 s, Reprojektion Median 5 s. Der
+entscheidende Aufwandsunterschied ist nicht die Sekundenzahl, sondern die
+**Robustheit ohne Nacharbeit**: der posen-basierte Zweig liefert 11/11 Szenen
+ohne Eingriff, das Stitching 8/11 (3 Abbrüche, s. o.). Offen: die Wandzeit
+*Aufnahme → veröffentlichte Szene* inkl. Feldaufwand über die drei Geräteklassen.
 
 ## 5.4 Nutzbarkeit
 Kurzer, strukturierter Nutzbarkeitstest (Aufgaben, Erfolg/Zeit, SUS-Fragebogen)
-mit fachfremden Teilnehmenden über die GUI. **Offen.**
-
-## 5.3 Aufwand und Laufzeit
-Zeit je Standpunkt (Aufnahme → veröffentlichte Szene) über die drei Geräteklassen;
-Rechenzeit je Schritt; Grad der Automatisierung (manuelle Eingriffe).
-
-## 5.4 Nutzbarkeit
-Kurzer, strukturierter Nutzbarkeitstest (Aufgaben, Erfolg/Zeit, SUS-Fragebogen)
-mit fachfremden Teilnehmenden über die GUI.
+mit fachfremden Teilnehmenden über die GUI. **Noch offen** (Protokoll steht,
+Durchführung mit Teilnehmenden ausstehend).
 
 # 6. Beispiel-Datensätze (frei verwendbar)
 
