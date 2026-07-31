@@ -57,11 +57,10 @@ selten genutztes Nebenprodukt. Die Ausgabe wird mit einem quelloffenen Web-Viewe
 Docker gekapselt. In einer Evaluation quantifizieren wir Stitching-Genauigkeit
 gegen CC0-Panoramen als Referenz, vergleichen posen-basierte Reprojektion mit
 posen-geschätztem Stitching auf identischer Szene und erfassen Aufwand, Laufzeit
-und Nutzbarkeit über das Geräte-Spektrum. Über 11 CC0-Referenzpanoramen liefern
-beide Zweige dort, wo Stitching gelingt, vergleichbare Genauigkeit (23,2 gegen
-23,7 dB PSNR); entscheidend ist die Zuverlässigkeit: das posen-basierte Verfahren
-rekonstruiert alle 11 Szenen, das Stitching scheitert an 5 von 11 — und ist dabei
-siebenmal langsamer.
+und Nutzbarkeit über das Geräte-Spektrum. Über 11 CC0-Referenzpanoramen ist der
+posen-basierte Zweig dem Stitching in allen Maßen überlegen (26,9 gegen 23,0 dB
+PSNR, 0,886 gegen 0,837 SSIM, 0,10 gegen 0,14 px Nahtversatz), rekonstruiert alle
+11 Szenen gegenüber 6 und ist dabei siebenmal schneller.
 
 ---
 
@@ -150,26 +149,41 @@ per Stitching aus 6 Fisheye-Aufnahmen (180°, Pose *nicht* verraten), einmal per
 Reprojektion aus 6 Pinhole-Aufnahmen + Zenit/Nadir (90°, Pose genutzt). Beide
 werden gegen dasselbe Original gemessen.
 
-| Zweig | erfolgreich | PSNR (dB) | SSIM | Abdeckung | Laufzeit |
+| Zweig | erfolgreich | PSNR (dB) | SSIM | Nahtversatz (px) | Laufzeit |
 |---|--:|--:|--:|--:|--:|
-| Stitching (Pose geschätzt) | **6 / 11** | 23,23 ± 2,52 | 0,839 ± 0,061 | 100,0 % | 14,6 s |
-| Reprojektion (Pose bekannt) | **11 / 11** | 23,67 ± 2,20 | 0,794 ± 0,062 | 99,4 % | 2,1 s |
+| Stitching (Pose geschätzt) | **6 / 11** | 22,98 ± 2,74 | 0,837 ± 0,060 | 0,14 (p95 0,53) | 14,6 s |
+| Reprojektion (Pose bekannt) | **11 / 11** | **26,87 ± 1,96** | **0,886 ± 0,039** | **0,10 (p95 0,23)** | 2,1 s |
 
-**Der Unterschied liegt nicht in der Genauigkeit, sondern in der Zuverlässigkeit.**
-Wo Stitching gelingt, ist es gleichauf (23,2 gegen 23,7 dB) und im SSIM sogar
-etwas besser — die Reprojektion verliert dort etwas, weil sie derzeit mit
-Nächster-Nachbar-Abtastung arbeitet. Aber Stitching **scheitert an 5 von 11
-Szenen**: dreimal bricht `enblend` ab (»excessive image overlap«, »degenerate
-image/mask geometry«, »failed to detect any seam«), zweimal entsteht ein
-geometrisch falsches Panorama (PSNR 8,7 bzw. 11,5 dB; auch unter erschöpfender
-Suche über Drehung, Neigung und Spiegelung nicht besser als 11,7 dB — also kein
-Mess-, sondern ein Registrierungsfehler). Die Reprojektion liefert an allen 11
-Szenen ein Ergebnis, in einem Siebtel der Zeit.
+Der posen-basierte Zweig ist in **allen** Maßen besser: +3,9 dB, +0,05 SSIM, ein
+Drittel weniger lokale Verschiebung (p95 weniger als die Hälfte) — und er
+rekonstruiert alle 11 Szenen, während Stitching an 5 scheitert: dreimal bricht
+`enblend` ab (»excessive image overlap«, »degenerate image/mask geometry«,
+»failed to detect any seam«), zweimal entsteht ein geometrisch falsches Panorama.
+Letzteres ist kein Messartefakt: auch unter erschöpfender Suche über Drehung,
+Neigung und Spiegelung kommen diese beiden nicht über 11,7 dB.
 
-Einzelwerte (PSNR dB, Stitching / Reprojektion): forest-slope 22,5/22,8 ·
-furstenstein —/23,4 · hochsal —/21,0 · monks 24,9/25,2 · mossy 21,1/25,4 ·
-nature-reserve 20,0/21,6 · niederwihl ✗/20,1 · quadrangle —/25,0 · sunset
-24,0/24,5 · symmetrical-garden ✗/23,8 · woods 26,9/27,6.
+### Nahtversatz als automatisches Qualitätsmerkmal
+
+Der Nahtversatz wird blockweise per Phasenkorrelation gegen die Referenz gemessen
+(64-px-Blöcke, 50 % Überlappung; strukturarme Blöcke verworfen). Er trennt
+gelungene von misslungenen Rekonstruktionen **schärfer als PSNR oder SSIM**:
+
+| | brauchbare Stitches | misslungene Stitches | Reprojektion |
+|---|--:|--:|--:|
+| Nahtversatz Median | 0,11–0,19 px | **5,95 / 6,14 px** | 0,07–0,13 px |
+
+Das ist ein Faktor ~40 zwischen gelungen und misslungen, ohne Kenntnis der
+Wahrheit einer einzelnen Szene interpretierbar. Für den in Abschnitt 9 genannten
+**automatischen Qualitätsflag in der GUI** ist damit ein belastbarer Schwellwert
+verfügbar (hier: > 1 px Median). PSNR allein taugt dafür schlechter, weil er auch
+auf Belichtung und Schärfe reagiert.
+
+Einzelwerte (PSNR dB · Nahtversatz px, Stitching / Reprojektion): forest-slope
+22,4·0,17 / 26,3·0,10 · furstenstein —/27,0·0,11 · hochsal —/24,5·0,11 ·
+monks 24,9·0,11 / 27,9·0,07 · mossy 19,8·0,14 / 28,2·0,07 · nature-reserve
+20,2·0,13 / 24,9·0,09 · niederwihl ✗ 11,7·6,14 / 23,3·0,13 · quadrangle
+—/28,3·0,12 · sunset 23,9·0,19 / 27,8·0,10 · symmetrical-garden ✗ 8,6·5,95 /
+27,3·0,10 · woods 26,8·0,12 / 30,0·0,07.
 
 ### Grenzen dieser Zahlen (wichtig)
 
@@ -183,6 +197,11 @@ nature-reserve 20,0/21,6 · niederwihl ✗/20,1 · quadrangle —/25,0 · sunset
 - Die absolute PSNR-Höhe ist durch die Auflösungskette gedeckelt (8k-Referenz →
   1400–1600 px Einzelbilder → 2048 px Ausgabe) und daher **nur im Vergleich der
   beiden Zweige aussagekräftig**, nicht als Absolutwert.
+- Die Zahlen der Reprojektion gelten erst seit der Umstellung auf **bilineare
+  Abtastung**. Mit der zuvor verwendeten Nächster-Nachbar-Abtastung lag derselbe
+  Zweig bei 25,4 dB / SSIM 0,871 statt 28,2 / 0,935 (Beispiel ph-mossy-forest)
+  und damit im SSIM *hinter* dem Stitching — ein reines Implementierungsartefakt,
+  das beinahe als Verfahrenseigenschaft berichtet worden wäre.
 - Die 5 Fehlschläge sind Hugin-Voreinstellungen ohne szenenspezifische
   Nachjustierung — ein erfahrener Anwender würde einige davon von Hand retten.
   Genau das ist aber der Punkt: die Kette soll **automatisch** laufen.
@@ -235,18 +254,88 @@ mit fachfremden Teilnehmenden über die GUI.
 # 9. Ausblick
 
 - ~~Fisheye-Reprojektor + Stitching-Vergleich als Evaluations-Modul.~~ **Umgesetzt**
-  (Abschnitt 5). Offen bleibt: Nächster-Nachbar- durch bilineare Abtastung in
-  `reproject_pano.py` ersetzen (kostet derzeit SSIM), Nahtversatz an den
-  Überlappungen getrennt quantifizieren, und die Evaluation um echte Aufnahmen
-  mit Nodalpunktversatz erweitern.
+  (Abschnitt 5), einschließlich bilinearer Abtastung und Nahtversatz-Messung.
+  Offen bleibt: die Evaluation um **echte Aufnahmen mit Nodalpunktversatz**
+  erweitern (bisher nur parallaxenfreie synthetische Bilder) und den
+  Nahtversatz-Schwellwert als Qualitätsflag in die GUI hängen.
 - Anbindung weiterer Repräsentationen (3DGS-Szene, Mesh) im selben Viewer.
 - Automatische Qualitätsflags (Nahtversatz, Belichtungssprünge) in der GUI.
 
-# Referenzen (Auswahl, zu vervollständigen)
+# Referenzen
 
-- Hugin/Panotools — panorama stitching (FOSS).
-- Petroff, M. — Pannellum (MIT).
-- three.js — WebGL rendering library.
-- ASTM E2807 / E57 — 3D imaging data exchange format.
-- Poly Haven — CC0 HDRI/panorama library.
-- (Wald-Anwendung) einschlägige TLS-Inventur- und QSM-Literatur.
+## Verwendete Software (mit im Projekt eingesetzten Versionen)
+
+- **Hugin/Panotools** 2024.0.1 — Panorama-Stitching (GPL-2.0).
+  <https://hugin.sourceforge.io/> · verwendet: `pto_gen`, `cpfind`, `cpclean`,
+  `autooptimiser`, `pano_modify`, `nona`, `enblend`.
+- **enblend/enfuse** (Teil der Hugin-Distribution) — Nahtüberblendung.
+- **Pannellum** 2.5.6 — Web-Panorama-Viewer (MIT). Petroff, M. A. (2019):
+  *Pannellum: a lightweight web-based panorama viewer.* Journal of Open Source
+  Software 4(40), 1628. <https://doi.org/10.21105/joss.01628>
+- **three.js** r160 — WebGL-Rendering für Punktwolke, QSM und 3DGS (MIT).
+  <https://threejs.org/>
+- **Leaflet** 1.9.4 — Übersichtskarte der Szenen (BSD-2-Clause).
+- **Caddy** 2 (Alpine-Image) — Reverse Proxy mit automatischem TLS (Apache-2.0).
+- **Garage** 1.0.1 — S3-kompatibler, self-hosted Objektspeicher (AGPL-3.0).
+  <https://garagehq.deuxfleurs.fr/>
+- **FastAPI** / **uvicorn** — HTTP-API und Job-Queue der Plattform (MIT/BSD).
+- **NumPy** 1.26.4, **Pillow** 12.3.0, **OpenCV** 5.0.0, **laspy** 2.5.4 —
+  Bild- und Punktwolkenverarbeitung, Metriken der Evaluation.
+- **Docker** / **Compose** — reproduzierbare Gesamtumgebung.
+
+## Formate und Standards
+
+- **ASTM E2807-11** — *Standard Specification for 3D Imaging Data Exchange,
+  Version 1.0* (E57-Format). ASTM International.
+  Huber, D. (2011): *The ASTM E57 file format for 3D imaging data exchange.*
+  Proc. SPIE 7864, Three-Dimensional Imaging, Interaction, and Measurement.
+  <https://doi.org/10.1117/12.876555>
+- **ASPRS LAS 1.4** — LiDAR-Punktwolkenformat.
+
+## Bildqualitätsmaße der Evaluation
+
+- Wang, Z., Bovik, A. C., Sheikh, H. R., Simoncelli, E. P. (2004): *Image quality
+  assessment: from error visibility to structural similarity.* IEEE Transactions
+  on Image Processing 13(4), 600–612. <https://doi.org/10.1109/TIP.2003.819861>
+  — SSIM, hier eigenständig mit 11×11-Gaußfenster (σ = 1,5) implementiert.
+- Kuglin, C. D., Hines, D. C. (1975): *The phase correlation image alignment
+  method.* Proc. IEEE Int. Conf. on Cybernetics and Society, 163–165.
+  — Grundlage der blockweisen Nahtversatz-Messung.
+
+## Datensätze
+
+- **Poly Haven** — CC0-HDRI/Panorama-Bibliothek; 11 Wald- und Gartenpanoramen
+  (8192×4096) als Referenzwahrheit der Evaluation. <https://polyhaven.com/>
+- **Renon / ICOS IT-Ren** — terrestrischer Laserscan (E57 mit 6 Pinhole-Bildern
+  und Posen je Standpunkt), CC-BY-4.0. Realer „Scanner-RGB"-Fall.
+- **SYSSIFOSS** — blatt/holz-getrennte TLS-Einzelbäume (RIEGL VZ-400),
+  CC-BY-4.0. <https://doi.org/10.11588/DATA/UUMEDI>
+- **SegmentedForests** — manuell semantisch gelabelte TLS/MLS-Waldwolken
+  (MIT-Lizenz). Laino, D., Cabo, C., Ordóñez, C. et al. (2025):
+  *SegmentedForests: a labelled dataset of terrestrial LiDAR point clouds for
+  semantic segmentation of forests.* Forestry.
+  <https://doi.org/10.1093/forestry/cpaf062> · Daten:
+  <https://doi.org/10.5281/zenodo.17396681>
+
+## Wald-/TLS-Verfahren (für den Fachdaten-Teil, Abschnitt 3.4)
+
+- **3DFin / dendromatics** — Laino, D., Cabo, C., Prendes, C. et al. (2024):
+  *3DFin: a software for automated 3D forest inventories from terrestrial point
+  clouds.* Forestry 97(4). <https://doi.org/10.1093/forestry/cpae020>
+- **FORTLS** — Molina-Valero, J. A. et al. (2022): *Operationalizing the use of
+  TLS in forest inventories: the R package FORTLS.* Environmental Modelling &
+  Software 150, 105337. <https://doi.org/10.1016/j.envsoft.2022.105337>
+- **lidR** — Roussel, J.-R. et al. (2020): *lidR: An R package for analysis of
+  Airborne Laser Scanning (ALS) data.* Remote Sensing of Environment 251, 112061.
+  <https://doi.org/10.1016/j.rse.2020.112061>
+- **CspStandSegmentation** — Frey, J., Schindler, Z. et al.: Kostenpfad-basierte
+  Einzelbaumsegmentierung, Universität Freiburg.
+- **TreeGrOSS / BWINPro** — Nordwestdeutsche Forstliche Versuchsanstalt (NW-FVA),
+  GPLv3; Bonitätsfunktionen nach Nagel, J. (1999).
+- **CSF-Bodenfilter** — Zhang, W. et al. (2016): *An easy-to-use airborne LiDAR
+  data filtering method based on cloth simulation.* Remote Sensing 8(6), 501.
+  <https://doi.org/10.3390/rs8060501>
+
+> Hinweis: DOIs und Jahreszahlen sind vor der Einreichung gegen die
+> Verlagsangaben zu prüfen; die Softwareversionen entsprechen dem Stand, mit dem
+> die berichteten Zahlen erzeugt wurden.

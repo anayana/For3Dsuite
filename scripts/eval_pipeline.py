@@ -100,7 +100,11 @@ def main():
                 run([str(REPO / "scripts" / "eval_pano.py"), str(pano), str(img),
                      "--json", str(js), "--label", label] + extra)
                 m = json.loads(js.read_text(encoding="utf-8"))
+                d = m.get("nahtversatz") or {}
                 rows.append({**base, "zweig": label, "status": "ok",
+                             "versatz_median_px": d.get("median_px", ""),
+                             "versatz_p95_px": d.get("p95_px", ""),
+                             "versatz_ueber1px_pct": d.get("anteil_ueber_1px_pct", ""),
                              "psnr_db": m["psnr_db"], "ssim": m["ssim"],
                              "abdeckung_pct": m["abdeckung_pct"],
                              "yaw_versatz_deg": m["yaw_versatz_deg"],
@@ -118,7 +122,8 @@ def main():
                              "kontrollpunkte": "", "render_s": round(t_render, 1),
                              "fehler": kurz})
 
-    fields = ["szene", "zweig", "status", "psnr_db", "ssim", "abdeckung_pct",
+    fields = ["szene", "zweig", "status", "psnr_db", "ssim", "versatz_median_px",
+              "versatz_p95_px", "versatz_ueber1px_pct", "abdeckung_pct",
               "yaw_versatz_deg", "mae", "sekunden", "kontrollpunkte", "render_s",
               "fehler"]
     with open(args.out, "w", newline="", encoding="utf-8") as f:
@@ -138,9 +143,11 @@ def main():
         p = [r["psnr_db"] for r in sel]
         s = [r["ssim"] for r in sel]
         a = [r["abdeckung_pct"] for r in sel]
+        v = [r["versatz_median_px"] for r in sel if r.get("versatz_median_px") != ""]
         print(f"{zw:16} {len(sel):3}  {st.mean(p):6.2f} ± {st.stdev(p) if len(p)>1 else 0:4.2f}  "
               f"{st.mean(s):6.4f} ± {st.stdev(s) if len(s)>1 else 0:6.4f}  "
-              f"{st.mean(a):8.1f}%")
+              f"{st.mean(a):8.1f}%"
+              + (f"   Versatz {st.mean(v):.2f} px" if v else ""))
 
 
 if __name__ == "__main__":

@@ -75,6 +75,58 @@ def estimate_yaw_shift(ref, rec, mask):
     return shift
 
 
+def local_displacement(ref, rec, mask, block=64, step=32, max_px=12.0):
+    """Lokale Verschiebung Rekonstruktion->Referenz, blockweise per Phasenkorrelation.
+
+    Das ist der "Nahtversatz" aus Abschnitt 5.1 des Paper-Konzepts, aber ohne
+    Kenntnis der Nahtlagen: gemessen wird, wie weit der Bildinhalt LOKAL gegenueber
+    der Wahrheit verschoben ist. Beim posen-basierten Zweig muss das ueberall nahe
+    null sein (die Geometrie ist exakt); beim Stitching zeigen sich genau an den
+    Ueberlappungen Sprünge, weil dort zwei unterschiedlich registrierte Bilder
+    aneinanderstossen.
+
+    PSNR und SSIM koennen das nicht ersetzen: ein global leicht unscharfes, aber
+    geometrisch korrektes Panorama und ein scharfes mit 5 px Nahtversatz koennen
+    denselben PSNR haben -- fuer eine Vermessungsanwendung ist der Unterschied
+    entscheidend.
+
+    Blöcke ohne Struktur (geringe Varianz) liefern keine belastbare Korrelation
+    und werden verworfen; ebenso Ausschlaege ueber max_px, die auf einen
+    Fehlabgleich statt auf eine Verschiebung hindeuten.
+    """
+    g_ref = cv2.cvtColor(ref, cv2.COLOR_RGB2GRAY).astype(np.float32)
+    g_rec = cv2.cvtColor(rec, cv2.COLOR_RGB2GRAY).astype(np.float32)
+    H, W = g_ref.shape
+    win = cv2.createHanningWindow((block, block), cv2.CV_32F)
+    mags, pts = [], []
+    for y in range(0, H - block + 1, step):
+        for x in range(0, W - block + 1, step):
+            if mask[y:y + block, x:x + block].mean() < 0.98:
+                continue                      # Blockrand an einem Loch
+            a = g_ref[y:y + block, x:x + block]
+            b = g_rec[y:y + block, x:x + block]
+            if a.std() < 8 or b.std() < 8:
+                continue                      # strukturlos (Himmel, Schatten)
+            (dx, dy), resp = cv2.phaseCorrelate(np.ascontiguousarray(a),
+                                                np.ascontiguousarray(b), win)
+            m = float(np.hypot(dx, dy))
+            if resp < 0.05 or m > max_px:
+                continue
+            mags.append(m)
+            pts.append((x + block // 2, y + block // 2))
+    if len(mags) < 20:
+        return None
+    a = np.array(mags)
+    deg_per_px = 360.0 / W
+    return {"bloecke": len(a),
+            "median_px": round(float(np.median(a)), 2),
+            "p95_px": round(float(np.percentile(a, 95)), 2),
+            "max_px": round(float(a.max()), 2),
+            "median_deg": round(float(np.median(a)) * deg_per_px, 3),
+            "p95_deg": round(float(np.percentile(a, 95)) * deg_per_px, 3),
+            "anteil_ueber_1px_pct": round(100.0 * float((a > 1.0).mean()), 1)}
+
+
 def ssim(a, b, mask=None):
     """SSIM nach Wang et al. mit 11x11-Gaussfenster (sigma 1.5)."""
     a = a.astype(np.float64)
@@ -139,9 +191,15 @@ def main():
         "ssim": round(ssim(g_ref, g_rec, both), 4),
         "mae_grauwert": round(float(np.abs(diff).mean()), 2),
     }
+    disp = local_displacement(ref, rec, both)
+    if disp:
+        res["nahtversatz"] = disp
+    d = res.get("nahtversatz")
     print(f"{res['label']:28} Abdeckung {res['abdeckung_pct']:5.1f}%  "
           f"Yaw {res['yaw_versatz_deg']:+7.2f}°  PSNR {res['psnr_db']:5.2f} dB  "
-          f"SSIM {res['ssim']:.4f}  MAE {res['mae_grauwert']:.1f}")
+          f"SSIM {res['ssim']:.4f}  MAE {res['mae_grauwert']:.1f}"
+          + (f"  Versatz {d['median_px']:.2f}/{d['p95_px']:.2f} px (Med/p95)"
+             if d else "  Versatz n/a"))
     if args.json:
         Path(args.json).write_text(json.dumps(res, ensure_ascii=False, indent=2),
                                    encoding="utf-8")

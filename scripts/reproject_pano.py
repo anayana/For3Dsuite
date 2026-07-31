@@ -81,9 +81,26 @@ def main():
             inb = (along > 1e-6) & (col >= 0) & (col < c["iw"]) & (row >= 0) & (row < c["ih"])
             if not inb.any():
                 continue
-            ci = np.clip(np.where(inb, col, 0).astype(np.int32), 0, c["iw"]-1)
-            ri = np.clip(np.where(inb, row, 0).astype(np.int32), 0, c["ih"]-1)
-            sample = c["img"][ri, ci].astype(np.float32)     # (band,W,3)
+            # BILINEAR statt naechster Nachbar. Die frueher benutzte Abschneidung
+            # (.astype(int32)) verschob jeden Treffer um bis zu einem Pixel und
+            # kostete in der Evaluation messbar Schaerfe -- der posen-basierte
+            # Zweig lag im SSIM hinter dem Stitching, obwohl seine Geometrie exakt
+            # ist. Pixelmitte von Index i liegt bei i+0.5, daher der 0.5-Versatz.
+            # Namen bewusst mit s-Praefix: y0/y1 sind hier die Grenzen des
+            # Zeilenblocks der aeusseren Schleife -- eine Ueberschreibung liess
+            # 'y1 - y0' zu einem Array werden und np.zeros scheitern.
+            cf = np.where(inb, col, 0.0) - 0.5
+            rf = np.where(inb, row, 0.0) - 0.5
+            sx0 = np.floor(cf).astype(np.int32)
+            sy0 = np.floor(rf).astype(np.int32)
+            fx = (cf - sx0)[..., None].astype(np.float32)
+            fy = (rf - sy0)[..., None].astype(np.float32)
+            xa = np.clip(sx0, 0, c["iw"] - 1); xb = np.clip(sx0 + 1, 0, c["iw"] - 1)
+            ya = np.clip(sy0, 0, c["ih"] - 1); yb = np.clip(sy0 + 1, 0, c["ih"] - 1)
+            im = c["img"].astype(np.float32)
+            top = im[ya, xa] * (1 - fx) + im[ya, xb] * fx
+            bot = im[yb, xa] * (1 - fx) + im[yb, xb] * fx
+            sample = top * (1 - fy) + bot * fy               # (band,W,3)
             lum = sample.mean(-1)
             w = np.where(inb, np.clip(along, 0, 1)**3, 0.0).astype(np.float32)
             w *= (lum > 8)                                    # schwarze Nadir-Maske raus
