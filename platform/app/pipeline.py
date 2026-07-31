@@ -1,10 +1,16 @@
 """Verarbeitungs-Pipeline: Originale -> Equirectangular-Panorama -> veroeffentlichte Szene.
 
-Drei Job-Typen:
+Job-Typen:
+  auto      Eingangsklasse aus den hochgeladenen Dateien BESTIMMEN (Default)
   equirect  fertiges Equirectangular-Bild direkt uebernehmen
   fisheye   Hugin-CLI-Kette (pto_gen -> cpfind -> ... -> nona -> enblend)
   e57       eingebettete Pinhole-Bilder + Posen extrahieren und ohne
             Kontrollpunkte sphaerisch reprojizieren (scripts/reproject_pano.py)
+
+'auto' ist der Kern der im Paper beschriebenen Fallunterscheidung: liegen
+Kameraposen vor, wird reprojiziert, sonst gestitcht. Die Entscheidung faellt an
+den Daten, nicht an einer Nutzereingabe -- die expliziten Typen bleiben als
+Ueberschreibung erhalten.
 """
 import json
 import os
@@ -18,6 +24,58 @@ from pathlib import Path
 from PIL import Image
 
 Image.MAX_IMAGE_PIXELS = None
+
+EQUIRECT_RATIO_TOL = 0.02       # 2:1 gilt als fertiges Equirectangular
+
+
+def detect_input_class(indir, log=lambda _m: None):
+    """Eingangsklasse aus den hochgeladenen Dateien bestimmen.
+
+    Die Reihenfolge folgt der Beweiskraft, nicht der Bequemlichkeit:
+
+      1. .e57 vorhanden  -> Posen liegen im Container -> REPROJEKTION.
+         Das ist die einzige Klasse, in der die Geometrie bekannt IST; sie hat
+         deshalb Vorrang, auch wenn zusaetzlich Bilder mitgeschickt wurden.
+      2. genau ein Bild im Seitenverhaeltnis 2:1 -> fertiges EQUIRECT.
+         Ein einzelnes 2:1-Bild kann nichts anderes sinnvoll sein; mehrere
+         2:1-Bilder waeren dagegen eine Belichtungsreihe und kein Panorama.
+      3. sonst mehrere Bilder -> keine Posen -> STITCHING.
+
+    Bewusst NICHT geraten wird bei einem einzelnen, nicht-2:1-Bild: daraus laesst
+    sich weder stitchen noch reprojizieren. Das meldet einen Fehler, statt eine
+    Klasse zu erfinden.
+    """
+    e57s = sorted(p for p in indir.iterdir() if p.suffix.lower() == ".e57")
+    if e57s:
+        log(f"Eingangsklasse erkannt: e57 ({e57s[0].name}) -> Posen bekannt, "
+            f"Reprojektion ohne Kontrollpunkte")
+        return "e57"
+
+    imgs = sorted(p for p in indir.iterdir() if p.suffix.lower() in IMG_EXT)
+    if not imgs:
+        raise RuntimeError("Upload enthaelt weder .e57 noch Bilder")
+
+    ratios = []
+    for p in imgs:
+        try:
+            with Image.open(p) as im:
+                ratios.append(im.width / im.height)
+        except Exception:
+            ratios.append(0.0)
+    equi = [r for r in ratios if abs(r - 2.0) <= EQUIRECT_RATIO_TOL]
+
+    if len(imgs) == 1 and equi:
+        log(f"Eingangsklasse erkannt: equirect ({imgs[0].name}, "
+            f"Seitenverhaeltnis {ratios[0]:.2f}:1) -> direkt uebernehmen")
+        return "equirect"
+    if len(imgs) == 1:
+        raise RuntimeError(
+            f"Einzelnes Bild mit Seitenverhaeltnis {ratios[0]:.2f}:1 -- weder ein "
+            f"fertiges Panorama (2:1) noch genug fuer Stitching. Bitte Typ "
+            f"ausdruecklich waehlen oder mehr Aufnahmen hochladen.")
+    log(f"Eingangsklasse erkannt: fisheye ({len(imgs)} Bilder, keine Posen) "
+        f"-> Stitching ueber Kontrollpunkte")
+    return "fisheye"
 IMG_EXT = {".jpg", ".jpeg", ".png", ".tif", ".tiff"}
 MAX_CANVAS = 40000  # Schutz gegen Gigapixel-Rendering bei falschem FOV/LensType
 
@@ -48,6 +106,8 @@ class Pipeline:
             pano = work / "pano_equirect.jpg"
             origin = None
             pointcloud = None
+            if job["type"] == "auto":
+                job = dict(job, type=detect_input_class(indir, log))
             if job["type"] == "equirect":
                 self._equirect(indir, pano, log)
             elif job["type"] == "fisheye":

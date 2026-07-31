@@ -53,7 +53,7 @@ SCRIPTS_DIR = _dir("SCRIPTS_DIR", lambda: APP_DIR.parents[1] / "scripts",
                    lambda: APP_DIR / "scripts")
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
-JOB_TYPES = {"equirect", "fisheye", "e57"}
+JOB_TYPES = {"auto", "equirect", "fisheye", "e57"}
 
 media, originals = make_stores(DATA_DIR)
 jobstore = JobStore(DATA_DIR / "jobs.db")
@@ -161,7 +161,7 @@ def get_scene(sid: str):
 async def upload(scene_id: str = Form(...),
                  title: str = Form(""),
                  description: str = Form(""),
-                 job_type: str = Form(..., alias="type"),
+                 job_type: str = Form("auto", alias="type"),
                  fov: float = Form(180.0),
                  lens: int = Form(3),
                  files: list[UploadFile] = File(...)):

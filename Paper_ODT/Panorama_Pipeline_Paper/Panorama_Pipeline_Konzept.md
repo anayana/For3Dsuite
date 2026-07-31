@@ -99,6 +99,13 @@ siebenmal langsamer.
 | Hardware-Spanne | 20 €–5000 € | 20 000 €–150 000 € |
 
 Automatische Fallunterscheidung: Posen vorhanden → reprojizieren; sonst → stitchen.
+Umgesetzt in `platform/app/pipeline.py` (`detect_input_class`, Job-Typ `auto`,
+Voreinstellung im Studio): `.e57` im Upload → Reprojektion; genau ein Bild im
+Seitenverhältnis 2:1 → fertiges Equirect; mehrere Bilder → Stitching. Bei einem
+einzelnen Nicht-2:1-Bild wird bewusst **nicht geraten**, sondern ein Fehler
+gemeldet. Im Container verifiziert: derselbe Upload-Endpunkt ohne Typangabe
+erkennt `equirect` (ein 2:1-Bild) bzw. `fisheye` (sechs Aufnahmen) korrekt und
+führt die jeweilige Kette bis zur veröffentlichten Szene durch.
 
 ## 3.2 FOSS-Bausteine
 - **Hugin/Panotools** — Stitching (Kontrollpunkte, Projektion, Blending).
