@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <title>BHD-Methoden-Benchmark — 360Pano3D</title>
+  <title>Benchmarks gegen Ground Truth — 360Pano3D</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { color-scheme: dark; }
@@ -35,8 +35,107 @@
 <body>
   <div class="wrap">
     <a class="back" href="index.html">← Szenen</a>
-    <h1>BHD-Methoden-Benchmark gegen Feld-Ground-Truth</h1>
-    <p class="sub">Wie genau schätzen verschiedene TLS-Verfahren den Brusthöhen­durchmesser (BHD)?
+    <h1>Benchmarks gegen Ground Truth</h1>
+    <p class="sub">Zwei Fragen, zwei Datensätze mit echter Wahrheit:
+      <b>Findet die Kette die Bäume?</b> (semantisch gelabelte Plot-Wolken,
+      Wienerwald) und <b>wie genau misst sie den BHD?</b> (Einzelbäume mit
+      unabhängiger Feld-Inventur).</p>
+
+    <h1 style="font-size:18px;margin-top:30px">I. Stammdetektion gegen semantische Ground Truth</h1>
+    <p class="sub">Datensatz <a href="https://doi.org/10.5281/zenodo.17396681">SegmentedForests</a>
+      (MIT): zwei TLS-Plots aus dem Wienerwald, in denen <b>jeder Punkt manuell
+      klassiert</b> ist — Stamm, Äste, Boden, Strauch, liegendes Totholz, Steine,
+      Pfähle. Referenz sind die als Stamm gelabelten Punkte, geclustert.</p>
+
+    <h2>plot_06 — Rotbuche, Riegl VZ-2000i, 68 Referenzstämme</h2>
+    <div class="card">
+      <table>
+        <thead><tr><th>Verfahren</th><th></th><th>Detektionen</th><th>Recall</th><th>Precision</th></tr></thead>
+        <tbody>
+          <tr><td>Baseline (numpy)</td><td class="note">Python</td><td>97</td><td>60,3 %</td><td class="fail">42,3 %</td></tr>
+          <tr><td>Baseline + Schaftkontrolle</td><td class="note">Python</td><td>55</td><td>57,4 %</td><td>70,9 %</td></tr>
+          <tr><td>lidR-Eigenbau</td><td class="note">R</td><td>98</td><td>66,2 %</td><td class="fail">45,9 %</td></tr>
+          <tr><td>CspStandSegmentation</td><td class="note">R</td><td>141</td><td>57,4 %</td><td class="fail">27,7 %</td></tr>
+          <tr class="mae"><td>3DFin <span class="pill">Konfiguration der Autoren</span></td><td class="note">Python</td><td>70</td><td class="gt">98,5 %</td><td class="gt">95,7 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>plot_07 — Fichten-Mischbestand, Riegl VZ-400i, 128 Referenzstämme</h2>
+    <div class="card">
+      <table>
+        <thead><tr><th>Verfahren</th><th></th><th>Detektionen</th><th>Recall</th><th>Precision</th></tr></thead>
+        <tbody>
+          <tr><td>Baseline (numpy)</td><td class="note">Python</td><td>59</td><td class="fail">34,4 %</td><td>74,6 %</td></tr>
+          <tr class="mae"><td>3DFin <span class="pill">Konfiguration der Autoren</span></td><td class="note">Python</td><td>121</td><td class="gt">94,5 %</td><td class="gt">100,0 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Treffer = Detektion höchstens 0,6 m von einem Referenzstamm.
+      Methodik: <a href="https://github.com/anayana/For3Dsuite/blob/main/scripts/BENCH_DETECTION.md">BENCH_DETECTION.md</a></p>
+
+    <h2>Worauf die Fehlalarme sitzen</h2>
+    <p>Weil der Datensatz auch die Nicht-Baum-Klassen labelt, steht hier nicht
+      „vermutlich Totholz", sondern was es war (Baseline auf plot_06, 56 Fehlalarme):</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>Klasse</th><th>Anzahl</th></tr></thead>
+        <tbody>
+          <tr><td>Strauch / Bodenvegetation</td><td>28</td></tr>
+          <tr><td>niedrige Vegetation / liegendes Totholz</td><td>10</td></tr>
+          <tr><td>Äste + Blätter</td><td>10</td></tr>
+          <tr><td>Nicht-Vegetation, aufrecht in Brusthöhe (Pfahl/Person)</td><td>3</td></tr>
+          <tr><td>dünner Baum / Zweig</td><td>3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Die Zuordnung Zahl → Klassenname ist <b>abgeleitet, nicht dokumentiert</b>:
+      weder Datensatz noch Aufsatz enthalten eine Tabelle. Sie stammt aus einer
+      Geometrie-Analyse (Höhe über Boden, Clusterzahl und -radius im Brusthöhen-Band).
+      Dass Klasse 3 auf beiden Plots unabhängig 68 bzw. 128 Stammquerschnitte ergibt —
+      gegen ~69 bzw. ~128 im Aufsatz genannte Bäume — stützt sie.</p>
+
+    <h2>Befund</h2>
+    <ul>
+      <li><b>3DFin ist auf plotweiten TLS-Wolken deutlich überlegen</b> und über
+        beide Plots stabil: 67 von 68 bzw. 121 von 128 Stämmen, im zweiten Fall
+        ohne einen einzigen Fehlalarm. Die eigene numpy-Baseline und der
+        lidR-Eigenbau produzieren mehr Fehlalarme als Treffer.</li>
+      <li><b>Die Schaftkontrolle wirkt.</b> Der Filter prüft, ob sich der Stamm über
+        der Brusthöhe fortsetzt: Precision 42,3 → 70,9 %, 40 von 56 Fehlalarmen
+        entfallen, Kosten 2 echte Bäume. Die verbleibenden Fehlalarme sind
+        überwiegend <b>Äste</b> — aufrechte Strukturen, gegen die dieses Kriterium
+        prinzipiell nicht hilft.</li>
+      <li><b>Csp fairerweise:</b> es ist primär eine Segmentierung, kein Stammdetektor.
+        Die niedrige Precision heißt, dass es viele Nicht-Baum-Objekte als eigene
+        Segmente führt. Die mitgelieferte Spalte <code>quality_flag</code> trennt nicht
+        (139 von 141 Detektionen tragen denselben Wert).</li>
+    </ul>
+
+    <h2>Reichweite — und wo sie endet</h2>
+    <p>Diese Zahlen gelten für <b>plotweite TLS-Wolken mit brauchbarer
+      Umfangsabdeckung</b>. Sie übertragen sich nicht:</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>Wolke</th><th>Bogen Median</th><th>≥ 202°</th><th>Punkte je BH-Scheibe</th></tr></thead>
+        <tbody>
+          <tr><td>plot_06 Buche</td><td>360°</td><td>86 %</td><td>4 604</td></tr>
+          <tr><td>plot_07 Fichte</td><td>280°</td><td>88 %</td><td>3 263</td></tr>
+          <tr><td>Renon (4 verschmolzene Standpunkte)</td><td class="fail">180°</td><td class="fail">28 %</td><td class="fail">223</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">3DFin fordert per Voreinstellung 9 von 16 Sektoren = 202°
+      Umfangsabdeckung. Am Renon-Bestand erfüllen das 28 % der Stämme; dort gibt
+      3DFin nur 8 von 37 Detektionen einen Durchmesser. Ein Durchlauf über
+      <code>res_cloth</code> = 0,45/0,70/1,00/1,50 ändert daran nichts — der Engpass ist
+      die Abdeckung, nicht die Konfiguration. <b>Die Weigerung ist korrektes
+      Verhalten</b>, die Daten tragen dort keinen Durchmesser. Kehrseite: unsere
+      eigenen Verfahren liefern an genau diesen Stämmen trotzdem Zahlen, die dann
+      auf 180°-Bögen ruhen.</p>
+
+    <h1 style="font-size:18px;margin-top:38px">II. BHD-Genauigkeit gegen Feld-Inventur</h1>
+    <p class="sub">Wie genau schätzen verschiedene TLS-Verfahren den Brusthöhen­durchmesser?
       Dieselben dichten Einzelbaum-Wolken (SYSSIFOSS), verglichen gegen die
       <b>unabhängige Feld-Inventur</b>.</p>
 
@@ -57,7 +156,7 @@
         </tbody>
       </table>
     </div>
-    <p class="note">MAE = mittlerer absoluter Fehler. <a href="bench_dbh_results.csv">Rohdaten (CSV)</a> ·
+    <p class="note">MAE = mittlerer absoluter Fehler. <a href="bench_dbh_results.csv">Rohdaten BHD (CSV)</a> · <a href="bench_detection_results.csv">Rohdaten Detektion (CSV)</a> ·
       Methodik &amp; Setup: <a href="https://github.com/anayana/For3Dsuite/blob/main/scripts/BENCH_DBH.md">BENCH_DBH.md</a></p>
 
     <h2>Methoden</h2>
@@ -75,11 +174,34 @@
       <li><b>QSM-Holz erreicht die höchste Genauigkeit</b> (5,7 cm) durch die Blatt-Holz-Trennung und einen sauberen Stamm. Zum Vergleich: das SYSSIFOSS-Paper berichtet für seine sorgfältige TLS-Methode 3,5 cm RMSE.</li>
     </ul>
 
+    <h2>Übereinstimmung ohne Feldmaß (Wienerwald)</h2>
+    <p>Auf den korrekt detektierten 3DFin-Stämmen der beiden Wienerwald-Plots gibt es
+      kein Feld-BHD — messbar ist dort nur die <b>Übereinstimmung</b> der Verfahren,
+      nicht ihre Genauigkeit. Sie ist bemerkenswert eng:</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>Plot</th><th>n</th><th>Kreisfit</th><th>geometrisch</th><th>RANSAC</th><th>Zylinder</th><th>Median-Spanne</th></tr></thead>
+        <tbody>
+          <tr><td>plot_06 Buche</td><td>64</td><td>0,44</td><td class="best">0,22</td><td>0,63</td><td>0,37</td><td>0,85 cm</td></tr>
+          <tr><td>plot_07 Fichte</td><td>116</td><td>0,21</td><td>0,22</td><td>0,43</td><td class="best">0,16</td><td>0,60 cm</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Werte = mittlere absolute Abweichung vom Konsens (Median der vier
+      Verfahren) in cm. Zum Vergleich: am Renon-Bestand, auf den Stämmen der eigenen
+      Detektion, liegt die Median-Spanne bei 2,2 cm — die Detektionsqualität schlägt
+      also bis in den Verfahrensvergleich durch. <b>Übereinstimmung ist keine
+      Genauigkeit</b>: die Verfahren können gemeinsam falsch liegen.</p>
+
     <h2>Grenzen</h2>
     <ul>
       <li><b>n = 5</b>: nur für so viele lokal vorliegende Bäume ist ein Feld-BHD in der pytreedb-Datenbank hinterlegt. Kleine Stichprobe.</li>
       <li><b>FORTLS</b> bewusst ausgelassen — es setzt Einzelscan-Radialgeometrie voraus und passt nicht auf die kombinierten Mehr-Scan-Wolken.</li>
       <li><b>aRchi</b> (R-QSM-Bibliothek) ist aus CRAN archiviert; das QSM-BHD entspricht aber dem hier gerechneten Holz-Stamm-Fit.</li>
+      <li><b>3DFin schneidet hier schlechter ab als auf den Plot-Wolken</b> (MAE 7,8 cm,
+        schlechter als der simple Kreisfit). Das ist erwartbar: SYSSIFOSS sind
+        <b>isolierte Einzelbäume</b>, 3DFin ist für Plot-Wolken gebaut. Zweckentfremdet,
+        nicht widerlegt.</li>
     </ul>
   </div>
 </body>

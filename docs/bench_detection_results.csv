@@ -1,0 +1,8 @@
+plot,verfahren,referenzstaemme,detektionen,treffer,recall,precision
+plot_06,baseline,68,97,41,0.603,0.423
+plot_06,baseline+schaftkontrolle,68,55,39,0.574,0.709
+plot_06,lidR,68,98,45,0.662,0.459
+plot_06,CspStandSegmentation,68,141,39,0.574,0.277
+plot_06,3DFin,68,70,67,0.985,0.957
+plot_07,baseline,128,59,44,0.344,0.746
+plot_07,3DFin,128,121,121,0.945,1.0
