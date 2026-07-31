@@ -74,17 +74,76 @@ PSNR, 0,886 gegen 0,837 SSIM, 0,10 gegen 0,14 px Nahtversatz), rekonstruiert all
   posen-bekannten Scanner-RGB-Bilder werden kaum als eigenständige Panoramen
   weiterverwertet.
 
-# 2. Verwandte Arbeiten und Abgrenzung (Novelty)
+# 2. Verwandte Arbeiten und Abgrenzung
 
-- Stitching/Photogrammetrie: Hugin/Panotools, OpenPano, kommerzielle Suiten.
-- Web-Panorama-Viewer: Pannellum, Marzipano, three.js.
-- TLS-Sphärenbilder: Scanner-Software kann Panoramen exportieren; Literatur zu
-  spherical imaging existiert.
-- **Abgrenzung (ehrlich):** Neu ist nicht ein Einzelbaustein, sondern die
-  **offene, containerisierte, GUI-gestützte, herstellerunabhängige Vereinigung
-  beider Eingangsklassen** samt Verknüpfung mit aus der Punktwolke abgeleiteten
-  Fachdaten. „Wird nie gemacht" wäre zu stark; der Beitrag liegt in Integration,
-  Offenheit und Reproduzierbarkeit.
+## 2.1 Panorama-Stitching
+
+Das automatische Zusammensetzen überlappender Aufnahmen zu einem Panorama gilt
+seit Brown & Lowe (2007) als weitgehend gelöst: invariante Merkmale (SIFT),
+paarweise Registrierung, Bündelausgleich und Multiband-Blending. Szeliski (2006)
+fasst das Feld zusammen. Die freie Referenzimplementierung ist
+**Hugin/Panotools**, dessen Kommandozeilenwerkzeuge (`cpfind`, `autooptimiser`,
+`nona`, `enblend`) auch in dieser Arbeit den Stitching-Zweig bilden. Der
+verbleibende, physikalisch bedingte Fehler ist die **Parallaxe**: nur bei
+Rotation um den Nodalpunkt sind die Aufnahmen exakt konsistent.
+
+## 2.2 Web-basierte Darstellung
+
+Für Panoramen im Browser sind **Pannellum** (Petroff 2019) und Marzipano
+etabliert, für große Punktwolken **Potree** (Schütz 2016), das auf three.js
+aufsetzt und Millionen Punkte ohne Plugin darstellt. Beide Stränge existieren
+unabhängig voneinander; die vorliegende Arbeit koppelt sie in einer Szene
+(Pannellum für das Panorama, eine eigene three.js-Ansicht für Punktwolke, QSM
+und Marker), damit dieselbe Aufnahme in beiden Repräsentationen begehbar ist.
+
+## 2.3 Sphärische Bilder terrestrischer Laserscanner
+
+Terrestrische Laserscanner tasten ihre Umgebung **sphärisch** ab; die Kugel muss
+für eine 2D-Darstellung projiziert werden, wobei die Projektionswahl messbar auf
+nachgelagerte Verfahren wirkt (Vergleich verschiedener Projektionen für die
+merkmalsbasierte Registrierung, Wang et al. 2015). Panoramische Intensitäts- und
+Reflektanzbilder werden für die **automatische Registrierung** von Standpunkten
+genutzt (Kang et al. 2009), projizierte Panoramaaufnahmen dienen als Eingang für
+die **semantische Segmentierung** mit 2D-Netzen.
+
+Das ist der Punkt der Abgrenzung: In dieser Literatur ist das sphärische
+Scannerbild durchweg ein **Zwischenprodukt** — Mittel zur Registrierung, zur
+Segmentierung oder zum Einfärben der Punktwolke. Als **begehbares Endprodukt**,
+das zugleich abgeleitete Fachdaten trägt, wird es selten weiterverwertet, obwohl
+Pose und Kalibrierung im E57-Container bereits mitgeliefert werden und die
+Reprojektion damit ohne Kontrollpunkte auskommt.
+
+## 2.4 Forstliche Auswertung terrestrischer Punktwolken
+
+Die Ableitung von Bestandesgrößen aus TLS ist ein eigenes, reifes Feld:
+**lidR** (Roussel et al. 2020) als allgemeine Verarbeitungsumgebung, **FORTLS**
+(Molina-Valero et al. 2022) für Einzelscan-Inventuren und **3DFin** (Laino et al.
+2024) für die automatische Stammdetektion und BHD-Messung. Diese Arbeit
+entwickelt hier bewusst **nichts Neues**, sondern bindet die etablierten
+Werkzeuge ein — und berichtet in Abschnitt 3.4 offen, dass 3DFin der zunächst
+implementierten eigenen Baseline deutlich überlegen ist.
+
+## 2.5 Abgrenzung (ehrlich)
+
+Neu ist **kein Einzelbaustein**. Stitching, Web-Viewer, TLS-Inventur und
+Objektspeicher sind je für sich Stand der Technik. Der Beitrag liegt in drei
+Punkten:
+
+1. **Vereinigung beider Eingangsklassen in einer Kette**, mit automatischer
+   Fallunterscheidung an den Daten statt einer Nutzereingabe (Abschnitt 3.1) —
+   und mit einer Messung, was die posen-bekannte Reprojektion gegenüber dem
+   Stitching tatsächlich einbringt (Abschnitt 5).
+2. **Weiterverwertung der Scanner-RGB-Bilder als begehbares Endprodukt**, das
+   die aus derselben Wolke abgeleiteten Inventurdaten trägt.
+3. **Reproduzierbarkeit und Datensouveränität**: containerisiert, self-hostbar,
+   mit offen lizenzierten Beispieldaten und im Repository hinterlegten
+   Evaluations-Rohdaten.
+
+„Das wird nie gemacht" wäre zu stark: einzelne kommerzielle Scanner-Suiten
+exportieren Panoramen, und Web-Viewer für Punktwolken sind verbreitet. Die
+Behauptung ist enger — eine **offene, containerisierte, herstellerunabhängige**
+Kette, die beide Eingangsklassen automatisch behandelt und das Ergebnis mit
+Fachdaten verknüpft, ist uns nicht bekannt.
 
 # 3. Systemarchitektur
 
@@ -120,9 +179,46 @@ führt die jeweilige Kette bis zur veröffentlichten Szene durch.
 - **GUI** — Upload, Verarbeitung, Szenen-Kuratierung, ohne Kommandozeile.
 
 ## 3.4 Verknüpfung mit Fachdaten (Alleinstellung bei Scanner-Daten)
-- Aus derselben E57-Punktwolke abgeleitete Inventur (Stammdetektion, BHD, Höhe,
-  Kronenmetriken, QSM, Wachstumsprognose) wird als **georeferenzierte Marker** in
-  die begehbare Szene gelegt — Panorama und Datenträger in einem.
+
+Aus derselben Punktwolke abgeleitete Inventur — Stammdetektion, BHD, Höhe,
+Kronenmetriken, QSM (Zylindermodell) und Wachstumsprognose — wird als
+**georeferenzierte Marker** in die begehbare Szene gelegt: Panorama und
+Datenträger in einem. Die Kette ist kein Demonstrator, sondern gegen
+Ground Truth geprüft.
+
+**Stammdetektion gegen semantisch gelabelte Wolken.** Auf zwei TLS-Plots des
+SegmentedForests-Datensatzes, in denen jeder Punkt manuell klassiert ist, lässt
+sich erstmals *Genauigkeit* statt bloßer Übereinstimmung messen:
+
+| Verfahren | plot_06 (68 Stämme) | plot_07 (128 Stämme) |
+|---|--:|--:|
+| eigene numpy-Baseline | 60,3 % / 42,3 % | 34,4 % / 74,6 % |
+| + Schaftkontrolle | 57,4 % / 70,9 % | — |
+| lidR (Eigenbau) | 66,2 % / 45,9 % | — |
+| CspStandSegmentation | 57,4 % / 27,7 % | — |
+| **3DFin** (Konfiguration der Autoren) | **98,5 % / 95,7 %** | **94,5 % / 100 %** |
+
+(Recall / Precision; Treffer = Detektion ≤ 0,6 m vom Referenzstamm.)
+
+Der Befund ist für die Suite folgenreich und wird hier offen berichtet: **das
+etablierte Fachwerkzeug 3DFin ist der eigenen Baseline deutlich überlegen**, über
+beide Plots stabil. Die Kette setzt es deshalb auf plotweiten TLS-Wolken als
+Detektor ein, statt es nur zu vergleichen. Weil der Datensatz auch Sträucher,
+liegendes Totholz, Steine und Pfähle labelt, ist zudem belegbar, *worauf* die
+Fehlalarme der schwächeren Verfahren sitzen — bei der Baseline auf plot_06 zu
+50 % auf Strauch- und Bodenvegetation.
+
+**Reichweite.** Die Überlegenheit gilt für plotweite Wolken mit ausreichender
+Umfangsabdeckung. Am eigenen Renon-Bestand (Median 180° Bogen gegen 280–360° in
+den Referenzplots) verweigert 3DFin an 29 von 37 Detektionen den Durchmesser —
+korrektes Verhalten, denn die Daten tragen dort keinen. Ein Durchlauf über die
+Bodenmodell-Auflösung ändert daran nichts; der Engpass ist die Abdeckung, nicht
+die Konfiguration. Umgekehrt geben die eigenen Verfahren dort weiterhin Zahlen
+aus, die dann auf 180°-Bögen ruhen — eine Aussage über die Aufnahme, nicht über
+die Verfahren.
+
+Methodik und Rohdaten: [`scripts/BENCH_DETECTION.md`](../../scripts/BENCH_DETECTION.md),
+BHD-Genauigkeit gegen Feld-Inventur in [`scripts/BENCH_DBH.md`](../../scripts/BENCH_DBH.md).
 
 # 4. Verarbeitungsschritte (Workflow)
 
@@ -149,10 +245,19 @@ per Stitching aus 6 Fisheye-Aufnahmen (180°, Pose *nicht* verraten), einmal per
 Reprojektion aus 6 Pinhole-Aufnahmen + Zenit/Nadir (90°, Pose genutzt). Beide
 werden gegen dasselbe Original gemessen.
 
-| Zweig | erfolgreich | PSNR (dB) | SSIM | Nahtversatz (px) | Laufzeit |
-|---|--:|--:|--:|--:|--:|
-| Stitching (Pose geschätzt) | **6 / 11** | 22,98 ± 2,74 | 0,837 ± 0,060 | 0,14 (p95 0,53) | 14,6 s |
-| Reprojektion (Pose bekannt) | **11 / 11** | **26,87 ± 1,96** | **0,886 ± 0,039** | **0,10 (p95 0,23)** | 2,1 s |
+**Zählweise (gilt im ganzen Abschnitt):** *durchgelaufen* heißt, die Kette hat
+überhaupt ein Panorama geschrieben; *brauchbar* heißt zusätzlich, dass es
+geometrisch korrekt ist. Der Unterschied ist beim Stitching wesentlich — zwei
+Läufe liefern ein vollständiges, aber falsch registriertes Bild.
+
+| Zweig | durchgelaufen | brauchbar | PSNR (dB) | SSIM | Nahtversatz (px) | Laufzeit |
+|---|--:|--:|--:|--:|--:|--:|
+| Stitching (Pose geschätzt) | 8 / 11 | **6 / 11** | 22,98 ± 2,74 | 0,837 ± 0,060 | 0,14 (p95 0,53) | 14,6 s |
+| Reprojektion (Pose bekannt) | 11 / 11 | **11 / 11** | **26,87 ± 1,96** | **0,886 ± 0,039** | **0,10 (p95 0,23)** | 2,1 s |
+
+Die Kennzahlen beziehen sich auf die *brauchbaren* Läufe; die beiden falsch
+registrierten Stitches sind ausgenommen, weil ihre Werte (8,6 und 11,7 dB) sonst
+Mittelwert und Streuung dominieren würden — sie sind unten separat ausgewiesen.
 
 Der posen-basierte Zweig ist in **allen** Maßen besser: +3,9 dB, +0,05 SSIM, ein
 Drittel weniger lokale Verschiebung (p95 weniger als die Hälfte) — und er
@@ -213,7 +318,8 @@ Stitching-Kette detektiert im Median 156 Kontrollpunkte je Panorama selbst
 bilder, Consumer-CPU): Stitching Median 16 s, Reprojektion Median 5 s. Der
 entscheidende Aufwandsunterschied ist nicht die Sekundenzahl, sondern die
 **Robustheit ohne Nacharbeit**: der posen-basierte Zweig liefert 11/11 Szenen
-ohne Eingriff, das Stitching 8/11 (3 Abbrüche, s. o.). Offen: die Wandzeit
+ohne Eingriff, das Stitching 8/11 durchgelaufen und davon 6/11 brauchbar
+(3 Abbrüche, 2 falsch registriert — Zählweise s. 5.1). Offen: die Wandzeit
 *Aufnahme → veröffentlichte Szene* inkl. Feldaufwand über die drei Geräteklassen.
 
 ## 5.4 Nutzbarkeit
@@ -223,22 +329,46 @@ Durchführung mit Teilnehmenden ausstehend).
 
 # 6. Beispiel-Datensätze (frei verwendbar)
 
+Alle berichteten Zahlen stammen aus offen lizenzierten Daten; nichts davon ist
+synthetisch beschönigt oder nicht nachvollziehbar.
+
+- **Poly Haven** — 11 CC0-Equirektangular-Panoramen (8192×4096) als
+  **Ground Truth der Panorama-Evaluation** (Abschnitt 5) und für die Viewer-Demo.
 - **Renon (ICOS IT-Ren)** — E57 mit 6 Pinhole-Bildern (2048²) **+ Posen** je
   Standpunkt, CC-BY-4.0. Realer „Scanner-RGB"-Fall; belegt beide Ausgaben
-  (Panorama + Inventur).
-- **Poly Haven** — CC0-Equirektangular-Panoramen (u. a. Wald) für Viewer-Demo und
-  als Ground-Truth der synthetischen Fisheye-Evaluation.
-- **Consumer-Geräte** (Ricoh Theta / Insta360): Hersteller-Sample-Dual-Fisheye
-  (Lizenz je Datei prüfen).
+  (Panorama + Inventur) und dient als Beispiel für eine Wolke mit *unzureichender*
+  Umfangsabdeckung.
+- **SegmentedForests** — zwei TLS-Plots (Wienerwald) mit **manuell klassierten
+  Punkten**, MIT-Lizenz. Ground Truth der Detektionsprüfung in Abschnitt 3.4.
+- **SYSSIFOSS** — blatt/holz-getrennte TLS-Einzelbäume mit unabhängiger
+  **Feld-Inventur**, CC-BY-4.0. Ground Truth der BHD-Genauigkeit.
+
+> **Nicht enthalten:** Aufnahmen einer Consumer-360°-Kamera (Ricoh Theta,
+> Insta360) und DSLR-Fisheye-Aufnahmen mit realem Nodalpunktversatz. Die
+> Stitching-Zahlen beruhen daher ausschließlich auf parallaxenfreien
+> synthetischen Bildern und sind obere Schranken (siehe 5.1 und 8).
 
 # 7. Software- und Datenverfügbarkeit
 
 - Quellcode: öffentliches Git-Repository (For3Dsuite), OSI-Lizenz.
-- Container: Dockerfile/Compose im Repo; ein Befehl reproduziert den Stack.
-- Beispiel-Daten: Renon (CC-BY-4.0), Poly Haven (CC0).
-- Lizenzen der Bausteine: Hugin (GPL), Pannellum (MIT), GIMP (GPL),
-  Caddy (Apache-2.0), Garage (AGPL) — alle FOSS. Copyleft der GPL-Werkzeuge greift
-  nicht auf die *Ergebnisbilder* (werden nur aufgerufen, nicht gelinkt).
+- **Zwei Container-Stacks, beide lauffähig geprüft:**
+  `docker/compose.yml` — Verarbeitungskette + statischer Viewer; der Einstiegspunkt
+  `check` führt eine Offline-Reproduktion auf mitgelieferten Daten aus und endet
+  mit Fehlercode, wenn das Ergebnis unplausibel ist (CI-tauglich).
+  `platform/docker-compose.yml` — Self-Hosting mit Caddy, Garage und der API;
+  Ende-zu-Ende geprüft (Upload → Job → veröffentlichte Szene → Medien direkt aus
+  dem Objektspeicher, an der Anwendung vorbei).
+- Beispiel-Daten: Poly Haven (CC0), Renon (CC-BY-4.0), SegmentedForests (MIT),
+  SYSSIFOSS (CC-BY-4.0) — Details in Abschnitt 6.
+- Evaluations-Rohdaten im Repo: `data/_eval/ergebnisse.csv` (Panorama-Evaluation),
+  `bench_dbh_results.csv` und `bench_detection_results.csv` (Fachdaten), dazu die
+  Skripte, die sie erzeugen.
+- Lizenzen der Bausteine: Hugin (GPL-2.0), Pannellum (MIT), three.js (MIT),
+  Caddy (Apache-2.0), Garage (AGPL-3.0), FastAPI (MIT) — alle FOSS. Der Copyleft
+  der GPL-Werkzeuge greift nicht auf die *Ergebnisbilder*, weil sie als Prozesse
+  aufgerufen und nicht gelinkt werden. Der Wachstumsdienst (TreeGrOSS, GPLv3) ist
+  aus demselben Grund als eigener Prozess hinter einer HTTP-Schnittstelle
+  isoliert.
 
 # 8. Limitierungen (ehrlich)
 
@@ -246,7 +376,11 @@ Durchführung mit Teilnehmenden ausstehend).
 - Reprojektion ist nur so gut wie die im E57 gespeicherten Posen/Kalibrierung.
 - Wald ist ein schwerer Meshing-Fall — die Kette liefert Panorama+Punktwolke, kein
   fotoreales Mesh (dafür wäre 3D Gaussian Splatting die passendere Repräsentation).
-- Nutzbarkeitstest mit kleiner Stichprobe; keine Verallgemeinerung auf alle Geräte.
+- **Keine realen Consumer-/DSLR-Aufnahmen ausgewertet.** Die Stitching-Evaluation
+  arbeitet mit synthetischen Bildern ohne Nodalpunktversatz, ohne Sensorrauschen
+  und ohne Belichtungsunterschiede — dem günstigsten denkbaren Fall. Die
+  gemessene Lücke zwischen den Zweigen ist damit eine *Untergrenze*.
+- Nutzbarkeitstest steht als Protokoll, ist aber noch nicht durchgeführt.
 
 # 9. Ausblick
 
@@ -279,6 +413,26 @@ Durchführung mit Teilnehmenden ausstehend).
 - **NumPy** 1.26.4, **Pillow** 12.3.0, **OpenCV** 5.0.0, **laspy** 2.5.4 —
   Bild- und Punktwolkenverarbeitung, Metriken der Evaluation.
 - **Docker** / **Compose** — reproduzierbare Gesamtumgebung.
+
+## Panorama-Stitching und Darstellung
+
+- Brown, M., Lowe, D. G. (2007): *Automatic panoramic image stitching using
+  invariant features.* International Journal of Computer Vision 74(1), 59–73.
+  <https://doi.org/10.1007/s11263-006-0002-3>
+- Szeliski, R. (2006): *Image alignment and stitching: a tutorial.* Foundations
+  and Trends in Computer Graphics and Vision 2(1), 1–104.
+  <https://doi.org/10.1561/0600000009>
+- Schütz, M. (2016): *Potree: Rendering large point clouds in web browsers.*
+  Diplomarbeit, TU Wien. <https://www.cg.tuwien.ac.at/research/publications/2016/SCHUETZ-2016-POT/>
+
+## Sphärische Bilder terrestrischer Laserscanner
+
+- Wang, Y. et al. (2015): *A study of projections for key point based
+  registration of panoramic terrestrial 3D laser scans.* Geo-spatial Information
+  Science 18(1), 27–37. <https://doi.org/10.1080/10095020.2015.1017913>
+- Kang, Z. et al. (2009): *Automatic registration of terrestrial laser scanning
+  point clouds using panoramic reflectance images.* Sensors 9(4), 2621–2646.
+  <https://doi.org/10.3390/s90402621>
 
 ## Formate und Standards
 

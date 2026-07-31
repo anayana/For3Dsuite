@@ -120,6 +120,34 @@ detection, DBH, height, crown metrics, quantitative structure model, growth
 projection) are placed in the walkable scene. This demonstrates both outputs from
 one acquisition — panorama and data carrier.
 
+*Validated against ground truth.* The inventory path is not a demonstrator. On
+two TLS plots of the SegmentedForests dataset, in which every point is manually
+classified, stem detection can be scored for accuracy rather than mere agreement
+(recall / precision; a hit is a detection within 0.6 m of a reference stem):
+
+| Method | plot_06 (68 stems) | plot_07 (128 stems) |
+|---|--:|--:|
+| own numpy baseline | 60.3 % / 42.3 % | 34.4 % / 74.6 % |
+| + stem-continuity filter | 57.4 % / 70.9 % | — |
+| lidR (own implementation) | 66.2 % / 45.9 % | — |
+| CspStandSegmentation | 57.4 % / 27.7 % | — |
+| **3DFin** (authors' configuration) | **98.5 % / 95.7 %** | **94.5 % / 100 %** |
+
+We report the uncomfortable result openly: the established domain tool 3DFin
+clearly outperforms our own baseline, consistently across both plots, and the
+chain therefore uses it as the detector on plot-wide TLS clouds rather than
+merely as a comparison. Because the dataset also labels shrubs, downed wood,
+rocks, and stakes, it is further verifiable *what* the weaker methods detect
+instead of stems — for the baseline on plot_06, half of the false alarms sit on
+shrub and ground vegetation.
+
+*Scope.* This superiority is conditional on circumferential coverage. On our own
+Renon stand (median 180° arc versus 280–360° in the reference plots) 3DFin
+refuses a diameter for 29 of 37 detections — correct behaviour, since the data do
+not support one; a sweep over the ground-model resolution does not change this.
+Our own methods still return numbers there, resting on 180° arcs — a statement
+about the acquisition, not about the methods.
+
 **Consumer/DSLR fisheye → scene (stitching).** Six overlapping fisheye frames are
 stitched automatically and published as a navigable scene, demonstrating the
 pose-unknown branch across the low-cost end of the device spectrum.
@@ -130,10 +158,19 @@ a panorama (2048×1024) — once by stitching six 180° fisheye frames (pose wit
 once by reprojecting six 90° pinhole frames plus zenith/nadir (pose used) — and
 measure both against the same original.
 
-| Branch | successful | PSNR (dB) | SSIM | seam offset (px) | runtime |
-|---|--:|--:|--:|--:|--:|
-| Stitching (pose estimated) | 6 / 11 | 22.98 ± 2.74 | 0.837 ± 0.060 | 0.14 (p95 0.53) | 14.6 s |
-| Reprojection (pose known) | 11 / 11 | **26.87 ± 1.96** | **0.886 ± 0.039** | **0.10 (p95 0.23)** | 2.1 s |
+*Counting convention (used throughout):* **completed** means the chain wrote a
+panorama at all; **usable** additionally means the result is geometrically
+correct. The distinction matters for stitching, where two runs produce a
+complete but misregistered image.
+
+| Branch | completed | usable | PSNR (dB) | SSIM | seam offset (px) | runtime |
+|---|--:|--:|--:|--:|--:|--:|
+| Stitching (pose estimated) | 8 / 11 | **6 / 11** | 22.98 ± 2.74 | 0.837 ± 0.060 | 0.14 (p95 0.53) | 14.6 s |
+| Reprojection (pose known) | 11 / 11 | **11 / 11** | **26.87 ± 1.96** | **0.886 ± 0.039** | **0.10 (p95 0.23)** | 2.1 s |
+
+Aggregate figures refer to the *usable* runs; the two misregistered stitches
+(8.6 and 11.7 dB) are excluded because they would otherwise dominate mean and
+spread, and are reported separately below.
 
 The pose-based branch is better on every measure (+3.9 dB, +0.05 SSIM, a third
 less local displacement) and reconstructs all eleven scenes, while stitching fails
