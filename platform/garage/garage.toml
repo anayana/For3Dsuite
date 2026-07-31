@@ -1,5 +1,10 @@
 # Garage-Konfiguration fuer Single-Node-Selfhosting.
-# rpc_secret wird von init/bootstrap.sh einmalig generiert und hier eingesetzt.
+#
+# KEIN rpc_secret in dieser Datei: sie ist versioniert. Frueher schrieb
+# init/bootstrap.sh das generierte Secret hier hinein -- damit landete es beim
+# naechsten Commit im Repository. Garage liest es stattdessen aus der
+# Umgebungsvariablen GARAGE_RPC_SECRET, die aus der (nicht versionierten)
+# platform/.env kommt.
 
 metadata_dir = "/var/lib/garage/meta"
 data_dir = "/var/lib/garage/data"
@@ -9,7 +14,6 @@ replication_factor = 1
 
 rpc_bind_addr = "[::]:3901"
 rpc_public_addr = "garage:3901"
-rpc_secret = "REPLACE_ME_RPC_SECRET"
 
 [s3_api]
 s3_region = "garage"

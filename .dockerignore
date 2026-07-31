@@ -1,4 +1,15 @@
-data/
+# Rohdaten bleiben draussen (gross, nicht versioniert) -- ABER die kleinen,
+# committeten Eingaben der Offline-Reproduktion muessen ins Image. Mit einem
+# pauschalen "data/" fehlten sie, und der Container meldete die Reproduktion
+# trotzdem als gelungen.
+data/*
+!data/Renon
+data/Renon/*
+!data/Renon/trees_setup001.csv
+!data/Renon/renon_stand.json
+!data/Renon/STANDORT.md
+!data/Renon/BEFUND.md
+
 input/
 output/
 viewer/
@@ -7,3 +18,7 @@ platform/dev-data/
 **/*.ARW
 **/*.e57
 **/*.tif
+**/*.laz
+**/*.las
+**/*.npz
+**/__pycache__/

@@ -4,6 +4,9 @@ services:
   garage:
     image: dxflrs/garage:v1.0.1
     restart: unless-stopped
+    environment:
+      # Nicht in garage.toml -- die Datei ist versioniert (siehe Kommentar dort).
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:?in platform/.env setzen (openssl rand -hex 32)}
     volumes:
       - ./garage/garage.toml:/etc/garage.toml:ro
       - garage-meta:/var/lib/garage/meta

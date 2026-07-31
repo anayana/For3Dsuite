@@ -5,10 +5,12 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-if grep -q REPLACE_ME_RPC_SECRET garage/garage.toml; then
+# Das rpc_secret gehoert in die NICHT versionierte platform/.env, nicht in
+# garage/garage.toml -- sonst wandert es beim naechsten Commit ins Repository.
+if [ ! -f .env ] || ! grep -q '^GARAGE_RPC_SECRET=..' .env; then
   SECRET=$(openssl rand -hex 32)
-  sed -i "s/REPLACE_ME_RPC_SECRET/$SECRET/" garage/garage.toml
-  echo "==> rpc_secret generiert und in garage/garage.toml eingesetzt."
+  echo "GARAGE_RPC_SECRET=$SECRET" >> .env
+  echo "==> GARAGE_RPC_SECRET erzeugt und an platform/.env angehaengt."
 fi
 
 docker compose up -d garage

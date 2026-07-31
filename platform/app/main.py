@@ -23,9 +23,34 @@ from pipeline import Pipeline
 from storage import LocalStorage, make_stores
 
 APP_DIR = Path(__file__).resolve().parent
-WEB_DIR = Path(os.environ.get("WEB_DIR", APP_DIR.parent / "web"))
-DATA_DIR = Path(os.environ.get("DATA_DIR", APP_DIR.parent / "dev-data"))
-SCRIPTS_DIR = Path(os.environ.get("SCRIPTS_DIR", APP_DIR.parents[1] / "scripts"))
+
+
+def _dir(env, *fallbacks):
+    """Verzeichnis aus der Umgebung, sonst der erste brauchbare Rueckfall.
+
+    Wichtig: os.environ.get(name, default) wertet 'default' IMMER aus, auch wenn
+    die Variable gesetzt ist. Der frühere Ausdruck APP_DIR.parents[1] / "scripts"
+    warf deshalb im Container IndexError, obwohl der Dockerfile SCRIPTS_DIR
+    korrekt setzt -- im Repo liegt die App zwei Ebenen unter der Wurzel, im Image
+    direkt in /app. Die App kam so nie hoch.
+    """
+    v = os.environ.get(env)
+    if v:
+        return Path(v)
+    for f in fallbacks:
+        try:
+            p = f()
+        except (IndexError, OSError):
+            continue
+        if p.exists():
+            return p
+    return Path(fallbacks[0]()) if fallbacks else APP_DIR
+
+
+WEB_DIR = _dir("WEB_DIR", lambda: APP_DIR.parent / "web", lambda: APP_DIR / "web")
+DATA_DIR = _dir("DATA_DIR", lambda: APP_DIR.parent / "dev-data", lambda: Path("/data"))
+SCRIPTS_DIR = _dir("SCRIPTS_DIR", lambda: APP_DIR.parents[1] / "scripts",
+                   lambda: APP_DIR / "scripts")
 
 SLUG = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 JOB_TYPES = {"equirect", "fisheye", "e57"}
