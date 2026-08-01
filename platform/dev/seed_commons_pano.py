@@ -44,6 +44,14 @@ ASSETS = [
      "consumer360-battery-point",
      "Consumer-360-Kamera-Aufnahme (bodennah, Strand). Belegt den "
      "equirektangularen Eingang der Pipeline mit frei lizenzierten Daten"),
+    ("Chopfholz Adliswil panosphere 20200616.jpg",
+     "consumer360-chopfholz-wald",
+     "Schweizer Bergwald (Chopfholz bei Adliswil, ZH) als bodennahes "
+     "360-Grad-Panorama -- domaenennaher Consumer-360-Fall mit freien Daten"),
+    ("Wald am Wilden Kaiser, Tirol, 360x180, 160620, ako.jpg",
+     "consumer360-wilder-kaiser-wald",
+     "Bergwald am Wilden Kaiser (Tirol) als 360-Grad-Panorama -- "
+     "Wald-Anwendung des equirektangularen Eingangs mit frei lizenzierten Daten"),
 ]
 
 
