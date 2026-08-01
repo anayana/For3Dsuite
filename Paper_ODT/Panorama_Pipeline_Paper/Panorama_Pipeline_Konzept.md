@@ -290,12 +290,49 @@ monks 24,9·0,11 / 27,9·0,07 · mossy 19,8·0,14 / 28,2·0,07 · nature-reserve
 —/28,3·0,12 · sunset 23,9·0,19 / 27,8·0,10 · symmetrical-garden ✗ 8,6·5,95 /
 27,3·0,10 · woods 26,8·0,12 / 30,0·0,07.
 
+### Reale Aufnahmen: was Parallaxe tatsächlich kostet
+
+Der Vorbehalt, dass die synthetischen Zahlen obere Schranken sind, lässt sich mit
+freien Daten auflösen. `eval_seams.py` misst den Nahtversatz **ohne
+Referenzpanorama**: `nona` remappt jede Aufnahme einzeln in die Panoramafläche,
+und in den Überlappungen zeigen zwei Quellbilder dieselbe Blickrichtung — bei
+perfekter Registrierung und Rotation um den Nodalpunkt müssten sie dort identisch
+sein. Ihre lokale Verschiebung ist der Fehler.
+
+Als reale Aufnahme dient **PASSTA LunchRoom** (Zenodo, CC-BY-4.0): 72 Fotos einer
+rotierenden Canon EOS 70D mit mitgelieferter Kalibrierung. Als Gegenversuch werden
+aus einem CC0-Panorama synthetische Aufnahmen mit **identischer Geometrie**
+gerendert — 18 Positionen, 93,6° rektilinear, dieselbe Stitching-Kette, dieselbe
+Panoramabreite. Der einzige Unterschied ist, dass die realen Aufnahmen echte
+Parallaxe, Sensorrauschen und Belichtungsunterschiede enthalten:
+
+| | synthetisch (parallaxenfrei) | real (rotierende Kamera) |
+|---|--:|--:|
+| Nahtversatz Median | **0,07 px** | **3,95 px** |
+| p95 | 0,18 px | 24,78 px |
+| Maximum | 0,48 px | 29,99 px |
+| Blöcke über 1 px | 0,0 % | 67,5 % |
+
+**Der Median liegt um den Faktor ~56 höher, das 95. Perzentil um ~140.** Damit ist
+belegt, was zuvor nur behauptet werden konnte: die synthetische Evaluation
+unterschätzt den realen Stitching-Fehler um Größenordnungen, und die dort
+gemessene Lücke zwischen den beiden Zweigen ist eine **Untergrenze**.
+
+*Einordnung.* PASSTA LunchRoom ist eine Innenraumszene mit nahen Objekten —
+Parallaxe wirkt sich bei geringer Distanz am stärksten aus. Eine Außenaufnahme im
+Bestand mit überwiegend weit entfernten Objekten fällt günstiger aus; die 3,95 px
+sind also kein universeller Wert, sondern ein Beispiel für den ungünstigen Fall.
+Ein Teil des Unterschieds geht zudem auf Rauschen und Belichtungsunterschiede
+zurück, nicht allein auf Parallaxe. Der posen-basierte Zweig ist von alldem nicht
+betroffen: dort gibt es keine Überlappungsnähte, weil jede Blickrichtung aus genau
+einer Kamera stammt.
+
 ### Grenzen dieser Zahlen (wichtig)
 
-- **Kein Parallaxenfehler.** Alle synthetischen Aufnahmen teilen denselben
-  Nodalpunkt. Das ist der *günstigste denkbare Fall* fürs Stitching; reale
-  Aufnahmen mit Nodalpunktversatz können nur schlechter werden. Die
-  Stitching-Zahlen sind damit **obere Schranken**.
+- **Kein Parallaxenfehler in den PSNR/SSIM-Zahlen.** Alle synthetischen Aufnahmen
+  teilen denselben Nodalpunkt; die Stitching-Werte in der Tabelle oben sind daher
+  **obere Schranken**. Wie groß der Abstand zur Realität ist, misst der Abschnitt
+  „Reale Aufnahmen" (Faktor ~56 im Median des Nahtversatzes).
 - **Kein Sensorrauschen, keine Belichtungsunterschiede, keine Verzeichnung** —
   die synthetischen Bilder sind ideal. Gemessen wird die Geometrie der Kette,
   nicht die Bildqualität einer Kamera.
@@ -342,11 +379,14 @@ synthetisch beschönigt oder nicht nachvollziehbar.
   Punkten**, MIT-Lizenz. Ground Truth der Detektionsprüfung in Abschnitt 3.4.
 - **SYSSIFOSS** — blatt/holz-getrennte TLS-Einzelbäume mit unabhängiger
   **Feld-Inventur**, CC-BY-4.0. Ground Truth der BHD-Genauigkeit.
+- **PASSTA LunchRoom** — 72 reale Aufnahmen einer rotierenden DSLR mit
+  Kalibrierung, CC-BY-4.0 (Zenodo 10.5281/zenodo.19663081). Belegt den realen
+  Parallaxenfehler des Stitching-Zweigs.
 
 > **Nicht enthalten:** Aufnahmen einer Consumer-360°-Kamera (Ricoh Theta,
-> Insta360) und DSLR-Fisheye-Aufnahmen mit realem Nodalpunktversatz. Die
-> Stitching-Zahlen beruhen daher ausschließlich auf parallaxenfreien
-> synthetischen Bildern und sind obere Schranken (siehe 5.1 und 8).
+> Insta360). Der reale Parallaxenfehler ist über PASSTA belegt, allerdings an
+> einer Innenraumszene mit nahen Objekten und mit rektilinearem statt
+> Fisheye-Objektiv.
 
 # 7. Software- und Datenverfügbarkeit
 
@@ -376,19 +416,22 @@ synthetisch beschönigt oder nicht nachvollziehbar.
 - Reprojektion ist nur so gut wie die im E57 gespeicherten Posen/Kalibrierung.
 - Wald ist ein schwerer Meshing-Fall — die Kette liefert Panorama+Punktwolke, kein
   fotoreales Mesh (dafür wäre 3D Gaussian Splatting die passendere Repräsentation).
-- **Keine realen Consumer-/DSLR-Aufnahmen ausgewertet.** Die Stitching-Evaluation
-  arbeitet mit synthetischen Bildern ohne Nodalpunktversatz, ohne Sensorrauschen
-  und ohne Belichtungsunterschiede — dem günstigsten denkbaren Fall. Die
-  gemessene Lücke zwischen den Zweigen ist damit eine *Untergrenze*.
+- **Die PSNR/SSIM-Zahlen stammen aus synthetischen Aufnahmen** ohne
+  Nodalpunktversatz, Rauschen und Belichtungsunterschiede. Der reale Aufschlag ist
+  über den referenzfreien Nahtversatz an PASSTA belegt (Faktor ~56 im Median),
+  allerdings an einer Innenraumszene — für Bestandesaufnahmen im Freien mit
+  weiter entfernten Objekten dürfte er geringer ausfallen. Eine reale
+  Consumer-360°-Aufnahme fehlt weiterhin.
 - Nutzbarkeitstest steht als Protokoll, ist aber noch nicht durchgeführt.
 
 # 9. Ausblick
 
 - ~~Fisheye-Reprojektor + Stitching-Vergleich als Evaluations-Modul.~~ **Umgesetzt**
   (Abschnitt 5), einschließlich bilinearer Abtastung und Nahtversatz-Messung.
-  Offen bleibt: die Evaluation um **echte Aufnahmen mit Nodalpunktversatz**
-  erweitern (bisher nur parallaxenfreie synthetische Bilder) und den
-  Nahtversatz-Schwellwert als Qualitätsflag in die GUI hängen.
+  ~~Offen: echte Aufnahmen mit Nodalpunktversatz.~~ **Umgesetzt** über PASSTA und
+  das referenzfreie Nahtmaß. Offen bleibt, den Nahtversatz-Schwellwert als
+  Qualitätsflag in die GUI zu hängen und eine reale Consumer-360°-Aufnahme
+  einzubeziehen.
 - Anbindung weiterer Repräsentationen (3DGS-Szene, Mesh) im selben Viewer.
 - Automatische Qualitätsflags (Nahtversatz, Belichtungssprünge) in der GUI.
 
@@ -454,6 +497,11 @@ synthetisch beschönigt oder nicht nachvollziehbar.
   — Grundlage der blockweisen Nahtversatz-Messung.
 
 ## Datensätze
+
+- **PASSTA** — Meneghetti, G., Danelljan, M., Felsberg, M., Nordberg, K. (2015):
+  *Image alignment for panorama stitching in sparsely structured environments.*
+  Scandinavian Conference on Image Analysis (SCIA). Daten: CC-BY-4.0,
+  <https://doi.org/10.5281/zenodo.19663081>
 
 - **Poly Haven** — CC0-HDRI/Panorama-Bibliothek; 11 Wald- und Gartenpanoramen
   (8192×4096) als Referenzwahrheit der Evaluation. <https://polyhaven.com/>

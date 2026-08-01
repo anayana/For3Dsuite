@@ -187,9 +187,45 @@ seam offset 0.11–0.19 px (good stitches) and 0.07–0.13 px (reprojection) ver
 the ground truth of a single scene, and thus a robust threshold (here > 1 px
 median) for a GUI quality flag.
 
-*Honesty of the numbers.* All synthetic captures share one nodal point; this is
-the most favourable case for stitching, so the stitching figures are **upper
-bounds**. No sensor noise, exposure differences, or distortion are simulated — the
+### Real captures: the actual cost of parallax
+
+The caveat that the synthetic figures are upper bounds can be resolved with open
+data. `eval_seams.py` measures seam offset **without a reference panorama**:
+`nona` remaps each capture separately into the panorama canvas, and in the
+overlaps two source images show the same viewing direction — with perfect
+registration and rotation about the nodal point they would be identical there.
+Their local displacement is the error.
+
+The real capture is **PASSTA LunchRoom** (Zenodo, CC-BY-4.0): 72 photographs from
+a rotating Canon EOS 70D with supplied calibration. As a control, synthetic
+captures with **identical geometry** are rendered from a CC0 panorama — 18
+positions, 93.6° rectilinear, same stitching chain, same canvas width. The only
+difference is that the real captures carry genuine parallax, sensor noise, and
+exposure differences:
+
+| | synthetic (parallax-free) | real (rotating camera) |
+|---|--:|--:|
+| seam offset, median | **0.07 px** | **3.95 px** |
+| p95 | 0.18 px | 24.78 px |
+| maximum | 0.48 px | 29.99 px |
+| blocks above 1 px | 0.0 % | 67.5 % |
+
+**The median is ~56× higher and the 95th percentile ~140×.** This substantiates
+what could previously only be asserted: the synthetic evaluation understates the
+real stitching error by orders of magnitude, and the gap measured there between
+the two branches is a **lower bound**.
+
+*Interpretation.* PASSTA LunchRoom is an indoor scene with nearby objects, and
+parallax is worst at short range. An outdoor stand with predominantly distant
+objects will fare better; the 3.95 px is therefore an example of the unfavourable
+case, not a universal value. Part of the difference also stems from noise and
+exposure variation rather than parallax alone. The pose-based branch is unaffected
+by all of this: it has no overlap seams, because every viewing direction comes
+from exactly one camera.
+
+*Honesty of the numbers.* All synthetic captures share one nodal point; the
+PSNR/SSIM stitching figures are therefore **upper bounds**, and the section above
+quantifies the distance to reality (~56× in median seam offset). No sensor noise, exposure differences, or distortion are simulated — the
 geometry of the chain is measured, not camera image quality. Absolute PSNR is
 capped by the resolution chain and is meaningful only in the comparison of the two
 branches. The reprojection figures hold only since switching to bilinear sampling;
