@@ -51,7 +51,29 @@ SUS-Score (0–100). Referenz: ≥ 68 = überdurchschnittlich; ≥ 80 = sehr gut
 > n = __, SUS-Median = __ (IQR __–__), Aufgaben-Erfolg __ %, Median-Zeit je
 > Aufgabe __ s. Häufigste Reibungspunkte: __. Fazit: __.
 
+## Durchführung — was wo liegt
+
+| Datei | Zweck |
+|---|---|
+| `Nutzbarkeitstest_Protokoll.md` | dieses Dokument: Design, Kriterien, Auswertungsregel |
+| `Nutzbarkeitstest_Aufgabenblatt.md` | **Blatt für die teilnehmende Person** — ohne Erfolgskriterien, damit der Test nicht verraten wird |
+| `Nutzbarkeitstest_Formular.html` | **Erfassungsbogen** für die Moderation: Stoppuhr je Aufgabe, Erfolg/Hilfen, SUS-Fragebogen mit Live-Score, offene Fragen. Läuft ohne Server (Datei direkt im Browser öffnen), speichert einen JSON-Bogen je Person |
+| `scripts/usability_eval.py` | Auswertung über alle Bögen: SUS-Median mit IQR, Erfolgsquote, Median-Zeit je Aufgabe, genannte Reibungspunkte; `--markdown` gibt den fertigen Block fürs Paper aus |
+
+Ablauf je Person (ca. 30–40 min): Einwilligung → Aufgabenblatt aushändigen →
+Formular öffnen, je Aufgabe Stoppuhr starten/stoppen und Erfolg eintragen →
+SUS ausfüllen lassen → JSON sichern. Danach:
+
+```bash
+python scripts/usability_eval.py boegen/*.json --markdown
+```
+
+**Warum Median statt Mittelwert:** bei n < 10 verzerrt ein einzelner Ausreißer den
+Mittelwert stark; der Median ist robuster. Die Referenzschwelle 68 stammt aus
+Sauro & Lewis (2016) als Mittel über mehrere Hundert Studien — sie ist ein
+Einordnungspunkt, **keine Bestehensgrenze**.
+
 ## Reproduzierbarkeit
 Beispiel-Eingänge (Renon 6-Bild-Setup CC-BY, ein CC0-Poly-Haven-Equirect als
 Consumer-360-Stellvertreter, eine Renon-E57) liegen dem Repo bzw. den offenen
-Quellen bei; das Aufgaben- und SUS-Blatt ist dieses Dokument.
+Quellen bei.

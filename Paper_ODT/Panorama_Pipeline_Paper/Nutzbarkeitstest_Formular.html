@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>Nutzbarkeitstest — Erfassungsbogen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  :root { color-scheme: light dark; }
+  body { margin:0; font-family: system-ui,-apple-system,sans-serif; line-height:1.5;
+         background:#0d1117; color:#e6edf3; }
+  .wrap { max-width: 820px; margin:0 auto; padding: 24px 18px 70px; }
+  h1 { font-size:21px; margin:10px 0 2px; }
+  h2 { font-size:14px; text-transform:uppercase; letter-spacing:.05em; color:#8b949e;
+       margin:26px 0 8px; }
+  .sub { color:#8b949e; font-size:13px; margin-top:0; }
+  .card { background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.12);
+          border-radius:11px; padding:12px 14px; margin-bottom:10px; }
+  label { font-size:14px; }
+  input[type=text], input[type=number], textarea {
+    background:#0d1117; color:#e6edf3; border:1px solid rgba(255,255,255,.2);
+    border-radius:7px; padding:6px 8px; font:inherit; font-size:13.5px; }
+  textarea { width:100%; min-height:56px; }
+  .row { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .task { display:grid; grid-template-columns: 1fr auto; gap:10px; align-items:start; }
+  .taskname { font-weight:600; font-size:14px; }
+  .taskdesc { color:#8b949e; font-size:12.5px; }
+  button { background:#21262d; color:#e6edf3; border:1px solid rgba(255,255,255,.2);
+           border-radius:7px; padding:6px 12px; font:inherit; font-size:13px; cursor:pointer; }
+  button.run { background:#1f6feb; border-color:#1f6feb; }
+  button.stop { background:#8b2c2c; border-color:#a33; }
+  .time { font-variant-numeric: tabular-nums; font-size:15px; min-width:62px;
+          display:inline-block; text-align:right; }
+  .sus { display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:center;
+         padding:7px 0; border-bottom:1px solid rgba(255,255,255,.07); }
+  .scale { display:flex; gap:3px; }
+  .scale input { display:none; }
+  .scale label { border:1px solid rgba(255,255,255,.2); border-radius:6px;
+                 padding:3px 9px; cursor:pointer; font-size:13px; }
+  .scale input:checked + label { background:#1f6feb; border-color:#1f6feb; color:#fff; }
+  #score { position:sticky; bottom:0; background:#161b22; border-top:1px solid #30363d;
+           padding:11px 14px; display:flex; gap:16px; align-items:center;
+           justify-content:space-between; font-size:14px; }
+  .big { font-size:20px; font-weight:700; }
+  .hint { color:#8b949e; font-size:12px; }
+  .ok { color:#7ee787; } .warn { color:#f0b429; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Nutzbarkeitstest — Erfassungsbogen</h1>
+  <p class="sub">Pro teilnehmender Person einmal ausfüllen und am Ende als JSON
+    sichern. Auswertung über <code>scripts/usability_eval.py</code>.
+    Läuft ohne Server (Datei direkt im Browser öffnen).</p>
+
+  <div class="card row">
+    <label>Kennung <input type="text" id="pid" placeholder="P01" size="6"></label>
+    <label>Datum <input type="text" id="date" size="10"></label>
+    <label>Computer-Affinität
+      <select id="affin" style="background:#0d1117;color:#e6edf3;border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:6px">
+        <option value="">—</option><option>gering</option><option>mittel</option><option>hoch</option>
+      </select></label>
+    <label><input type="checkbox" id="consent"> Einwilligung liegt vor</label>
+  </div>
+
+  <h2>Aufgaben</h2>
+  <p class="sub">Stoppuhr starten, wenn die Person die Aufgabe liest. „Erfolg" =
+    Zielzustand <b>ohne Eingriff der Moderation</b> erreicht. Jede Hilfestellung zählen.</p>
+  <div id="tasks"></div>
+
+  <h2>SUS-Fragebogen</h2>
+  <p class="sub">1 = stimme gar nicht zu … 5 = stimme voll zu. Alle zehn Punkte nötig.</p>
+  <div id="sus" class="card"></div>
+
+  <h2>Offene Fragen</h2>
+  <div class="card">
+    <label>Was war am verwirrendsten?</label><textarea id="q1"></textarea>
+    <label>Was hat gefehlt?</label><textarea id="q2"></textarea>
+    <label>Beobachtungen der Moderation (Reibungspunkte)</label><textarea id="q3"></textarea>
+  </div>
+</div>
+
+<div id="score">
+  <div>SUS: <span class="big" id="susval">—</span>
+    <span class="hint" id="susnote">0 von 10 beantwortet</span></div>
+  <div class="row">
+    <button id="save">JSON sichern</button>
+  </div>
+</div>
+
+<script>
+// Aufgaben laut Protokoll (Abschnitt 5.4). Reihenfolge = Reihenfolge im Test.
+const TASKS = [
+  ["consumer360", "Consumer-360 hochladen",
+   "Ein fertiges 360°-Bild hochladen und als begehbare Szene veröffentlichen."],
+  ["sechs_bilder", "Sechs Einzelbilder",
+   "Die sechs Einzelaufnahmen hochladen — die Kette soll die Eingangsklasse selbst erkennen."],
+  ["e57", "Laserscan (E57)",
+   "Eine E57-Datei hochladen und eine Szene mit Punktwolke erzeugen."],
+  ["kuratieren", "Szene kuratieren",
+   "Die Szene benennen und in der Galerie sichtbar schalten."],
+  ["teilen", "Öffnen und Marker anklicken",
+   "Die veröffentlichte Szene im Browser öffnen und einen Baum-Marker anklicken."],
+];
+const SUS = [
+  "Ich würde dieses System gern regelmäßig nutzen.",
+  "Ich fand das System unnötig komplex.",
+  "Ich fand das System einfach zu benutzen.",
+  "Ich bräuchte fachliche Unterstützung, um das System zu nutzen.",
+  "Die Funktionen des Systems waren gut integriert.",
+  "Das System war zu widersprüchlich.",
+  "Die meisten würden das System schnell zu bedienen lernen.",
+  "Das System war sehr umständlich zu bedienen.",
+  "Ich fühlte mich bei der Nutzung sehr sicher.",
+  "Ich musste viel lernen, bevor ich loslegen konnte.",
+];
+
+const state = {};
+document.getElementById('date').value = new Date().toISOString().slice(0,10);
+
+// ---- Aufgabenblöcke mit Stoppuhr ----
+const tw = document.getElementById('tasks');
+TASKS.forEach(([id, name, desc]) => {
+  state[id] = {sekunden:null, erfolg:null, hilfen:0, _t0:null, _tick:null};
+  const d = document.createElement('div');
+  d.className = 'card task';
+  d.innerHTML = `
+    <div><div class="taskname">${name}</div><div class="taskdesc">${desc}</div>
+      <div class="row" style="margin-top:7px">
+        <label><input type="radio" name="s_${id}" value="ja"> ohne Hilfe gelöst</label>
+        <label><input type="radio" name="s_${id}" value="hilfe"> mit Hilfe gelöst</label>
+        <label><input type="radio" name="s_${id}" value="nein"> abgebrochen</label>
+        <label>Hilfen <input type="number" id="h_${id}" value="0" min="0" style="width:52px"></label>
+      </div></div>
+    <div style="text-align:right">
+      <div class="time" id="t_${id}">0:00</div>
+      <button id="b_${id}" class="run">Start</button>
+    </div>`;
+  tw.appendChild(d);
+
+  const btn = d.querySelector('#b_'+id), disp = d.querySelector('#t_'+id);
+  const fmt = s => Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+  btn.onclick = () => {
+    const st = state[id];
+    if (st._t0 === null) {                      // starten
+      st._t0 = Date.now();
+      st._tick = setInterval(() => disp.textContent = fmt((Date.now()-st._t0)/1000), 250);
+      btn.textContent = 'Stopp'; btn.className = 'stop';
+    } else {                                     // stoppen
+      clearInterval(st._tick);
+      st.sekunden = Math.round((Date.now()-st._t0)/10)/100;
+      st._t0 = null; disp.textContent = fmt(st.sekunden);
+      btn.textContent = 'Neu'; btn.className = '';
+    }
+  };
+});
+
+// ---- SUS ----
+const sw = document.getElementById('sus');
+SUS.forEach((q, i) => {
+  const d = document.createElement('div');
+  d.className = 'sus';
+  let sc = '<div class="scale">';
+  for (let v = 1; v <= 5; v++)
+    sc += `<input type="radio" id="q${i}_${v}" name="sus_${i}" value="${v}">`
+        + `<label for="q${i}_${v}">${v}</label>`;
+  d.innerHTML = `<div>${i+1}. ${q}</div>${sc}</div>`;
+  sw.appendChild(d);
+});
+
+// SUS-Score nach Brooke (1996): ungerade Items Wert-1, gerade 5-Wert, Summe x 2,5
+function susScore() {
+  let sum = 0, n = 0;
+  for (let i = 0; i < 10; i++) {
+    const el = document.querySelector(`input[name=sus_${i}]:checked`);
+    if (!el) continue;
+    const v = +el.value;
+    sum += (i % 2 === 0) ? (v - 1) : (5 - v);
+    n++;
+  }
+  return {score: n === 10 ? sum * 2.5 : null, beantwortet: n};
+}
+document.addEventListener('change', () => {
+  const {score, beantwortet} = susScore();
+  const el = document.getElementById('susval'), nt = document.getElementById('susnote');
+  el.textContent = score === null ? '—' : score.toFixed(1);
+  el.className = 'big ' + (score === null ? '' : score >= 68 ? 'ok' : 'warn');
+  nt.textContent = beantwortet + ' von 10 beantwortet'
+    + (score !== null ? (score >= 68 ? ' · über dem Referenzwert 68' : ' · unter dem Referenzwert 68') : '');
+});
+
+document.getElementById('save').onclick = () => {
+  const out = {
+    kennung: document.getElementById('pid').value || 'ohne',
+    datum: document.getElementById('date').value,
+    computer_affinitaet: document.getElementById('affin').value || null,
+    einwilligung: document.getElementById('consent').checked,
+    aufgaben: {}, sus: {}, sus_score: susScore().score,
+    offen: {verwirrend: document.getElementById('q1').value,
+            gefehlt: document.getElementById('q2').value,
+            moderation: document.getElementById('q3').value},
+  };
+  TASKS.forEach(([id]) => {
+    const s = document.querySelector(`input[name=s_${id}]:checked`);
+    out.aufgaben[id] = {
+      sekunden: state[id].sekunden,
+      erfolg: s ? s.value : null,
+      hilfen: +document.getElementById('h_'+id).value || 0};
+  });
+  for (let i = 0; i < 10; i++) {
+    const el = document.querySelector(`input[name=sus_${i}]:checked`);
+    out.sus['item' + (i+1)] = el ? +el.value : null;
+  }
+  const blob = new Blob([JSON.stringify(out, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `nutzbarkeit_${out.kennung}.json`;
+  a.click();
+};
+</script>
+</body>
+</html>
