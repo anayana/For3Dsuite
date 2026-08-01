@@ -38,20 +38,25 @@ from pano_variants import make_variants                         # noqa: E402
 UA = "For3Dsuite-research/1.0 (open-source panorama pipeline)"
 MAX_W = 4096
 
-# (Commons-Dateititel ohne "File:", Szenen-ID, Kurzbeschreibung)
+# (Commons-Dateititel ohne "File:", Szenen-ID, Geraeteklasse, Kurzbeschreibung)
 ASSETS = [
     ("Battery Point Beach, Crescent City, California May 2023.jpg",
-     "consumer360-battery-point",
+     "consumer360-battery-point", "Consumer-360",
      "Consumer-360-Kamera-Aufnahme (bodennah, Strand). Belegt den "
      "equirektangularen Eingang der Pipeline mit frei lizenzierten Daten"),
     ("Chopfholz Adliswil panosphere 20200616.jpg",
-     "consumer360-chopfholz-wald",
+     "consumer360-chopfholz-wald", "Consumer-360",
      "Schweizer Bergwald (Chopfholz bei Adliswil, ZH) als bodennahes "
      "360-Grad-Panorama -- domaenennaher Consumer-360-Fall mit freien Daten"),
     ("Wald am Wilden Kaiser, Tirol, 360x180, 160620, ako.jpg",
-     "consumer360-wilder-kaiser-wald",
+     "consumer360-wilder-kaiser-wald", "Consumer-360",
      "Bergwald am Wilden Kaiser (Tirol) als 360-Grad-Panorama -- "
      "Wald-Anwendung des equirektangularen Eingangs mit frei lizenzierten Daten"),
+    ("Kugelpanorama der Ratsstuben im Rathaus Hof (Hauptraum) 20250125.jpg",
+     "a7r-rathaus-hof", "High-End-DSLR (Vollformat + Fisheye)",
+     "Kugelpanorama einer Innenraum-Szene, aufgenommen mit einer Sony A7R V "
+     "(ILCE-7RM5, Vollformat) -- belegt die High-End-Fisheye-Geraeteklasse der "
+     "Pipeline mit frei lizenzierten Daten"),
 ]
 
 
@@ -78,7 +83,7 @@ def fetch(title):
 
 
 def main():
-    for title, sid, blurb in ASSETS:
+    for title, sid, klasse, blurb in ASSETS:
         meta = fetch(title)
         CACHE.mkdir(parents=True, exist_ok=True)
         raw = CACHE / (sid + "_raw.jpg")
@@ -99,7 +104,7 @@ def main():
         attrib = f"{meta['artist'] or 'unbekannt'}, {meta['license']}"
         scene = {
             "id": sid,
-            "title": f"{title.rsplit('.',1)[0]} — Consumer-360 ({meta['license']})",
+            "title": f"{title.rsplit('.',1)[0]} — {klasse} ({meta['license']})",
             "description": (f"{blurb}. 360-Grad-Equirektangular-Panorama, aufgenommen "
                             f"mit einer Consumer-360-Kamera. Quelle: Wikimedia Commons, "
                             f"{attrib}. Auf {w}x{h} skaliert."),

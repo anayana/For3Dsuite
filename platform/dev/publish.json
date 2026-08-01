@@ -22,18 +22,19 @@
     "stump-3dgs": "Referenz-Splat (Mip-NeRF stump) -- zeigt 3DGS-Qualitaet bei dichter Aufnahme, Kontrast zum duennen Renon-Satz",
     "hvi-ahn-hedges": "ALS statt TLS: Heckennetz aus offenem AHN-LiDAR, 214 Segmente nach Hedge Vertical Index eingefaerbt",
     "finnwoods-walk": "Video-Waldspaziergang aus Trail-Frames (optischer Fluss)",
-    "hechingen-site3": "eigene Aufnahme, Fisheye-Stitching per Hugin",
     "ph-mossy-forest": "CC0-Panorama Poly Haven -- Suedafrika, KwaZulu-Natal (-29.01/29.41): Bergwald mit Bach",
     "ph-nature-reserve-forest": "CC0-Panorama Poly Haven -- Suedafrika, Gauteng (-26.17/28.05): Schutzgebiet, 340 km noerdlich der KZN-Aufnahmen",
     "ph-sunset-forest": "CC0-Panorama Poly Haven -- Sachsen (50.96/14.10): Kiefernwald, dem eigenen Untersuchungsraum am naechsten",
     "ph-quadrangle-sunny": "CC0-Panorama Poly Haven -- Dublin (53.31/-6.24): Schnitthecken, thematisch an die Heckenreihen-Szene angeschlossen",
     "consumer360-battery-point": "Consumer-360-Kamera-Panorama (Wikimedia Commons, CC BY-SA 4.0) -- belegt den equirektangularen Eingang der Pipeline mit freien Daten",
     "consumer360-chopfholz-wald": "Consumer-360 Waldpanorama Schweiz (Chopfholz/Adliswil, D. Kraft, CC BY-SA 3.0) -- Wald-Anwendung des Equirect-Eingangs mit freien Daten",
-    "consumer360-wilder-kaiser-wald": "Consumer-360 Bergwald Tirol (Wilder Kaiser, A. Koreng, CC BY-SA 4.0) -- freie Daten"
+    "consumer360-wilder-kaiser-wald": "Consumer-360 Bergwald Tirol (Wilder Kaiser, A. Koreng, CC BY-SA 4.0) -- freie Daten",
+    "a7r-rathaus-hof": "High-End-DSLR: Sony A7R V (Vollformat) Kugelpanorama, CC BY 4.0 (PantheraLeo1359531) -- belegt die A7R+Fisheye-Klasse mit freien Daten"
   },
   "_zurueckgehalten": {
     "ph-*": "7 weitere Poly-Haven-Panos: doppeln eine der vier Regionen (Sachsen, Polen, KZN, Gauteng) oder haben keine Koordinate",
     "hedgerow-be-birch": "Dublette zu -alder, gleicher Datensatz und gleiche Auswertung",
-    "syssifoss-ka09": "Dublette zu -br01, gleiche Auswertung an einem zweiten Plot"
+    "syssifoss-ka09": "Dublette zu -br01, gleiche Auswertung an einem zweiten Plot",
+    "hechingen-site3": "eigene, NICHT freigegebene Aufnahme -- bewusst nicht veroeffentlicht. Der Rohdatensatz dient nur lokal; fuer die Paper-Evaluation steht mit PASSTA (CC-BY-4.0) ein frei lizenzierter realer Aufnahmesatz zur Verfuegung."
   }
 }
