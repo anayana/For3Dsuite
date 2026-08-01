@@ -13,11 +13,6 @@
 #             ueber Kostenpfade vom Stammfuss aus, dann forest_inventory().
 #             Das ist zugleich eine ITCD -- also der direkte R-Gegenspieler zu
 #             unserem itcd_cloud.py.
-#   fortls    FORTLS (Molina-Valero et al.): auf Einzelscan-Radialgeometrie
-#             ausgelegt. Bei den verschmolzenen SYSSIFOSS-Wolken hat es deshalb
-#             abgelehnt (siehe BENCH_DBH.md). Hier wird es ERNEUT versucht und
-#             das Ergebnis -- auch ein Scheitern -- protokolliert, statt es
-#             wieder nur zu behaupten.
 #
 # Aufruf:
 #   Rscript scripts/bench_stems_r.R <plot.laz> <out-prefix> [lib-pfade,komma]
@@ -30,9 +25,9 @@ if (length(args) < 2)
 laz <- args[1]; outp <- args[2]
 if (length(args) >= 3) .libPaths(c(strsplit(args[3], ",")[[1]], .libPaths()))
 # Verfahren einzeln aufrufbar: die drei brauchen sehr unterschiedlich lange
-# (lidR ~1 min, Csp ~11 min, FORTLS offen) -- ohne Filter wartet jeder Neuversuch
+# (lidR ~1 min, Csp ~11 min) -- ohne Filter wartet jeder Neuversuch
 # eines Verfahrens auf alle anderen.
-want <- if (length(args) >= 4) strsplit(args[4], ",")[[1]] else c("lidr", "csp", "fortls")
+want <- if (length(args) >= 4) strsplit(args[4], ",")[[1]] else c("lidr", "csp")
 run_it <- function(name) name %in% want
 
 logfile <- paste0(outp, "_log.txt")
@@ -135,34 +130,6 @@ if (!is.null(res)) {
   say("Csp fertig in ", round(as.numeric(Sys.time() - t0, units = "secs")), " s")
   write.csv(res, paste0(outp, "_csp_raw.csv"), row.names = FALSE)
   say("-> ", basename(paste0(outp, "_csp_raw.csv")))
-}
-}
-
-# ----------------------------------------------------------------- FORTLS
-if (run_it("fortls")) {
-t0 <- Sys.time()
-res <- tryCatch({
-  library(FORTLS)
-  say("FORTLS ", as.character(packageVersion("FORTLS")))
-  tmp <- file.path(tempdir(), "fortls"); dir.create(tmp, showWarnings = FALSE)
-  # FORTLS' normalize() erwartet in 'las' den DATEINAMEN und das Verzeichnis
-  # getrennt in 'dir.data'. Mit dem vollen Pfad in 'las' sucht es
-  # dir.data/vollstaendiger/pfad und meldet nur "File does not exist" -- das sah
-  # nach einer Ablehnung der Wolke aus, war aber ein Aufruffehler.
-  # voxel_size duennt aus; ohne das laeuft die Normalisierung auf 77 Mio. Punkten
-  # unvertretbar lange.
-  norm <- normalize(las = basename(laz), id = "plot", dir.data = dirname(laz),
-                    dir.result = tmp, scan.approach = "multi",
-                    voxel_size = 0.03, plot = FALSE, save.result = FALSE)
-  say("FORTLS: normalisiert, ", nrow(norm), " Punkte")
-  tls <- tree.detection.multi.scan(data = norm, dir.result = tmp,
-                                   save.result = FALSE, plot = FALSE)
-  as.data.frame(tls)
-}, error = function(e) { say("FORTLS ERR: ", conditionMessage(e)); NULL })
-if (!is.null(res)) {
-  say("FORTLS fertig in ", round(as.numeric(Sys.time() - t0, units = "secs")), " s")
-  write.csv(res, paste0(outp, "_fortls_raw.csv"), row.names = FALSE)
-  say("-> ", basename(paste0(outp, "_fortls_raw.csv")))
 }
 }
 

@@ -116,9 +116,9 @@ Reprojektion damit ohne Kontrollpunkte auskommt.
 ## 2.4 Forstliche Auswertung terrestrischer Punktwolken
 
 Die Ableitung von Bestandesgrößen aus TLS ist ein eigenes, reifes Feld:
-**lidR** (Roussel et al. 2020) als allgemeine Verarbeitungsumgebung, **FORTLS**
-(Molina-Valero et al. 2022) für Einzelscan-Inventuren und **3DFin** (Laino et al.
-2024) für die automatische Stammdetektion und BHD-Messung. Diese Arbeit
+**lidR** (Roussel et al. 2020) als allgemeine Verarbeitungsumgebung,
+**CspStandSegmentation** (Frey & Schindler) für die Einzelbaumsegmentierung und
+**3DFin** (Laino et al. 2024) für die automatische Stammdetektion und BHD-Messung. Diese Arbeit
 entwickelt hier bewusst **nichts Neues**, sondern bindet die etablierten
 Werkzeuge ein — und berichtet in Abschnitt 3.4 offen, dass 3DFin der zunächst
 implementierten eigenen Baseline deutlich überlegen ist.
@@ -473,9 +473,6 @@ synthetisch beschönigt oder nicht nachvollziehbar.
 - **3DFin / dendromatics** — Laino, D., Cabo, C., Prendes, C. et al. (2024):
   *3DFin: a software for automated 3D forest inventories from terrestrial point
   clouds.* Forestry 97(4). <https://doi.org/10.1093/forestry/cpae020>
-- **FORTLS** — Molina-Valero, J. A. et al. (2022): *Operationalizing the use of
-  TLS in forest inventories: the R package FORTLS.* Environmental Modelling &
-  Software 150, 105337. <https://doi.org/10.1016/j.envsoft.2022.105337>
 - **lidR** — Roussel, J.-R. et al. (2020): *lidR: An R package for analysis of
   Airborne Laser Scanning (ALS) data.* Remote Sensing of Environment 251, 112061.
   <https://doi.org/10.1016/j.rse.2020.112061>

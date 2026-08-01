@@ -131,9 +131,6 @@ tatsächlich nach oben fortsetzen; gegen die hilft dieses Kriterium prinzipiell 
   Clustering hier und kann bei sich berührenden Stämmen verschmelzen.
 - **n = 1 Plot.** plot_07 (Fichten-Mischbestand) ist geladen, aber noch nicht
   ausgewertet.
-- **FORTLS fehlt noch** — der Lauf scheiterte an einem Pfad-Argument in
-  `bench_stems_r.R` (`normalize()`), nicht an der Wolke. Die offene Frage aus
-  `BENCH_DBH.md`, ob FORTLS Mehrscan-Wolken annimmt, ist damit weiterhin offen.
 
 ## Reproduzieren
 

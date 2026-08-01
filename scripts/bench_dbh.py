@@ -17,8 +17,6 @@ Methoden:
                Ergebnis-CSV wird hier eingelesen (siehe BENCH_DBH.md)
 
 Feld-GT wird aus der oeffentlichen pytreedb geladen (geojsons.zip, Quelle "FI").
-FORTLS ist bewusst NICHT dabei: es setzt Einzelscan-Radialgeometrie voraus und
-laesst sich auf die kombinierten Mehr-Scan-Wolken nicht anwenden.
 
   python scripts/bench_dbh.py [--data data/dataverse_files] [--no-3dfin]
 

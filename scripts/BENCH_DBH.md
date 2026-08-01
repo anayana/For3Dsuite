@@ -11,9 +11,7 @@ Einzelbaum-Wolken (SYSSIFOSS) gegen die **unabhängige Feld-Inventur**.
 | `3dfin` | Python | [3DFin](https://github.com/3DFin/3DFin) (dendromatics-Bibliothek) |
 | `csp` | R | [CspStandSegmentation](https://github.com/JulFrey/CspStandSegmentation) (Frey & Schindler, Uni Freiburg), baut auf lidR |
 
-**FORTLS** ist bewusst NICHT dabei: es setzt Einzelscan-Radialgeometrie voraus und
-lässt sich auf die kombinierten Mehr-Scan-Wolken nicht anwenden (`normalize()`
-lehnt sie ab). **aRchi** (die R-QSM-Bibliothek der Suite) ist aus CRAN archiviert —
+**aRchi** (die R-QSM-Bibliothek der Suite) ist aus CRAN archiviert —
 das QSM-BHD ist aber definitionsgemäß der Holz-Stamm-Fit, den `qsm_wood` liefert.
 
 ## Ergebnis (5 Bäume mit Feld-BHD, cm)
