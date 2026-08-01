@@ -220,13 +220,19 @@ def main():
                     help="max. gewichtete Weglaenge im Graphen; darueber unzugeordnet")
     ap.add_argument("--origin", nargs=3, type=float, metavar=("X", "Y", "Z"))
     ap.add_argument("--radius", type=float, default=22.0)
+    ap.add_argument("--labels", help="fertige Per-Punkt-Baum-IDs (TXT, 1 Wert je "
+                    "Zeile in der Reihenfolge der Analyse-Wolke; 1..N = Baum aus "
+                    "der Stammliste, -1 = kein Baum). Ersetzt die CSP-Zuordnung, "
+                    "z. B. aus einer lidR-Segmentierung (scripts/seg_lidr.R).")
     args = ap.parse_args()
 
     d = np.load(args.cloud)
     xyz = d["xyz"].astype(np.float64) + d["shift"]
+    keep = np.ones(len(xyz), bool)
     if args.origin:
         ox, oy, _ = args.origin
-        xyz = xyz[np.hypot(xyz[:, 0] - ox, xyz[:, 1] - oy) <= args.radius]
+        keep = np.hypot(xyz[:, 0] - ox, xyz[:, 1] - oy) <= args.radius
+        xyz = xyz[keep]
     print(f"{len(xyz):,} Punkte")
 
     h, ground = height_above_ground(xyz)
@@ -285,6 +291,18 @@ def main():
     print(f"-> {int(hit.sum()):,}/{len(xyz):,} Punkte zugeordnet "
           f"({100.0 * hit.sum() / len(xyz):.1f}%), "
           f"{len(np.unique(label[hit]))} Baeume getroffen")
+
+    # Fertige lidR-Labels einspielen (ersetzt die CSP-Zuordnung): 1..N -> Index
+    # N-1 aus der Stammliste, sonst -1. Gleicher Radius-Filter (keep) -> ausgerichtet.
+    if args.labels:
+        raw = np.loadtxt(args.labels, dtype=np.int64)
+        if len(raw) != len(keep):
+            raise SystemExit(f"--labels: {len(raw)} Zeilen, Wolke {len(keep)} Punkte")
+        raw = raw[keep]
+        label = np.where(raw >= 1, raw - 1, -1).astype(np.int32)
+        hit = label >= 0
+        print(f"-> lidR-Labels eingespielt: {int(hit.sum()):,}/{len(xyz):,} Punkte, "
+              f"{len(np.unique(label[hit]))} Baeume")
 
     np.savez_compressed(args.out, label=label, stems=sxy,
                         labels_txt=np.array(labels_txt, dtype=object),
