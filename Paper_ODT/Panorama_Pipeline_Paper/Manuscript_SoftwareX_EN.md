@@ -233,6 +233,23 @@ with nearest-neighbour sampling the same branch scored 25.4 dB / SSIM 0.871
 instead of 28.2 / 0.935 (ph-mossy-forest) — an implementation artefact that could
 have been reported as a property of the method.
 
+**Runtime per input class, end to end.** Measured through the running
+containerized service — upload, queue, processing, and publication included — with
+the input type *not* declared, so the chain detects it itself:
+
+| Input class | captures | input | upload | processing | **total** |
+|---|--:|--:|--:|--:|--:|
+| Consumer 360° (finished equirect) | 1 | 2.5 MB | 0.2 s | 2.0 s | **2.2 s** |
+| DSLR/fisheye (stitching) | 18 | 6.9 MB | 0.4 s | 69.3 s | **69.7 s** |
+| TLS scan (E57, reprojection) | 1 | 177.9 MB | 4.8 s | 27.7 s | **32.5 s** |
+
+(Medians of two runs each, consumer CPU.) The input class was detected correctly
+in all six runs — an independent confirmation of the dispatch described in
+Section 2.1. Note that the most expensive case is not the largest dataset: the
+178 MB scan finishes in 32 s while 6.9 MB of individual frames take 70 s. Cost
+comes from *registration*, not data volume — precisely what pose-based
+reprojection avoids. No manual intervention was required in any class.
+
 ## 4. Impact
 
 The tool makes reproducible, self-hosted 360°/3D documentation accessible without

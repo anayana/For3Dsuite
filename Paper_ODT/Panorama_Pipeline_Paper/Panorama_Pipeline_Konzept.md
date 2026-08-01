@@ -21,8 +21,10 @@ Einzelwerkzeugen (die sind bekannt), sondern in der **Integration**:
    Träger der abgeleiteten Bestandesdaten. Das ist der unterexplorierte Teil.
 3. **Datensouveränität**: vollständig **self-hostbar** (Caddy + Garage), **in
    Docker**, mit GUI — kein Cloud-Zwang, reproduzierbar, DSGVO-freundlich.
-4. **Geräte- und kostenagnostisch**: vom ~20-€-360°-Consumer-Setup bis zum
-   50-k€-TLS-Scanner in dieselbe Web-Szene.
+4. **Geräte- und kostenagnostisch**: vom Consumer-360°-Setup über die
+   Vollformat-DSLR bis zum TLS-Scanner in dieselbe Web-Szene — mit **frei
+   lizenzierten Beispielen für jede Klasse** (Abschnitt 6) und gemessener
+   Laufzeit je Klasse (Abschnitt 5.3).
 
 **Zieljournal (Vorschlag):** primär *SoftwareX* (Elsevier; Original Software
 Publication, WoS/Scopus, verlangt öffentliches Repo + Reproduzierbarkeit).
@@ -349,15 +351,37 @@ einer Kamera stammt.
   Genau das ist aber der Punkt: die Kette soll **automatisch** laufen.
 
 ## 5.3 Aufwand, Laufzeit und Automatisierungsgrad
-Beide Zweige laufen **vollautomatisch, ohne manuelle Kontrollpunkte** — die
-Stitching-Kette detektiert im Median 156 Kontrollpunkte je Panorama selbst
-(`cpfind`/`autooptimiser`). Rechenzeit je Panorama (2048×1024, 6–8 Eingangs-
-bilder, Consumer-CPU): Stitching Median 16 s, Reprojektion Median 5 s. Der
-entscheidende Aufwandsunterschied ist nicht die Sekundenzahl, sondern die
-**Robustheit ohne Nacharbeit**: der posen-basierte Zweig liefert 11/11 Szenen
-ohne Eingriff, das Stitching 8/11 durchgelaufen und davon 6/11 brauchbar
-(3 Abbrüche, 2 falsch registriert — Zählweise s. 5.1). Offen: die Wandzeit
-*Aufnahme → veröffentlichte Szene* inkl. Feldaufwand über die drei Geräteklassen.
+
+Gemessen wird die Zeit **von der Übergabe der Aufnahmen bis zur veröffentlichten,
+begehbaren Szene**, und zwar durch den laufenden Dienst im Container — Upload,
+Warteschlange, Verarbeitung und Veröffentlichung eingeschlossen, so wie ein
+Anwender sie erlebt. Der Eingangstyp wird **nicht** mitgeteilt; die Kette erkennt
+ihn selbst (Abschnitt 3.1).
+
+| Eingangsklasse | Aufnahmen | Eingang | Upload | Verarbeitung | **gesamt** |
+|---|--:|--:|--:|--:|--:|
+| Consumer-360 (fertiges Equirect) | 1 | 2,5 MB | 0,2 s | 2,0 s | **2,2 s** |
+| DSLR/Fisheye (Stitching) | 18 | 6,9 MB | 0,4 s | 69,3 s | **69,7 s** |
+| TLS-Laserscan (E57, Reprojektion) | 1 | 177,9 MB | 4,8 s | 27,7 s | **32,5 s** |
+
+(Mediane aus je zwei Läufen; Consumer-CPU, 8 Kerne. Ausgabe 2048×1024 bzw. beim
+E57 zusätzlich die Web-Punktwolke.)
+
+Drei Beobachtungen:
+
+1. **Die Eingangsklasse wurde in allen sechs Läufen korrekt erkannt** — eine
+   zweite, unabhängige Bestätigung von Abschnitt 3.1, diesmal durch den echten
+   Dienst statt durch Einzelaufrufe.
+2. **Der teuerste Fall ist nicht der größte Datensatz.** Die 178-MB-E57 ist in
+   32 s fertig, die 6,9 MB Einzelaufnahmen brauchen 70 s. Kosten verursacht die
+   *Registrierung* (Kontrollpunktsuche und Ausgleich), nicht das Datenvolumen —
+   genau der Unterschied, den die posen-bekannte Reprojektion vermeidet.
+3. **Kein manueller Eingriff in keiner Klasse.** Die Stitching-Kette findet ihre
+   Kontrollpunkte selbst (Median 156 je Panorama).
+
+Offen bleibt die **Wandzeit inklusive Feldaufwand** (Aufnahme, Anfahrt,
+Stativaufbau) über die drei Geräteklassen; sie hängt am Gelände und nicht an der
+Software und wurde hier nicht erhoben.
 
 ## 5.4 Nutzbarkeit
 Kurzer, strukturierter Nutzbarkeitstest (Aufgaben, Erfolg/Zeit, SUS-Fragebogen)
@@ -382,11 +406,19 @@ synthetisch beschönigt oder nicht nachvollziehbar.
 - **PASSTA LunchRoom** — 72 reale Aufnahmen einer rotierenden DSLR mit
   Kalibrierung, CC-BY-4.0 (Zenodo 10.5281/zenodo.19663081). Belegt den realen
   Parallaxenfehler des Stitching-Zweigs.
+- **Consumer-360° (Wikimedia Commons)** — drei reale Kugelpanoramen unter
+  CC-BY-SA: eine Küstenszene (Battery Point) sowie zwei Waldaufnahmen
+  (Chopfholz/Adliswil, Schweiz; Wilder Kaiser, Tirol). Belegen den
+  equirektangularen Eingang am unteren Ende des Geräte-Spektrums.
+- **Sony A7R V, Vollformat-Kugelpanorama** — Wikimedia Commons, CC-BY-4.0.
+  Belegt die High-End-DSLR-Klasse.
 
-> **Nicht enthalten:** Aufnahmen einer Consumer-360°-Kamera (Ricoh Theta,
-> Insta360). Der reale Parallaxenfehler ist über PASSTA belegt, allerdings an
-> einer Innenraumszene mit nahen Objekten und mit rektilinearem statt
-> Fisheye-Objektiv.
+> **Einschränkung:** Die Consumer- und DSLR-Beispiele sind bereits **fertige
+> Kugelpanoramen** — sie belegen den equirektangularen Eingang und die
+> Gerätespanne, nicht den Stitching-Zweig. Für diesen dient PASSTA, allerdings
+> mit rektilinearem statt Fisheye-Objektiv und an einer Innenraumszene mit nahen
+> Objekten. Ein freier Satz roher **Dual-Fisheye**-Aufnahmen einer
+> Consumer-360°-Kamera fehlt weiterhin.
 
 # 7. Software- und Datenverfügbarkeit
 

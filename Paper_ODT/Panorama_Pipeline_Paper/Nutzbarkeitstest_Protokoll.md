@@ -58,7 +58,14 @@ SUS-Score (0–100). Referenz: ≥ 68 = überdurchschnittlich; ≥ 80 = sehr gut
 | `Nutzbarkeitstest_Protokoll.md` | dieses Dokument: Design, Kriterien, Auswertungsregel |
 | `Nutzbarkeitstest_Aufgabenblatt.md` | **Blatt für die teilnehmende Person** — ohne Erfolgskriterien, damit der Test nicht verraten wird |
 | `Nutzbarkeitstest_Formular.html` | **Erfassungsbogen** für die Moderation: Stoppuhr je Aufgabe, Erfolg/Hilfen, SUS-Fragebogen mit Live-Score, offene Fragen. Läuft ohne Server (Datei direkt im Browser öffnen), speichert einen JSON-Bogen je Person |
+| `scripts/make_usability_testdata.py` | legt die drei Testdaten-Ordner an, auf die das Aufgabenblatt verweist (Consumer-360-Panorama, acht überlappende Aufnahmen, eine E57) — nur frei lizenzierte Quellen, mit `QUELLEN.txt` daneben |
 | `scripts/usability_eval.py` | Auswertung über alle Bögen: SUS-Median mit IQR, Erfolgsquote, Median-Zeit je Aufgabe, genannte Reibungspunkte; `--markdown` gibt den fertigen Block fürs Paper aus |
+
+Vorbereitung einmalig:
+
+```bash
+python scripts/make_usability_testdata.py --out ~/Desktop/Testdaten
+```
 
 Ablauf je Person (ca. 30–40 min): Einwilligung → Aufgabenblatt aushändigen →
 Formular öffnen, je Aufgabe Stoppuhr starten/stoppen und Erfolg eintragen →
@@ -74,6 +81,8 @@ Sauro & Lewis (2016) als Mittel über mehrere Hundert Studien — sie ist ein
 Einordnungspunkt, **keine Bestehensgrenze**.
 
 ## Reproduzierbarkeit
-Beispiel-Eingänge (Renon 6-Bild-Setup CC-BY, ein CC0-Poly-Haven-Equirect als
-Consumer-360-Stellvertreter, eine Renon-E57) liegen dem Repo bzw. den offenen
-Quellen bei.
+Die Testdaten werden von `make_usability_testdata.py` aus frei lizenzierten
+Quellen erzeugt: ein Consumer-360-Kugelpanorama (Wikimedia Commons, CC BY-SA),
+acht überlappende Aufnahmen aus PASSTA (CC-BY-4.0) und eine Renon-E57
+(CC-BY-4.0). Die Einzelbilder werden bewusst auf 1600 px verkleinert — ein
+20-Minuten-Stitching wäre im Nutzbarkeitstest ein Messfehler, kein Befund.
