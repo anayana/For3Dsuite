@@ -82,6 +82,14 @@ spatial documentation.
 
 ### 2.1 Software architecture
 
+![**Figure 1.** Two input classes, one chain. The input class is determined from
+the data (`detect_input_class`), not declared by the user: an `.e57` container
+carries pose and is reprojected; a single 2:1 image is taken over as is; several
+images without pose are stitched. For TLS input, inventory derived from the same
+point cloud is attached to the scene as georeferenced markers.
+](figures/fig1_architektur.svg){width=100%}
+
+
 The system is packaged as a set of Docker services orchestrated by Compose: a
 processing/API service (Python, FastAPI job queue), an S3-compatible object store
 (Garage), a reverse proxy with automatic TLS (Caddy), and a browser-based studio
@@ -179,6 +187,13 @@ geometry, no detectable seam) and twice a geometrically wrong panorama results
 (confirmed under exhaustive search over rotation, tilt, and mirroring, staying
 below 11.7 dB).
 
+![**Figure 2.** Panorama evaluation against eleven CC0 references. The pose-based
+branch is more accurate and reconstructs every scene; the seam offset separates
+good from failed reconstructions by a factor of ~40 and is therefore usable as a
+ground-truth-free quality flag. Real captures with parallax lie ~56× above the
+synthetic case, which makes the synthetic figures a lower bound.
+](figures/fig2_evaluation.svg){width=100%}
+
 **Seam offset as an automatic quality flag.** Block-wise phase correlation against
 the reference (64-px blocks, 50% overlap, low-structure blocks discarded)
 separates good from failed reconstructions more sharply than PSNR or SSIM: median
@@ -270,10 +285,11 @@ multi-image captures — with or without known pose — into walkable web 3D sce
 self-hostable end to end. A ground-truth evaluation shows the pose-based
 reprojection branch to be more accurate, more robust, and faster than stitching
 when scanner poses are available, and yields an interpretable automatic quality
-flag for the stitching branch. Future work: extend the evaluation with real
-captures exhibiting nodal-point parallax; wire the quality flag into the GUI;
+flag for the stitching branch. Future work: wire the quality flag into the GUI;
 integrate further representations (3D Gaussian splatting, meshes) in the same
-viewer; and run the prepared usability study.
+viewer; obtain a freely licensed set of raw dual-fisheye frames from a consumer
+360° camera, which would close the last gap in device coverage for the stitching
+branch; and run the prepared usability study.
 
 ## Acknowledgements
 
@@ -282,7 +298,72 @@ panoramas (CC0).
 
 ## References
 
-See the concept document (`Panorama_Pipeline_Konzept`) for the full reference list
-(software with versions and licenses; ASTM E57; SSIM/phase-correlation; datasets;
-forest/TLS methods). DOIs and years to be verified against publisher records
-before submission.
+[1] Brown, M., Lowe, D. G. (2007). Automatic panoramic image stitching using
+invariant features. *International Journal of Computer Vision* 74(1), 59–73.
+https://doi.org/10.1007/s11263-006-0002-3
+
+[2] Szeliski, R. (2006). Image alignment and stitching: a tutorial. *Foundations
+and Trends in Computer Graphics and Vision* 2(1), 1–104.
+https://doi.org/10.1561/0600000009
+
+[3] Petroff, M. A. (2019). Pannellum: a lightweight web-based panorama viewer.
+*Journal of Open Source Software* 4(40), 1628.
+https://doi.org/10.21105/joss.01628
+
+[4] Schütz, M. (2016). *Potree: Rendering large point clouds in web browsers.*
+Diploma thesis, TU Wien.
+
+[5] Huber, D. (2011). The ASTM E57 file format for 3D imaging data exchange.
+*Proc. SPIE* 7864, Three-Dimensional Imaging, Interaction, and Measurement.
+https://doi.org/10.1117/12.876555
+
+[6] Wang, Y., et al. (2015). A study of projections for key point based
+registration of panoramic terrestrial 3D laser scans. *Geo-spatial Information
+Science* 18(1), 27–37. https://doi.org/10.1080/10095020.2015.1017913
+
+[7] Kang, Z., et al. (2009). Automatic registration of terrestrial laser scanning
+point clouds using panoramic reflectance images. *Sensors* 9(4), 2621–2646.
+https://doi.org/10.3390/s90402621
+
+[8] Wang, Z., Bovik, A. C., Sheikh, H. R., Simoncelli, E. P. (2004). Image quality
+assessment: from error visibility to structural similarity. *IEEE Transactions on
+Image Processing* 13(4), 600–612. https://doi.org/10.1109/TIP.2003.819861
+
+[9] Kuglin, C. D., Hines, D. C. (1975). The phase correlation image alignment
+method. *Proc. IEEE Int. Conf. on Cybernetics and Society*, 163–165.
+
+[10] Meneghetti, G., Danelljan, M., Felsberg, M., Nordberg, K. (2015). Image
+alignment for panorama stitching in sparsely structured environments.
+*Scandinavian Conference on Image Analysis (SCIA)*. Data: CC-BY-4.0,
+https://doi.org/10.5281/zenodo.19663081
+
+[11] Laino, D., Cabo, C., Prendes, C., et al. (2024). 3DFin: a software for
+automated 3D forest inventories from terrestrial point clouds. *Forestry* 97(4).
+https://doi.org/10.1093/forestry/cpae020
+
+[12] Laino, D., Cabo, C., Ordóñez, C., et al. (2025). SegmentedForests: a labelled
+dataset of terrestrial LiDAR point clouds for semantic segmentation of forests.
+*Forestry*. https://doi.org/10.1093/forestry/cpaf062 · Data:
+https://doi.org/10.5281/zenodo.17396681
+
+[13] Roussel, J.-R., et al. (2020). lidR: An R package for analysis of Airborne
+Laser Scanning (ALS) data. *Remote Sensing of Environment* 251, 112061.
+https://doi.org/10.1016/j.rse.2020.112061
+
+[14] Zhang, W., et al. (2016). An easy-to-use airborne LiDAR data filtering method
+based on cloth simulation. *Remote Sensing* 8(6), 501.
+https://doi.org/10.3390/rs8060501
+
+[15] Brooke, J. (1996). SUS: a "quick and dirty" usability scale. In: *Usability
+Evaluation in Industry*, Taylor & Francis, 189–194.
+
+[16] Sauro, J., Lewis, J. R. (2016). *Quantifying the User Experience: Practical
+Statistics for User Research*, 2nd ed., Morgan Kaufmann.
+
+*Software used, with the versions that produced the reported figures:*
+Hugin/Panotools 2024.0.1 (GPL-2.0), Pannellum 2.5.6 (MIT), three.js r160 (MIT),
+Leaflet 1.9.4 (BSD-2), Caddy 2 (Apache-2.0), Garage 1.0.1 (AGPL-3.0), FastAPI
+(MIT), NumPy 1.26.4, Pillow 12.3.0, OpenCV 5.0.0, laspy 2.5.4, 3DFin/dendromatics,
+TreeGrOSS (GPL-3.0, isolated as a separate process).
+
+*DOIs and years to be verified against publisher records before submission.*

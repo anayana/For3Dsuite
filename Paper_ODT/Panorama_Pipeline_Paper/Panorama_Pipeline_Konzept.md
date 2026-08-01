@@ -151,6 +151,11 @@ Fachdaten verknüpft, ist uns nicht bekannt.
 
 ## 3.1 Zwei Eingangsklassen, eine Pipeline
 
+![**Abbildung 1.** Zwei Eingangsklassen, eine Kette. Die Eingangsklasse wird an
+den Daten bestimmt, nicht vom Anwender angegeben.
+](figures/fig1_architektur.svg){width=100%}
+
+
 | | Consumer/DSLR-Fisheye | Scanner-RGB (E57) |
 |---|---|---|
 | Kameraposen | unbekannt (zu schätzen) | **bekannt** (im E57) |
@@ -268,6 +273,9 @@ rekonstruiert alle 11 Szenen, während Stitching an 5 scheitert: dreimal bricht
 »failed to detect any seam«), zweimal entsteht ein geometrisch falsches Panorama.
 Letzteres ist kein Messartefakt: auch unter erschöpfender Suche über Drehung,
 Neigung und Spiegelung kommen diese beiden nicht über 11,7 dB.
+
+![**Abbildung 2.** Ergebnis der Panorama-Evaluation über elf CC0-Referenzen.
+](figures/fig2_evaluation.svg){width=100%}
 
 ### Nahtversatz als automatisches Qualitätsmerkmal
 

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="380" viewBox="0 0 900 380" font-family="system-ui,-apple-system,sans-serif">
+<rect width="900" height="380" fill="#ffffff"/>
+<text x="24" y="30" font-size="15" font-weight="700" fill="#1b1f24">Panorama-Evaluation gegen 11 CC0-Referenzen</text>
+<text x="24" y="50" font-size="11.5" fill="#5c6570">Synthetische Aufnahmen mit exakt bekannter Geometrie; gemessen gegen das Originalpanorama</text>
+<rect x="150" y="90" width="245" height="30" rx="4" fill="#b8590f"/>
+<text x="405" y="110" font-size="12.5" font-weight="600" fill="#1b1f24">22.98 dB</text>
+<text x="138" y="103" font-size="11.5" fill="#1b1f24" text-anchor="end">Stitching</text>
+<text x="138" y="118" font-size="11.5" fill="#1b1f24" text-anchor="end">(Pose geschätzt)</text>
+<text x="158" y="110" font-size="11.5" fill="#fff">6/11 brauchbar</text>
+<rect x="150" y="152" width="286" height="30" rx="4" fill="#1a7f4b"/>
+<text x="446" y="172" font-size="12.5" font-weight="600" fill="#1b1f24">26.87 dB</text>
+<text x="138" y="165" font-size="11.5" fill="#1b1f24" text-anchor="end">Reprojektion</text>
+<text x="138" y="180" font-size="11.5" fill="#1b1f24" text-anchor="end">(Pose bekannt)</text>
+<text x="158" y="172" font-size="11.5" fill="#fff">11/11 brauchbar</text>
+<text x="150" y="82" font-size="11" fill="#5c6570">PSNR (höher ist besser)</text>
+<text x="24" y="240" font-size="13" font-weight="600" fill="#1b1f24">Nahtversatz — trennt schärfer als PSNR</text>
+<circle cx="34" cy="262" r="5" fill="#1a7f4b"/>
+<text x="50" y="266" font-size="12" fill="#1b1f24">Reprojektion</text>
+<text x="330" y="266" font-size="12" font-weight="600" fill="#1b1f24" text-anchor="end">0,10 px</text>
+<circle cx="34" cy="286" r="5" fill="#b8590f"/>
+<text x="50" y="290" font-size="12" fill="#1b1f24">Stitching, gelungen</text>
+<text x="330" y="290" font-size="12" font-weight="600" fill="#1b1f24" text-anchor="end">0,14 px</text>
+<circle cx="34" cy="310" r="5" fill="#b02a2a"/>
+<text x="50" y="314" font-size="12" fill="#1b1f24">Stitching, misslungen</text>
+<text x="330" y="314" font-size="12" font-weight="600" fill="#1b1f24" text-anchor="end">5,95 – 6,14 px</text>
+<circle cx="34" cy="334" r="5" fill="#b02a2a"/>
+<text x="50" y="338" font-size="12" fill="#1b1f24">real, mit Parallaxe (PASSTA)</text>
+<text x="330" y="338" font-size="12" font-weight="600" fill="#1b1f24" text-anchor="end">3,95 px</text>
+<text x="380" y="290" font-size="11.5" fill="#5c6570">Faktor ~40 zwischen gelungenem und misslungenem Stitch —</text>
+<text x="380" y="308" font-size="11.5" fill="#5c6570">ohne Kenntnis der Wahrheit interpretierbar, daher als</text>
+<text x="380" y="326" font-size="11.5" fill="#5c6570">automatischer Qualitätsflag verwendbar (&gt; 1 px).</text>
+<text x="380" y="352" font-size="11.5" fill="#5c6570">Reale Aufnahmen liegen ~56× über dem synthetischen Fall:</text>
+<text x="380" y="370" font-size="11.5" fill="#5c6570">die synthetischen Zahlen sind eine Untergrenze.</text>
+</svg>
