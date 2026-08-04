@@ -30,7 +30,9 @@
     "consumer360-chopfholz-wald": "Consumer-360 Waldpanorama Schweiz (Chopfholz/Adliswil, D. Kraft, CC BY-SA 3.0) -- Wald-Anwendung des Equirect-Eingangs mit freien Daten",
     "consumer360-wilder-kaiser-wald": "Consumer-360 Bergwald Tirol (Wilder Kaiser, A. Koreng, CC BY-SA 4.0) -- freie Daten",
     "a7r-rathaus-hof": "High-End-DSLR: Sony A7R V (Vollformat) Kugelpanorama, CC BY 4.0 (PantheraLeo1359531) -- belegt die A7R+Fisheye-Klasse mit freien Daten",
-    "ph-rainforest-trail": "CC0-Panorama Poly Haven -- tropischer Regenwald (Dschungelpfad), erweitert die Beispiele um die Tropen"
+    "ph-rainforest-trail": "CC0-Panorama Poly Haven -- tropischer Regenwald (Dschungelpfad), erweitert die Beispiele um die Tropen",
+    "forestvr-eifel-pano": "Reales Waldpanorama aus einer begutachteten VR-Studie (Zuercher et al. 2023, WUR, CC-BY-4.0) -- equirektangularer Eingang mit Walddaten Dritter",
+    "forestvr-eifel-tree": "TLS-Einzelbaum aus derselben Studie -- bewusst OHNE Inventurmarker: die Wolke traegt in Brusthoehe keinen messbaren Stamm. Zeigt eine Grenze der Kette"
   },
   "_zurueckgehalten": {
     "ph-*": "7 weitere Poly-Haven-Panos: doppeln eine der vier Regionen (Sachsen, Polen, KZN, Gauteng) oder haben keine Koordinate",
