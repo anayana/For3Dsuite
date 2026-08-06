@@ -67,7 +67,9 @@ OUTPLY=/workspace/drjohnson_gaussians.ply
 
 # ===== gsplat -- baut kein diff_gaussian_rasterization, laeuft auf jeder CUDA =====
 echo "== Pfad gsplat (kein C++-Build noetig, CUDA_NUM=$CUDA_NUM) =="
-[ -d gsplat ] || git clone --depth 1 https://github.com/nerfstudio-project/gsplat
+[ -d gsplat ] || git clone --recursive --depth 1 https://github.com/nerfstudio-project/gsplat
+# Untermodule (u.a. glm) sicher nachladen -- sonst: "fatal error: glm/gtc/type_ptr.hpp"
+git -C gsplat submodule update --init --recursive
 pip install -q ninja plyfile
 # WICHTIG: nvcc-Builds sonst OOM-gekillt ("Error compiling objects for extension")
 # -- Parallelitaet begrenzen. Nur fuer die aktuelle GPU-Architektur bauen (spart
