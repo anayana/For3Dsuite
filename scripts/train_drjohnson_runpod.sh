@@ -38,7 +38,7 @@ cap = torch.cuda.get_device_capability(0)
 print("GPU        :", torch.cuda.get_device_name(0), "-> CC", f"{cap[0]}.{cap[1]}")
 open("/tmp/arch", "w").write(f"{cap[0]}.{cap[1]}")
 maj, mnr = (torch.version.cuda or "0.0").split(".")[:2]
-open("/tmp/cuda", "w").write(f"{maj}{mnr.zfill(2)}")
+open("/tmp/cuda", "w").write(str(int(maj) * 100 + int(mnr)))
 PY
 export TORCH_CUDA_ARCH_LIST="$(cat /tmp/arch)"
 CUDA_NUM="$(cat /tmp/cuda)"
@@ -65,7 +65,7 @@ echo "Datensatz: $DATA | Bilder: $NIMG"
 OUTPLY=/workspace/drjohnson_gaussians.ply
 [ -d /workspace ] || OUTPLY=/root/drjohnson_gaussians.ply
 
-if [ "$CUDA_NUM" -lt 1240 ]; then
+if [ "$CUDA_NUM" -lt 1204 ]; then
   # ===== Pfad A: graphdeco 3DGS (CUDA < 12.4) =====
   echo "== Pfad graphdeco (CUDA < 12.4) =="
   command -v nvcc >/dev/null || { echo "FEHLER: nvcc fehlt -- CUDA-*devel*-Vorlage waehlen"; exit 1; }
