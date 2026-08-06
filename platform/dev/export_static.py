@@ -147,6 +147,26 @@ def main():
                         continue
             shutil.copyfile(f, dst / f.name)
 
+        # Marker-Medien (Bilder/Videos hinter Markern) liegen in story/ -- 1:1
+        # uebernehmen, Bilder auf MAX_PANO_W begrenzen. Wiederverwendbar fuer
+        # erzaehlte Rundgaenge (z. B. Museums-Tour).
+        story_src = src / "story"
+        if story_src.is_dir():
+            story_dst = dst / "story"
+            story_dst.mkdir(parents=True, exist_ok=True)
+            for f in sorted(story_src.iterdir()):
+                if not (f.is_file() and f.suffix.lower()
+                        in (".jpg", ".jpeg", ".png", ".mp4", ".webm")):
+                    continue
+                if f.suffix.lower() in (".jpg", ".jpeg", ".png"):
+                    with Image.open(f) as im:
+                        if im.width > MAX_PANO_W:
+                            h = round(im.height * MAX_PANO_W / im.width)
+                            im.convert("RGB").resize((MAX_PANO_W, h), Image.LANCZOS) \
+                              .save(story_dst / f.name, quality=JPEG_Q)
+                            continue
+                shutil.copyfile(f, story_dst / f.name)
+
         rel = f"media/scenes/{sid}"
         # Panorama nur setzen, wenn vorhanden (wolken-only-Szenen wie TreeScope
         # haben keins -> pano_url = null, Viewer startet direkt in 3D)

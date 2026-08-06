@@ -38,6 +38,38 @@
     #modeBar button { background: none; border: none; color: #cfcfcf; cursor: pointer;
       padding: 7px 15px; font-size: 12.5px; }
     #modeBar button.active { background: rgba(126,231,135,.22); color: #d8ffdb; }
+    /* ---- Marker (3D-verankerte Info-Punkte) + Popup-Karte ---- */
+    #markers { position: absolute; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
+    .pin { position: absolute; transform: translate(-50%, -50%); pointer-events: auto;
+      cursor: pointer; width: 34px; height: 34px; border-radius: 50%; display: grid;
+      place-items: center; font-size: 16px; color: #fff; padding: 0;
+      background: radial-gradient(circle at 32% 28%, #e6b23c, #a8741a);
+      border: 2px solid rgba(255,255,255,.9);
+      box-shadow: 0 2px 10px rgba(0,0,0,.5), 0 0 0 4px rgba(210,150,34,.22);
+      transition: transform .12s ease, box-shadow .12s ease; }
+    .pin:hover { transform: translate(-50%, -50%) scale(1.16);
+      box-shadow: 0 3px 15px rgba(0,0,0,.6), 0 0 0 7px rgba(210,150,34,.34); z-index: 2; }
+    .pin .lbl { position: absolute; top: 40px; left: 50%; transform: translateX(-50%);
+      white-space: nowrap; font-size: 11.5px; color: #f0f0f0; background: rgba(0,0,0,.7);
+      padding: 3px 9px; border-radius: 7px; opacity: 0; transition: opacity .12s;
+      pointer-events: none; }
+    .pin:hover .lbl { opacity: 1; }
+    #pop { position: absolute; inset: 0; z-index: 50; display: none; place-items: center;
+      background: rgba(0,0,0,.55); backdrop-filter: blur(3px); padding: 16px; }
+    #pop.open { display: grid; }
+    #card { width: min(440px, 94vw); max-height: 88vh; overflow: auto; background: #0d1117;
+      border: 1px solid rgba(255,255,255,.14); border-radius: 14px; color: #e6edf3;
+      box-shadow: 0 22px 64px rgba(0,0,0,.62); }
+    #card img, #card video { width: 100%; display: block; background: #000;
+      max-height: 52vh; object-fit: contain; }
+    #card .body { padding: 15px 18px 18px; position: relative; }
+    #card h2 { margin: 0 26px 9px 0; font-size: 19px; line-height: 1.25; }
+    #card p { margin: 0; font-size: 14px; line-height: 1.62; color: #cbd5e1; }
+    #card .cap { margin-top: 12px; font-size: 12px; font-style: italic; color: #9aa7b4; }
+    #card .cred { margin-top: 6px; font-size: 11px; color: #6b7684; }
+    #card .x { position: absolute; top: 12px; right: 14px; cursor: pointer; color: #9aa7b4;
+      font-size: 22px; line-height: 1; background: none; border: none; }
+    #card .x:hover { color: #e6edf3; }
   </style>
 </head>
 <body>
@@ -55,6 +87,8 @@
     <b>Q / E</b> = tiefer / höher · <b>Shift</b> = schneller
   </div>
   <div id="err"></div>
+  <div id="markers"></div>
+  <div id="pop"><div id="card"></div></div>
 
   <script type="module">
     import * as THREE from 'three';
@@ -139,6 +173,7 @@
       // ---- eigene Steuerung: Begehen (First-Person) / Umkreisen --------------
       const cam = viewer.camera;
       cam.up.copy(upv);
+      const cv = viewer.renderer.domElement;   // frueh: updateMarkers braucht es
       let mode = 'walk';
       let yaw = yaw0, pitch = pitch0;   // Start: stehend, Blick schraeg auf den Stumpf
       const pos = eye.clone();
@@ -147,6 +182,57 @@
       const keys = {};
       window._pos = pos; window._cam = cam;             // fuer Funktionstest
       const look = new THREE.Vector3(), fwd = new THREE.Vector3(), right = new THREE.Vector3();
+
+      // ---- Marker: 3D-verankerte Info-Punkte mit Bild/Video/Text-Popup -------
+      const ICON = { johnson: '👤', dictionary: '📖', barber: '👤', boswell: '✒️',
+                     hodge: '🐈', tech: '✨', portal: '↪' };
+      const markersData = Array.isArray(scene.markers) ? scene.markers : [];
+      const mLayer = document.getElementById('markers');
+      const pop = document.getElementById('pop'), card = document.getElementById('card');
+      const mEls = markersData.filter(m => Array.isArray(m.pos)).map(m => {
+        const el = document.createElement('button');
+        el.className = 'pin';
+        el.innerHTML = (ICON[m.id] || ICON[m.type] || '📍')
+          + '<span class="lbl"></span>';
+        el.querySelector('.lbl').textContent = m.title || '';
+        el.addEventListener('click', ev => { ev.stopPropagation(); openCard(m); });
+        mLayer.appendChild(el);
+        return { el, w: new THREE.Vector3(...m.pos) };
+      });
+      const camDir = new THREE.Vector3(), rel = new THREE.Vector3(), ndc = new THREE.Vector3();
+      function updateMarkers() {
+        try {
+          const w = cv.clientWidth, h = cv.clientHeight;
+          cam.getWorldDirection(camDir);
+          for (const o of mEls) {
+            rel.copy(o.w).sub(cam.position);
+            if (rel.dot(camDir) <= 0.001) { o.el.style.display = 'none'; continue; }
+            ndc.copy(o.w).project(cam);
+            if (ndc.x < -1.3 || ndc.x > 1.3 || ndc.y < -1.3 || ndc.y > 1.3) {
+              o.el.style.display = 'none'; continue; }
+            o.el.style.display = '';
+            o.el.style.left = ((ndc.x * 0.5 + 0.5) * w) + 'px';
+            o.el.style.top = ((-ndc.y * 0.5 + 0.5) * h) + 'px';
+          }
+        } catch (e) { window._merr = (e && e.message) || String(e); }
+      }
+      function openCard(m) {
+        const media = m.video ? '<video controls playsinline src="' + m.video + '"></video>'
+          : m.image ? '<img src="' + m.image + '" alt="" />' : '';
+        card.innerHTML = media
+          + '<div class="body"><button class="x" aria-label="Schließen">×</button>'
+          + '<h2>' + (m.title || '') + '</h2>'
+          + '<p>' + (m.text || '') + '</p>'
+          + (m.caption ? '<div class="cap">' + m.caption + '</div>' : '')
+          + (m.credit ? '<div class="cred">' + m.credit + '</div>' : '')
+          + '</div>';
+        card.querySelector('.x').onclick = closeCard;
+        pop.classList.add('open');
+      }
+      function closeCard() { pop.classList.remove('open');
+        const v = card.querySelector('video'); if (v) v.pause(); }
+      pop.addEventListener('click', e => { if (e.target === pop) closeCard(); });
+      addEventListener('keydown', e => { if (e.key === 'Escape') closeCard(); });
 
       function lookVec(y, p) {
         const cp = Math.cos(p);
@@ -179,13 +265,13 @@
           cam.position.copy(center.clone().addScaledVector(d, orbR));
           cam.lookAt(center);
         }
+        updateMarkers();
         requestAnimationFrame(frame);
       }
       requestAnimationFrame(frame);
 
       // Maus-Umschauen (ziehen)
       let drag = false, px = 0, py = 0;
-      const cv = viewer.renderer.domElement;
       cv.style.cursor = 'grab';
       cv.addEventListener('pointerdown', e => { drag = true; px = e.clientX; py = e.clientY;
         cv.style.cursor = 'grabbing'; cv.setPointerCapture(e.pointerId); });
