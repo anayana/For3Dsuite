@@ -69,13 +69,19 @@ OUTPLY=/workspace/drjohnson_gaussians.ply
 echo "== Pfad gsplat (kein C++-Build noetig, CUDA_NUM=$CUDA_NUM) =="
 [ -d gsplat ] || git clone --depth 1 https://github.com/nerfstudio-project/gsplat
 pip install -q ninja plyfile
+# WICHTIG: nvcc-Builds sonst OOM-gekillt ("Error compiling objects for extension")
+# -- Parallelitaet begrenzen. Nur fuer die aktuelle GPU-Architektur bauen (spart
+# Zeit und Speicher).
+export MAX_JOBS="${MAX_JOBS:-4}"
+echo "== Baue mit MAX_JOBS=$MAX_JOBS, TORCH_CUDA_ARCH_LIST=$TORCH_CUDA_ARCH_LIST =="
 # torch ist im Pod schon da -- --no-build-isolation, damit die C++/CUDA-Pakete es
 # beim Bauen sehen (sonst: "No module named 'torch'"). Beispiel-Abhaengigkeiten
 # zuerst (setzen torch endgueltig, bauen fused-ssim dagegen).
-pip install -q --no-build-isolation -r gsplat/examples/requirements.txt
+pip install --no-build-isolation -r gsplat/examples/requirements.txt
 # gsplat-Bibliothek AUS DEM GECLONTEN Quellcode bauen, damit sie exakt zu den
-# Beispielen passt (sonst fehlt z.B. gsplat.color_correct).
-pip install -q --no-build-isolation ./gsplat
+# Beispielen passt (sonst fehlt z.B. gsplat.color_correct). Ohne -q, damit ein
+# echter Compilerfehler sichtbar bleibt.
+pip install --no-build-isolation ./gsplat
 echo "== Training (30k) -- dauert je nach GPU ~30-45 min =="
 python gsplat/examples/simple_trainer.py default \
     --data_dir "$DATA" --data_factor 2 --max_steps 30000 \
