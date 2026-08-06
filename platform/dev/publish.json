@@ -20,6 +20,7 @@
     "renon-combined": "Vier registrierte Renon-Standpunkte (E57) verschmolzen -- 28,8 Mio -> dichte RGB-Wolke, und darauf die VOLLE Kette an einer Flaeche: 82 Staemme, ITCD ueber kuerzeste Wege, BHD nach 6 Verfahren mit Konsens, QSM-Zylindermodell, TreeGrOSS-Prognose je Baum (scripts/RENON_COMBINED.md)",
     "renon-splat": "Trainiertes 3D Gaussian Splatting des EIGENEN Renon-Standorts (700k Gaussians aus 20 Bildern) -- begehbar, schliesst den Kreis: dieselbe Flaeche als Pano, Punktwolke, QSM und jetzt fotoreal",
     "stump-3dgs": "Referenz-Splat (Mip-NeRF stump) -- zeigt 3DGS-Qualitaet bei dichter Aufnahme, Kontrast zum duennen Renon-Satz",
+    "drjohnson-3dgs": "Begehbarer Innenraum als 3D Gaussian Splatting (Deep-Blending-Referenzszene 'Dr Johnson', 263 Fotos -> 700k Gaussians): der dichte Gegenpol zum duennen Renon-Splat und Prototyp fuer den erzaehlten Museums-Rundgang",
     "hvi-ahn-hedges": "ALS statt TLS: Heckennetz aus offenem AHN-LiDAR, 214 Segmente nach Hedge Vertical Index eingefaerbt",
     "finnwoods-walk": "Video-Waldspaziergang aus Trail-Frames (optischer Fluss)",
     "ph-mossy-forest": "CC0-Panorama Poly Haven -- Suedafrika, KwaZulu-Natal (-29.01/29.41): Bergwald mit Bach",

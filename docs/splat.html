@@ -96,10 +96,14 @@
       // Startpose: 1,7 m UEBER dem Kern (focus), ein Stueck zurueck, Blick auf den Kern.
       // Alles relativ zum Fokuspunkt -- unabhaengig von fernen Ausreisser-Gaussians.
       const backDist = Math.min(radius * 1.5, 4.0);
-      const eye = center.clone()
-        .add(upv.clone().multiplyScalar(1.7))
-        .add(t1.clone().multiplyScalar(backDist));
-      const lookT = center.clone();
+      // Startpose: explizit aus scene.json (start/look) falls vorhanden -- noetig
+      // fuer Szenen mit beliebiger Skala (die feste 1,7-m-Hoehe gilt nur metrisch).
+      // Sonst Standard: etwas ueber dem Kern, ein Stueck zurueck, Blick auf den Kern.
+      const eye = sp.start ? new THREE.Vector3(...sp.start)
+        : center.clone()
+            .add(upv.clone().multiplyScalar(1.7))
+            .add(t1.clone().multiplyScalar(backDist));
+      const lookT = sp.look ? new THREE.Vector3(...sp.look) : center.clone();
       const ld0 = lookT.clone().sub(eye).normalize();
       const yaw0 = Math.atan2(ld0.dot(t2), ld0.dot(t1));
       const pitch0 = Math.asin(Math.max(-1, Math.min(1, ld0.dot(upv))));
