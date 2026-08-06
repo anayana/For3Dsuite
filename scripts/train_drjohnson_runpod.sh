@@ -67,9 +67,12 @@ OUTPLY=/workspace/drjohnson_gaussians.ply
 
 # ===== gsplat -- baut kein diff_gaussian_rasterization, laeuft auf jeder CUDA =====
 echo "== Pfad gsplat (kein C++-Build noetig, CUDA_NUM=$CUDA_NUM) =="
-pip install -q plyfile gsplat
+pip install -q ninja plyfile
+# torch ist im Pod schon da -- --no-build-isolation, damit die C++/CUDA-Pakete es
+# beim Bauen sehen (sonst: "No module named 'torch'").
+pip install -q --no-build-isolation gsplat
 [ -d gsplat ] || git clone --depth 1 https://github.com/nerfstudio-project/gsplat
-pip install -q -r gsplat/examples/requirements.txt
+pip install -q --no-build-isolation -r gsplat/examples/requirements.txt
 echo "== Training (30k) -- dauert je nach GPU ~30-45 min =="
 python gsplat/examples/simple_trainer.py default \
     --data_dir "$DATA" --data_factor 2 --max_steps 30000 \
