@@ -65,32 +65,17 @@ echo "Datensatz: $DATA | Bilder: $NIMG"
 OUTPLY=/workspace/drjohnson_gaussians.ply
 [ -d /workspace ] || OUTPLY=/root/drjohnson_gaussians.ply
 
-if [ "$CUDA_NUM" -lt 1204 ]; then
-  # ===== Pfad A: graphdeco 3DGS (CUDA < 12.4) =====
-  echo "== Pfad graphdeco (CUDA < 12.4) =="
-  command -v nvcc >/dev/null || { echo "FEHLER: nvcc fehlt -- CUDA-*devel*-Vorlage waehlen"; exit 1; }
-  [ -d gaussian-splatting ] || git clone --recursive --depth 1 https://github.com/graphdeco-inria/gaussian-splatting
-  cd gaussian-splatting
-  pip install -q ninja plyfile opencv-python joblib tqdm
-  pip install -q --no-build-isolation ./submodules/diff-gaussian-rasterization \
-      ./submodules/simple-knn ./submodules/fused-ssim
-  pip install -q "numpy<2"
-  echo "== Training (30k, -r 2) -- dauert je nach GPU ~30-60 min =="
-  python train.py -s "$DATA" -m /workspace/output/drjohnson --iterations 30000 -r 2
-  cp /workspace/output/drjohnson/point_cloud/iteration_30000/point_cloud.ply "$OUTPLY"
-  cd /workspace 2>/dev/null || cd /root
-else
-  # ===== Pfad B: gsplat (CUDA >= 12.4, baut nichts) =====
-  echo "== Pfad gsplat (CUDA >= 12.4) =="
-  pip install -q plyfile gsplat
-  [ -d gsplat ] || git clone --depth 1 https://github.com/nerfstudio-project/gsplat
-  pip install -q -r gsplat/examples/requirements.txt
-  echo "== Training (30k) =="
-  python gsplat/examples/simple_trainer.py default \
-      --data_dir "$DATA" --data_factor 2 --max_steps 30000 \
-      --result_dir /workspace/gsout --disable_viewer
-  echo "== Exportiere PLY (gsplat -> INRIA/SuperSplat-Format) =="
-  python - "$OUTPLY" <<'PY'
+# ===== gsplat -- baut kein diff_gaussian_rasterization, laeuft auf jeder CUDA =====
+echo "== Pfad gsplat (kein C++-Build noetig, CUDA_NUM=$CUDA_NUM) =="
+pip install -q plyfile gsplat
+[ -d gsplat ] || git clone --depth 1 https://github.com/nerfstudio-project/gsplat
+pip install -q -r gsplat/examples/requirements.txt
+echo "== Training (30k) -- dauert je nach GPU ~30-45 min =="
+python gsplat/examples/simple_trainer.py default \
+    --data_dir "$DATA" --data_factor 2 --max_steps 30000 \
+    --result_dir /workspace/gsout --disable_viewer
+echo "== Exportiere PLY (gsplat -> INRIA/SuperSplat-Format) =="
+python - "$OUTPLY" <<'PY'
 import sys, glob, numpy as np, torch
 from plyfile import PlyData, PlyElement
 out = sys.argv[1]
@@ -112,7 +97,6 @@ for i,c in enumerate(cols): el[c] = data[:, i]
 PlyData([PlyElement.describe(el,"vertex")]).write(out)
 print(f"-> {out} ({N:,} Gaussians)")
 PY
-fi
 
 [ -f "$OUTPLY" ] || { echo "FEHLER: kein Ergebnis-PLY -- Log oben pruefen"; exit 1; }
 echo "== Verkleinere auf viewer-fertiges .ply (SH-Grad 0, ~700k) =="
