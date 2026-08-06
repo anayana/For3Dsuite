@@ -79,14 +79,42 @@ echo "== Baue mit MAX_JOBS=$MAX_JOBS, TORCH_CUDA_ARCH_LIST=$TORCH_CUDA_ARCH_LIST
 # torch ist im Pod schon da -- --no-build-isolation, damit die C++/CUDA-Pakete es
 # beim Bauen sehen (sonst: "No module named 'torch'"). Beispiel-Abhaengigkeiten
 # zuerst (setzen torch endgueltig, bauen fused-ssim dagegen).
+pip install -q pillow
 pip install --no-build-isolation -r gsplat/examples/requirements.txt
 # gsplat-Bibliothek AUS DEM GECLONTEN Quellcode bauen, damit sie exakt zu den
 # Beispielen passt (sonst fehlt z.B. gsplat.color_correct). Ohne -q, damit ein
-# echter Compilerfehler sichtbar bleibt.
-pip install --no-build-isolation ./gsplat
+# echter Compilerfehler sichtbar bleibt. Bei einem Neulauf ueberspringen, wenn die
+# passende Quellversion schon installiert ist (spart den Rebuild).
+python -c "import gsplat.color_correct" 2>/dev/null \
+  && echo "gsplat (Quellversion) schon installiert -- Build uebersprungen" \
+  || pip install --no-build-isolation ./gsplat
+
+# data_factor 2 erwartet halbaufgeloeste Bilder in images_2/ -- der Deep-Blending-
+# Satz liefert nur images/. Einmalig erzeugen (sonst: "Image folder images_2 does not exist").
+FACTOR=2
+if [ ! -d "$DATA/images_$FACTOR" ]; then
+  echo "== Erzeuge halbaufgeloeste Bilder images_$FACTOR (fuer data_factor=$FACTOR) =="
+  python - "$DATA" "$FACTOR" <<'PY'
+import os, sys
+from PIL import Image
+data, factor = sys.argv[1], int(sys.argv[2])
+src = os.path.join(data, "images"); dst = os.path.join(data, f"images_{factor}")
+os.makedirs(dst, exist_ok=True)
+n = 0
+for f in sorted(os.listdir(src)):
+    try:
+        im = Image.open(os.path.join(src, f)).convert("RGB")
+    except Exception:
+        continue
+    im.resize((im.width // factor, im.height // factor), Image.LANCZOS).save(os.path.join(dst, f))
+    n += 1
+print(f"erzeugt: {dst} ({n} Bilder)")
+PY
+fi
+
 echo "== Training (30k) -- dauert je nach GPU ~30-45 min =="
 python gsplat/examples/simple_trainer.py default \
-    --data_dir "$DATA" --data_factor 2 --max_steps 30000 \
+    --data_dir "$DATA" --data_factor "$FACTOR" --max_steps 30000 \
     --result_dir /workspace/gsout --disable_viewer
 echo "== Exportiere PLY (gsplat -> INRIA/SuperSplat-Format) =="
 python - "$OUTPLY" <<'PY'
