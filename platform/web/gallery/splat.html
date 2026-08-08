@@ -155,9 +155,10 @@
             xrVR = GaussianSplats3D.WebXRMode.VR;
         } catch (e) { /* kein XR -> Desktop */ }
       }
-      // Auf VR-faehigen Geraeten (Quest standalone) die leichtere Version laden,
-      // falls angegeben -- 1,2 Mio x Stereo waere sonst zu schwer.
-      const modelUrl = (xrVR && sp.url_vr) ? sp.url_vr : url;
+      // Immer die volle Web-Version laden (Qualitaet). Frueher wurde auf VR-faehigen
+      // Geraeten eine leichtere Version geladen -- das verschlechterte aber auch die
+      // Desktop-Ansicht, wenn der Browser faelschlich "VR-faehig" meldete.
+      const modelUrl = url;
       const viewer = new GaussianSplats3D.Viewer({
         cameraUp: upv.toArray(),
         initialCameraPosition: eye.toArray(),
