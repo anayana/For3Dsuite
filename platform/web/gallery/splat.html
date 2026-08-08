@@ -92,6 +92,7 @@
 
   <script type="module">
     import * as THREE from 'three';
+    import { VRButton } from 'three/addons/webxr/VRButton.js';
     import * as GaussianSplats3D from
       'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.7/build/gaussian-splats-3d.module.js';
 
@@ -154,6 +155,9 @@
             xrVR = GaussianSplats3D.WebXRMode.VR;
         } catch (e) { /* kein XR -> Desktop */ }
       }
+      // Auf VR-faehigen Geraeten (Quest standalone) die leichtere Version laden,
+      // falls angegeben -- 1,2 Mio x Stereo waere sonst zu schwer.
+      const modelUrl = (xrVR && sp.url_vr) ? sp.url_vr : url;
       const viewer = new GaussianSplats3D.Viewer({
         cameraUp: upv.toArray(),
         initialCameraPosition: eye.toArray(),
@@ -163,7 +167,7 @@
         webXRMode: xrVR,                 // Headset-VR aktivieren (Quest etc.)
       });
       try {
-        await viewer.addSplatScene(url, { showLoadingUI: true });
+        await viewer.addSplatScene(modelUrl, { showLoadingUI: true });
         viewer.start();
         window._viewer = viewer;          // Debug-/Test-Zugriff (Frame erzwingen)
       } catch (e) {
@@ -234,6 +238,61 @@
       pop.addEventListener('click', e => { if (e.target === pop) closeCard(); });
       addEventListener('keydown', e => { if (e.key === 'Escape') closeCard(); });
 
+      // ---- WebXR: Enter-VR-Button + Controller-Fortbewegung ------------------
+      // Isoliert: alles Folgende wirkt NUR waehrend einer laufenden VR-Sitzung,
+      // der Desktop-Pfad bleibt unveraendert.
+      let xrBase = null;                       // Basis-Referenzraum bei Sitzungsstart
+      const xrPlayer = eye.clone();            // Spielerstandpunkt (Modellraum)
+      let xrTurn = 0, xrTurned = false;        // Snap-Turn-Zustand
+      const _qUp = new THREE.Quaternion()      // Modell-Up -> Y-Up (Boden waagerecht)
+        .setFromUnitVectors(upv, new THREE.Vector3(0, 1, 0));
+      if (xrVR) {
+        const btn = VRButton.createButton(viewer.renderer);
+        btn.style.zIndex = 45;
+        document.body.appendChild(btn);
+        viewer.renderer.xr.addEventListener('sessionstart', () => {
+          xrBase = viewer.renderer.xr.getReferenceSpace();
+          xrPlayer.copy(eye); xrTurn = 0;
+        });
+        viewer.renderer.xr.addEventListener('sessionend', () => { xrBase = null; });
+      }
+      function xrLocomotion() {
+        const xr = viewer.renderer.xr;
+        if (!xr.isPresenting || !xrBase) return;
+        const session = xr.getSession(); if (!session) return;
+        let mx = 0, my = 0, turn = 0;
+        for (const src of session.inputSources) {
+          const gp = src.gamepad; if (!gp || !gp.axes) continue;
+          const ax = gp.axes;
+          const sx = ax.length > 2 ? ax[2] : ax[0];   // xr-standard: Stick auf [2],[3]
+          const sy = ax.length > 3 ? ax[3] : ax[1];
+          if (src.handedness === 'right') turn += sx || 0;   // rechts = drehen
+          else { mx += sx || 0; my += sy || 0; }             // links/unbekannt = gehen
+        }
+        if (Math.abs(turn) > 0.7 && !xrTurned) {             // Snap-Turn 30 Grad
+          xrTurn += -Math.sign(turn) * Math.PI / 6; xrTurned = true;
+        }
+        if (Math.abs(turn) < 0.3) xrTurned = false;
+        const qTot = _qUp.clone()
+          .multiply(new THREE.Quaternion().setFromAxisAngle(upv, xrTurn));
+        if (Math.abs(mx) > 0.15 || Math.abs(my) > 0.15) {
+          const xc = xr.getCamera();
+          const hf = new THREE.Vector3(); xc.getWorldDirection(hf);
+          hf.applyQuaternion(qTot.clone().invert());         // Kopfrichtung -> Modellraum
+          hf.addScaledVector(upv, -hf.dot(upv));             // auf Bodenebene projizieren
+          if (hf.lengthSq() < 1e-6) hf.copy(t1);
+          hf.normalize();
+          const hr = new THREE.Vector3().crossVectors(hf, upv).normalize();
+          const spd = Math.max(0.01, radius * 0.02);
+          xrPlayer.addScaledVector(hf, -my * spd).addScaledVector(hr, mx * spd);
+        }
+        const off = xrPlayer.clone().applyQuaternion(qTot).multiplyScalar(-1);
+        const xform = new XRRigidTransform(
+          { x: off.x, y: off.y, z: off.z },
+          { x: qTot.x, y: qTot.y, z: qTot.z, w: qTot.w });
+        xr.setReferenceSpace(xrBase.getOffsetReferenceSpace(xform));
+      }
+
       function lookVec(y, p) {
         const cp = Math.cos(p);
         return t1.clone().multiplyScalar(cp * Math.cos(y))
@@ -241,8 +300,9 @@
           .add(upv.clone().multiplyScalar(Math.sin(p)));
       }
       function frame() {
-        // Im Headset (WebXR) steuert die Brille die Kamera -> eigene Steuerung aus.
+        // Im Headset (WebXR) steuert die Brille die Kamera; Fortbewegung per Controller.
         if (viewer.renderer && viewer.renderer.xr && viewer.renderer.xr.isPresenting) {
+          xrLocomotion();
           requestAnimationFrame(frame); return;
         }
         if (mode === 'walk') {
