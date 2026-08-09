@@ -87,35 +87,48 @@ def _sample(arr, sx, sy):
             + arr[y1, x0] * (1 - wx) * wy + arr[y1, x1] * wx * wy)
 
 
-def fill_nadir(im, alpha_deg=42, R=1500):
-    """Stativ/Fotograf am Nadir wegretuschieren wie GIMP "Heal Selection":
-    in die Draufsicht (senkrecht nach unten) projizieren, das Stativ per
-    adaptivem Schwellwert (deutlich dunkler als der Boden) maskieren, mit
-    cv2.inpaint heilen und nur den Maskenbereich ins Equirect zurueckrechnen."""
-    a = np.asarray(im.convert("RGB")).astype(np.float32); H, W, _ = a.shape
-    alpha = np.radians(alpha_deg); c = (R - 1) / 2
-    ys, xs = np.mgrid[0:R, 0:R].astype(np.float32); dx = (xs - c) / c; dy = (ys - c) / c
-    rr = np.sqrt(dx * dx + dy * dy); lat = np.clip(rr, 0, 1) * alpha - np.pi / 2
-    phi = np.arctan2(dy, dx)
+def _flat_floor(a, R, alpha):
+    """Boden in eine flache Draufsicht (orthographisch) entzerren -- dort ist das
+    Parkett ein exakt periodisches Muster, ideal zum Klonen."""
+    H, W, _ = a.shape; D = np.tan(alpha); c = (R - 1) / 2
+    ys, xs = np.mgrid[0:R, 0:R].astype(np.float32); X = (xs - c) / c * D; Y = (ys - c) / c * D
+    d = np.sqrt(X * X + Y * Y); theta = np.arctan(d); phi = np.arctan2(Y, X); lat = theta - np.pi / 2
     ex = ((phi / (2 * np.pi)) + 0.5) * (W - 1); ey = (0.5 - lat / np.pi) * (H - 1)
-    down = _sample(a, ex, ey); luma = down.mean(2)
-    floor_med = np.median(luma[(rr > 0.5) & (rr < 0.92)]); thr = floor_med * 0.60
-    mask = ((luma < thr) & (rr < 0.48)).astype(np.uint8)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
-    n, lab, stats, cent = cv2.connectedComponentsWithStats(mask, 8); keep = np.zeros_like(mask)
-    for k in range(1, n):
-        if stats[k, 4] >= 30 and ((cent[k][0] - c) ** 2 + (cent[k][1] - c) ** 2) ** 0.5 < 0.5 * c:
-            keep[lab == k] = 1
-    mask = cv2.dilate(keep * 255, np.ones((7, 7), np.uint8), 1)
-    healed = cv2.inpaint(np.clip(down, 0, 255).astype(np.uint8), mask, 4,
-                         cv2.INPAINT_TELEA).astype(np.float32)
+    return _sample(a, ex, ey), (theta <= alpha), d, D, c
+
+
+def fill_nadir(im, alpha_deg=55, R=1600, dhole=0.46):
+    """Stativ am Nadir wie GIMP/Photoshop entfernen: Boden flach entzerren ->
+    die am besten passende Parkett-Stelle per Template-Matching finden und ins
+    Loch KLONEN (echte Textur statt Weichzeichner) -> mit Poisson-Blending
+    (seamlessClone) an Licht/Farbe angleichen -> zurueck ins Panorama."""
+    a = np.asarray(im.convert("RGB")).astype(np.float32); H, W, _ = a.shape
+    alpha = np.radians(alpha_deg)
+    F, valid, d, D, c = _flat_floor(a, R, alpha)
+    hole = ((d < dhole) & valid).astype(np.uint8)
+    yy, xx = np.where(hole > 0); y0, y1 = yy.min(), yy.max(); x0, x1 = xx.min(), xx.max(); m = 45
+    bx0, by0 = max(0, x0 - m), max(0, y0 - m); bx1, by1 = min(R, x1 + m), min(R, y1 + m)
+    L = cv2.cvtColor(np.clip(F, 0, 255).astype(np.uint8), cv2.COLOR_RGB2GRAY).astype(np.float32)
+    templ = L[by0:by1, bx0:bx1]
+    tmask = ((valid) & (hole == 0))[by0:by1, bx0:bx1].astype(np.uint8) * 255
+    res = cv2.matchTemplate(L, templ, cv2.TM_CCORR_NORMED, mask=tmask); res[~np.isfinite(res)] = 0
+    cv2.circle(res, (bx0, by0), int(dhole * c * 0.9), 0, -1)
+    _, _, _, maxloc = cv2.minMaxLoc(res); dxp = maxloc[0] - bx0; dyp = maxloc[1] - by0
+    Mt = np.float32([[1, 0, -dxp], [0, 1, -dyp]])
+    src = cv2.warpAffine(np.clip(F, 0, 255).astype(np.uint8), Mt, (R, R),
+                         flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
+    dst = np.clip(F, 0, 255).astype(np.uint8)
+    hmask = (cv2.erode(hole, np.ones((3, 3), np.uint8), 1) * 255).astype(np.uint8)
+    ctr = (int((x0 + x1) / 2), int((y0 + y1) / 2))
+    blended = cv2.seamlessClone(src, dst, hmask, ctr, cv2.NORMAL_CLONE).astype(np.float32)
+    soft = cv2.GaussianBlur(hole.astype(np.float32), (31, 31), 0)[..., None]
+    Ff = blended * soft + F * (1 - soft)
     yb = int((0.5 - (-np.pi / 2 + alpha) / np.pi) * (H - 1))
-    yy, xx = np.mgrid[yb:H, 0:W].astype(np.float32)
-    lat2 = (0.5 - yy / (H - 1)) * np.pi; lon2 = (xx / (W - 1) - 0.5) * 2 * np.pi
-    rr2 = np.clip((lat2 + np.pi / 2) / alpha, 0, 1)
-    u = c + rr2 * c * np.cos(lon2); v = c + rr2 * c * np.sin(lon2)
-    hv = _sample(healed, u, v)
-    mv = np.clip(_sample(mask[..., None].astype(np.float32), u, v)[..., 0] / 255.0, 0, 1)[..., None]
+    Yy, Xx = np.mgrid[yb:H, 0:W].astype(np.float32)
+    lat2 = (0.5 - Yy / (H - 1)) * np.pi; lon2 = (Xx / (W - 1) - 0.5) * 2 * np.pi
+    theta2 = np.clip(lat2 + np.pi / 2, 0, alpha); d2 = np.tan(theta2)
+    gx = c + (d2 / D) * c * np.cos(lon2); gy = c + (d2 / D) * c * np.sin(lon2)
+    hv = _sample(Ff, gx, gy); mv = np.clip(_sample(soft, gx, gy), 0, 1)
     a[yb:H] = hv * mv + a[yb:H] * (1 - mv)
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
 
