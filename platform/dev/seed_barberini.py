@@ -77,60 +77,16 @@ def sid_for(i):
     return f"barberini-{i+1:02d}"
 
 
-def _sample(arr, sx, sy):
-    Hh, Ww = arr.shape[:2]
-    sx = np.clip(sx, 0, Ww - 1); sy = np.clip(sy, 0, Hh - 1)
-    x0 = np.floor(sx).astype(int); y0 = np.floor(sy).astype(int)
-    x1 = np.minimum(x0 + 1, Ww - 1); y1 = np.minimum(y0 + 1, Hh - 1)
-    wx = (sx - x0)[..., None]; wy = (sy - y0)[..., None]
-    return (arr[y0, x0] * (1 - wx) * (1 - wy) + arr[y0, x1] * wx * (1 - wy)
-            + arr[y1, x0] * (1 - wx) * wy + arr[y1, x1] * wx * wy)
+sys.path.insert(0, str(REPO / "scripts"))
+from barberini_nadir_exemplar import heal as _nadir_heal     # noqa: E402
 
 
-def _flat_floor(a, R, alpha):
-    """Boden in eine flache Draufsicht (orthographisch) entzerren -- dort ist das
-    Parkett ein exakt periodisches Muster, ideal zum Klonen."""
-    H, W, _ = a.shape; D = np.tan(alpha); c = (R - 1) / 2
-    ys, xs = np.mgrid[0:R, 0:R].astype(np.float32); X = (xs - c) / c * D; Y = (ys - c) / c * D
-    d = np.sqrt(X * X + Y * Y); theta = np.arctan(d); phi = np.arctan2(Y, X); lat = theta - np.pi / 2
-    ex = ((phi / (2 * np.pi)) + 0.5) * (W - 1); ey = (0.5 - lat / np.pi) * (H - 1)
-    return _sample(a, ex, ey), (theta <= alpha), d, D, c
-
-
-def fill_nadir(im, alpha_deg=55, R=1600, dhole=0.46):
-    """Stativ am Nadir wie GIMP/Photoshop entfernen: Boden flach entzerren ->
-    die am besten passende Parkett-Stelle per Template-Matching finden und ins
-    Loch KLONEN (echte Textur statt Weichzeichner) -> mit Poisson-Blending
-    (seamlessClone) an Licht/Farbe angleichen -> zurueck ins Panorama."""
-    a = np.asarray(im.convert("RGB")).astype(np.float32); H, W, _ = a.shape
-    alpha = np.radians(alpha_deg)
-    F, valid, d, D, c = _flat_floor(a, R, alpha)
-    hole = ((d < dhole) & valid).astype(np.uint8)
-    yy, xx = np.where(hole > 0); y0, y1 = yy.min(), yy.max(); x0, x1 = xx.min(), xx.max(); m = 45
-    bx0, by0 = max(0, x0 - m), max(0, y0 - m); bx1, by1 = min(R, x1 + m), min(R, y1 + m)
-    L = cv2.cvtColor(np.clip(F, 0, 255).astype(np.uint8), cv2.COLOR_RGB2GRAY).astype(np.float32)
-    templ = L[by0:by1, bx0:bx1]
-    tmask = ((valid) & (hole == 0))[by0:by1, bx0:bx1].astype(np.uint8) * 255
-    res = cv2.matchTemplate(L, templ, cv2.TM_CCORR_NORMED, mask=tmask); res[~np.isfinite(res)] = 0
-    cv2.circle(res, (bx0, by0), int(dhole * c * 0.9), 0, -1)
-    _, _, _, maxloc = cv2.minMaxLoc(res); dxp = maxloc[0] - bx0; dyp = maxloc[1] - by0
-    Mt = np.float32([[1, 0, -dxp], [0, 1, -dyp]])
-    src = cv2.warpAffine(np.clip(F, 0, 255).astype(np.uint8), Mt, (R, R),
-                         flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_REFLECT)
-    dst = np.clip(F, 0, 255).astype(np.uint8)
-    hmask = (cv2.erode(hole, np.ones((3, 3), np.uint8), 1) * 255).astype(np.uint8)
-    ctr = (int((x0 + x1) / 2), int((y0 + y1) / 2))
-    blended = cv2.seamlessClone(src, dst, hmask, ctr, cv2.NORMAL_CLONE).astype(np.float32)
-    soft = cv2.GaussianBlur(hole.astype(np.float32), (31, 31), 0)[..., None]
-    Ff = blended * soft + F * (1 - soft)
-    yb = int((0.5 - (-np.pi / 2 + alpha) / np.pi) * (H - 1))
-    Yy, Xx = np.mgrid[yb:H, 0:W].astype(np.float32)
-    lat2 = (0.5 - Yy / (H - 1)) * np.pi; lon2 = (Xx / (W - 1) - 0.5) * 2 * np.pi
-    theta2 = np.clip(lat2 + np.pi / 2, 0, alpha); d2 = np.tan(theta2)
-    gx = c + (d2 / D) * c * np.cos(lon2); gy = c + (d2 / D) * c * np.sin(lon2)
-    hv = _sample(Ff, gx, gy); mv = np.clip(_sample(soft, gx, gy), 0, 1)
-    a[yb:H] = hv * mv + a[yb:H] * (1 - mv)
-    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+def fill_nadir(im):
+    """Stativ am Nadir per Exemplar-Inpainting entfernen (Criminisi-Prinzip): das
+    Loch wird mit echten Parkett-Stuecken aus der direkten Umgebung gefuellt, die
+    Maserung laeuft lokal korrekt weiter. Details in
+    scripts/barberini_nadir_exemplar.py."""
+    return _nadir_heal(np.asarray(im.convert("RGB")).astype(np.float32))
 
 
 # Aus Sichtpruefung der 10 Panos verortete Tuer-Winkel (yaw) je Saal (1-basiert):
