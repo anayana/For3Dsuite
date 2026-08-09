@@ -22,6 +22,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 import re
 
+import numpy as np
 from PIL import Image
 
 _SSL = ssl.create_default_context()
@@ -75,6 +76,17 @@ def sid_for(i):
     return f"barberini-{i+1:02d}"
 
 
+def fill_nadir(im, top_frac=0.875):
+    """Stativ/Fotograf am Nadir entfernen: das Boden-Band direkt oberhalb nach
+    unten SPIEGELN, sodass die Parkett-Textur weiterlaeuft (kein glatter Fleck)."""
+    a = np.asarray(im.convert("RGB")).astype(np.float32)
+    H, W, _ = a.shape
+    y0 = int(H * top_frac)
+    for k in range(H - y0):
+        a[y0 + k] = a[max(0, y0 - 1 - k)]
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
+
+
 # Aus Sichtpruefung der 10 Panos verortete Tuer-Winkel (yaw) je Saal (1-basiert):
 # 'next' = Durchgang Richtung naechster Saal, 'prev' = Durchgang zurueck.
 DOORS = {
@@ -125,6 +137,7 @@ def main():
             if im.width > MAX_W:
                 im = im.resize((MAX_W, MAX_W // 2), Image.LANCZOS)
             w, h = im.size
+            im = fill_nadir(im)                     # Stativ am Nadir wegretuschieren
             im.save(dest / "pano.jpg", quality=90)
             im.resize((640, 320), Image.LANCZOS).save(dest / "thumb.jpg", quality=85)
         attrib = f"{meta['artist']}, {meta['license']}"
