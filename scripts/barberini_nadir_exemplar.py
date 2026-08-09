@@ -66,18 +66,31 @@ def exemplar(F, mask, P=11, search=90, max_steps=60000):
     return img.astype(np.float32)
 
 
+def tripod_mask(F, d, valid, c, alpha):
+    """Das Stativ per Black-Top-Hat finden: hebt DUENNE DUNKLE Strukturen hervor,
+    unabhaengig vom Bodenton (findet die Beine auch auf hellem Nussbaum-Laeufer).
+    Nur zentrale Komponenten behalten, dann auf die volle Beinbreite ausdehnen."""
+    lum = np.clip(F.mean(2), 0, 255).astype(np.uint8)
+    bh = cv2.morphologyEx(lum, cv2.MORPH_BLACKHAT,
+                          cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (45, 45)))
+    region = (d < 0.5 * np.tan(alpha)) & valid
+    resp = bh.astype(np.float32); resp[~region] = 0
+    T = max(9, np.percentile(resp[region], 98.5))
+    m = (resp > T).astype(np.uint8)
+    m = cv2.morphologyEx(m, cv2.MORPH_CLOSE, np.ones((13, 13), np.uint8))
+    n, lab, stats, cent = cv2.connectedComponentsWithStats(m, 8); keep = np.zeros_like(m)
+    for k in range(1, n):
+        if stats[k, 4] >= 25 and ((cent[k][0] - c) ** 2 + (cent[k][1] - c) ** 2) ** 0.5 < 0.45 * c:
+            keep[lab == k] = 1
+    keep = cv2.dilate(keep, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15)), 1)
+    return keep * 255
+
+
 def heal(a, alpha_deg=50, R=1100):
     H, W, _ = a.shape; alpha = np.radians(alpha_deg)
-    F, valid, d, D, c = flat(a, R, alpha); luma = F.mean(2)
-    fm = np.median(luma[(d > 0.5 * np.tan(alpha)) & valid])
-    mask = ((luma < fm * 0.66) & (d < 0.5 * np.tan(alpha)) & valid).astype(np.uint8)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8))
-    n, lab, stats, cent = cv2.connectedComponentsWithStats(mask, 8); keep = np.zeros_like(mask)
-    for k in range(1, n):
-        if stats[k, 4] >= 20 and ((cent[k][0] - c) ** 2 + (cent[k][1] - c) ** 2) ** 0.5 < 0.5 * c:
-            keep[lab == k] = 1
-    mask = cv2.dilate(keep, np.ones((5, 5), np.uint8), 2) * 255
-    filled = exemplar(F, mask)
+    F, valid, d, D, c = flat(a, R, alpha)
+    mask = tripod_mask(F, d, valid, c, alpha)
+    filled = exemplar(F, mask, P=13, search=50)
     soft = cv2.GaussianBlur(mask.astype(np.float32) / 255, (0, 0), 2)[..., None]
     Ff = filled * soft + F * (1 - soft)
     yb = int((0.5 - (-np.pi / 2 + alpha) / np.pi) * (H - 1))
