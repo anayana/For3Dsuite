@@ -75,17 +75,35 @@ def sid_for(i):
     return f"barberini-{i+1:02d}"
 
 
+# Aus Sichtpruefung der 10 Panos verortete Tuer-Winkel (yaw) je Saal (1-basiert):
+# 'next' = Durchgang Richtung naechster Saal, 'prev' = Durchgang zurueck.
+DOORS = {
+    1: {"next": 0},
+    2: {"next": 0, "prev": 180},
+    3: {"next": 153, "prev": -157},
+    4: {"next": 153, "prev": -157},
+    5: {"next": 173, "prev": -173},
+    6: {"next": 85, "prev": -108},
+    7: {"next": 72, "prev": 180},
+    8: {"next": 173, "prev": -140},
+    9: {"next": 144, "prev": -154},
+    10: {"prev": -112},
+}
+PORTAL_PITCH = -38   # Boden-Pfeil (Blick nach unten), Street-View-Look
+
+
 def portals(i, n):
-    """Portal-Marker: zurueck (yaw 180) und weiter (yaw 0). Zielblick so, dass man
-    in den Raum hinein schaut."""
+    """Portal-Marker als Boden-Pfeile, ausgerichtet auf die tatsaechlichen
+    Durchgaenge (DOORS). i ist 0-basiert."""
+    d = DOORS[i + 1]
     ms = []
-    if i > 0:
+    if i > 0 and "prev" in d:
         ms.append({"id": "prev", "type": "portal", "label": "Zurück",
-                   "yaw": 180, "pitch": -18,
+                   "yaw": d["prev"], "pitch": PORTAL_PITCH,
                    "target": sid_for(i - 1), "target_yaw": 180})
-    if i < n - 1:
+    if i < n - 1 and "next" in d:
         ms.append({"id": "next", "type": "portal", "label": "Weiter",
-                   "yaw": 0, "pitch": -18,
+                   "yaw": d["next"], "pitch": PORTAL_PITCH,
                    "target": sid_for(i + 1), "target_yaw": 0})
     return ms
 
