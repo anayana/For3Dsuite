@@ -33,7 +33,17 @@
     "a7r-rathaus-hof": "High-End-DSLR: Sony A7R V (Vollformat) Kugelpanorama, CC BY 4.0 (PantheraLeo1359531) -- belegt die A7R+Fisheye-Klasse mit freien Daten",
     "ph-rainforest-trail": "CC0-Panorama Poly Haven -- tropischer Regenwald (Dschungelpfad), erweitert die Beispiele um die Tropen",
     "forestvr-eifel-pano": "Reales Waldpanorama aus einer begutachteten VR-Studie (Zuercher et al. 2023, WUR, CC-BY-4.0) -- equirektangularer Eingang mit Walddaten Dritter",
-    "forestvr-eifel-tree": "TLS-Einzelbaum aus derselben Studie -- bewusst OHNE Inventurmarker: die Wolke traegt in Brusthoehe keinen messbaren Stamm. Zeigt eine Grenze der Kette"
+    "forestvr-eifel-tree": "TLS-Einzelbaum aus derselben Studie -- bewusst OHNE Inventurmarker: die Wolke traegt in Brusthoehe keinen messbaren Stamm. Zeigt eine Grenze der Kette",
+    "barberini-01": "Museum Barberini (Potsdam), Saal 1/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
+    "barberini-02": "Museum Barberini (Potsdam), Saal 2/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
+    "barberini-03": "Museum Barberini (Potsdam), Saal 3/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
+    "barberini-04": "Museum Barberini (Potsdam), Saal 4/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
+    "barberini-05": "Museum Barberini (Potsdam), Saal 5/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
+    "barberini-06": "Museum Barberini (Potsdam), Saal 6/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
+    "barberini-07": "Museum Barberini (Potsdam), Saal 7/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
+    "barberini-08": "Museum Barberini (Potsdam), Saal 8/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
+    "barberini-09": "Museum Barberini (Potsdam), Saal 9/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
+    "barberini-10": "Museum Barberini (Potsdam), Saal 10/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal"
   },
   "_zurueckgehalten": {
     "ph-*": "7 weitere Poly-Haven-Panos: doppeln eine der vier Regionen (Sachsen, Polen, KZN, Gauteng) oder haben keine Koordinate",

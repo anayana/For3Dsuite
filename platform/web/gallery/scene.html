@@ -188,6 +188,18 @@
       box-shadow: 0 0 6px rgba(154,164,173,.45); }
     .tree-marker.auffaellig { background: rgba(240,136,62,.35); border-color: #f0883e;
       box-shadow: 0 0 11px rgba(240,136,62,.85); }
+    /* Portal-Marker — Sprung in einen anderen Raum (Street-View-Stil) */
+    .portal-marker { width: 46px; height: 46px; border-radius: 50%; display: grid;
+      place-items: center; font-size: 26px; font-weight: 700; color: #fff; cursor: pointer;
+      background: radial-gradient(circle at 34% 30%, rgba(90,150,255,.95), rgba(40,90,190,.85));
+      border: 2px solid rgba(255,255,255,.9);
+      box-shadow: 0 2px 12px rgba(0,0,0,.5), 0 0 0 6px rgba(90,150,255,.22);
+      transition: transform .12s ease, box-shadow .12s ease; }
+    .portal-marker:hover { transform: scale(1.14);
+      box-shadow: 0 3px 16px rgba(0,0,0,.6), 0 0 0 9px rgba(90,150,255,.34); }
+    .portal-label { position: absolute; top: 52px; left: 50%; transform: translateX(-50%);
+      white-space: nowrap; font-size: 12px; font-weight: 500; color: #eaf1ff;
+      background: rgba(0,0,0,.62); padding: 3px 9px; border-radius: 7px; }
     .tree-label { position: absolute; left: 22px; top: -2px; white-space: nowrap;
       color: #d8ffdb; font-size: 12px; text-shadow: 0 1px 3px #000;
       pointer-events: none; }
@@ -613,6 +625,21 @@
       document.getElementById('infobox').style.display = 'block';
     }
 
+    // Portal-Hotspot: Pfeil + Beschriftung; Klick springt in die Zielszene.
+    function portalDiv(div, m) {
+      div.classList.add('portal-marker');
+      div.appendChild(document.createTextNode(m.id === 'prev' ? '‹' : '›'));
+      const s = document.createElement('span');
+      s.className = 'portal-label';
+      s.textContent = m.label || 'Weiter';
+      div.appendChild(s);
+    }
+    function gotoPortal(evt, m) {
+      let u = 'scene.html?id=' + encodeURIComponent(m.target);
+      if (m.target_yaw != null) u += '&yaw=' + m.target_yaw;
+      location.href = u;
+    }
+
     function markerDiv(div, m) {
       div.classList.add('tree-marker');
       const vit = (m.attributes || {}).Vitalitaet;
@@ -767,12 +794,20 @@
         if (added) return;
         added = true;
         for (const m of scene.markers || []) {
-          v.addHotSpot({
-            id: m.id, yaw: m.yaw, pitch: m.pitch,
-            cssClass: 'ignored',            // eigenes Styling via createTooltipFunc
-            createTooltipFunc: markerDiv, createTooltipArgs: m,
-            clickHandlerFunc: showInfo, clickHandlerArgs: m,
-          });
+          if (m.type === 'portal') {          // Sprung in einen anderen Raum
+            v.addHotSpot({
+              id: m.id, yaw: m.yaw, pitch: m.pitch, cssClass: 'ignored',
+              createTooltipFunc: portalDiv, createTooltipArgs: m,
+              clickHandlerFunc: gotoPortal, clickHandlerArgs: m,
+            });
+          } else {
+            v.addHotSpot({
+              id: m.id, yaw: m.yaw, pitch: m.pitch,
+              cssClass: 'ignored',            // eigenes Styling via createTooltipFunc
+              createTooltipFunc: markerDiv, createTooltipArgs: m,
+              clickHandlerFunc: showInfo, clickHandlerArgs: m,
+            });
+          }
         }
       });
       return window._viewer = v;
@@ -1035,7 +1070,10 @@
         return;
       }
 
-      viewer = makeViewer(scene, scene.pano_url, null);
+      // Beim Betreten via Portal den mitgegebenen Startblick (?yaw=) setzen.
+      const _uy = parseFloat(new URLSearchParams(location.search).get('yaw'));
+      const _startView = Number.isFinite(_uy) ? { yaw: _uy, pitch: 0, hfov: 100 } : null;
+      viewer = makeViewer(scene, scene.pano_url, _startView);
       buildVariants(scene);
       buildLod(scene);
       buildColoring(scene);
