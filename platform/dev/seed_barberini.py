@@ -89,7 +89,7 @@ DOORS = {
     9: {"next": 144, "prev": -154},
     10: {"prev": -112},
 }
-PORTAL_PITCH = -38   # Boden-Pfeil (Blick nach unten), Street-View-Look
+PORTAL_PITCH = -10   # in der Tueroeffnung (nicht am Boden)
 
 
 def portals(i, n):
