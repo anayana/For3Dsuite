@@ -23,6 +23,7 @@ from pathlib import Path
 import re
 
 import numpy as np
+import cv2
 from PIL import Image
 
 _SSL = ssl.create_default_context()
@@ -76,14 +77,46 @@ def sid_for(i):
     return f"barberini-{i+1:02d}"
 
 
-def fill_nadir(im, top_frac=0.875):
-    """Stativ/Fotograf am Nadir entfernen: das Boden-Band direkt oberhalb nach
-    unten SPIEGELN, sodass die Parkett-Textur weiterlaeuft (kein glatter Fleck)."""
-    a = np.asarray(im.convert("RGB")).astype(np.float32)
-    H, W, _ = a.shape
-    y0 = int(H * top_frac)
-    for k in range(H - y0):
-        a[y0 + k] = a[max(0, y0 - 1 - k)]
+def _sample(arr, sx, sy):
+    Hh, Ww = arr.shape[:2]
+    sx = np.clip(sx, 0, Ww - 1); sy = np.clip(sy, 0, Hh - 1)
+    x0 = np.floor(sx).astype(int); y0 = np.floor(sy).astype(int)
+    x1 = np.minimum(x0 + 1, Ww - 1); y1 = np.minimum(y0 + 1, Hh - 1)
+    wx = (sx - x0)[..., None]; wy = (sy - y0)[..., None]
+    return (arr[y0, x0] * (1 - wx) * (1 - wy) + arr[y0, x1] * wx * (1 - wy)
+            + arr[y1, x0] * (1 - wx) * wy + arr[y1, x1] * wx * wy)
+
+
+def fill_nadir(im, alpha_deg=42, R=1500):
+    """Stativ/Fotograf am Nadir wegretuschieren wie GIMP "Heal Selection":
+    in die Draufsicht (senkrecht nach unten) projizieren, das Stativ per
+    adaptivem Schwellwert (deutlich dunkler als der Boden) maskieren, mit
+    cv2.inpaint heilen und nur den Maskenbereich ins Equirect zurueckrechnen."""
+    a = np.asarray(im.convert("RGB")).astype(np.float32); H, W, _ = a.shape
+    alpha = np.radians(alpha_deg); c = (R - 1) / 2
+    ys, xs = np.mgrid[0:R, 0:R].astype(np.float32); dx = (xs - c) / c; dy = (ys - c) / c
+    rr = np.sqrt(dx * dx + dy * dy); lat = np.clip(rr, 0, 1) * alpha - np.pi / 2
+    phi = np.arctan2(dy, dx)
+    ex = ((phi / (2 * np.pi)) + 0.5) * (W - 1); ey = (0.5 - lat / np.pi) * (H - 1)
+    down = _sample(a, ex, ey); luma = down.mean(2)
+    floor_med = np.median(luma[(rr > 0.5) & (rr < 0.92)]); thr = floor_med * 0.60
+    mask = ((luma < thr) & (rr < 0.48)).astype(np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
+    n, lab, stats, cent = cv2.connectedComponentsWithStats(mask, 8); keep = np.zeros_like(mask)
+    for k in range(1, n):
+        if stats[k, 4] >= 30 and ((cent[k][0] - c) ** 2 + (cent[k][1] - c) ** 2) ** 0.5 < 0.5 * c:
+            keep[lab == k] = 1
+    mask = cv2.dilate(keep * 255, np.ones((7, 7), np.uint8), 1)
+    healed = cv2.inpaint(np.clip(down, 0, 255).astype(np.uint8), mask, 4,
+                         cv2.INPAINT_TELEA).astype(np.float32)
+    yb = int((0.5 - (-np.pi / 2 + alpha) / np.pi) * (H - 1))
+    yy, xx = np.mgrid[yb:H, 0:W].astype(np.float32)
+    lat2 = (0.5 - yy / (H - 1)) * np.pi; lon2 = (xx / (W - 1) - 0.5) * 2 * np.pi
+    rr2 = np.clip((lat2 + np.pi / 2) / alpha, 0, 1)
+    u = c + rr2 * c * np.cos(lon2); v = c + rr2 * c * np.sin(lon2)
+    hv = _sample(healed, u, v)
+    mv = np.clip(_sample(mask[..., None].astype(np.float32), u, v)[..., 0] / 255.0, 0, 1)[..., None]
+    a[yb:H] = hv * mv + a[yb:H] * (1 - mv)
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8))
 
 
