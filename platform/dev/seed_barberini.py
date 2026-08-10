@@ -161,6 +161,7 @@ def main():
             "tour": {"index": i + 1, "count": n,
                      "prev": sid_for(i - 1) if i > 0 else None,
                      "next": sid_for(i + 1) if i < n - 1 else None},
+            "min_pitch": -60,
             "pointcloud": None,
             "markers": portals(i, n),
         }

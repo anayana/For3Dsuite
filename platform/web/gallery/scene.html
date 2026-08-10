@@ -774,7 +774,7 @@
     let viewer = null;
 
     function makeViewer(scene, panoUrl, view) {
-      const v = pannellum.viewer('panorama', {
+      const cfg = {
         type: 'equirectangular',
         panorama: panoUrl,
         autoLoad: true,
@@ -786,7 +786,11 @@
         hfov: view ? view.hfov : 100,
         friction: 0.15,
         hotSpots: [],   // Array anlegen, sonst crasht addHotSpot nach Re-Init
-      });
+      };
+      // Blick nach unten begrenzen (z. B. um den Nadir/Stativ-Bereich auszublenden).
+      if (scene.min_pitch != null) cfg.minPitch = scene.min_pitch;
+      if (scene.max_pitch != null) cfg.maxPitch = scene.max_pitch;
+      const v = pannellum.viewer('panorama', cfg);
       // Marker nach dem Laden dynamisch setzen — die Init-Config verliert die
       // Hotspots beim destroy()/Neuaufbau (Variantenwechsel), addHotSpot nicht.
       let added = false;
