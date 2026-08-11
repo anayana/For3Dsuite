@@ -42,16 +42,21 @@ NIMG=$(find images -maxdepth 1 -type f | wc -l); echo "Bilder: $NIMG"
 
 # ---- COLMAP: Posen rechnen ----
 command -v colmap >/dev/null || { echo "== installiere COLMAP =="; apt-get update -qq && apt-get install -y -qq colmap; }
+# GPU-SIFT braucht einen OpenGL-Display -> auf headless Pods per xvfb bereitstellen
+# (sonst Qt-"abort"). Mit virtuellem Display laeuft die GPU-Extraktion sauber & schnell.
+command -v xvfb-run >/dev/null || { apt-get update -qq && apt-get install -y -qq xvfb; }
+GPUCOL="xvfb-run -a colmap"
 if [ ! -d sparse/0 ]; then
-  echo "== COLMAP: Feature-Extraktion =="
+  echo "== COLMAP: Feature-Extraktion (GPU via xvfb) =="
   rm -f database.db
-  colmap feature_extractor --database_path database.db --image_path images \
+  $GPUCOL feature_extractor --database_path database.db --image_path images \
     --ImageReader.single_camera 1 --ImageReader.camera_model OPENCV \
     --SiftExtraction.use_gpu 1 || \
   colmap feature_extractor --database_path database.db --image_path images \
-    --ImageReader.single_camera 1 --ImageReader.camera_model OPENCV --SiftExtraction.use_gpu 0
-  echo "== COLMAP: Matching (exhaustive) =="
-  colmap exhaustive_matcher --database_path database.db --SiftMatching.use_gpu 1 || \
+    --ImageReader.single_camera 1 --ImageReader.camera_model OPENCV \
+    --SiftExtraction.use_gpu 0 --SiftExtraction.num_threads 8
+  echo "== COLMAP: Matching (exhaustive, GPU via xvfb) =="
+  $GPUCOL exhaustive_matcher --database_path database.db --SiftMatching.use_gpu 1 || \
   colmap exhaustive_matcher --database_path database.db --SiftMatching.use_gpu 0
   echo "== COLMAP: Mapper (kann dauern) =="
   mkdir -p sparse
