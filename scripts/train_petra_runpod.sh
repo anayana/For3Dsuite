@@ -51,13 +51,16 @@ if [ ! -d sparse/0 ]; then
   rm -f database.db
   $GPUCOL feature_extractor --database_path database.db --image_path images \
     --ImageReader.single_camera 1 --ImageReader.camera_model OPENCV \
-    --SiftExtraction.use_gpu 1 || \
+    --SiftExtraction.max_num_features 4096 --SiftExtraction.use_gpu 1 || \
   colmap feature_extractor --database_path database.db --image_path images \
     --ImageReader.single_camera 1 --ImageReader.camera_model OPENCV \
-    --SiftExtraction.use_gpu 0 --SiftExtraction.num_threads 8
-  echo "== COLMAP: Matching (exhaustive, GPU via xvfb) =="
-  $GPUCOL exhaustive_matcher --database_path database.db --SiftMatching.use_gpu 1 || \
-  colmap exhaustive_matcher --database_path database.db --SiftMatching.use_gpu 0
+    --SiftExtraction.max_num_features 4096 --SiftExtraction.use_gpu 0 --SiftExtraction.num_threads 8
+  # Bilder sind fortlaufend nummeriert (Aufnahmereihenfolge) -> sequentielles
+  # Matching (Nachbarn + Loop) ist um ein Vielfaches schneller als exhaustive und
+  # reicht fuer einen Kamera-Umlauf. CPU-Matching, da xvfb nur Software-GL bietet.
+  echo "== COLMAP: Matching (sequential, CPU) =="
+  colmap sequential_matcher --database_path database.db \
+    --SiftMatching.use_gpu 0 --SequentialMatching.overlap 25
   echo "== COLMAP: Mapper (kann dauern) =="
   mkdir -p sparse
   colmap mapper --database_path database.db --image_path images --output_path sparse
