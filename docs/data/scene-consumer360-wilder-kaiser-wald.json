@@ -298,7 +298,7 @@
     ],
     "note": "5-cm-Klassen, BHD ≥ 7 cm."
    },
-   "body": "<p>Die Verteilung hat <b>einen Gipfel</b> in der Mitte (glockenförmig) und ist um den Mitteldurchmesser gruppiert. Das ist typisch für einen <b>annähernd gleichaltrigen Bestand in der Reifephase</b> – die meisten Bäume sind gemeinsam aufgewachsen und heute ähnlich dick.</p><p>Der kleine Fuß in den dünnen Klassen ist die einsetzende <b>Verjüngung</b> und untergeordnete Bäume; ein ausgeprägtes „umgekehrtes J“ wie im Plenterwald fehlt.</p>",
+   "body": "<p>Die Verteilung hat <b>einen Gipfel</b> in der Mitte (glockenförmig) und ist um den Mitteldurchmesser gruppiert. Das ist typisch für einen <b>annähernd gleichaltrigen Bestand in der Reifephase</b> – die meisten Bäume sind gemeinsam aufgewachsen und heute ähnlich dick.</p><p>Der kleine Fuß in den dünnen Klassen ist die einsetzende <b>Verjüngung</b> und untergeordnete Bäume.</p>",
    "facts": [
     {
      "sect": "Kennzahlen (dieser Bestand, illustrativ)"
@@ -483,78 +483,78 @@
   {
    "id": "t01",
    "kind": "tree",
-   "yaw": 52,
-   "pitch": 6,
+   "yaw": 46,
+   "pitch": 4,
    "label": "Fichte",
    "attributes": {
     "Baumart": "Fichte (Picea abies)",
     "BHD_cm": 52,
-    "Hoehe_m": 34,
-    "Kronenansatz_m": 18,
-    "Kronenlaenge_m": 16,
-    "Kronendurchmesser_m": 6.5,
-    "Kronenvolumen_m3": 175,
-    "Volumen_m3": 2.9,
-    "Alter": 140
+    "Hoehe_m": 33,
+    "Kronenansatz_m": 20,
+    "Kronenlaenge_m": 13,
+    "Kronendurchmesser_m": 6.0,
+    "Kronenvolumen_m3": 120,
+    "Volumen_m3": 2.8,
+    "Alter": 130
    },
-   "note": "Standorttypische Referenzwerte für einen Bergmischwald der Nördlichen Kalkalpen – keine Feldaufnahme an diesem Panorama."
+   "note": "Baumart nach Erscheinungsbild bestimmt; Maße für den sichtbaren Baum geschätzt (keine Feldmessung)."
   },
   {
    "id": "t02",
    "kind": "tree",
-   "yaw": -95,
-   "pitch": 24,
-   "label": "Buche",
-   "attributes": {
-    "Baumart": "Buche (Fagus sylvatica)",
-    "BHD_cm": 38,
-    "Hoehe_m": 27,
-    "Kronenansatz_m": 12,
-    "Kronenlaenge_m": 15,
-    "Kronendurchmesser_m": 9.0,
-    "Kronenvolumen_m3": 210,
-    "Volumen_m3": 1.4,
-    "Alter": 110
-   },
-   "note": "Standorttypische Referenzwerte für einen Bergmischwald der Nördlichen Kalkalpen – keine Feldaufnahme an diesem Panorama."
-  },
-  {
-   "id": "t03",
-   "kind": "tree",
-   "yaw": 140,
-   "pitch": 20,
-   "label": "Tanne",
-   "attributes": {
-    "Baumart": "Tanne (Abies alba)",
-    "BHD_cm": 58,
-    "Hoehe_m": 36,
-    "Kronenansatz_m": 15,
-    "Kronenlaenge_m": 21,
-    "Kronendurchmesser_m": 7.0,
-    "Kronenvolumen_m3": 240,
-    "Volumen_m3": 4.1,
-    "Alter": 180
-   },
-   "note": "Standorttypische Referenzwerte für einen Bergmischwald der Nördlichen Kalkalpen – keine Feldaufnahme an diesem Panorama."
-  },
-  {
-   "id": "t04",
-   "kind": "tree",
-   "yaw": 79,
-   "pitch": 13,
+   "yaw": 65,
+   "pitch": -2,
    "label": "Fichte",
    "attributes": {
     "Baumart": "Fichte (Picea abies)",
     "BHD_cm": 34,
     "Hoehe_m": 28,
-    "Kronenansatz_m": 16,
-    "Kronenlaenge_m": 12,
-    "Kronendurchmesser_m": 5.0,
-    "Kronenvolumen_m3": 95,
+    "Kronenansatz_m": 17,
+    "Kronenlaenge_m": 11,
+    "Kronendurchmesser_m": 4.5,
+    "Kronenvolumen_m3": 60,
     "Volumen_m3": 1.1,
-    "Alter": 90
+    "Alter": 85
    },
-   "note": "Standorttypische Referenzwerte für einen Bergmischwald der Nördlichen Kalkalpen – keine Feldaufnahme an diesem Panorama."
+   "note": "Baumart nach Erscheinungsbild bestimmt; Maße für den sichtbaren Baum geschätzt (keine Feldmessung)."
+  },
+  {
+   "id": "t03",
+   "kind": "tree",
+   "yaw": 18,
+   "pitch": 1,
+   "label": "Buche",
+   "attributes": {
+    "Baumart": "Buche (Fagus sylvatica)",
+    "BHD_cm": 42,
+    "Hoehe_m": 27,
+    "Kronenansatz_m": 11,
+    "Kronenlaenge_m": 16,
+    "Kronendurchmesser_m": 11.0,
+    "Kronenvolumen_m3": 320,
+    "Volumen_m3": 1.7,
+    "Alter": 120
+   },
+   "note": "Baumart nach Erscheinungsbild bestimmt; Maße für den sichtbaren Baum geschätzt (keine Feldmessung)."
+  },
+  {
+   "id": "t04",
+   "kind": "tree",
+   "yaw": 126,
+   "pitch": 15,
+   "label": "Fichte",
+   "attributes": {
+    "Baumart": "Fichte (Picea abies)",
+    "BHD_cm": 30,
+    "Hoehe_m": 27,
+    "Kronenansatz_m": 16,
+    "Kronenlaenge_m": 11,
+    "Kronendurchmesser_m": 4.0,
+    "Kronenvolumen_m3": 45,
+    "Volumen_m3": 0.9,
+    "Alter": 80
+   },
+   "note": "Baumart nach Erscheinungsbild bestimmt; Maße für den sichtbaren Baum geschätzt (keine Feldmessung)."
   }
  ],
  "pano_url": "media/scenes/consumer360-wilder-kaiser-wald/pano.jpg",
