@@ -301,6 +301,53 @@
     #infobox .close { margin-top: 12px; background: none; color: #58a6ff;
       border: 1px solid #30363d; border-radius: 8px; padding: 5px 12px;
       font-size: 12px; cursor: pointer; }
+
+    /* Info-/Themen-Marker (Region, Boden, Baumarten, Bestand, Diagramm, Baum) */
+    .info-marker { width: 30px; height: 30px; border-radius: 50%; display: grid;
+      place-items: center; font-size: 15px; cursor: pointer;
+      background: rgba(13,17,23,.72); border: 2px solid var(--mc, #7ee787);
+      box-shadow: 0 0 10px var(--mc, #7ee787), 0 1px 8px rgba(0,0,0,.55);
+      transition: transform .12s ease; }
+    .info-marker:hover { transform: scale(1.16); }
+    .info-marker .glyph { line-height: 1; filter: drop-shadow(0 1px 1px #000); }
+    .info-label { position: absolute; left: 38px; top: 50%; transform: translateY(-50%);
+      white-space: nowrap; color: #e6edf3; font-size: 12px; font-weight: 500;
+      background: rgba(0,0,0,.6); padding: 3px 8px; border-radius: 7px;
+      pointer-events: none; }
+
+    /* Panel-Inhalt (Text/Bild/Diagramm/Quellen) im Infobox */
+    #ib-body:empty { display: none; }
+    #ib-body { margin-top: 6px; }
+    #ib-body .ib-sub { color: #8b949e; font-size: 11.5px; line-height: 1.4;
+      margin: 2px 0 6px; }
+    #ib-body img { width: 100%; border-radius: 8px; margin: 4px 0; display: block;
+      background: #000; }
+    #ib-body .ib-cap { color: #8b949e; font-size: 10.5px; line-height: 1.4; }
+    #ib-body .ib-text { font-size: 12.5px; line-height: 1.55; color: #d5dde6;
+      margin-top: 6px; }
+    #ib-body .ib-text p { margin: 0 0 7px; }
+    #ib-body .ib-text b { color: #e6edf3; }
+    #ib-body table.ib-facts { width: 100%; border-collapse: collapse; margin-top: 8px;
+      font-size: 12.5px; }
+    #ib-body table.ib-facts td { padding: 4px 0; vertical-align: top;
+      border-bottom: 1px solid rgba(255,255,255,.08); }
+    #ib-body table.ib-facts td:first-child { color: #8b949e; padding-right: 10px; }
+    #ib-body table.ib-facts td.sect { color: #8b949e; text-transform: uppercase;
+      letter-spacing: .04em; font-size: 11px; padding-top: 11px; border-bottom: none; }
+    #ib-body .shval { display: flex; align-items: center; gap: 7px; justify-content: flex-end; }
+    #ib-body .shbar { flex: 1; height: 7px; border-radius: 4px; max-width: 90px;
+      background: rgba(255,255,255,.10); overflow: hidden; }
+    #ib-body .shbar > span { display: block; height: 100%; border-radius: 4px; }
+    #ib-body .ib-chart { margin: 8px 0 2px; }
+    #ib-body .ib-chart svg { display: block; }
+    #ib-body .ib-axis { display: flex; justify-content: space-between; color: #6e7681;
+      font-size: 10px; margin-top: 1px; }
+    #ib-body .ib-cnote { color: #6e7681; font-size: 10.5px; margin-top: 4px; }
+    #ib-body .ib-sources { margin-top: 11px; padding-top: 8px;
+      border-top: 1px solid rgba(255,255,255,.1); color: #6e7681; font-size: 10.5px;
+      line-height: 1.5; }
+    #ib-body .ib-sources a { color: #58a6ff; text-decoration: none; }
+    #ib-body .ib-sources a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
@@ -379,6 +426,7 @@
       <div class="hz-out" id="hz-out"></div>
     </div>
     <div class="prognote" id="ib-prognote" hidden></div>
+    <div id="ib-body"></div>
     <table id="ib-attrs"></table>
     <div id="ib-bench"></div>
     <div class="xyz" id="ib-xyz"></div>
@@ -408,6 +456,8 @@
       QSM_Zylinder: ['Zylinder im Modell', ''],
       BHD_Guete: ['BHD-Datenlage', ''], BHD_Verfahren: ['BHD-Verfahren', ''],
       Punkte_ITCD: ['Punkte (Einzelbaum)', ''],
+      Volumen_m3: ['Schaftvolumen', 'm³'], Alter: ['Alter', 'J.'],
+      Baumart: ['Baumart', ''],
     };
     const STRUCT = ['BHD_cm', 'Hoehe_m', 'Kronenansatz_m', 'Kronenlaenge_m',
                     'Kronendurchmesser_m', 'Kronenvolumen_m3'];
@@ -478,6 +528,9 @@
     }
 
     function showInfo(_e, m) {
+      if (m.kind && m.kind !== 'tree') { showPanel(m); return; }
+      document.getElementById('ib-body').innerHTML = '';   // Reste eines Panels raeumen
+      document.getElementById('ib-demo').textContent = 'Demo-Werte';
       document.getElementById('ib-label').textContent = m.label || m.id;
       document.getElementById('ib-demo').hidden = !m.demo;
 
@@ -549,9 +602,96 @@
       renderDbhBench(m);
       showBench(true);   // beim Oeffnen immer "heute"
 
-      document.getElementById('ib-xyz').textContent = m.xyz
-        ? `Punktwolken-Position: (${m.xyz.map(v => (+v).toFixed(2)).join(', ')}) m`
-        : '';
+      document.getElementById('ib-xyz').textContent = m.note ? m.note
+        : (m.xyz ? `Punktwolken-Position: (${m.xyz.map(v => (+v).toFixed(2)).join(', ')}) m` : '');
+      document.getElementById('infobox').style.display = 'block';
+    }
+
+    // --- Themen-Panels (Marker mit m.kind != 'tree') --------------------------
+    function panelFactsEl(facts) {
+      const table = document.createElement('table');
+      table.className = 'ib-facts';
+      for (const f of (facts || [])) {
+        if (Array.isArray(f)) {
+          const tr = table.insertRow();
+          tr.insertCell().textContent = f[0];
+          tr.insertCell().innerHTML = f[1];
+        } else if (f && f.sect) {
+          const tr = table.insertRow();
+          const td = tr.insertCell();
+          td.colSpan = 2; td.className = 'sect'; td.textContent = f.sect;
+        }
+      }
+      return table;
+    }
+    // Balkendiagramm der Durchmesserverteilung (Baeume/ha je BHD-Klasse)
+    function dbhChartSVG(ch) {
+      const cls = ch.classes || [];
+      const W = 268, H = 150, padL = 26, padR = 6, padT = 8, padB = 24;
+      const iw = W - padL - padR, ih = H - padT - padB;
+      const nmax = Math.max(1, ...cls.map(d => d.n));
+      const bw = iw / Math.max(1, cls.length);
+      const bars = cls.map((d, i) => {
+        const h = ih * d.n / nmax, x = padL + i * bw + bw * 0.12,
+              y = padT + ih - h, w = bw * 0.76;
+        return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" `
+             + `height="${h.toFixed(1)}" rx="1.5" fill="#f0a860" opacity="0.92"/>`;
+      }).join('');
+      const xl = cls.map((d, i) => (i % 2 === 0)
+        ? `<text x="${(padL + i * bw + bw / 2).toFixed(1)}" y="${H - padB + 11}" `
+          + `text-anchor="middle" font-size="8" fill="#8b949e">${d.c}</text>` : '').join('');
+      const axis =
+        `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT + ih}" stroke="#30363d"/>` +
+        `<line x1="${padL}" y1="${padT + ih}" x2="${W - padR}" y2="${padT + ih}" stroke="#30363d"/>`;
+      const yl =
+        `<text x="${padL - 4}" y="${padT + 7}" text-anchor="end" font-size="8" fill="#8b949e">${nmax}</text>` +
+        `<text x="${padL - 4}" y="${padT + ih}" text-anchor="end" font-size="8" fill="#8b949e">0</text>`;
+      return `<div class="ib-chart"><svg viewBox="0 0 ${W} ${H}" width="100%">`
+           + `${axis}${bars}${xl}${yl}</svg>`
+           + `<div class="ib-axis"><span>${ch.xlabel || 'BHD-Klasse (cm)'}</span>`
+           + `<span>${ch.unit || 'Bäume/ha'}</span></div>`
+           + (ch.note ? `<div class="ib-cnote">${ch.note}</div>` : '') + `</div>`;
+    }
+    function showPanel(m) {
+      document.getElementById('ib-label').textContent = m.title || m.label || '';
+      const badge = document.getElementById('ib-demo');
+      badge.hidden = false;
+      badge.textContent = m.badge || 'Referenz-/Standortwerte';
+      document.getElementById('ib-vital').innerHTML = '';
+      document.getElementById('ib-toggle').hidden = true;
+      document.getElementById('ib-horizon').hidden = true;
+      document.getElementById('ib-prognote').hidden = true;
+      document.getElementById('ib-bench').innerHTML = '';
+      document.getElementById('ib-attrs').innerHTML = '';
+      const body = document.getElementById('ib-body');
+      body.innerHTML = '';
+      if (m.subtitle) {
+        const s = document.createElement('div');
+        s.className = 'ib-sub'; s.textContent = m.subtitle; body.appendChild(s);
+      }
+      if (m.image) {
+        const im = document.createElement('img');
+        im.src = m.image; im.alt = m.label || ''; body.appendChild(im);
+        if (m.caption) {
+          const c = document.createElement('div');
+          c.className = 'ib-cap'; c.textContent = m.caption; body.appendChild(c);
+        }
+      }
+      if (m.chart && m.chart.type === 'dbh')
+        body.insertAdjacentHTML('beforeend', dbhChartSVG(m.chart));
+      if (m.body) {
+        const t = document.createElement('div');
+        t.className = 'ib-text'; t.innerHTML = m.body; body.appendChild(t);
+      }
+      if (m.facts) body.appendChild(panelFactsEl(m.facts));
+      if (m.sources && m.sources.length) {
+        const src = document.createElement('div');
+        src.className = 'ib-sources';
+        src.innerHTML = 'Quellen: ' + m.sources.map(s =>
+          `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>`).join(' · ');
+        body.appendChild(src);
+      }
+      document.getElementById('ib-xyz').textContent = m.note || '';
       document.getElementById('infobox').style.display = 'block';
     }
 
@@ -640,14 +780,39 @@
       location.href = u;
     }
 
+    // Themen-Marker: Icon + Farbe je Art (Baum, Region, Boden, ...)
+    const MK_KIND = {
+      tree:        { icon: '🌲', color: '#7ee787' },
+      region:      { icon: '🏔️', color: '#79c0ff' },
+      boden:       { icon: '🪨', color: '#c99a5b' },
+      baumarten:   { icon: '🌿', color: '#63c76a' },
+      verjuengung: { icon: '🌱', color: '#9be26a' },
+      stand:       { icon: '📋', color: '#b083f0' },
+      chart:       { icon: '📊', color: '#f0a860' },
+      info:        { icon: '💡', color: '#f0c040' },
+    };
     function markerDiv(div, m) {
-      div.classList.add('tree-marker');
-      const vit = (m.attributes || {}).Vitalitaet;
-      if (vit) div.classList.add(vit);   // vital | unauffaellig | auffaellig
-      const s = document.createElement('span');
-      s.className = 'tree-label';
-      s.textContent = m.label || '';
-      div.appendChild(s);
+      const k = MK_KIND[m.kind];
+      if (!k) {                            // klassischer Baum-Punkt (Szenen ohne 'kind')
+        div.classList.add('tree-marker');
+        const vit = (m.attributes || {}).Vitalitaet;
+        if (vit) div.classList.add(vit);   // vital | unauffaellig | auffaellig
+        const s = document.createElement('span');
+        s.className = 'tree-label';
+        s.textContent = m.label || '';
+        div.appendChild(s);
+        return;
+      }
+      div.classList.add('info-marker', 'mk-' + m.kind);
+      div.style.setProperty('--mc', k.color);
+      const g = document.createElement('span');
+      g.className = 'glyph'; g.textContent = k.icon;
+      div.appendChild(g);
+      if (m.label) {
+        const s = document.createElement('span');
+        s.className = 'info-label'; s.textContent = m.label;
+        div.appendChild(s);
+      }
     }
 
     // Legende einblenden, sobald irgendein Marker eine RGB-Vitalitaet traegt
