@@ -104,7 +104,7 @@ git -C gsplat submodule update --init --recursive     # glm & Co. sicher nachlad
 echo "== Umgebung =="; gcc --version | head -1; (nvcc --version 2>/dev/null | grep -i release) || echo "nvcc: n/a"
 pip install -q ninja plyfile pillow wheel setuptools
 pip install --no-build-isolation -r gsplat/examples/requirements.txt
-pip install -q "numpy<2"     # WICHTIG: numpy 2.x bricht haeufig CUDA-Extension-Builds
+pip install -q "numpy<2" "scipy<1.13"   # numpy 2 bricht CUDA-Builds; scipy<1.13 passt zu numpy<2 (np.long)
 if ! python -c "import gsplat.color_correct" 2>/dev/null; then
   echo "== baue gsplat aus Quellcode =="
   if ! pip install --no-build-isolation ./gsplat; then
