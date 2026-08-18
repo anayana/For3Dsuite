@@ -40,7 +40,13 @@ fi
 NIMG=$(find images -maxdepth 1 -type f | wc -l); echo "Bilder: $NIMG"
 [ "$NIMG" -gt 30 ] || { echo "FEHLER: zu wenige Bilder"; exit 1; }
 
-# ---- COLMAP: Posen rechnen ----
+# ---- Optional: fertiges COLMAP-Ergebnis wiederherstellen (COLMAP_URL=zip mit sparse/ + images/) ----
+if [ ! -d sparse/0 ] && [ -n "${COLMAP_URL:-}" ]; then
+  echo "== Stelle fertiges COLMAP wieder her (spart Neurechnung) =="
+  curl -fL "$COLMAP_URL" -o colmap.zip && unzip -oq colmap.zip && echo "COLMAP wiederhergestellt: $(ls sparse 2>/dev/null)"
+fi
+
+# ---- COLMAP: Posen rechnen (nur falls noch nicht vorhanden) ----
 command -v colmap >/dev/null || { echo "== installiere COLMAP =="; apt-get update -qq && apt-get install -y -qq colmap; }
 # GPU-SIFT braucht einen OpenGL-Display -> auf headless Pods per xvfb bereitstellen
 # (sonst Qt-"abort"). Mit virtuellem Display laeuft die GPU-Extraktion sauber & schnell.
@@ -77,12 +83,23 @@ PY
 export TORCH_CUDA_ARCH_LIST="$(cat /tmp/arch)"; export MAX_JOBS="${MAX_JOBS:-4}"
 cd /workspace 2>/dev/null || cd /root
 [ -d gsplat ] || git clone --recursive --depth 1 https://github.com/nerfstudio-project/gsplat
-git -C gsplat submodule update --init --recursive
-pip install -q ninja plyfile pillow
+git -C gsplat submodule update --init --recursive     # glm & Co. sicher nachladen
+echo "== Umgebung =="; gcc --version | head -1; (nvcc --version 2>/dev/null | grep -i release) || echo "nvcc: n/a"
+pip install -q ninja plyfile pillow wheel setuptools
 pip install --no-build-isolation -r gsplat/examples/requirements.txt
-python -c "import gsplat.color_correct" 2>/dev/null \
-  && echo "gsplat schon installiert -- Build uebersprungen" \
-  || pip install --no-build-isolation ./gsplat
+pip install -q "numpy<2"     # WICHTIG: numpy 2.x bricht haeufig CUDA-Extension-Builds
+if ! python -c "import gsplat.color_correct" 2>/dev/null; then
+  echo "== baue gsplat aus Quellcode =="
+  if ! pip install --no-build-isolation ./gsplat; then
+    echo "== Quellbau fehlgeschlagen -> versuche vorgebautes Wheel + passende Beispiele =="
+    pip install gsplat
+    V="$(python -c 'import gsplat;print(gsplat.__version__)')"
+    git -C gsplat fetch --depth 1 origin "refs/tags/v$V" 2>/dev/null && git -C gsplat checkout "v$V" 2>/dev/null \
+      || echo "kein passendes Tag v$V -- Beispiele bleiben auf main"
+  fi
+fi
+python -c "import gsplat, gsplat.color_correct; print('gsplat OK', gsplat.__version__)" \
+  || { echo "FEHLER: gsplat nicht lauffaehig -- Log oben (gcc/nvcc/Compilerfehler) an den Betreuer schicken"; exit 1; }
 
 OUTPLY=/workspace/petra_gaussians.ply
 [ -d /workspace ] || OUTPLY=/root/petra_gaussians.ply
