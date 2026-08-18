@@ -361,6 +361,9 @@
         document.getElementById('help').style.display = m === 'walk' ? 'block' : 'none'; };
       bw.onclick = () => setMode('walk');
       bo.onclick = () => setMode('orbit');
+      // Startmodus aus scene.json: fuer freistehende Bauwerke "orbit" -> rahmt das
+      // ganze Objekt automatisch ein (kein hand-gesetzter Startblick noetig).
+      if (sp.start_mode === 'orbit') setMode('orbit');
     }
     init().catch(e => fail('Fehler: ' + (e && e.message || e)));
   </script>
