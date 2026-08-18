@@ -23,6 +23,7 @@ nvidia-smi -L
 command -v git  >/dev/null || { apt-get update -qq && apt-get install -y -qq git; }
 command -v curl >/dev/null || { apt-get update -qq && apt-get install -y -qq curl; }
 command -v unzip>/dev/null || { apt-get update -qq && apt-get install -y -qq unzip; }
+command -v zip  >/dev/null || { apt-get update -qq && apt-get install -y -qq zip; }
 
 cd /workspace 2>/dev/null || cd /root
 mkdir -p petra && cd petra
@@ -73,6 +74,22 @@ if [ ! -d sparse/0 ]; then
 fi
 [ -d sparse/0 ] || { echo "FEHLER: COLMAP hat keine Rekonstruktion erzeugt (sparse/0 fehlt)"; exit 1; }
 echo "COLMAP fertig: $(ls sparse)"
+
+# COLMAP-Ergebnis automatisch sichern (Versicherung: bei Pod-Abbruch spaeter mit
+# COLMAP_URL=<diese URL> neu starten -> COLMAP wird uebersprungen, kein Neurechnen).
+if [ ! -f /workspace/colmap_saved.txt ]; then
+  echo "== Sichere COLMAP-Ergebnis (sparse+images) =="
+  ( cd "$DATA" && zip -rq /workspace/petra_colmap.zip sparse images ) \
+    && CU="$(curl -fsSL -F 'reqtype=fileupload' -F 'time=72h' \
+             -F 'fileToUpload=@/workspace/petra_colmap.zip' \
+             https://litterbox.catbox.moe/resources/internals/api.php 2>/dev/null || true)"
+  if [ -n "${CU:-}" ]; then
+    echo "$CU" > /workspace/colmap_saved.txt
+    echo " >>> COLMAP-SICHERUNG (bei Abbruch neu starten mit  COLMAP_URL=$CU  ...): $CU"
+  else
+    echo " (COLMAP-Sicherung fehlgeschlagen -- egal, weiter im Training)"
+  fi
+fi
 
 # ---- gsplat aufsetzen (baut kein diff_gaussian_rasterization) ----
 python - <<'PY'
