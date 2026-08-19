@@ -183,7 +183,11 @@
       let yaw = yaw0, pitch = pitch0;   // Start: stehend, Blick schraeg auf den Stumpf
       const pos = eye.clone();
       const step = Math.max(0.05, radius * 0.012);      // Schrittweite an Szenengroesse
-      let orbYaw = 0, orbPitch = 0.35, orbR = radius * 1.8;   // Umkreisen
+      // Umkreisen: Start-Ausrichtung optional aus scene.json (orbit_yaw/pitch) --
+      // so laesst sich der Orbit frontal auf eine Fassade drehen.
+      let orbYaw = (sp.orbit_yaw != null) ? sp.orbit_yaw : 0;
+      let orbPitch = (sp.orbit_pitch != null) ? sp.orbit_pitch : 0.35;
+      let orbR = radius * 1.8;   // Umkreisen
       const keys = {};
       window._pos = pos; window._cam = cam;             // fuer Funktionstest
       const look = new THREE.Vector3(), fwd = new THREE.Vector3(), right = new THREE.Vector3();
