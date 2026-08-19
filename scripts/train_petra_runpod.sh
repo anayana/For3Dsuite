@@ -13,7 +13,10 @@
 # Attribution: CULTURE3D (Zheng et al., ICCV 2025). Nur Forschungs-/Demo-Nutzung.
 set -euo pipefail
 
-IMAGES_URL="https://files.catbox.moe/uo567o.zip"   # wird vor dem Commit eingesetzt (verkleinerte Bilder, ~1600 px)
+IMAGES_URL="https://files.catbox.moe/uo567o.zip"   # verkleinerte Bilder (~1600 px)
+# Fertige COLMAP-Rekonstruktion (sparse+images) -> COLMAP wird uebersprungen, nur
+# noch Training. Kann per Env COLMAP_URL=... ueberschrieben werden.
+COLMAP_URL="${COLMAP_URL:-https://files.catbox.moe/31g8i2.zip}"
 
 echo "=========================================================="
 echo " Petra (Treasury Face) 3DGS -- $(hostname)"
@@ -121,8 +124,10 @@ python -c "import gsplat, gsplat.color_correct; print('gsplat OK', gsplat.__vers
 OUTPLY=/workspace/petra_gaussians.ply
 [ -d /workspace ] || OUTPLY=/root/petra_gaussians.ply
 
-echo "== Training (30k) -- ~30-45 min =="
-python gsplat/examples/simple_trainer.py default \
+echo "== Training MCMC (30k, bis 2,5 Mio Gaussians) -- deutlich schaerfer, ~45-60 min =="
+# MCMC-Strategie mit hohem Gaussian-Cap statt Default -> viel mehr Detail/Schaerfe.
+python gsplat/examples/simple_trainer.py mcmc \
+    --strategy.cap-max 2500000 \
     --data_dir "$DATA" --data_factor 1 --max_steps 30000 \
     --result_dir /workspace/petra_out --disable_viewer
 
