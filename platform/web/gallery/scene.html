@@ -30,14 +30,22 @@
       padding: 8px 14px; font-size: 13px; text-decoration: none; }
     #title { font-weight: 600; }
 
-    /* Pano/3D-Umschalter */
-    #modes { position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
-      z-index: 15; display: flex; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+    /* Pano/3D-Umschalter + Dreh-Schalter (oben Mitte, in beiden Ansichten sichtbar) */
+    #topcenter { position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      z-index: 15; display: flex; gap: 10px; align-items: center; }
+    #modes { display: flex; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
       border: 1px solid rgba(255,255,255,.12); border-radius: 10px; overflow: hidden; }
     #modes button { background: none; border: none; color: #cfcfcf; cursor: pointer;
       padding: 8px 18px; font-size: 13px; }
     #modes button.active { background: rgba(126,231,135,.22); color: #d8ffdb; }
     #modes button:disabled { color: #555; cursor: default; }
+
+    #spin { background: rgba(0,0,0,.55); backdrop-filter: blur(6px); color: #cfcfcf;
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px; cursor: pointer;
+      padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+    #spin.active { background: rgba(126,231,135,.22); color: #d8ffdb;
+      border-color: rgba(126,231,135,.4); }
+    #spin[hidden] { display: none; }
 
     /* Farbvarianten (unten Mitte, nur Panorama-Modus) */
     #variants { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
@@ -312,9 +320,12 @@
     <button id="ctx-btn" hidden>ℹ Standort &amp; Kontext</button>
   </div>
   <div id="context"></div>
-  <div id="modes">
-    <button id="mode-pano" class="active">Panorama</button>
-    <button id="mode-3d" disabled>3D-Punktwolke</button>
+  <div id="topcenter">
+    <div id="modes">
+      <button id="mode-pano" class="active">Panorama</button>
+      <button id="mode-3d" disabled>3D-Punktwolke</button>
+    </div>
+    <button id="spin" title="Szene langsam drehen lassen (Vortragsmodus)">⟳ Drehen</button>
   </div>
   <div id="nav">
     <button id="nav-orbit" class="active">Umkreisen</button>
@@ -382,12 +393,51 @@
     <table id="ib-attrs"></table>
     <div id="ib-bench"></div>
     <div class="xyz" id="ib-xyz"></div>
-    <button class="close" onclick="document.getElementById('infobox').style.display='none'">Schließen</button>
+    <button class="close" id="ib-close">Schließen</button>
   </div>
 
   <script type="module">
     import { CloudViewer } from './cloudviewer.js';
     const sid = new URLSearchParams(location.search).get('id');
+
+    // ---- Auto-Rotation (Vortragsmodus) ------------------------------------
+    // Standard ist AUS -- die Sammlung ist zum Untersuchen da. Eingeschaltet
+    // wird per ?autorotate=<Grad/s> (negativ = andere Richtung) oder per Knopf.
+    // Wer Bewegungsreduktion eingeschaltet hat, bekommt nie eine Dauerdrehung.
+    const SPIN_MAX = 10;              // Grad/s, darueber wird geklemmt
+    const SPIN_DEFAULT = 2;           // Grad/s fuer den Knopf ohne URL-Vorgabe
+    const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const _spinParam = parseFloat(new URLSearchParams(location.search).get('autorotate'));
+    let spinSpeed = Number.isFinite(_spinParam) && _spinParam !== 0
+      ? Math.max(-SPIN_MAX, Math.min(SPIN_MAX, _spinParam)) : SPIN_DEFAULT;
+    let spinOn = !REDUCED_MOTION && Number.isFinite(_spinParam) && _spinParam !== 0;
+    let spinPaused = false;           // Marker-Fenster offen -> Szene steht still
+
+    function applySpin() {
+      const on = spinOn && !spinPaused && !REDUCED_MOTION;
+      // Pannellum haelt bei Eingaben von selbst an und nimmt nach
+      // autoRotateInactivityDelay wieder auf -- das muss nicht nachgebaut werden.
+      if (viewer) on ? viewer.startAutoRotate(spinSpeed) : viewer.stopAutoRotate();
+      if (cloud) cloud.setAutoRotate(on ? spinSpeed : 0);
+      const b = document.getElementById('spin');
+      b.classList.toggle('active', spinOn);
+      b.setAttribute('aria-pressed', spinOn ? 'true' : 'false');
+    }
+    function setSpinPaused(p) { spinPaused = p; applySpin(); }
+
+    function buildSpin() {
+      const b = document.getElementById('spin');
+      if (REDUCED_MOTION) { b.hidden = true; return; }   // Bewegungsreduktion: kein Angebot
+      b.onclick = () => {
+        spinOn = !spinOn;
+        // In der Begehen-Ansicht dreht nichts -- also beim Einschalten dorthin
+        // wechseln, wo die Drehung sichtbar ist.
+        if (spinOn && cloud && cloud.nav === 'walk')
+          document.getElementById('nav-orbit').click();
+        applySpin();
+      };
+      applySpin();
+    }
 
     // Anzeigenamen/Einheiten fuer die kuratierten Felder (Rest kommt generisch)
     const LABELS = {
@@ -552,7 +602,7 @@
       document.getElementById('ib-xyz').textContent = m.xyz
         ? `Punktwolken-Position: (${m.xyz.map(v => (+v).toFixed(2)).join(', ')}) m`
         : '';
-      document.getElementById('infobox').style.display = 'block';
+      openInfobox();
     }
 
     // BHD-Methodenvergleich am Baum (m.dbh_benchmark aus scripts/bench_dbh.py):
@@ -622,7 +672,18 @@
         'Ganzbaum-QSM-Werte (Holzvolumen, BHD, Verzweigungsordnung) am jeweiligen '
         + 'Baum-Marker. grün/tot ist aus der QSM-Geometrie nicht ableitbar '
         + '(braucht Blatt-Holz-/Vitalitätsdaten).';
+      openInfobox();
+    }
+
+    // Solange ein Datenblatt offen ist, steht die Szene still -- sonst wandert
+    // der angeklickte Baum unter dem Fenster weg.
+    function openInfobox() {
       document.getElementById('infobox').style.display = 'block';
+      setSpinPaused(true);
+    }
+    function closeInfobox() {
+      document.getElementById('infobox').style.display = 'none';
+      setSpinPaused(false);
     }
 
     // Portal-Hotspot: Pfeil + Beschriftung; Klick springt in die Zielszene.
@@ -637,6 +698,9 @@
     function gotoPortal(evt, m) {
       let u = 'scene.html?id=' + encodeURIComponent(m.target);
       if (m.target_yaw != null) u += '&yaw=' + m.target_yaw;
+      // Der Vortragsmodus soll den Rundgang ueberleben -- ohne das Anhaengen
+      // stuende die Szene hinter jedem Portal wieder still.
+      if (spinOn) u += '&autorotate=' + spinSpeed;
       location.href = u;
     }
 
@@ -786,7 +850,9 @@
         hfov: view ? view.hfov : 100,
         friction: 0.15,
         hotSpots: [],   // Array anlegen, sonst crasht addHotSpot nach Re-Init
+        autoRotateInactivityDelay: 3000,   // nimmt 3 s nach der letzten Eingabe wieder auf
       };
+      if (spinOn && !spinPaused && !REDUCED_MOTION) cfg.autoRotate = spinSpeed;
       // Blick nach unten begrenzen (z. B. um den Nadir/Stativ-Bereich auszublenden).
       if (scene.min_pitch != null) cfg.minPitch = scene.min_pitch;
       if (scene.max_pitch != null) cfg.maxPitch = scene.max_pitch;
@@ -795,6 +861,9 @@
       // Hotspots beim destroy()/Neuaufbau (Variantenwechsel), addHotSpot nicht.
       let added = false;
       v.on('load', () => {
+        // Wie die Hotspots geht auch die Auto-Rotation beim destroy()/Neuaufbau
+        // verloren -- nach JEDEM Laden neu anwerfen, nicht nur beim ersten.
+        if (spinOn && !spinPaused && !REDUCED_MOTION) v.startAutoRotate(spinSpeed);
         if (added) return;
         added = true;
         for (const m of scene.markers || []) {
@@ -1015,6 +1084,7 @@
         showQSMInfo(info);
       };
       buildNav();
+      applySpin();             // sofort, nicht erst nach dem Laden aller Daten
       window._cloud = cloud;   // Debug-/Test-Zugriff
       const origin = (scene.source && scene.source.origin_xyz) || [0, 0, 0];
       const levels = scene.pointcloud.levels || [];
@@ -1055,6 +1125,8 @@
       buildValidation(scene);
       buildCanopy(scene);
       buildContext(scene);
+      buildSpin();
+      document.getElementById('ib-close').onclick = closeInfobox;
 
       const btnPano = document.getElementById('mode-pano');
       const btn3d = document.getElementById('mode-3d');
@@ -1071,6 +1143,7 @@
         btn3d.textContent = '3D lädt …';
         await initCloud(scene);
         btn3d.textContent = '3D-Punktwolke';
+        applySpin();
         return;
       }
 
@@ -1093,6 +1166,7 @@
             await initCloud(scene);
             btn3d.textContent = '3D-Punktwolke';
           }
+          applySpin();
         };
       }
       btnPano.onclick = () => {

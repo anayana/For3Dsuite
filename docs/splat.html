@@ -32,12 +32,19 @@
       border: 1px solid rgba(255,255,255,.14); border-radius: 10px; padding: 8px 12px;
       font-size: 11.5px; line-height: 1.6; }
     #help b { color: #eee; }
-    #modeBar { position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
-      z-index: 30; display: flex; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
+    #topcenter { position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+      z-index: 30; display: flex; gap: 10px; align-items: center; }
+    #modeBar { display: flex; background: rgba(0,0,0,.55); backdrop-filter: blur(6px);
       border: 1px solid rgba(255,255,255,.12); border-radius: 10px; overflow: hidden; }
     #modeBar button { background: none; border: none; color: #cfcfcf; cursor: pointer;
       padding: 7px 15px; font-size: 12.5px; }
     #modeBar button.active { background: rgba(126,231,135,.22); color: #d8ffdb; }
+    #spin { background: rgba(0,0,0,.55); backdrop-filter: blur(6px); color: #cfcfcf;
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px; cursor: pointer;
+      padding: 7px 13px; font-size: 12.5px; white-space: nowrap; }
+    #spin.active { background: rgba(126,231,135,.22); color: #d8ffdb;
+      border-color: rgba(126,231,135,.4); }
+    #spin[hidden] { display: none; }
     /* ---- Marker (3D-verankerte Info-Punkte) + Popup-Karte ---- */
     #markers { position: absolute; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
     .pin { position: absolute; transform: translate(-50%, -50%); pointer-events: auto;
@@ -77,9 +84,12 @@
     <a href="index.html">← Szenen</a>
     <span id="title"></span>
   </div>
-  <div id="modeBar">
-    <button id="m-walk" class="active">Begehen</button>
-    <button id="m-orbit">Umkreisen</button>
+  <div id="topcenter">
+    <div id="modeBar">
+      <button id="m-walk" class="active">Begehen</button>
+      <button id="m-orbit">Umkreisen</button>
+    </div>
+    <button id="spin" title="Szene langsam drehen lassen (Vortragsmodus)">⟳ Drehen</button>
   </div>
   <div id="note" hidden></div>
   <div id="help">
@@ -188,6 +198,15 @@
       let orbYaw = (sp.orbit_yaw != null) ? sp.orbit_yaw : 0;
       let orbPitch = (sp.orbit_pitch != null) ? sp.orbit_pitch : 0.35;
       let orbR = radius * 1.8;   // Umkreisen
+      // Auto-Rotation (Vortragsmodus), gleicher Parameter wie in scene.html:
+      // ?autorotate=<Grad/s>, Standard aus, bei Bewegungsreduktion nie an.
+      const SPIN_MAX = 10, SPIN_DEFAULT = 2;
+      const REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const spinParam = parseFloat(new URLSearchParams(location.search).get('autorotate'));
+      let spinSpeed = Number.isFinite(spinParam) && spinParam !== 0
+        ? Math.max(-SPIN_MAX, Math.min(SPIN_MAX, spinParam)) : SPIN_DEFAULT;
+      let spinOn = !REDUCED_MOTION && Number.isFinite(spinParam) && spinParam !== 0;
+      let idleSince = spinOn ? 0 : performance.now();   // per URL: sofort drehen
       const keys = {};
       window._pos = pos; window._cam = cam;             // fuer Funktionstest
       const look = new THREE.Vector3(), fwd = new THREE.Vector3(), right = new THREE.Vector3();
@@ -304,11 +323,22 @@
           .add(t2.clone().multiplyScalar(cp * Math.sin(y)))
           .add(upv.clone().multiplyScalar(Math.sin(p)));
       }
-      function frame() {
+      let lastT = performance.now();
+      function frame(now) {
+        const dt = Math.min(((now || performance.now()) - lastT) / 1000, 0.1);
+        lastT = now || performance.now();
         // Im Headset (WebXR) steuert die Brille die Kamera; Fortbewegung per Controller.
         if (viewer.renderer && viewer.renderer.xr && viewer.renderer.xr.isPresenting) {
           xrLocomotion();
           requestAnimationFrame(frame); return;
+        }
+        // Auto-Rotation: nur beim Umkreisen, zeitbasiert (dt), nicht waehrend
+        // Ziehen/Popup/Hintergrund-Tab.
+        if (spinOn && !REDUCED_MOTION && mode === 'orbit' && !drag && !document.hidden
+            && !document.getElementById('pop').classList.contains('open')
+            && performance.now() - idleSince > 2500) {
+          // Minus: gleiche Drehrichtung wie Panorama und Punktwolke
+          orbYaw -= THREE.MathUtils.degToRad(spinSpeed) * dt;
         }
         if (mode === 'walk') {
           // horizontale Bewegungsrichtung (auf dem "Boden")
@@ -340,7 +370,8 @@
       cv.style.cursor = 'grab';
       cv.addEventListener('pointerdown', e => { drag = true; px = e.clientX; py = e.clientY;
         cv.style.cursor = 'grabbing'; cv.setPointerCapture(e.pointerId); });
-      cv.addEventListener('pointerup', e => { drag = false; cv.style.cursor = 'grab'; });
+      cv.addEventListener('pointerup', e => { drag = false; cv.style.cursor = 'grab';
+        idleSince = performance.now(); });
       cv.addEventListener('pointermove', e => {
         if (!drag) return;
         const dx = (e.clientX - px) * 0.005, dy = (e.clientY - py) * 0.005;
@@ -350,6 +381,7 @@
         else { orbYaw -= dx; orbPitch = clamp(orbPitch + dy); }
       });
       cv.addEventListener('wheel', e => { e.preventDefault();
+        idleSince = performance.now();
         if (mode === 'orbit') orbR = Math.max(radius * 0.2, orbR * (1 + Math.sign(e.deltaY) * 0.1));
         else pos.addScaledVector(lookVec(yaw, pitch), -Math.sign(e.deltaY) * 1.5);
       }, { passive: false });
@@ -365,6 +397,23 @@
         document.getElementById('help').style.display = m === 'walk' ? 'block' : 'none'; };
       bw.onclick = () => setMode('walk');
       bo.onclick = () => setMode('orbit');
+
+      // Dreh-Schalter: setzt dieselbe Variable wie der URL-Parameter. Beim
+      // Einschalten in der Begehen-Ansicht auf Umkreisen wechseln, sonst
+      // passierte sichtbar nichts.
+      const bs = document.getElementById('spin');
+      const paintSpin = () => { bs.classList.toggle('active', spinOn);
+        bs.setAttribute('aria-pressed', spinOn ? 'true' : 'false'); };
+      if (REDUCED_MOTION) bs.hidden = true;
+      else {
+        bs.onclick = () => {
+          spinOn = !spinOn;
+          if (spinOn && mode !== 'orbit') setMode('orbit');
+          idleSince = 0;                    // sofort losdrehen, nicht erst nach der Ruhephase
+          paintSpin();
+        };
+        paintSpin();
+      }
       // Startmodus aus scene.json: fuer freistehende Bauwerke "orbit" -> rahmt das
       // ganze Objekt automatisch ein (kein hand-gesetzter Startblick noetig).
       if (sp.start_mode === 'orbit') setMode('orbit');

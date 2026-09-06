@@ -39,6 +39,9 @@ export class CloudViewer {
     this._clock = new THREE.Clock();
     this._spawned = false;
     this._bbox = null;
+    this.autoRot = 0;           // Auto-Rotation in Grad/s, 0 = aus (siehe setAutoRotate)
+    this._dragging = false;
+    this._idleSince = performance.now();
 
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x0d1117);
@@ -70,6 +73,13 @@ export class CloudViewer {
     this.raycaster.params.Points.threshold = 0.3;
     this._pointer = new THREE.Vector2();
     this.renderer.domElement.addEventListener('pointerdown', (e) => this._onDown(e));
+    // Auto-Rotation pausiert, solange jemand zieht, und wartet danach eine
+    // Ruhephase ab -- sonst rueckt die Szene direkt nach dem Loslassen weiter.
+    // Loslassen kann ausserhalb des Canvas passieren, daher am window.
+    this._onSpinUp = () => { this._dragging = false; this._idleSince = performance.now(); };
+    this._onSpinWheel = () => { this._idleSince = performance.now(); };
+    this.renderer.domElement.addEventListener('wheel', this._onSpinWheel, { passive: true });
+    window.addEventListener('pointerup', this._onSpinUp);
     this._onResize = () => this._resize();
     window.addEventListener('resize', this._onResize);
 
@@ -109,6 +119,14 @@ export class CloudViewer {
         this.camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(8));
     }
     if (this.onNavChange) this.onNavChange(mode, this.locked);
+  }
+
+  // Auto-Rotation der Umkreisen-Ansicht, in Grad/s (0 = aus). Negativ dreht
+  // andersherum. Wirkt nur im Orbit-Modus -- eine erzwungene Drehung beim
+  // Begehen waere unbrauchbar.
+  setAutoRotate(degPerSec) {
+    this.autoRot = Number.isFinite(degPerSec) ? degPerSec : 0;
+    this._idleSince = 0;      // sofort loslegen; die Ruhephase gilt nach Eingaben
   }
 
   requestLock() {
@@ -346,6 +364,7 @@ export class CloudViewer {
   }
 
   _onDown(ev) {
+    this._dragging = true;              // haelt die Auto-Rotation an
     if (this.nav === 'walk' && !this.locked) { this.requestLock(); return; }
     const r = this.renderer.domElement.getBoundingClientRect();
     if (this.locked) {
@@ -387,7 +406,17 @@ export class CloudViewer {
     this._raf = requestAnimationFrame(() => this._animate());
     const dt = Math.min(this._clock.getDelta(), 0.1);   // Tab-Wechsel abfedern
     if (this.nav === 'walk') this._move(dt);
-    else this.controls.update();
+    else {
+      // OrbitControls.autoRotateSpeed ist 2*PI/60 rad je Sekunde, also 6 Grad/s
+      // je Einheit; update(dt) macht die Drehung zeitbasiert statt bildbasiert.
+      // Vorzeichen so gewaehlt, dass ein positiver Wert das Bild in dieselbe
+      // Richtung zieht wie im Panorama (dort schiebt Pannellum bei positiver
+      // Geschwindigkeit den Bestand nach rechts durchs Bild).
+      this.controls.autoRotate = !!(this.autoRot && !this._dragging && !document.hidden
+        && performance.now() - this._idleSince > 2500);
+      this.controls.autoRotateSpeed = this.autoRot / 6;
+      this.controls.update(dt);
+    }
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -397,6 +426,7 @@ export class CloudViewer {
     if (this._ro) this._ro.disconnect();
     if (this.locked) document.exitPointerLock();
     window.removeEventListener('resize', this._onResize);
+    window.removeEventListener('pointerup', this._onSpinUp);
     document.removeEventListener('keydown', this._onKeyDown);
     document.removeEventListener('keyup', this._onKeyUp);
     document.removeEventListener('mousemove', this._onMouseMove);
