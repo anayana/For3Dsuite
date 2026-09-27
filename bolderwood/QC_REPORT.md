@@ -42,6 +42,20 @@ Zur Kontrolle gerendert: `QC_scene19_range_pano.png`, `QC_scene19_intensity_pano
 und dasselbe für Szene 45. Bäume stehen senkrecht, Boden unten, Kronendach oben — die
 Interpretation stimmt.
 
+Diese vier Bilder liegen **nicht im Repo**: es sind Rauschbilder von je 2–3 MB, die sich
+praktisch nicht komprimieren lassen, und der Push dieses Repos scheitert reproduzierbar ab
+etwa 1 MB (HTTP 408). Sie werden aus den Rohwolken erzeugt mit
+
+```
+python bolderwood/bolderwood_io.py --qc-images
+```
+
+Das schreibt sie auf 2514×943 (Kastenmittel, Faktor 4) neben dieses Dokument;
+`write_qc_panoramas(scene, reduce=1)` liefert die volle Auflösung 3771×10054. Die
+Einfärbung der Reichweite ist eine Regenbogenrampe zwischen dem 1. und 99. Perzentil,
+fehlende Returns schwarz — für den Streifentest kommt es nur darauf an, ob das Panorama
+durchläuft, nicht auf die exakten Farbwerte.
+
 ## 2. Es gibt keine HDRs
 
 Die Stereobilder sind **8 Bit RGB, PACKBITS-komprimiert**, 688×1032×3, `uint8`,

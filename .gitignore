@@ -46,3 +46,6 @@ data/forestvr/
 # von GitHub. Leser und QC-Bericht bleiben versioniert, die Downloads nicht.
 bolderwood/*.zip
 bolderwood/*.csv
+# Auch die QC-Panoramen: je 2-3 MB Rauschbild, nicht komprimierbar, und der Push
+# scheitert hier ab ~1 MB. "bolderwood_io.py --qc-images" erzeugt sie neu.
+bolderwood/QC_scene*.png

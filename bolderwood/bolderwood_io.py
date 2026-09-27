@@ -198,7 +198,66 @@ def load_small(scene: int, with_rgb: bool = True):
     return xyz, rgb
 
 
+# ---------------------------------------------------------------------------
+# QC-Bilder
+# ---------------------------------------------------------------------------
+def write_qc_panoramas(scene: int, outdir: Path | str = ROOT,
+                       reduce: int = 4) -> list[Path]:
+    """Reichweiten- und Intensitaetspanorama als PNG schreiben.
+
+    Die Sichtpruefung zu QC_REPORT.md Punkt 1: stimmt die Speicherreihenfolge,
+    ergibt sich ein durchgehendes Panorama; stimmt sie nicht, ist es Streifenmuell.
+    Die Bilder liegen NICHT im Repo (je 2-30 MB Rauschbild, praktisch nicht
+    komprimierbar, und der Push dieses Repos scheitert ab etwa 1 MB) -- sie werden
+    hier erzeugt.
+
+    ``reduce=4`` mittelt auf 2514x943, die Groesse, in der die Panoramen fuer
+    QC_REPORT.md angesehen wurden; der Streifentest braucht die volle Aufloesung
+    nicht. ``reduce=1`` liefert die ganzen 3771x10054 (dann je 20-30 MB).
+    """
+    from PIL import Image
+
+    outdir = Path(outdir)
+    pano = load_panorama(scene)
+    m = valid_mask(pano)
+    rng, _, _ = to_spherical(pano[..., :3])
+
+    # Reichweite: Perzentilschnitt, damit einzelne weite Returns nicht alles
+    # flachdruecken; ohne Return schwarz.
+    lo, hi = np.percentile(rng[m], [1, 99])
+    r = np.clip((rng - lo) / max(hi - lo, 1e-9), 0, 1)
+    r[~m] = 0
+    cmap = np.stack([np.clip(1.5 - abs(4 * r - 3), 0, 1),      # R
+                     np.clip(1.5 - abs(4 * r - 2), 0, 1),      # G
+                     np.clip(1.5 - abs(4 * r - 1), 0, 1)], -1)  # B
+    cmap[~m] = 0
+
+    inten = pano[..., 3]
+    ilo, ihi = np.percentile(inten[m], [1, 99])
+    g = np.clip((inten - ilo) / max(ihi - ilo, 1e-9), 0, 1)
+    g[~m] = 0
+
+    out = []
+    for name, arr in (("range", (cmap * 255).astype(np.uint8)),
+                      ("intensity", (g * 255).astype(np.uint8))):
+        p = outdir / f"QC_scene{scene}_{name}_pano.png"
+        im = Image.fromarray(arr)
+        if reduce > 1:
+            im = im.reduce(reduce)      # Kastenmittel, kein Nachschaerfen
+        im.save(p, optimize=True)
+        out.append(p)
+    return out
+
+
 if __name__ == "__main__":
+    import sys
+
+    if "--qc-images" in sys.argv:
+        for sc in SCENES:
+            for p in write_qc_panoramas(sc):
+                print(f"-> {p}")
+        raise SystemExit(0)
+
     for sc in SCENES:
         pano = load_panorama(sc)
         m = valid_mask(pano)
