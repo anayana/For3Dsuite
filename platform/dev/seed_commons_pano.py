@@ -116,8 +116,27 @@ def main():
                        "attribution": attrib, "authors": [meta["artist"]]},
             "pointcloud": None, "markers": [],
         }
-        (dest / "scene.json").write_text(json.dumps(scene, ensure_ascii=False, indent=2),
-                                         encoding="utf-8")
+
+        # VORHANDENE, VON HAND GEPFLEGTE INHALTE RETTEN.
+        # Dieses Skript baut die Szene komplett neu. Wurden ihr spaeter Marker
+        # hinzugefuegt (Bestandes-Panels, Einzelbaum-Marker), waeren die beim
+        # naechsten Lauf weg -- genau das ist an der Wilder-Kaiser-Szene passiert
+        # und kostete 10 Marker, die nur ueber die Git-Historie zurueckkamen.
+        # Der Seed liefert Bild und Attribution; alles Handgepflegte bleibt.
+        sj = dest / "scene.json"
+        if sj.is_file():
+            try:
+                alt_scene = json.loads(sj.read_text(encoding="utf-8"))
+            except ValueError:
+                alt_scene = {}
+            for key in ("markers", "legend", "stand", "canopy", "hedge_colorings"):
+                if alt_scene.get(key):
+                    scene[key] = alt_scene[key]
+            n_alt = len(alt_scene.get("markers") or [])
+            if n_alt:
+                print(f"  {n_alt} vorhandene Marker uebernommen")
+
+        sj.write_text(json.dumps(scene, ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"  Szene '{sid}' veroeffentlicht ({w}x{h}), Attribution: {attrib}")
 
 

@@ -41,3 +41,8 @@ data/qsm/*
 !data/renon/colmap_renon4.zip
 data/passta/
 data/forestvr/
+# Bolderwood-Rohdaten (heruntergeladen, jederzeit neu ziehbar): die beiden
+# clean_cloud*_UPDATE.pcd_.zip sind je ~500 MB und reissen die 100-MB-Grenze
+# von GitHub. Leser und QC-Bericht bleiben versioniert, die Downloads nicht.
+bolderwood/*.zip
+bolderwood/*.csv

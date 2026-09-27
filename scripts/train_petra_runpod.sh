@@ -124,10 +124,11 @@ python -c "import gsplat, gsplat.color_correct; print('gsplat OK', gsplat.__vers
 OUTPLY=/workspace/petra_gaussians.ply
 [ -d /workspace ] || OUTPLY=/root/petra_gaussians.ply
 
-echo "== Training MCMC (30k, bis 2,5 Mio Gaussians) -- deutlich schaerfer, ~45-60 min =="
-# MCMC-Strategie mit hohem Gaussian-Cap statt Default -> viel mehr Detail/Schaerfe.
-python gsplat/examples/simple_trainer.py mcmc \
-    --strategy.cap-max 2500000 \
+echo "== Training (DEFAULT-Strategie, 30k) -- saubere kompakte Gaussians, ~40-55 min =="
+# Default-Strategie (NICHT mcmc): erzeugt saubere, kompakte Gaussians ohne Nadel-
+# Artefakte. Schaerfe kommt aus der hoeheren Bildaufloesung (2560 px), nicht aus
+# einem hohen Cap. data_factor 1 nutzt die Bilder direkt.
+python gsplat/examples/simple_trainer.py default \
     --data_dir "$DATA" --data_factor 1 --max_steps 30000 \
     --result_dir /workspace/petra_out --disable_viewer
 
