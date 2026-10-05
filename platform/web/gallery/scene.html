@@ -263,9 +263,12 @@
       padding: 14px 16px; display: none; }
     #infobox h2 { margin: 0 0 2px; font-size: 15px; }
     /* [hidden] muss gewinnen: eine eigene display-Regel schlaegt sonst das
-       hidden-Attribut aus dem Browser-Stylesheet -- der Hinweis "Demo-Werte"
-       stand dadurch an JEDEM Baum, obwohl kein einziger Marker demo=true traegt. */
-    #infobox .demo[hidden] { display: none; }
+       hidden-Attribut aus dem Browser-Stylesheet. Das ist hier zweimal passiert --
+       der Hinweis "Demo-Werte" stand an JEDEM Baum (display:inline-block), und der
+       Umschalter "Heute/Prognose" stand in den Bestandes-Panels (display:flex),
+       obwohl beide per .hidden=true abgeschaltet waren. Darum eine Regel fuer das
+       ganze Infofenster statt einer je Element. */
+    #infobox [hidden] { display: none !important; }
     #infobox .demo { display: inline-block; font-size: 10.5px; color: #f0b429;
       border: 1px solid #f0b429; border-radius: 10px; padding: 1px 7px; margin: 4px 0 6px; }
     #infobox table { width: 100%; border-collapse: collapse; margin-top: 8px;
