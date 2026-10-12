@@ -25,6 +25,11 @@ Zugehöriges Konzept: `Paper_ODT/Heritage_Toolkit_Paper/Heritage_Toolkit_Konzept
   zurückgespielt werden (Skript dafür anlegen), sonst überschreibt der nächste
   Notebook-Export sie.
 
+**Stand 12.10.2026 (Branch `claude/for3dsuite-medien-marker-1ihant`):** `--html-only`
+und der Abbruch ohne `platform/dev-data/` sind umgesetzt; `platform/dev/marker_counts.py`
+zählt/sichert/vergleicht die Marker je Szene. `docs/data/` wurde **nicht** geändert,
+es gibt also nichts zurückzuspielen (Rückspiel-Skript erst nötig, wenn das passiert).
+
 ---
 
 ## 1. Ziel
@@ -149,6 +154,16 @@ Ein Schema für Panorama **und** Splat:
 - Bestehende Wald-Marker (Baumwerte in `attributes`, Panels über `kind`) dürfen
   sich **sichtbar nicht verändern**.
 
+**Stand A (umgesetzt):** Lesefunktion `normalizeMarker()` in
+`platform/web/gallery/marker-card.js`, Python-Gegenstück
+`platform/app/marker_schema.py`, Migration `platform/dev/migrate_markers.py`
+(Probelauf ohne `--write`; `--strip-legacy` erst nach B/C, weil die heutige
+API-Whitelist `anchor` verwerfen würde). Anker mit Punktwolken-Lage:
+`{"type": "pano", "yaw", "pitch", "xyz"}`. Alle 554 Marker in `docs/data/`
+behalten Zahl, Position und Anzeigeweg; Hotspots + Datenblätter von Wilder Kaiser,
+Renon setup01 und Barberini rendern byteidentisch zum Stand `7886ba3`.
+Tests: `tests/test_marker_schema.py`.
+
 ### B. API erweitern (`platform/app/main.py`)
 - `PUT …/markers` verwirft derzeit alles außer `id/label/yaw/pitch/xyz/attributes/demo`
   → neues Schema annehmen (Whitelist), URLs prüfen, Text serverseitig bereinigen.
@@ -166,6 +181,12 @@ Ein Schema für Panorama **und** Splat:
 - `scene.html` (Panorama) soll dieselben Medien-Marker zeigen wie `splat.html`
   (Video, Bild, Audio, Links). Gemeinsamen Render-Code in eine JS-Datei auslagern
   (`marker-card.js`), von beiden Viewern genutzt.
+
+**Stand D (umgesetzt):** `marker-card.js` rendert die Karte (Bild/Video oben,
+Text als sichere Markdown-Teilmenge + `<b>/<i>` der Altdaten, weitere Medien,
+Audio, Links, Zeit/Herkunft, Lizenz) für `splat.html` und `scene.html`. Im
+Panorama öffnen Marker ohne `kind` mit Text/Medium/Link die Karte (goldener
+Pin); Baum-Datenblatt, Themen-Panels (`kind`) und Portale bleiben wie bisher.
 
 ### E. Export
 - `export_static.py`: nur Marker mit `rights.consent == "public"` exportieren;

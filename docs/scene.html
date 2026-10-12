@@ -449,6 +449,8 @@
 
   <script type="module">
     import { CloudViewer } from './cloudviewer.js';
+    import { normalizeMarker, hasCardContent, markerIcon, openMarkerCard,
+             mediaFigure, linkList, richText } from './marker-card.js';
     const sid = new URLSearchParams(location.search).get('id');
 
     // ---- Auto-Rotation (Vortragsmodus) ------------------------------------
@@ -582,6 +584,7 @@
 
     function showInfo(_e, m) {
       if (m.kind && m.kind !== 'tree') { showPanel(m); return; }
+      if (hasCardContent(m)) { showCard(m); return; }
       document.getElementById('ib-body').innerHTML = '';   // Reste eines Panels raeumen
       document.getElementById('ib-demo').textContent = 'Demo-Werte';
       document.getElementById('ib-label').textContent = m.label || m.id;
@@ -660,6 +663,13 @@
       openInfobox();
     }
 
+    // --- Medien-Marker (Text/Bild/Video/Audio/Links): gemeinsame Karte --------
+    function showCard(m) {
+      closeInfobox();
+      setSpinPaused(true);
+      openMarkerCard(m, { onClose: () => setSpinPaused(false) });
+    }
+
     // --- Themen-Panels (Marker mit m.kind != 'tree') --------------------------
     function panelFactsEl(facts) {
       const table = document.createElement('table');
@@ -736,6 +746,16 @@
         const t = document.createElement('div');
         t.className = 'ib-text'; t.innerHTML = m.body; body.appendChild(t);
       }
+      if (m.text && !m.body) {
+        const t = document.createElement('div');
+        t.className = 'ib-text'; t.innerHTML = richText(m.text); body.appendChild(t);
+      }
+      // Medien des neuen Schemas; das Alt-Bild (m.image) steht schon oben
+      for (const it of m.media || []) {
+        if (it.src === m.image || it.src === m.video) continue;
+        const f = mediaFigure(it);
+        if (f) body.appendChild(f);
+      }
       if (m.facts) body.appendChild(panelFactsEl(m.facts));
       if (m.sources && m.sources.length) {
         const src = document.createElement('div');
@@ -743,6 +763,9 @@
         src.innerHTML = 'Quellen: ' + m.sources.map(s =>
           `<a href="${s.url}" target="_blank" rel="noopener">${s.label}</a>`).join(' · ');
         body.appendChild(src);
+      } else if ((m.links || []).length) {
+        const l = linkList(m.links);
+        if (l) body.appendChild(l);
       }
       document.getElementById('ib-xyz').textContent = m.note || '';
       openInfobox();
@@ -859,7 +882,8 @@
       info:        { icon: '💡', color: '#f0c040' },
     };
     function markerDiv(div, m) {
-      const k = MK_KIND[m.kind];
+      const k = MK_KIND[m.kind]
+        || (!m.kind && hasCardContent(m) ? { icon: markerIcon(m, '💬'), color: '#e6b23c' } : null);
       if (!k) {                            // klassischer Baum-Punkt (Szenen ohne 'kind')
         div.classList.add('tree-marker');
         const vit = (m.attributes || {}).Vitalitaet;
@@ -870,7 +894,7 @@
         div.appendChild(s);
         return;
       }
-      div.classList.add('info-marker', 'mk-' + m.kind);
+      div.classList.add('info-marker', 'mk-' + (m.kind || 'media'));
       div.style.setProperty('--mc', k.color);
       const g = document.createElement('span');
       g.className = 'glyph'; g.textContent = k.icon;
@@ -1285,6 +1309,9 @@
       const r = await fetch('data/scene-' + encodeURIComponent(sid) + '.json');
       if (!r.ok) { document.getElementById('title').textContent = 'Szene nicht gefunden'; return; }
       const scene = await r.json();
+      // Alt (yaw/pitch/xyz/label ...) und neues Schema (anchor/title/media ...)
+      // einheitlich lesen -- die alten Feldnamen bleiben dabei gefuellt.
+      scene.markers = (scene.markers || []).map(normalizeMarker);
       window.__scene = scene;        // Bestandesangaben fuer die Prognose-Fussnote
       document.title = (scene.title || sid) + ' — 360Pano3D';
       document.getElementById('title').textContent = scene.title || sid;
