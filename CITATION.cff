@@ -11,6 +11,7 @@ authors:
   - given-names: "Angel"
     family-names: "Naya"
     email: "angel.naya@posteo.de"
+    affiliation: "Independent Researcher, Berlin, Germany"
     alias: "anayana"
 repository-code: "https://github.com/anayana/For3Dsuite"
 url: "https://anayana.github.io/For3Dsuite/"

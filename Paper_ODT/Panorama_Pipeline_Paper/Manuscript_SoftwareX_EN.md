@@ -2,7 +2,7 @@
 %
 %
 
-**Author:** Angel Naya, Independent researcher, [city, country]\
+**Author:** Angel Naya, Independent Researcher, Berlin, Germany\
 **Corresponding author:** Angel Naya, angel.naya@posteo.de\
 **Target journal:** SoftwareX (Elsevier) — Original Software Publication
 
