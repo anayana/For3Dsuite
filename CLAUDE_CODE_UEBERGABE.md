@@ -8,6 +8,25 @@ Zugehöriges Konzept: `Paper_ODT/Heritage_Toolkit_Paper/Heritage_Toolkit_Konzept
 
 ---
 
+## 0. ACHTUNG bei Arbeit in der Cloud (Handy / claude.ai/code)
+
+`platform/dev-data/` (die eigentlichen Szenendaten mit Markern und Medien) ist
+**nicht in Git** (`.gitignore`) und liegt nur auf dem Notebook.
+`export_static.py` löscht `docs/` komplett und baut es aus `platform/dev-data/` neu.
+**In der Cloud würde ein Export deshalb die gesamte Galerie inkl. aller Marker löschen.**
+
+- In der Cloud **niemals** `platform/dev/export_static.py` ohne Schutz ausführen.
+- Erste Aufgabe: `export_static.py` um einen Modus `--html-only` erweitern, der nur
+  HTML/JS aus `platform/web/gallery/` nach `docs/` patcht/kopiert und `docs/data/` +
+  `docs/media/` unangetastet lässt. Ohne `platform/dev-data/` soll das Skript mit
+  Fehler abbrechen statt `docs/` zu löschen.
+- Marker-Daten in der Cloud nur in `docs/data/*.json` ändern; diese Änderungen
+  müssen später auf dem Notebook nach `platform/dev-data/media/scenes/*/scene.json`
+  zurückgespielt werden (Skript dafür anlegen), sonst überschreibt der nächste
+  Notebook-Export sie.
+
+---
+
 ## 1. Ziel
 
 Eine **nutzerfreundliche GUI**, mit der Laien selbstständig:
@@ -164,7 +183,7 @@ Ein Schema für Panorama **und** Splat:
 
 ## 5. Erster Prompt für Claude Code (zum Kopieren)
 
-> Lies `CLAUDE_CODE_UEBERGABE.md`. Prüfe zuerst mit git, ob lokal Marker gegenüber
+> Lies `CLAUDE_CODE_UEBERGABE.md`, besonders Abschnitt 0. Prüfe zuerst mit git, ob lokal Marker gegenüber
 > `origin/main` fehlen, und stelle sie ggf. wieder her (Abschnitt 2). Lege dann einen
 > Branch `feature/medien-marker` an und setze Aufgabe A (einheitliches Marker-Schema,
 > abwärtskompatibel) und D (gemeinsame `marker-card.js` für Panorama- und
