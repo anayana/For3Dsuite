@@ -13,6 +13,7 @@ authors:
     email: "angel.naya@posteo.de"
     affiliation: "Independent Researcher, Berlin, Germany"
     alias: "anayana"
+doi: "10.5281/zenodo.2332235605"
 repository-code: "https://github.com/anayana/For3Dsuite"
 url: "https://anayana.github.io/For3Dsuite/"
 # Code: GPLv3 fuer das ganze Repo (einheitlich mit growth-service/TreeGrOSS).

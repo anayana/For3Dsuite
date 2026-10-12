@@ -39,7 +39,7 @@ open-source; self-hosting; Docker; web visualization; photogrammetry
 |---|---|
 | Current code version | v1.0 |
 | Permanent link to code/repository | https://github.com/anayana/For3Dsuite |
-| Permanent link to reproducible capsule | [Zenodo DOI to be minted on submission] |
+| Permanent link to reproducible capsule | https://doi.org/10.5281/zenodo.2332235605 |
 | Legal code license | GNU General Public License v3.0 or later (GPL-3.0-or-later) |
 | Code versioning system | git |
 | Languages / tools | Python, JavaScript; Hugin, GIMP, Pannellum, three.js, Caddy, Garage, Docker |
@@ -304,7 +304,7 @@ Renon / ICOS IT-Ren (Leica BLK360, E57; CC BY 4.0) [17] and SegmentedForests
 HDRIs (CC0, https://polyhaven.com). Real multi-image capture: PASSTA LunchRoom
 (CC BY 4.0) [10]. Source code, container recipe and evaluation scripts:
 https://github.com/anayana/For3Dsuite (GPL-3.0-or-later), archived at
-[Zenodo DOI].
+https://doi.org/10.5281/zenodo.2332235605.
 
 ## Declaration of competing interest
 
