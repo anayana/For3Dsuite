@@ -321,7 +321,8 @@ review & editing.
 ## Acknowledgements
 
 The author thanks the providers of the open datasets used here: the ICOS
-ecosystem station IT-Ren (Renon), the authors of SegmentedForests and PASSTA, and
+ecosystem station IT-Ren (Renon) and Chang et al. for the Renon laser scans, the
+authors of SegmentedForests and PASSTA, and
 the Poly Haven contributors. This research received no specific grant from any
 funding agency in the public, commercial, or not-for-profit sectors.
 
@@ -368,12 +369,13 @@ alignment for panorama stitching in sparsely structured environments.
 https://doi.org/10.5281/zenodo.19663081
 
 [11] Laino, D., Cabo, C., Prendes, C., et al. (2024). 3DFin: a software for
-automated 3D forest inventories from terrestrial point clouds. *Forestry* 97(4).
+automated 3D forest inventories from terrestrial point clouds. *Forestry* 97(4),
+479–496.
 https://doi.org/10.1093/forestry/cpae020
 
-[12] Laino, D., Cabo, C., Ordóñez, C., et al. (2025). SegmentedForests: a labelled
+[12] Laino, D., Cabo, C., Ordóñez, C., et al. (2026). SegmentedForests: a labelled
 dataset of terrestrial LiDAR point clouds for semantic segmentation of forests.
-*Forestry*. https://doi.org/10.1093/forestry/cpaf062 · Data:
+*Forestry* 99(2). https://doi.org/10.1093/forestry/cpaf062 · Data:
 https://doi.org/10.5281/zenodo.17396681
 
 [13] Roussel, J.-R., et al. (2020). lidR: An R package for analysis of Airborne
@@ -390,8 +392,10 @@ Evaluation in Industry*, Taylor & Francis, 189–194.
 [16] Sauro, J., Lewis, J. R. (2016). *Quantifying the User Experience: Practical
 Statistics for User Research*, 2nd ed., Morgan Kaufmann.
 
-[17] [Authors of the Zenodo record] ([year]). Renon (ICOS IT-Ren) terrestrial
-laser scans, Leica BLK360, E57. Zenodo. https://doi.org/10.5281/zenodo.17186174
+[17] Chang, M., Candotti, A., von Ellenrieder, K., Tomelleri, E., Camurri, M.
+(2025). Data for: "A multi-platform LiDAR dataset for standardized forest
+inventory measurement at long term ecological monitoring sites" [Dataset].
+Zenodo. https://doi.org/10.5281/zenodo.17186174
 
 *Software used, with the versions that produced the reported figures:*
 Hugin/Panotools 2024.0.1 (GPL-2.0), Pannellum 2.5.6 (MIT), three.js r160 (MIT),
@@ -399,4 +403,4 @@ Leaflet 1.9.4 (BSD-2), Caddy 2 (Apache-2.0), Garage 1.0.1 (AGPL-3.0), FastAPI
 (MIT), NumPy 1.26.4, Pillow 12.3.0, OpenCV 5.0.0, laspy 2.5.4, 3DFin/dendromatics,
 TreeGrOSS (GPL-3.0, isolated as a separate process).
 
-*DOIs and years to be verified against publisher records before submission.*
+*Checked against publisher records (Oct 2026): [1]–[3], [6], [7], [11]–[14]. Still to check: DOI of [5], [10].*

@@ -22,7 +22,7 @@ Stand: 12.10.2026.
 
 | Szene(n) | Datensatz / Urheber | Lizenz | Quelle | Status |
 |---|---|---|---|---|
-| `renon-setup01`, `-setup02`, `-combined` | Renon (ICOS IT-Ren), Leica BLK360, E57 | CC BY 4.0 | [10.5281/zenodo.17186174](https://doi.org/10.5281/zenodo.17186174) | 🔎 |
+| `renon-setup01`, `-setup02`, `-combined` | Renon (ICOS IT-Ren), Leica BLK360, E57; Chang, Candotti, von Ellenrieder, Tomelleri, Camurri (2025), „A multi-platform LiDAR dataset for standardized forest inventory measurement at long term ecological monitoring sites" | CC BY 4.0 | [10.5281/zenodo.17186174](https://doi.org/10.5281/zenodo.17186174) | 🔎 |
 | `renon-splat` | eigenes 3DGS-Training aus demselben E57 | CC BY 4.0 (abgeleitet) | wie oben | 🔎 |
 | `renon-helios-synth`, `renon-occlusion` | synthetischer Scan (HELIOS++) aus der Renon-Inventur | abgeleitet von Renon, CC BY 4.0 | [HELIOS++](https://github.com/3dgeo-heidelberg/helios) | 🔎 |
 | `segforests-vienna-spruce`, `-beech` | SegmentedForests plot_07/06 (Laino et al. 2025) | MIT | [10.5281/zenodo.17396681](https://doi.org/10.5281/zenodo.17396681) | 🔎 |
