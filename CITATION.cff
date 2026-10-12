@@ -15,9 +15,9 @@ authors:
     alias: "anayana"
 repository-code: "https://github.com/anayana/For3Dsuite"
 url: "https://anayana.github.io/For3Dsuite/"
-# TODO: Lizenz festlegen und LICENSE-Datei ergaenzen, dann hier den SPDX-Bezeichner
-# eintragen (z. B. "MIT" oder "GPL-3.0-or-later"). Beachten: TreeGrOSS ist GPL --
-# solange die Engine ausserhalb des Repos/Images bleibt, ist der Kern frei waehlbar.
+# Code: GPLv3 fuer das ganze Repo (einheitlich mit growth-service/TreeGrOSS).
+# Die Beispieldaten haben eigene Lizenzen (je Szene in scene.json, CC0/CC BY/CC BY-SA/MIT).
+license: "GPL-3.0-or-later"
 keywords:
   - "forest inventory"
   - "LiDAR"

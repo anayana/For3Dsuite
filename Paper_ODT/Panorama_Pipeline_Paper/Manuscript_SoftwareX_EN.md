@@ -40,7 +40,7 @@ open-source; self-hosting; Docker; web visualization; photogrammetry
 | Current code version | v1.0 |
 | Permanent link to code/repository | https://github.com/anayana/For3Dsuite |
 | Permanent link to reproducible capsule | [Zenodo DOI to be minted on submission] |
-| Legal code license | [OSI license — to be finalized] |
+| Legal code license | GNU General Public License v3.0 or later (GPL-3.0-or-later) |
 | Code versioning system | git |
 | Languages / tools | Python, JavaScript; Hugin, GIMP, Pannellum, three.js, Caddy, Garage, Docker |
 | Compilation / runtime | Docker + Compose (single command) |

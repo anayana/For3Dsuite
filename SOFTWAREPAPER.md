@@ -58,7 +58,7 @@ braucht dichte Aufnahme, Bonität/Alter extern. (Details: [EXPOSE.md](EXPOSE.md)
   (6 Unit-Tests der Kernfunktionen) + [.github/workflows/tests.yml](.github/workflows/tests.yml)
   (pytest auf Python 3.10/3.11 bei jedem Push).
 - ~~`CITATION.cff`~~ ✓ ([CITATION.cff](CITATION.cff)); **Zenodo-Release → DOI** noch offen.
-- Lizenz festlegen + LICENSE-Datei (in CITATION.cff als TODO markiert; TreeGrOSS ist GPL).
+- ~~Lizenz festlegen + LICENSE-Datei~~ ✓ GPL-3.0-or-later für das ganze Repo ([LICENSE](LICENSE)).
 - GPU-Image auf einer CUDA-Maschine bauen/verifizieren.
 - Ein kompaktes Architektur-Diagramm.
 

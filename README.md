@@ -196,3 +196,10 @@ Konzept: [BAUSTEINE_4_5_1.md](BAUSTEINE_4_5_1.md).
   Rundumblick eignen sich [Meshroom](https://alicevision.org/#meshroom) (Photogrammetrie)
   oder Gaussian-Splatting-Tools (z.B. Nerfstudio) – benötigt aber deutlich mehr als
   6 Bilder pro Szene und ist ein eigenständiger, aufwändigerer Pfad.
+
+## Lizenz
+
+Code: [GNU GPL v3.0 oder neuer](LICENSE) (GPL-3.0-or-later), einheitlich für das
+ganze Repo inkl. `growth-service/` (TreeGrOSS).
+Die Beispielszenen beruhen auf frei verfügbaren Fremddaten mit **eigenen** Lizenzen
+(CC0, CC BY, CC BY-SA, MIT); Quelle und Lizenz stehen je Szene in der `scene.json`.
