@@ -344,8 +344,8 @@ https://doi.org/10.21105/joss.01628
 Diploma thesis, TU Wien.
 
 [5] Huber, D. (2011). The ASTM E57 file format for 3D imaging data exchange.
-*Proc. SPIE* 7864, Three-Dimensional Imaging, Interaction, and Measurement.
-https://doi.org/10.1117/12.876555
+*Proc. SPIE* 7864, Three-Dimensional Imaging, Interaction, and Measurement,
+78640A. https://doi.org/10.1117/12.876555
 
 [6] Houshiar, H., Elseberg, J., Borrmann, D., Nüchter, A. (2015). A study of
 projections for key point based registration of panoramic terrestrial 3D laser
@@ -403,4 +403,4 @@ Leaflet 1.9.4 (BSD-2), Caddy 2 (Apache-2.0), Garage 1.0.1 (AGPL-3.0), FastAPI
 (MIT), NumPy 1.26.4, Pillow 12.3.0, OpenCV 5.0.0, laspy 2.5.4, 3DFin/dendromatics,
 TreeGrOSS (GPL-3.0, isolated as a separate process).
 
-*Checked against publisher records (Oct 2026): [1]–[3], [6], [7], [11]–[14]. Still to check: DOI of [5], [10].*
+*Checked against publisher records (Oct 2026): [1]–[3], [5]–[7], [11]–[14], [17]. Still to check: [10].*
