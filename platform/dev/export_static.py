@@ -7,8 +7,16 @@ API-Aufrufe auf vorbereitete JSON-Dateien umgebogen (relative Pfade, laeuft
 daher auch unter einem Sub-Pfad wie /For3Dsuite/). Das Studio entfaellt --
 Upload/Verarbeitung brauchen das Backend (siehe platform/README.md).
 
-  python platform/dev/export_static.py
+  python platform/dev/export_static.py              # Vollexport (nur Notebook!)
+  python platform/dev/export_static.py --html-only  # nur HTML/JS nach docs/
+
+ACHTUNG: Der Vollexport loescht docs/ und baut es aus platform/dev-data/ neu.
+platform/dev-data/ ist nicht in Git -- in einem frischen Clone (Cloud, CI)
+fehlt es, und der Export bricht dann ab, statt die Galerie zu leeren.
+--html-only kopiert/patcht nur die Viewer aus platform/web/gallery/ und laesst
+docs/data/ und docs/media/ unangetastet; das geht ueberall.
 """
+import argparse
 import json
 import shutil
 from pathlib import Path
@@ -80,13 +88,17 @@ def patch(text, replacements, name):
     return text
 
 
-def main():
-    if OUT.exists():
-        shutil.rmtree(OUT)
-    (OUT / "data").mkdir(parents=True)
-    (OUT / ".nojekyll").write_text("")
+# Gemeinsame JS-Module der Viewer -- 1:1 kopiert (enthalten keine API-Aufrufe)
+GALLERY_JS = ("cloudviewer.js", "marker-card.js")
 
-    # ---- HTML/JS kopieren und API-Aufrufe auf statische JSONs umbiegen ----
+
+def export_html():
+    """HTML/JS kopieren und API-Aufrufe auf statische JSONs umbiegen.
+
+    Fasst nur die Viewer-Dateien in docs/ an, nie docs/data/ oder docs/media/.
+    """
+    OUT.mkdir(exist_ok=True)
+    (OUT / ".nojekyll").write_text("")
     index = patch((GALLERY / "index.html").read_text(encoding="utf-8"), [
         ("fetch('/api/scenes')", "fetch('data/scenes.json')"),
         ('Im <a href="/admin/">Studio</a> Bilder hochladen.', "&nbsp;"),
@@ -113,7 +125,8 @@ def main():
     ], "splat.html")
     (OUT / "splat.html").write_text(splat, encoding="utf-8")
 
-    shutil.copyfile(GALLERY / "cloudviewer.js", OUT / "cloudviewer.js")
+    for js in GALLERY_JS:
+        shutil.copyfile(GALLERY / js, OUT / js)
 
     # Statische Zusatzseiten (Benchmark-Ergebnis + Rohdaten), 1:1 kopiert
     for extra in ("benchmark.html", "bench_dbh_results.csv",
@@ -121,6 +134,32 @@ def main():
         src = GALLERY / extra
         if src.exists():
             shutil.copyfile(src, OUT / extra)
+
+
+def main():
+    ap = argparse.ArgumentParser(description="Statischer Gallery-Export nach docs/")
+    ap.add_argument("--html-only", action="store_true",
+                    help="nur HTML/JS aus platform/web/gallery/ nach docs/ kopieren; "
+                         "docs/data/ und docs/media/ bleiben unangetastet")
+    args = ap.parse_args()
+
+    if args.html_only:
+        export_html()
+        print(f"-> {OUT}  (nur HTML/JS; docs/data/ und docs/media/ unveraendert)")
+        return
+
+    # Schutz: ohne die lokalen Szenendaten wuerde der Vollexport docs/ loeschen
+    # und leer neu bauen -- die ganze Galerie samt Markern waere weg.
+    if not any(MEDIA.glob("scenes/*/scene.json")):
+        raise SystemExit(
+            f"Abbruch: keine Szenen unter {MEDIA.relative_to(REPO)}/scenes/*/scene.json.\n"
+            "platform/dev-data/ ist nicht in Git und liegt nur auf dem Notebook.\n"
+            "docs/ bleibt unveraendert. Nur Viewer aktualisieren: --html-only")
+
+    if OUT.exists():
+        shutil.rmtree(OUT)
+    (OUT / "data").mkdir(parents=True)
+    export_html()
 
     # ---- Szenen-JSONs + Medien ----
     publish, held = load_publish_list()

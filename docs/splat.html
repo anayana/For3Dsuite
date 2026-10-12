@@ -45,7 +45,7 @@
     #spin.active { background: rgba(126,231,135,.22); color: #d8ffdb;
       border-color: rgba(126,231,135,.4); }
     #spin[hidden] { display: none; }
-    /* ---- Marker (3D-verankerte Info-Punkte) + Popup-Karte ---- */
+    /* ---- Marker (3D-verankerte Info-Punkte); Karte: marker-card.js ---- */
     #markers { position: absolute; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
     .pin { position: absolute; transform: translate(-50%, -50%); pointer-events: auto;
       cursor: pointer; width: 34px; height: 34px; border-radius: 50%; display: grid;
@@ -61,22 +61,6 @@
       padding: 3px 9px; border-radius: 7px; opacity: 0; transition: opacity .12s;
       pointer-events: none; }
     .pin:hover .lbl { opacity: 1; }
-    #pop { position: absolute; inset: 0; z-index: 50; display: none; place-items: center;
-      background: rgba(0,0,0,.55); backdrop-filter: blur(3px); padding: 16px; }
-    #pop.open { display: grid; }
-    #card { width: min(440px, 94vw); max-height: 88vh; overflow: auto; background: #0d1117;
-      border: 1px solid rgba(255,255,255,.14); border-radius: 14px; color: #e6edf3;
-      box-shadow: 0 22px 64px rgba(0,0,0,.62); }
-    #card img, #card video { width: 100%; display: block; background: #000;
-      max-height: 52vh; object-fit: contain; }
-    #card .body { padding: 15px 18px 18px; position: relative; }
-    #card h2 { margin: 0 26px 9px 0; font-size: 19px; line-height: 1.25; }
-    #card p { margin: 0; font-size: 14px; line-height: 1.62; color: #cbd5e1; }
-    #card .cap { margin-top: 12px; font-size: 12px; font-style: italic; color: #9aa7b4; }
-    #card .cred { margin-top: 6px; font-size: 11px; color: #6b7684; }
-    #card .x { position: absolute; top: 12px; right: 14px; cursor: pointer; color: #9aa7b4;
-      font-size: 22px; line-height: 1; background: none; border: none; }
-    #card .x:hover { color: #e6edf3; }
   </style>
 </head>
 <body>
@@ -98,13 +82,13 @@
   </div>
   <div id="err"></div>
   <div id="markers"></div>
-  <div id="pop"><div id="card"></div></div>
 
   <script type="module">
     import * as THREE from 'three';
     import { VRButton } from 'three/addons/webxr/VRButton.js';
     import * as GaussianSplats3D from
       'https://cdn.jsdelivr.net/npm/@mkkellogg/gaussian-splats-3d@0.4.7/build/gaussian-splats-3d.module.js';
+    import { normalizeMarker, openMarkerCard, isMarkerCardOpen } from './marker-card.js';
 
     const sid = new URLSearchParams(location.search).get('id');
     const fail = (m) => { const e = document.getElementById('err');
@@ -211,19 +195,20 @@
       window._pos = pos; window._cam = cam;             // fuer Funktionstest
       const look = new THREE.Vector3(), fwd = new THREE.Vector3(), right = new THREE.Vector3();
 
-      // ---- Marker: 3D-verankerte Info-Punkte mit Bild/Video/Text-Popup -------
+      // ---- Marker: 3D-verankerte Info-Punkte mit Medien-Karte (marker-card.js)
       const ICON = { johnson: '👤', dictionary: '📖', barber: '👤', boswell: '✒️',
                      hodge: '🐈', tech: '✨', portal: '↪' };
-      const markersData = Array.isArray(scene.markers) ? scene.markers : [];
+      // Alt (pos/image/caption ...) und neues Schema (anchor/media ...) gleichermassen
+      const markersData = (Array.isArray(scene.markers) ? scene.markers : []).map(normalizeMarker);
       const mLayer = document.getElementById('markers');
-      const pop = document.getElementById('pop'), card = document.getElementById('card');
       const mEls = markersData.filter(m => Array.isArray(m.pos)).map(m => {
         const el = document.createElement('button');
         el.className = 'pin';
-        el.innerHTML = (ICON[m.id] || ICON[m.type] || '📍')
-          + '<span class="lbl"></span>';
-        el.querySelector('.lbl').textContent = m.title || '';
-        el.addEventListener('click', ev => { ev.stopPropagation(); openCard(m); });
+        el.textContent = m.icon || ICON[m.id] || ICON[m.type] || '📍';
+        const lbl = document.createElement('span');
+        lbl.className = 'lbl'; lbl.textContent = m.title || '';
+        el.appendChild(lbl);
+        el.addEventListener('click', ev => { ev.stopPropagation(); openMarkerCard(m); });
         mLayer.appendChild(el);
         return { el, w: new THREE.Vector3(...m.pos) };
       });
@@ -244,23 +229,6 @@
           }
         } catch (e) { window._merr = (e && e.message) || String(e); }
       }
-      function openCard(m) {
-        const media = m.video ? '<video controls playsinline src="' + m.video + '"></video>'
-          : m.image ? '<img src="' + m.image + '" alt="" />' : '';
-        card.innerHTML = media
-          + '<div class="body"><button class="x" aria-label="Schließen">×</button>'
-          + '<h2>' + (m.title || '') + '</h2>'
-          + '<p>' + (m.text || '') + '</p>'
-          + (m.caption ? '<div class="cap">' + m.caption + '</div>' : '')
-          + (m.credit ? '<div class="cred">' + m.credit + '</div>' : '')
-          + '</div>';
-        card.querySelector('.x').onclick = closeCard;
-        pop.classList.add('open');
-      }
-      function closeCard() { pop.classList.remove('open');
-        const v = card.querySelector('video'); if (v) v.pause(); }
-      pop.addEventListener('click', e => { if (e.target === pop) closeCard(); });
-      addEventListener('keydown', e => { if (e.key === 'Escape') closeCard(); });
 
       // ---- WebXR: Enter-VR-Button + Controller-Fortbewegung ------------------
       // Isoliert: alles Folgende wirkt NUR waehrend einer laufenden VR-Sitzung,
@@ -335,7 +303,7 @@
         // Auto-Rotation: nur beim Umkreisen, zeitbasiert (dt), nicht waehrend
         // Ziehen/Popup/Hintergrund-Tab.
         if (spinOn && !REDUCED_MOTION && mode === 'orbit' && !drag && !document.hidden
-            && !document.getElementById('pop').classList.contains('open')
+            && !isMarkerCardOpen()
             && performance.now() - idleSince > 2500) {
           // Minus: gleiche Drehrichtung wie Panorama und Punktwolke
           orbYaw -= THREE.MathUtils.degToRad(spinSpeed) * dt;

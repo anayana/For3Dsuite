@@ -1,0 +1,21 @@
+name: release
+
+# Ein Versions-Tag (v1.0, v1.1 ...) erzeugt automatisch ein GitHub-Release.
+# Ist das Repo in Zenodo eingeschaltet, archiviert Zenodo jedes Release und
+# vergibt eine DOI.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Release anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --generate-notes --verify-tag

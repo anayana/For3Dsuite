@@ -2,8 +2,8 @@
 %
 %
 
-**Authors:** [To be completed]
-**Corresponding author:** [name, affiliation, e-mail]
+**Author:** Angel Naya, Independent Researcher, Berlin, Germany\
+**Corresponding author:** Angel Naya, angel.naya@posteo.de\
 **Target journal:** SoftwareX (Elsevier) — Original Software Publication
 
 ---
@@ -25,8 +25,8 @@ panoramas, the pose-based branch outperforms stitching on every measure (26.9 vs
 23.0 dB PSNR, 0.886 vs 0.837 SSIM, 0.10 vs 0.14 px seam offset), reconstructs all
 eleven scenes versus six, and does so roughly seven times faster. Both branches
 run fully automatically without manual control points. The software, container
-recipe, and evaluation code are openly available; example data are CC-BY-4.0 and
-CC0.
+recipe, and evaluation code are openly available; all example data are
+third-party open data (CC BY 4.0, MIT, CC0).
 
 **Keywords:** panorama stitching; 360° imaging; terrestrial laser scanning; E57;
 open-source; self-hosting; Docker; web visualization; photogrammetry
@@ -39,12 +39,13 @@ open-source; self-hosting; Docker; web visualization; photogrammetry
 |---|---|
 | Current code version | v1.0 |
 | Permanent link to code/repository | https://github.com/anayana/For3Dsuite |
-| Permanent link to reproducible capsule | [Zenodo DOI to be minted on submission] |
-| Legal code license | [OSI license — to be finalized] |
+| Permanent link to reproducible capsule | https://doi.org/10.5281/zenodo.23323560 |
+| Legal code license | GNU General Public License v3.0 or later (GPL-3.0-or-later) |
 | Code versioning system | git |
 | Languages / tools | Python, JavaScript; Hugin, GIMP, Pannellum, three.js, Caddy, Garage, Docker |
 | Compilation / runtime | Docker + Compose (single command) |
-| Support e-mail | [contact] |
+| Link to developer documentation | https://github.com/anayana/For3Dsuite#readme (platform/README.md) |
+| Support e-mail | angel.naya@posteo.de |
 
 ---
 
@@ -59,15 +60,17 @@ be wired together by hand, with no reproducible, containerized path from raw
 frames to a published, walkable scene. Second, a valuable data source is routinely
 discarded: terrestrial laser scanners (TLS) acquire RGB images whose camera poses
 are stored alongside the geometry in the E57 exchange format, yet these images are
-usually treated only as a means to colourize the point cloud, not as navigable
-panoramas in their own right.
+usually treated only as a means to colourize the point cloud or, as panoramic
+reflectance images, to register scans [6, 7] — not as navigable panoramas in their
+own right.
 
 We address both with a single open-source tool. Its contribution is not any
-individual component — Hugin, Pannellum, and GIMP are established — but their
+individual component — panorama stitching [1, 2], Pannellum [3], and GIMP are
+established — but their
 **integration into one automated, containerized, GUI-driven, vendor-agnostic
 chain**, and specifically the **unification of the two input classes**: captures
 whose pose must be estimated (consumer/DSLR fisheye) and captures whose pose is
-already known (scanner RGB in E57). The former are stitched; the latter are
+already known (scanner RGB in E57 [5]). The former are stitched; the latter are
 reprojected directly to the equirectangular domain, which is faster and free of
 stitching failure modes. The same output can be enriched with data derived from
 the point cloud (stem detection, diameter at breast height, height, crown
@@ -113,8 +116,9 @@ runs the corresponding chain through to a published scene.
   to resample the RGB images into a seamless equirectangular panorama (bilinear
   sampling).
 - **Pre-processing**: batch exposure/crop/nadir–zenith handling (GIMP Script-Fu).
-- **Viewing**: web-based panorama and point-cloud viewer (Pannellum, three.js),
-  multi-resolution output.
+- **Viewing**: web-based panorama and point-cloud viewer (Pannellum [3], three.js),
+  multi-resolution output; for very large clouds, dedicated streaming renderers
+  such as Potree [4] remain the reference.
 - **Enrichment**: georeferenced markers carrying point-cloud-derived inventory
   data overlaid on the walkable scene.
 - **Publishing**: self-hosted (Caddy + Garage) or as a static export.
@@ -129,7 +133,7 @@ projection) are placed in the walkable scene. This demonstrates both outputs fro
 one acquisition — panorama and data carrier.
 
 *Validated against ground truth.* The inventory path is not a demonstrator. On
-two TLS plots of the SegmentedForests dataset, in which every point is manually
+two TLS plots of the SegmentedForests dataset [12], in which every point is manually
 classified, stem detection can be scored for accuracy rather than mere agreement
 (recall / precision; a hit is a detection within 0.6 m of a reference stem):
 
@@ -137,9 +141,9 @@ classified, stem detection can be scored for accuracy rather than mere agreement
 |---|--:|--:|
 | own numpy baseline | 60.3 % / 42.3 % | 34.4 % / 74.6 % |
 | + stem-continuity filter | 57.4 % / 70.9 % | — |
-| lidR (own implementation) | 66.2 % / 45.9 % | — |
+| lidR [13] (own implementation) | 66.2 % / 45.9 % | — |
 | CspStandSegmentation | 57.4 % / 27.7 % | — |
-| **3DFin** (authors' configuration) | **98.5 % / 95.7 %** | **94.5 % / 100 %** |
+| **3DFin** [11] (authors' configuration) | **98.5 % / 95.7 %** | **94.5 % / 100 %** |
 
 We report the uncomfortable result openly: the established domain tool 3DFin
 clearly outperforms our own baseline, consistently across both plots, and the
@@ -152,7 +156,8 @@ shrub and ground vegetation.
 *Scope.* This superiority is conditional on circumferential coverage. On our own
 Renon stand (median 180° arc versus 280–360° in the reference plots) 3DFin
 refuses a diameter for 29 of 37 detections — correct behaviour, since the data do
-not support one; a sweep over the ground-model resolution does not change this.
+not support one; a sweep over the ground-model resolution (cloth simulation
+filter [14]) does not change this.
 Our own methods still return numbers there, resting on 180° arcs — a statement
 about the acquisition, not about the methods.
 
@@ -164,7 +169,7 @@ pose-unknown branch across the low-cost end of the device spectrum.
 reference panoramas (Poly Haven, 8192×4096) we render synthetic captures and rebuild
 a panorama (2048×1024) — once by stitching six 180° fisheye frames (pose withheld),
 once by reprojecting six 90° pinhole frames plus zenith/nadir (pose used) — and
-measure both against the same original.
+measure both against the same original (PSNR, SSIM [8]).
 
 *Counting convention (used throughout):* **completed** means the chain wrote a
 panorama at all; **usable** additionally means the result is geometrically
@@ -194,7 +199,7 @@ ground-truth-free quality flag. Real captures with parallax lie ~56× above the
 synthetic case, which makes the synthetic figures a lower bound.
 ](figures/fig2_evaluation.svg){width=100%}
 
-**Seam offset as an automatic quality flag.** Block-wise phase correlation against
+**Seam offset as an automatic quality flag.** Block-wise phase correlation [9] against
 the reference (64-px blocks, 50% overlap, low-structure blocks discarded)
 separates good from failed reconstructions more sharply than PSNR or SSIM: median
 seam offset 0.11–0.19 px (good stitches) and 0.07–0.13 px (reprojection) versus
@@ -211,7 +216,7 @@ overlaps two source images show the same viewing direction — with perfect
 registration and rotation about the nodal point they would be identical there.
 Their local displacement is the error.
 
-The real capture is **PASSTA LunchRoom** (Zenodo, CC-BY-4.0): 72 photographs from
+The real capture is **PASSTA LunchRoom** [10] (Zenodo, CC BY 4.0): 72 photographs from
 a rotating Canon EOS 70D with supplied calibration. As a control, synthetic
 captures with **identical geometry** are rendered from a CC0 panorama — 18
 positions, 93.6° rectilinear, same stitching chain, same canvas width. The only
@@ -289,12 +294,37 @@ flag for the stitching branch. Future work: wire the quality flag into the GUI;
 integrate further representations (3D Gaussian splatting, meshes) in the same
 viewer; obtain a freely licensed set of raw dual-fisheye frames from a consumer
 360° camera, which would close the last gap in device coverage for the stitching
-branch; and run the prepared usability study.
+branch; and run the prepared usability study (System Usability Scale [15, 16]).
+
+## Data availability
+
+All data used in this work are third-party open data. Terrestrial laser scans:
+Renon / ICOS IT-Ren (Leica BLK360, E57; CC BY 4.0) [17] and SegmentedForests
+(MIT) [12]. Reference panoramas for the quantitative evaluation: eleven Poly Haven
+HDRIs (CC0, https://polyhaven.com). Real multi-image capture: PASSTA LunchRoom
+(CC BY 4.0) [10]. Source code, container recipe and evaluation scripts:
+https://github.com/anayana/For3Dsuite (GPL-3.0-or-later), archived at
+https://doi.org/10.5281/zenodo.23323560.
+
+## Declaration of competing interest
+
+The author declares no known competing financial interests or personal
+relationships that could have appeared to influence the work reported in this
+paper.
+
+## CRediT authorship contribution statement
+
+**Angel Naya:** Conceptualization, Methodology, Software, Validation, Formal
+analysis, Data curation, Visualization, Writing – original draft, Writing –
+review & editing.
 
 ## Acknowledgements
 
-[To be completed.] Example data: Renon / ICOS IT-Ren (CC-BY-4.0); Poly Haven
-panoramas (CC0).
+The author thanks the providers of the open datasets used here: the ICOS
+ecosystem station IT-Ren (Renon) and Chang et al. for the Renon laser scans, the
+authors of SegmentedForests and PASSTA, and
+the Poly Haven contributors. This research received no specific grant from any
+funding agency in the public, commercial, or not-for-profit sectors.
 
 ## References
 
@@ -314,12 +344,13 @@ https://doi.org/10.21105/joss.01628
 Diploma thesis, TU Wien.
 
 [5] Huber, D. (2011). The ASTM E57 file format for 3D imaging data exchange.
-*Proc. SPIE* 7864, Three-Dimensional Imaging, Interaction, and Measurement.
-https://doi.org/10.1117/12.876555
+*Proc. SPIE* 7864, Three-Dimensional Imaging, Interaction, and Measurement,
+78640A. https://doi.org/10.1117/12.876555
 
-[6] Wang, Y., et al. (2015). A study of projections for key point based
-registration of panoramic terrestrial 3D laser scans. *Geo-spatial Information
-Science* 18(1), 27–37. https://doi.org/10.1080/10095020.2015.1017913
+[6] Houshiar, H., Elseberg, J., Borrmann, D., Nüchter, A. (2015). A study of
+projections for key point based registration of panoramic terrestrial 3D laser
+scan. *Geo-spatial Information Science* 18(1), 11–31.
+https://doi.org/10.1080/10095020.2015.1017913
 
 [7] Kang, Z., et al. (2009). Automatic registration of terrestrial laser scanning
 point clouds using panoramic reflectance images. *Sensors* 9(4), 2621–2646.
@@ -332,18 +363,18 @@ Image Processing* 13(4), 600–612. https://doi.org/10.1109/TIP.2003.819861
 [9] Kuglin, C. D., Hines, D. C. (1975). The phase correlation image alignment
 method. *Proc. IEEE Int. Conf. on Cybernetics and Society*, 163–165.
 
-[10] Meneghetti, G., Danelljan, M., Felsberg, M., Nordberg, K. (2015). Image
-alignment for panorama stitching in sparsely structured environments.
-*Scandinavian Conference on Image Analysis (SCIA)*. Data: CC-BY-4.0,
-https://doi.org/10.5281/zenodo.19663081
+[10] Meneghetti, G., Danelljan, M., Felsberg, M. (2015). Image alignment for
+panorama stitching in sparsely structured environments [Dataset]. Zenodo.
+CC BY 4.0. https://doi.org/10.5281/zenodo.19663081
 
 [11] Laino, D., Cabo, C., Prendes, C., et al. (2024). 3DFin: a software for
-automated 3D forest inventories from terrestrial point clouds. *Forestry* 97(4).
+automated 3D forest inventories from terrestrial point clouds. *Forestry* 97(4),
+479–496.
 https://doi.org/10.1093/forestry/cpae020
 
-[12] Laino, D., Cabo, C., Ordóñez, C., et al. (2025). SegmentedForests: a labelled
+[12] Laino, D., Cabo, C., Ordóñez, C., et al. (2026). SegmentedForests: a labelled
 dataset of terrestrial LiDAR point clouds for semantic segmentation of forests.
-*Forestry*. https://doi.org/10.1093/forestry/cpaf062 · Data:
+*Forestry* 99(2). https://doi.org/10.1093/forestry/cpaf062 · Data:
 https://doi.org/10.5281/zenodo.17396681
 
 [13] Roussel, J.-R., et al. (2020). lidR: An R package for analysis of Airborne
@@ -360,10 +391,15 @@ Evaluation in Industry*, Taylor & Francis, 189–194.
 [16] Sauro, J., Lewis, J. R. (2016). *Quantifying the User Experience: Practical
 Statistics for User Research*, 2nd ed., Morgan Kaufmann.
 
+[17] Chang, M., Candotti, A., von Ellenrieder, K., Tomelleri, E., Camurri, M.
+(2025). Data for: "A multi-platform LiDAR dataset for standardized forest
+inventory measurement at long term ecological monitoring sites" [Dataset].
+Zenodo. https://doi.org/10.5281/zenodo.17186174
+
 *Software used, with the versions that produced the reported figures:*
 Hugin/Panotools 2024.0.1 (GPL-2.0), Pannellum 2.5.6 (MIT), three.js r160 (MIT),
 Leaflet 1.9.4 (BSD-2), Caddy 2 (Apache-2.0), Garage 1.0.1 (AGPL-3.0), FastAPI
 (MIT), NumPy 1.26.4, Pillow 12.3.0, OpenCV 5.0.0, laspy 2.5.4, 3DFin/dendromatics,
 TreeGrOSS (GPL-3.0, isolated as a separate process).
 
-*DOIs and years to be verified against publisher records before submission.*
+*Checked against publisher records (Oct 2026): [1]–[3], [5]–[7], [10]–[14], [17].*
