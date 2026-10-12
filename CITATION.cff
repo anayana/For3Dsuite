@@ -8,7 +8,6 @@ abstract: >-
   QSM-Holzvolumen, Kronenschluss/LAI, Hecken-Strukturindex) ableitet.
 type: software
 authors:
-  # TODO: durch den echten Namen ersetzen (Vor-/Nachname).
   - given-names: "Angel"
     family-names: "Naya"
     email: "angel.naya@posteo.de"

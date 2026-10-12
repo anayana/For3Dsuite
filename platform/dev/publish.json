@@ -19,10 +19,7 @@
     "segforests-vienna-beech": "SegmentedForests plot_06 (Wienerwald, Rotbuche, Riegl VZ-2000i): jeder Punkt manuell semantisch klassiert. Erste Szene mit Ground Truth auf Punktebene -- Detektion und Segmentierung werden hier gemessen statt nur untereinander verglichen",
     "renon-combined": "Vier registrierte Renon-Standpunkte (E57) verschmolzen -- 28,8 Mio -> dichte RGB-Wolke, und darauf die VOLLE Kette an einer Flaeche: 82 Staemme, ITCD ueber kuerzeste Wege, BHD nach 6 Verfahren mit Konsens, QSM-Zylindermodell, TreeGrOSS-Prognose je Baum (scripts/RENON_COMBINED.md)",
     "renon-splat": "Trainiertes 3D Gaussian Splatting des EIGENEN Renon-Standorts (700k Gaussians aus 20 Bildern) -- begehbar, schliesst den Kreis: dieselbe Flaeche als Pano, Punktwolke, QSM und jetzt fotoreal",
-    "stump-3dgs": "Referenz-Splat (Mip-NeRF stump) -- zeigt 3DGS-Qualitaet bei dichter Aufnahme, Kontrast zum duennen Renon-Satz",
-    "drjohnson-3dgs": "Begehbarer Innenraum als 3D Gaussian Splatting (Deep-Blending-Referenzszene 'Dr Johnson', 263 Fotos -> 700k Gaussians): der dichte Gegenpol zum duennen Renon-Splat und Prototyp fuer den erzaehlten Museums-Rundgang",
     "hvi-ahn-hedges": "ALS statt TLS: Heckennetz aus offenem AHN-LiDAR, 214 Segmente nach Hedge Vertical Index eingefaerbt",
-    "finnwoods-walk": "Video-Waldspaziergang aus Trail-Frames (optischer Fluss)",
     "ph-mossy-forest": "CC0-Panorama Poly Haven -- Suedafrika, KwaZulu-Natal (-29.01/29.41): Bergwald mit Bach",
     "ph-nature-reserve-forest": "CC0-Panorama Poly Haven -- Suedafrika, Gauteng (-26.17/28.05): Schutzgebiet, 340 km noerdlich der KZN-Aufnahmen",
     "ph-sunset-forest": "CC0-Panorama Poly Haven -- Sachsen (50.96/14.10): Kiefernwald, dem eigenen Untersuchungsraum am naechsten",
@@ -43,13 +40,16 @@
     "barberini-07": "Museum Barberini (Potsdam), Saal 7/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
     "barberini-08": "Museum Barberini (Potsdam), Saal 8/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
     "barberini-09": "Museum Barberini (Potsdam), Saal 9/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
-    "barberini-10": "Museum Barberini (Potsdam), Saal 10/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal",
-    "petra-3dgs": "Begehbares 3DGS der Petra-Fassade (Al-Khazneh, Jordanien) aus 221 Drohnenbildern (CULTURE3D) -- erste archaeologische Aussenstaette der Suite, fotoreal"
+    "barberini-10": "Museum Barberini (Potsdam), Saal 10/10 im begehbaren Street-View-Rundgang -- freie 360-Panoserie (Raimond Spekking, CC BY-SA 4.0), Portale springen Saal zu Saal"
   },
   "_zurueckgehalten": {
     "ph-*": "7 weitere Poly-Haven-Panos: doppeln eine der vier Regionen (Sachsen, Polen, KZN, Gauteng) oder haben keine Koordinate",
     "hedgerow-be-birch": "Dublette zu -alder, gleicher Datensatz und gleiche Auswertung",
     "syssifoss-ka09": "Dublette zu -br01, gleiche Auswertung an einem zweiten Plot",
-    "hechingen-site3": "eigene, NICHT freigegebene Aufnahme -- bewusst nicht veroeffentlicht. Der Rohdatensatz dient nur lokal; fuer die Paper-Evaluation steht mit PASSTA (CC-BY-4.0) ein frei lizenzierter realer Aufnahmesatz zur Verfuegung."
+    "hechingen-site3": "eigene, NICHT freigegebene Aufnahme -- bewusst nicht veroeffentlicht. Der Rohdatensatz dient nur lokal; fuer die Paper-Evaluation steht mit PASSTA (CC-BY-4.0) ein frei lizenzierter realer Aufnahmesatz zur Verfuegung.",
+    "petra-3dgs": "CULTURE3D: keine Lizenz gefunden, laut Trainingsskript nur Forschungs-/Demo-Nutzung (DATA_SOURCES.md)",
+    "drjohnson-3dgs": "Deep Blending: keine Datenlizenz gefunden (DATA_SOURCES.md); lokal weiter Prototyp fuer Medien-Marker",
+    "stump-3dgs": "Mip-NeRF 360: keine Datenlizenz gefunden (DATA_SOURCES.md)",
+    "finnwoods-walk": "FinnWoodlands: keine Datenlizenz gefunden (DATA_SOURCES.md)"
   }
 }

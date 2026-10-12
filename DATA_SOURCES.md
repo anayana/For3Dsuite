@@ -79,6 +79,9 @@ Reynolds (Johnson-Porträt), Titelseite des Dictionary (1755), Northcote zugesch
    (a) aus `publish.json` nehmen und die HF-Dateien auf privat stellen, oder
    (b) die Autoren um Erlaubnis bitten. **Petra zuerst**: der eigene Vermerk sagt
    „nur Forschungs-/Demo-Nutzung".
+   **Erledigt (Galerie):** Petra, Dr Johnson, Stump und FinnWoodlands stehen jetzt
+   unter `_zurueckgehalten` in `publish.json`; der nächste Notebook-Export nimmt sie
+   aus `docs/`. **Noch offen:** die Hugging-Face-Dateien auf privat stellen.
 2. **FinnWoodlands:** Lizenz bei den Autoren erfragen oder die Szene zurückhalten.
 3. **🔎-Einträge** einmal im Browser bestätigen (die Zenodo-Seite zeigt die Lizenz
    oben rechts), etwa 10 Minuten. Dabei für Renon die **Urheber** des Zenodo-Datensatzes
