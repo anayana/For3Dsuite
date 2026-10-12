@@ -4,6 +4,8 @@ Enabling-Infrastruktur-Veröffentlichung zur kumulativen Dissertation
 ([DISSERTATION.md](DISSERTATION.md)): die offene, reproduzierbare Pipeline, auf der die
 Domänen-Paper P1–P3 aufbauen.
 
+Datenquellen und Lizenzen: [DATA_SOURCES.md](DATA_SOURCES.md).
+
 **Kernbotschaft (der Reviewer-Test):** Nicht die Einzelbausteine sind neu, sondern die
 **integrierte, provenienz-getrennte, cross-modal validierte Pipeline** von terrestrischer
 Aufnahme bis zum begehbaren, prognosefähigen Zwilling — offen, selbst hostbar, reproduzierbar.
