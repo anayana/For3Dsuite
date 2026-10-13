@@ -68,6 +68,15 @@ Weitere Verfahren (Kandidaten, Verfügbarkeit offen):
 - **SimpleTree/SimpleForest** (Lehrstuhl Waldwachstum Freiburg; Hackenberg et al. 2015, Forests 6:4245):
   QSM-basierter BHD; läuft als CompuTree-Plugin unter Windows.
 - **lidR** (R) über conda-forge installierbar (`r-lidr`).
+- **Hough-Kreisfit** (u. a. WSL-Technical-Note, Voxel + Hough) und **robuster geometrischer Fit**
+  (Huber/Tukey; vgl. ISPRS Archives XLVIII-4-W11-2024) — selbst implementierbar, in die Monte-Carlo-Rechnung aufnehmen.
+- **TLS2trees** (Python, Methods Ecol. Evol. 2023) und **rayextract/raycloudtools** (CSIRO) — offen, Linux;
+  eher Segmentierung/QSM, BHD-Genauigkeit nicht belegt.
+- Nicht offen bzw. nur beschrieben: TU Dresden (Bienert/Maas, mit TreeMetrics), WSL-Voxel/Hough-Methode,
+  LWF (Leica MS50, astfreie Schaftlänge mit TUM). SSCI (Ehbrecht/Seidel, Göttingen) misst Struktur, nicht BHD.
+
+**Wichtigste Vorarbeit zur Verdeckung:** Abegg et al. 2017, *Forests* 8(6):184 (UZH/WSL):
+„Tree Diameter Distribution and Scanner Location Impact on Occlusion“ — muss zitiert und abgegrenzt werden.
 
 ## 4. Gegenprobe auf echten Daten
 
