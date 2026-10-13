@@ -33,6 +33,7 @@ def main():
     b.setLasOutput(False)          # schlichtes ASCII-XYZ je Leg
     b.setZipOutput(False)
     b.setExportToFile(True)
+    b.setFinalOutput(False)        # nichts im Speicher sammeln (sonst bad_alloc bei vielen Legs)
     b.setRebuildScene(True)
     b.setNumThreads(0)             # alle Kerne
     b.setCallbackFrequency(0)
