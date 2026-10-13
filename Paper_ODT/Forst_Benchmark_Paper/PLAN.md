@@ -160,3 +160,9 @@ Prüft, ob die Schwellen aus S1/S2 auf echte Rinde/Äste übertragbar sind.
     in HELIOS ziemlich genau die Grenze, ab der die BHD-Fehler klein werden.
   - Scan-Design: 4 Standpunkte im Raster → 82 % der Stämme ≥ 180°, 4 eng gestellte (wie Renon) → 71 %, Median
     256° gegen 190°. Einzelstandpunkt: maximal ~172°.
+- **HELIOS S1c** (1200 N/ha, BHD 24 ± 7 cm; 185 Kernstämme, 13 320 Fälle): bestätigt S1b. RMSE ≤ 2 cm ab 180°
+  (Kasa, Zylinder), RANSAC schon ab 135° (1,6 cm). 4 eng gestellte Standpunkte: nur 56 % der Stämme ≥ 180°
+  (Raster: 80 %) — der Abstand der Standpunkte wiegt im dichten Bestand schwerer.
+- Läuft: S1a (400 N/ha, BHD 38 ± 11 cm).
+- **Offen für die Gegenprobe an echten Daten:** SegmentedForests, LAUT, Weiser 2022 liegen auf Zenodo/PANGAEA
+  (aus der Cloud gesperrt) → Download durch den Nutzer nötig.
