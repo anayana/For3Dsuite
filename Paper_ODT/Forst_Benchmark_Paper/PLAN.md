@@ -168,6 +168,6 @@ Prüft, ob die Schwellen aus S1/S2 auf echte Rinde/Äste übertragbar sind.
   (aus der Cloud gesperrt) → Download durch den Nutzer nötig.
 - **HELIOS S1a** (400 N/ha, BHD 38 ± 11 cm; 56 Kernstämme, 4 032 Fälle): dickere Stämme brauchen mehr Bogen
   (180–225°: RMSE ≈ 2,0 cm; ≥ 225°: 1,3 cm) — passt zur Monte-Carlo-Rechnung (Unrundheit wirkt proportional zum BHD).
-- **Alle drei Szenen zusammen** (31 000 Fälle): Anteil |Fehler| ≤ 2 cm bei Kasa/Zylinder 73 % (135–180°),
+- **Alle drei Szenen zusammen** (26 712 Fälle): Anteil |Fehler| ≤ 2 cm bei Kasa/Zylinder 73 % (135–180°),
   82 % (180–225°), 93 % (225–270°), 98–99 % (≥ 270°). Raster mit 4 Standpunkten: 80–89 % der Stämme ≥ 180°,
   mit 6: 96–98 %.
