@@ -19,13 +19,21 @@ docs/data/ und docs/media/ unangetastet; das geht ueberall.
 import argparse
 import json
 import shutil
+import sys
+from datetime import date
 from pathlib import Path
 
 from PIL import Image
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
+from marker_schema import is_public, media_srcs  # noqa: E402
+
 Image.MAX_IMAGE_PIXELS = None
 MAX_PANO_W = 4096   # Web-Viewer braucht kein 8k; haelt docs/ schlank + pushbar
 JPEG_Q = 82
+YEAR = date.today().year   # fuer Sperren mit rights.until
+STORY_EXT = (".jpg", ".jpeg", ".png", ".webp", ".mp4", ".webm",
+             ".mp3", ".m4a", ".ogg", ".wav")
 
 REPO = Path(__file__).resolve().parents[2]
 MEDIA = REPO / "platform" / "dev-data" / "media"
@@ -173,6 +181,19 @@ def main():
         src = sj.parent
         dst = OUT / "media" / "scenes" / sid
         dst.mkdir(parents=True)
+
+        # Freigabe: nur Marker mit rights.consent == public (oder abgelaufener
+        # Sperre) gehen in den oeffentlichen Export. Medien, die NUR an
+        # zurueckgehaltenen Markern haengen, werden nicht kopiert.
+        all_markers = s.get("markers") or []
+        shown = [m for m in all_markers if is_public(m, YEAR)]
+        withheld = [m for m in all_markers if not is_public(m, YEAR)]
+        if withheld:
+            print(f"   {sid}: {len(withheld)} Marker zurueckgehalten (Freigabe)")
+        if "markers" in s:
+            s["markers"] = shown
+        shown_files = {Path(u).name for m in shown for u in media_srcs(m)}
+        hidden_files = {Path(u).name for m in withheld for u in media_srcs(m)} - shown_files
         for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken, Video, QSM, Splat)
             if not (f.is_file() and f.suffix in (".jpg", ".bin", ".mp4", ".ply", ".splat")):
                 continue
@@ -194,8 +215,9 @@ def main():
             story_dst = dst / "story"
             story_dst.mkdir(parents=True, exist_ok=True)
             for f in sorted(story_src.iterdir()):
-                if not (f.is_file() and f.suffix.lower()
-                        in (".jpg", ".jpeg", ".png", ".mp4", ".webm")):
+                if not (f.is_file() and f.suffix.lower() in STORY_EXT):
+                    continue
+                if f.name in hidden_files:
                     continue
                 if f.suffix.lower() in (".jpg", ".jpeg", ".png"):
                     with Image.open(f) as im:
