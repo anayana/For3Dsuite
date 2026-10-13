@@ -44,7 +44,10 @@ def main():
     while sim.isStarted() and not sim.isFinished():
         time.sleep(2)
         print(f"  ... laeuft ({time.time()-t0:.0f}s)", flush=True)
-    sim.join()
+    try:
+        sim.join()
+    except AttributeError:         # ohne FinalOutput liefert pyhelios kein Ausgabeobjekt
+        pass
     print(f"fertig nach {time.time()-t0:.0f}s -> {args.outdir}", flush=True)
 
 
