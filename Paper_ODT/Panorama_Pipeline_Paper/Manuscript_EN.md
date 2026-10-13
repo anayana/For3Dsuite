@@ -25,7 +25,7 @@ Software, container recipe, and evaluation code are openly available; all exampl
 data are third-party open data.
 
 **Keywords:** panorama stitching; 360° imaging; terrestrial laser scanning; E57;
-open-source; self-hosting; Docker; web visualization
+open-source software; web visualization
 
 ## 1. Introduction
 
