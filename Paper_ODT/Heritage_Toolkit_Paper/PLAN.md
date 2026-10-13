@@ -7,7 +7,7 @@ Stand 13.10.2026 · Grundlage: `UEBERGABE.md`, `Heritage_Toolkit_Konzept.md`
 - Daten: **Pellis et al. (2025)**, Zenodo 14626611, **CC BY 4.0** (vom Nutzer auf Zenodo
   bestätigt am 13.10.2026). Nur dieser Datensatz und die in `UEBERGABE.md` Abschn. 2 genannten
   CC-BY-Alternativen.
-- GPU: RunPod (Nutzer-Entscheidung 13.10.2026), Colab/Kaggle Free als Alternative. Nur FOSS.
+- GPU nur RunPod. **Kein Google** (kein Colab, kein Kaggle) — Nutzer-Entscheidung 13.10.2026. Nur FOSS.
 - Kein Oral-History-Teil (keine eigene Erhebung).
 - `platform/dev/export_static.py` nur mit `--html-only`.
 
@@ -28,7 +28,7 @@ Inhalt der RAR-Archive unbekannt → Schritt 0b. Start mit `5_CB.rar` (kleinstes
 | # | Schritt | Ergebnis | Wer |
 |---|---|---|---|
 | 0 | Dateiliste (Namen und Größen) von Zenodo 14626611 ablesen | Format und Größe bekannt | Nutzer |
-| 0b | `5_CB.rar` laden, md5 prüfen, Inhalt auflisten (ohne Entpacken): `scripts/pellis_inspect.sh` (RunPod) oder `scripts/pellis_inspect.ipynb` (Colab) | Ordner und Dateitypen bekannt | Nutzer startet, Agent wertet aus |
+| 0b | `5_CB.rar` laden, md5 prüfen, Inhalt auflisten (ohne Entpacken): `scripts/pellis_inspect.sh` (RunPod) | Ordner und Dateitypen bekannt | Nutzer startet, Agent wertet aus |
 | 1 | Pellis-Eintrag in `DATA_SOURCES.md` (CC BY 4.0, ✅) | Lizenz dokumentiert | Agent |
 | 2 | Formatwandler: Pellis-Kameraparameter → COLMAP-Textformat (`cameras.txt`, `images.txt`, `points3D.txt` aus Referenzwolke), Test mit kleinem Ausschnitt | `scripts/pellis_to_colmap.py` + Test | Agent |
 | 3 | Trainings-Rezept `scripts/train_pellis_runpod.sh` nach Muster `train_runpod.sh` (gsplat, vorhandene Posen, ein Befehl im RunPod-Terminal) | Skript, das der Nutzer mit einem Befehl startet | Agent baut, Nutzer startet |
