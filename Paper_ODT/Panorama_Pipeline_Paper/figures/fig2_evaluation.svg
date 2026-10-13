@@ -24,11 +24,11 @@
 <text x="50" y="314" font-size="12" fill="#1b1f24">Stitching, failed</text>
 <text x="330" y="314" font-size="12" font-weight="600" fill="#1b1f24" text-anchor="end">5.95 – 6.14 px</text>
 <circle cx="34" cy="334" r="5" fill="#b02a2a"/>
-<text x="50" y="338" font-size="12" fill="#1b1f24">real, with parallax (PASSTA)</text>
+<text x="50" y="338" font-size="12" fill="#1b1f24">real capture, reference-free (PASSTA)</text>
 <text x="330" y="338" font-size="12" font-weight="600" fill="#1b1f24" text-anchor="end">3.95 px</text>
-<text x="380" y="290" font-size="11.5" fill="#5c6570">Factor ~40 between successful and failed stitches —</text>
-<text x="380" y="308" font-size="11.5" fill="#5c6570">interpretable without ground truth, hence usable</text>
-<text x="380" y="326" font-size="11.5" fill="#5c6570">as an automatic quality flag (&gt; 1 px).</text>
-<text x="380" y="352" font-size="11.5" fill="#5c6570">Real captures lie ~56× above the synthetic case:</text>
-<text x="380" y="370" font-size="11.5" fill="#5c6570">the synthetic figures are a lower bound.</text>
+<text x="380" y="290" font-size="11.5" fill="#5c6570">Against the reference: factor ~40 between</text>
+<text x="380" y="308" font-size="11.5" fill="#5c6570">successful and failed stitches.</text>
+<text x="380" y="326" font-size="11.5" fill="#5c6570"></text>
+<text x="380" y="352" font-size="11.5" fill="#5c6570">Real capture (PASSTA): ~56× the parallax-free</text>
+<text x="380" y="370" font-size="11.5" fill="#5c6570">synthetic control (0.07 px, same geometry).</text>
 </svg>

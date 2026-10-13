@@ -96,7 +96,7 @@ Reynolds (Johnson-Porträt), Titelseite des Dictionary (1755), Northcote zugesch
 6. **Heritage-Paper:** braucht eine 3DGS-Kulturerbe-Szene mit klar offener Lizenz
    (statt Petra/Dr Johnson), z. B. eine CC-BY-Bildserie eines Bauwerks.
 
-## 5. Textbaustein für Paper A (SoftwareX)
+## 5. Textbaustein für Paper A (Computers & Geosciences)
 
 > **Data availability.** All data used in this work are third-party open data.
 > Terrestrial laser scans: Renon / ICOS IT-Ren (Leica BLK360, E57; CC BY 4.0,
