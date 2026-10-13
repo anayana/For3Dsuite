@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <title>Eigene 360°-Szene erstellen — For3Dsuite</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
+  <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+  <style>
+    :root { --bg: #0d1117; --panel: #161b22; --line: #30363d; --fg: #e6edf3;
+            --muted: #8b949e; --accent: #e6b23c; --ok: #238636; --link: #79c0ff; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--fg);
+      font-family: system-ui, -apple-system, sans-serif; }
+    a { color: var(--link); }
+    header { display: flex; align-items: center; gap: 14px; padding: 12px 16px;
+      border-bottom: 1px solid var(--line); }
+    header h1 { margin: 0; font-size: 17px; }
+    main { max-width: 900px; margin: 0 auto; padding: 16px; }
+    .note { color: var(--muted); font-size: 13px; line-height: 1.5; }
+    button, .btn { font: inherit; font-size: 15px; border-radius: 10px; cursor: pointer;
+      padding: 11px 16px; border: 1px solid var(--line); background: var(--panel);
+      color: var(--fg); }
+    .primary { background: var(--ok); border-color: var(--ok); color: #fff; }
+    .gold { border-color: var(--accent); color: var(--accent); }
+    .danger { color: #ff7b72; }
+    button:disabled { opacity: .5; cursor: default; }
+    input[type=text], input[type=url], textarea { width: 100%; font: inherit; font-size: 15px;
+      color: var(--fg); background: var(--bg); border: 1px solid var(--line);
+      border-radius: 8px; padding: 9px 11px; }
+    textarea { min-height: 80px; resize: vertical; }
+    label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 5px; }
+    .file { display: none; }
+    #start { display: grid; gap: 12px; margin-top: 8px; }
+    #start .big { font-size: 17px; padding: 16px; }
+    #err { color: #ff7b72; margin-top: 10px; min-height: 1em; }
+    #editor[hidden], #start[hidden] { display: none; }
+    #pano { width: 100%; height: 56vh; min-height: 280px; border-radius: 12px;
+      overflow: hidden; background: #000; }
+    #pano.adding { outline: 3px solid var(--accent); cursor: crosshair; }
+    #hint { color: var(--accent); font-size: 14px; margin: 8px 0 0; min-height: 1.2em; }
+    .row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      padding: 14px; margin-top: 12px; }
+    .card h3 { margin: 0; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .media-item { display: flex; gap: 8px; align-items: center; margin-top: 8px;
+      font-size: 13px; color: var(--muted); }
+    .media-item input { flex: 1; }
+    /* Marker im Panorama */
+    .mk { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+      font-size: 16px; cursor: pointer; background: rgba(13,17,23,.72);
+      border: 2px solid var(--accent); box-shadow: 0 0 10px var(--accent), 0 1px 8px rgba(0,0,0,.55); }
+    .mk .lbl { position: absolute; left: 42px; top: 50%; transform: translateY(-50%);
+      white-space: nowrap; color: var(--fg); font-size: 12px; background: rgba(0,0,0,.6);
+      padding: 3px 8px; border-radius: 7px; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <header>
+    <a href="index.html">← Galerie</a>
+    <h1>Eigene 360°-Szene erstellen</h1>
+  </header>
+  <main>
+    <section id="start">
+      <p class="note">Wähle ein 360°-Foto (Seitenverhältnis 2:1, wie es 360°-Kameras und
+        Panorama-Apps liefern). Danach setzt du Marker mit Text, Bildern, Audio oder Video
+        und speicherst die fertige Szene als eine HTML-Datei. Die Datei läuft in jedem
+        Browser, auch offline, und lässt sich auf jede Webseite stellen.
+        <b>Alles bleibt auf deinem Gerät, nichts wird hochgeladen.</b></p>
+      <button class="primary big" id="pick-pano">360°-Foto wählen</button>
+      <button class="big" id="pick-scene">Gespeicherte Szene öffnen (.html)</button>
+      <input class="file" type="file" id="f-pano" accept="image/jpeg,image/png,image/webp" />
+      <input class="file" type="file" id="f-scene" accept=".html,text/html" />
+      <div id="err"></div>
+    </section>
+
+    <section id="editor" hidden>
+      <div id="pano"></div>
+      <p id="hint"></p>
+      <div class="row">
+        <button class="gold" id="add">+ Marker setzen</button>
+        <button class="primary" id="save">Szene speichern</button>
+        <button id="new">Neu beginnen</button>
+      </div>
+      <label for="s-title">Titel der Szene</label>
+      <input type="text" id="s-title" placeholder="z. B. Küche, Wohnung Familie M." />
+      <label for="s-desc">Beschreibung</label>
+      <input type="text" id="s-desc" placeholder="optional" />
+      <div id="list"></div>
+      <p class="note" id="save-note"></p>
+    </section>
+  </main>
+
+  <input class="file" type="file" id="f-media" accept="image/*,audio/*,video/*" />
+
+  <script type="module">
+    import { normalizeMarker, openMarkerCard, markerIcon, esc } from './marker-card.js';
+
+    const PANNELLUM = 'https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/';
+    const MAX_W = 4096;                    // wie der Galerie-Export; laeuft auch auf Handys
+    const MAX_MEDIA = 25 * 1024 * 1024;    // je Medium (es wird in die HTML-Datei eingebettet)
+    const $ = (id) => document.getElementById(id);
+
+    let scene = null;        // {format, version, id, title, description, created, pano, markers}
+    let viewer = null;
+    let addMode = false;
+    let dirty = false;
+    let mediaTarget = null;  // Marker, dem das naechste gewaehlte Medium gehoert
+
+    const fail = (m) => { $('err').textContent = m; };
+    const readAs = (file, how) => new Promise((ok, no) => {
+      const r = new FileReader();
+      r.onload = () => ok(r.result); r.onerror = () => no(r.error);
+      how === 'text' ? r.readAsText(file) : r.readAsDataURL(file);
+    });
+
+    // ---- Start: Foto oder gespeicherte Szene -----------------------------------
+    $('pick-pano').onclick = () => $('f-pano').click();
+    $('pick-scene').onclick = () => $('f-scene').click();
+
+    $('f-pano').onchange = async (e) => {
+      const f = e.target.files[0]; e.target.value = '';
+      if (!f) return;
+      fail('Lade Foto …');
+      try {
+        const pano = await panoFromFile(f);
+        startScene({ format: 'for3dsuite-scene', version: 1,
+                     id: 'szene-' + Date.now().toString(36), title: '', description: '',
+                     created: new Date().toISOString(), pano, markers: [] });
+      } catch (err) { fail(err.message); }
+    };
+
+    $('f-scene').onchange = async (e) => {
+      const f = e.target.files[0]; e.target.value = '';
+      if (!f) return;
+      try {
+        const doc = new DOMParser().parseFromString(await readAs(f, 'text'), 'text/html');
+        const el = doc.getElementById('scene-data');
+        const data = el && JSON.parse(el.textContent);
+        if (!data || data.format !== 'for3dsuite-scene' || !data.pano)
+          throw new Error('Diese Datei ist keine hier gespeicherte Szene.');
+        startScene(data);
+      } catch (err) { fail(err.message || 'Datei konnte nicht gelesen werden.'); }
+    };
+
+    // 360°-Foto pruefen (2:1) und fuer den Browser auf hoechstens MAX_W verkleinern
+    async function panoFromFile(file) {
+      const url = URL.createObjectURL(file);
+      try {
+        const img = await new Promise((ok, no) => {
+          const i = new Image(); i.onload = () => ok(i);
+          i.onerror = () => no(new Error('Das Bild konnte nicht gelesen werden (JPG, PNG oder WebP).'));
+          i.src = url;
+        });
+        const ratio = img.naturalWidth / img.naturalHeight;
+        if (ratio < 1.95 || ratio > 2.05)
+          throw new Error(`Kein 360°-Foto: Seitenverhältnis ${ratio.toFixed(2)}:1, nötig ist 2:1 `
+                          + `(z. B. 4096 × 2048 Pixel).`);
+        const w = Math.min(img.naturalWidth, MAX_W), h = Math.round(w / 2);
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        return c.toDataURL('image/jpeg', 0.9);
+      } finally { URL.revokeObjectURL(url); }
+    }
+
+    function startScene(data) {
+      scene = data;
+      scene.markers = (scene.markers || []).filter(m => m.anchor && m.anchor.type === 'pano');
+      $('start').hidden = true; $('editor').hidden = false; fail('');
+      $('s-title').value = scene.title || '';
+      $('s-desc').value = scene.description || '';
+      dirty = false;
+      buildViewer();
+      renderList();
+    }
+
+    // ---- Panorama + Marker ------------------------------------------------------
+    function buildViewer() {
+      if (viewer) viewer.destroy();
+      viewer = pannellum.viewer('pano', {
+        type: 'equirectangular', panorama: scene.pano, autoLoad: true,
+        showZoomCtrl: true, showFullscreenCtrl: true, hfov: 100, hotSpots: [],
+      });
+      viewer.on('load', () => scene.markers.forEach(addHotSpot));
+    }
+
+    function markerDiv(div, m) {
+      div.classList.add('mk');
+      div.textContent = markerIcon(normalizeMarker(m), '💬');
+      if (m.title) {
+        const s = document.createElement('span'); s.className = 'lbl'; s.textContent = m.title;
+        div.appendChild(s);
+      }
+    }
+    function addHotSpot(m) {
+      viewer.addHotSpot({ id: m.id, pitch: m.anchor.pitch, yaw: m.anchor.yaw, cssClass: 'mk',
+        createTooltipFunc: markerDiv, createTooltipArgs: m,
+        clickHandlerFunc: () => { if (!addMode) openMarkerCard(m); } });
+    }
+    function refreshHotSpot(m) {
+      try { viewer.removeHotSpot(m.id); } catch (e) { /* noch nicht gesetzt */ }
+      addHotSpot(m);
+    }
+
+    // Klick ins Panorama setzt im Markermodus einen Marker (Ziehen dreht nur)
+    let down = null;
+    $('pano').addEventListener('pointerdown', e => { down = [e.clientX, e.clientY]; });
+    $('pano').addEventListener('pointerup', e => {
+      if (!addMode || !down) return;
+      const moved = Math.hypot(e.clientX - down[0], e.clientY - down[1]);
+      down = null;
+      if (moved > 8) return;
+      const [pitch, yaw] = viewer.mouseEventToCoords(e);
+      const n = scene.markers.reduce((a, m) => Math.max(a, +String(m.id).replace(/\D/g, '') || 0), 0) + 1;
+      const m = { id: 'm' + n, anchor: { type: 'pano', yaw: +yaw.toFixed(2), pitch: +pitch.toFixed(2) },
+                  title: 'Marker ' + n, text: '', media: [], links: [] };
+      scene.markers.push(m); dirty = true;
+      addHotSpot(m);
+      setAddMode(false);
+      renderList(m.id);
+    });
+    function setAddMode(on) {
+      addMode = on;
+      $('pano').classList.toggle('adding', on);
+      $('add').textContent = on ? 'Abbrechen' : '+ Marker setzen';
+      $('hint').textContent = on ? 'Tippe in das Panorama, wo der Marker hin soll.' : '';
+    }
+    $('add').onclick = () => setAddMode(!addMode);
+
+    // ---- Markerliste ------------------------------------------------------------
+    function field(labelText, el) {
+      const l = document.createElement('label'); l.textContent = labelText;
+      const box = document.createDocumentFragment(); box.append(l, el); return box;
+    }
+    function input(type, value, placeholder, onInput) {
+      const el = document.createElement(type === 'textarea' ? 'textarea' : 'input');
+      if (type !== 'textarea') el.type = type;
+      el.value = value || ''; if (placeholder) el.placeholder = placeholder;
+      el.oninput = () => { onInput(el.value); dirty = true; };
+      return el;
+    }
+    function button(text, cls, onClick) {
+      const b = document.createElement('button'); b.textContent = text;
+      if (cls) b.className = cls; b.onclick = onClick; return b;
+    }
+
+    function renderList(focusId) {
+      const list = $('list'); list.replaceChildren();
+      if (!scene.markers.length) {
+        const p = document.createElement('p'); p.className = 'note';
+        p.textContent = 'Noch keine Marker. Tippe auf „+ Marker setzen" und dann ins Panorama.';
+        list.appendChild(p); return;
+      }
+      for (const m of scene.markers) {
+        const card = document.createElement('div'); card.className = 'card';
+        const h = document.createElement('h3');
+        h.textContent = markerIcon(normalizeMarker(m), '💬') + ' ' + (m.title || m.id);
+        card.appendChild(h);
+        const t = input('text', m.title, 'Titel', v => { m.title = v;
+          h.textContent = markerIcon(normalizeMarker(m), '💬') + ' ' + (v || m.id); refreshHotSpot(m); });
+        card.append(field('Titel', t));
+        card.append(field('Text (**fett**, *kursiv*, Leerzeile = neuer Absatz)',
+          input('textarea', m.text, '', v => { m.text = v; })));
+
+        // Medien
+        const ml = document.createElement('div');
+        (m.media || []).forEach((it, i) => {
+          const row = document.createElement('div'); row.className = 'media-item';
+          const kind = { image: '🖼️ Bild', audio: '🔊 Audio', video: '🎬 Video' }[it.type] || it.type;
+          const k = document.createElement('span'); k.textContent = kind;
+          row.append(k, input('text', it.caption, 'Bildunterschrift / Quelle', v => { it.caption = v; }),
+            button('✕', 'danger', () => { m.media.splice(i, 1); dirty = true; refreshHotSpot(m); renderList(m.id); }));
+          ml.appendChild(row);
+        });
+        card.append(field('Bilder, Audio, Video', ml));
+        card.appendChild(button('+ Medium hinzufügen', '', () => { mediaTarget = m; $('f-media').click(); }));
+
+        // Link
+        const ln = (m.links && m.links[0]) || { label: '', url: '' };
+        const setLink = () => { m.links = ln.url ? [ln] : []; };
+        card.append(field('Link (optional)', input('text', ln.label, 'Linktext, z. B. Archiv', v => { ln.label = v; setLink(); })));
+        const u = input('url', ln.url, 'https://…', v => { ln.url = v.trim(); setLink(); });
+        u.style.marginTop = '8px'; card.appendChild(u);
+
+        const row = document.createElement('div'); row.className = 'row';
+        row.append(
+          button('Vorschau', '', () => openMarkerCard(m)),
+          button('Im Panorama zeigen', '', () => viewer.lookAt(m.anchor.pitch, m.anchor.yaw, 75)),
+          button('Löschen', 'danger', () => {
+            if (!confirm(`Marker „${m.title || m.id}" löschen?`)) return;
+            scene.markers = scene.markers.filter(x => x !== m); dirty = true;
+            try { viewer.removeHotSpot(m.id); } catch (e) { /* schon weg */ }
+            renderList();
+          }));
+        card.appendChild(row);
+        list.appendChild(card);
+        if (m.id === focusId) { card.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.focus(); }
+      }
+    }
+
+    $('f-media').onchange = async (e) => {
+      const f = e.target.files[0]; e.target.value = '';
+      const m = mediaTarget; mediaTarget = null;
+      if (!f || !m) return;
+      const type = f.type.split('/')[0];
+      if (!['image', 'audio', 'video'].includes(type)) { alert('Nur Bilder, Audio oder Video.'); return; }
+      if (f.size > MAX_MEDIA) {
+        alert(`Die Datei ist ${(f.size / 1048576).toFixed(0)} MB groß; erlaubt sind 25 MB. `
+              + 'Kürze oder verkleinere sie vorher.');
+        return;
+      }
+      (m.media = m.media || []).push({ type, src: await readAs(f), caption: '' });
+      dirty = true; refreshHotSpot(m); renderList(m.id);
+    };
+
+    $('s-title').oninput = (e) => { scene.title = e.target.value; dirty = true; };
+    $('s-desc').oninput = (e) => { scene.description = e.target.value; dirty = true; };
+    $('new').onclick = () => {
+      if (dirty && !confirm('Nicht gespeicherte Änderungen gehen verloren. Trotzdem neu beginnen?')) return;
+      if (viewer) { viewer.destroy(); viewer = null; }
+      scene = null; dirty = false; setAddMode(false);
+      $('editor').hidden = true; $('start').hidden = false;
+    };
+    addEventListener('beforeunload', (e) => { if (dirty) { e.preventDefault(); e.returnValue = ''; } });
+
+    // ---- Speichern: eine eigenstaendige HTML-Datei ------------------------------
+    // Panorama, Medien, Viewer und Markerkarte stecken in der Datei: sie laeuft
+    // per Doppelklick, offline und auf jedem Webspace, und laesst sich hier wieder oeffnen.
+    $('save').onclick = async () => {
+      const btn = $('save'); btn.disabled = true; btn.textContent = 'Speichere …';
+      try {
+        const [pjs, pcss, mc] = await Promise.all([
+          fetch(PANNELLUM + 'pannellum.js').then(r => r.text()),
+          fetch(PANNELLUM + 'pannellum.css').then(r => r.text()),
+          fetch('./marker-card.js').then(r => r.text()),
+        ]);
+        const html = sceneHtml(scene, pjs, pcss, mc);
+        const name = (scene.title || scene.id).toLowerCase()
+          .replace(/[äöüß]/g, c => ({ ä: 'ae', ö: 'oe', ü: 'ue', ß: 'ss' }[c]))
+          .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'szene';
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([html], { type: 'text/html' }));
+        a.download = name + '.html';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+        dirty = false;
+        $('save-note').textContent = `Gespeichert als ${name}.html (${(html.length / 1048576).toFixed(1)} MB). `
+          + 'Zum Weiterbearbeiten später über „Gespeicherte Szene öffnen" laden.';
+      } catch (err) {
+        alert('Speichern fehlgeschlagen: ' + (err.message || err));
+      } finally { btn.disabled = false; btn.textContent = 'Szene speichern'; }
+    };
+
+    function sceneHtml(s, pjs, pcss, mcSrc) {
+      // marker-card.js als normales Skript einbetten (ohne ES-Module, damit es auch per file:// laeuft)
+      const mc = 'window.MC=(function(){\n' + mcSrc.replace(/^export\s+/gm, '')
+        + '\nreturn {normalizeMarker, openMarkerCard, markerIcon};})();';
+      const data = JSON.stringify({ ...s, saved: new Date().toISOString() }).replace(/</g, '\\u003c');
+      const noScript = (t) => t.replace(/<\/script/gi, '<\\/script');
+      return `<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="generator" content="For3Dsuite (https://github.com/anayana/For3Dsuite)" />
+<title>${esc(s.title || '360°-Szene')}</title>
+<style>${pcss}</style>
+<style>
+html,body{margin:0;height:100%;background:#000;font-family:system-ui,-apple-system,sans-serif}
+#pano{position:absolute;inset:0}
+#bar{position:absolute;top:8px;left:52px;right:12px;z-index:10;pointer-events:none}
+#bar div{display:inline-block;max-width:100%;color:#e6edf3;background:rgba(0,0,0,.55);border-radius:10px;padding:8px 13px;font-size:14px}
+#bar b{display:block;font-size:15px}
+#bar span{color:#cbd5e1;font-size:12.5px}
+#by{position:absolute;bottom:8px;right:10px;z-index:10;font-size:11px;color:#9aa7b4;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:6px}
+#by a{color:#9aa7b4}
+.mk{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:16px;cursor:pointer;background:rgba(13,17,23,.72);border:2px solid #e6b23c;box-shadow:0 0 10px #e6b23c,0 1px 8px rgba(0,0,0,.55)}
+.mk .lbl{position:absolute;left:42px;top:50%;transform:translateY(-50%);white-space:nowrap;color:#e6edf3;font-size:12px;background:rgba(0,0,0,.6);padding:3px 8px;border-radius:7px;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="pano"></div>
+<div id="bar"></div>
+<div id="by">Erstellt mit <a href="https://github.com/anayana/For3Dsuite" target="_blank" rel="noopener">For3Dsuite</a></div>
+<script type="application/json" id="scene-data">${data}<\/script>
+<script>${noScript(pjs)}<\/script>
+<script>${noScript(mc)}<\/script>
+<script>
+(function(){
+var S=JSON.parse(document.getElementById('scene-data').textContent);
+var bar=document.getElementById('bar');
+if(S.title||S.description){var d=document.createElement('div');
+if(S.title){var b=document.createElement('b');b.textContent=S.title;d.appendChild(b);}
+if(S.description){var sp=document.createElement('span');sp.textContent=S.description;d.appendChild(sp);}
+bar.appendChild(d);}
+function mk(div,m){div.classList.add('mk');div.textContent=MC.markerIcon(m,'\\u{1F4AC}');
+if(m.title){var l=document.createElement('span');l.className='lbl';l.textContent=m.title;div.appendChild(l);}}
+var hs=(S.markers||[]).map(function(raw){var m=MC.normalizeMarker(raw);
+return {id:m.id,pitch:m.anchor.pitch,yaw:m.anchor.yaw,cssClass:'mk',createTooltipFunc:mk,createTooltipArgs:m,
+clickHandlerFunc:function(){MC.openMarkerCard(m);}};});
+pannellum.viewer('pano',{type:'equirectangular',panorama:S.pano,autoLoad:true,showZoomCtrl:true,
+showFullscreenCtrl:true,hfov:100,hotSpots:hs});
+})();
+<\/script>
+</body>
+</html>
+`;
+    }
+  </script>
+</body>
+</html>

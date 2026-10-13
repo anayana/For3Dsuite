@@ -128,9 +128,9 @@ def export_html():
     for js in GALLERY_JS:
         shutil.copyfile(GALLERY / js, OUT / js)
 
-    # Statische Zusatzseiten (Benchmark-Ergebnis + Rohdaten), 1:1 kopiert
+    # Statische Zusatzseiten (Benchmark, Rohdaten, Browser-Studio), 1:1 kopiert
     for extra in ("benchmark.html", "bench_dbh_results.csv",
-                  "bench_detection_results.csv"):
+                  "bench_detection_results.csv", "create.html"):
         src = GALLERY / extra
         if src.exists():
             shutil.copyfile(src, OUT / extra)
