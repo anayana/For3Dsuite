@@ -8,8 +8,10 @@ Stand 13.10.2026 · Repo `anayana/For3Dsuite` · Autor: Angel Naya, Independent 
 - Deutsch, **kurz und konkret**. Kein Füllstoff, keine langen Optionslisten. Nur exakte
   Bezeichnungen/Links; nichts raten — wenn etwas nicht prüfbar ist, das in einem Satz sagen.
 - Nutzer arbeitet **vom Handy**, ohne lokales Docker. PRs mergt **der Nutzer** (Agent darf nicht mergen).
-- **Kein Geld:** nur Journals ohne Pflicht-Publikationsgebühr; keine kostenpflichtigen Dienste
-  (RunPod, HF-Spaces o. ä.). GPU nur kostenlos: Google Colab (Free) oder Kaggle (Free GPU).
+- **Kein Geld:** nur Journals ohne Pflicht-Publikationsgebühr. **GPU: RunPod erlaubt** (Nutzer-
+  Entscheidung 13.10.2026; gemietet, ca. 0,20 € je Lauf laut `README_TRAINING.md`; vorhandenes
+  Muster `scripts/train_runpod.sh`). **Kein Google** (auch nicht Colab, Kaggle) — Nutzer-
+  Entscheidung 13.10.2026. Sonstige kostenpflichtige Dienste (HF-Spaces o. ä.) weiterhin nicht.
 - **Nur offene Fremddaten und FOSS**, keine eigenen Aufnahmen/Interviews (derzeit). Lizenzen prüfen
   (`DATA_SOURCES.md`).
 - **Petra (CULTURE3D), Dr Johnson (Deep Blending), Stump (Mip-NeRF 360): keine Datenlizenz gefunden**
@@ -49,13 +51,13 @@ Rigomagno (16575949); Dalibor-Turm Prag (Zenodo 1458271, CC BY-SA 4.0).
 | Marker-Schema (alt+neu), Lesefunktion, Migration, Tests | `platform/web/gallery/marker-card.js`, `platform/app/marker_schema.py`, `platform/dev/migrate_markers.py`, `tests/test_marker_schema.py` |
 | Medien-Karte für Panorama + Splat | `marker-card.js`, `scene.html`, `splat.html` |
 | Browser-Studio (online: https://anayana.github.io/For3Dsuite/create.html) | `platform/web/gallery/create.html` |
-| 3DGS-Training (gsplat), COLMAP, Aufräumen, Viewer | `scripts/build_colmap.py`, `train_*.sh`, `clean_splat.py`, `ply_reduce.py`, `splat.html`; Colab/Kaggle-Notebooks unter `data/renon/colmap/` |
+| 3DGS-Training (gsplat), COLMAP, Aufräumen, Viewer | `scripts/build_colmap.py`, `train_*.sh`, `clean_splat.py`, `ply_reduce.py`, `splat.html`; RunPod: `scripts/train_runpod.sh` |
 | Portale/Rundgang (Barberini, CC BY-SA) | `platform/dev/seed_barberini.py` |
 
 ## 4. Offene Aufgaben (Reihenfolge)
 
 1. Lizenz und Dateiformat des Pellis-Datensatzes klären (Nutzer schaut auf Zenodo nach).
-2. Trainings-Rezept für **Colab/Kaggle (kostenlos)** mit vorhandenen Kameraposen (COLMAP-Schritt
+2. Trainings-Rezept für **RunPod** mit vorhandenen Kameraposen (COLMAP-Schritt
    entfällt oder nur Format-Umwandlung).
 3. Geometrie-Prüfung: Splat-Zentren bzw. gerenderte Tiefe gegen Referenzwolke (C2C-Abstände,
    Vollständigkeit), je Gebäude und Bauteilklasse.
