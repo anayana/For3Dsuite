@@ -124,6 +124,21 @@ Es fehlt vor allem, dass **Nutzer das in der GUI selbst anlegen** können.
 
 ## 4. Was fehlt (Aufgabenliste, in dieser Reihenfolge)
 
+**Stand 13.10.2026:**
+- A, D und `--html-only` erledigt (PR #1).
+- B erledigt: `PUT /api/studio/scenes/{sid}/markers` nimmt das ganze Schema an
+  (`marker_schema.clean_marker`, Felder wie kind/facts bleiben erhalten),
+  `POST /api/studio/scenes/{sid}/media` fuer Video/Bild/Ton,
+  `GET /api/studio/scenes/{sid}` liefert alle Marker fuer den Editor.
+- C fuer Panoramen erledigt: Formular je Marker (Titel, Text, Medien-Upload,
+  Links, Zeit, Freigabe, Herkunft, Lizenz). **Offen: Marker per Klick in
+  Splat-Szenen setzen (3D).**
+- E erledigt: oeffentliche API und Vollexport zeigen nur `rights.consent`
+  = public (oder abgelaufene Sperre); Medien, die nur an zurueckgehaltenen
+  Markern haengen, werden nicht exportiert. Altmarker ohne `rights` = public.
+- Tests: `tests/test_marker_api.py`.
+- Offen: F (3DGS im Studio), Installationsmodus fuer Stufe `onsite`.
+
 ### A. Einheitliches Marker-Schema (Basis für alles)
 Ein Schema für Panorama **und** Splat:
 
