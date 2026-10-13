@@ -3,33 +3,31 @@
 %
 
 **Author:** Angel Naya, Independent Researcher, Berlin, Germany\
-**Corresponding author:** Angel Naya, angel.naya@posteo.de\
-**Target journal:** SoftwareX (Elsevier) — Original Software Publication
+**Corresponding author:** Angel Naya, angel.naya@posteo.de
 
 ---
 
 ## Abstract
 
-Walkable 360° panoramas and point clouds are valuable for documentation,
-monitoring, and outreach, yet their production is usually tied to proprietary,
-cloud-bound toolchains. We present a fully open-source, containerized processing
-chain with a graphical user interface that turns multi-image captures into
-walkable, web-based 3D scenes. The chain unifies two input classes that are
-normally handled separately: (i) captures without known pose (consumer and DSLR
-fisheye), assembled by stitching (Hugin), and (ii) the RGB images of terrestrial
-laser scanners, whose poses are stored in the E57 file and can therefore be
-reprojected directly — a seldom-used by-product. Output is served by an
-open-source web viewer (Pannellum, three.js), self-hostable through Caddy and
-Garage, fully packaged in Docker. In an evaluation against eleven CC0 reference
-panoramas, the pose-based branch outperforms stitching on every measure (26.9 vs
-23.0 dB PSNR, 0.886 vs 0.837 SSIM, 0.10 vs 0.14 px seam offset), reconstructs all
-eleven scenes versus six, and does so roughly seven times faster. Both branches
-run fully automatically without manual control points. The software, container
-recipe, and evaluation code are openly available; all example data are
-third-party open data (CC BY 4.0, MIT, CC0).
+Walkable 360° panoramas and point clouds are widely used for documentation,
+monitoring, and outreach, but producing them usually relies on proprietary,
+cloud-bound tools. We present an open-source, containerized processing chain with
+a browser-based graphical user interface that turns multi-image captures into
+walkable web scenes. The chain handles two input classes that are normally
+treated separately: captures without known pose (consumer 360° cameras, DSLR with
+fisheye lens), which are stitched with Hugin, and the RGB images of terrestrial
+laser scanners, whose poses are stored in the E57 file and which are therefore
+reprojected directly. The input class is detected automatically. Scenes are served
+by an open-source web viewer (Pannellum, three.js) and can be self-hosted (Docker,
+Caddy, Garage) or exported as a static site. In an evaluation against eleven CC0
+reference panoramas, the pose-based branch outperforms stitching on every measure
+(26.9 vs 23.0 dB PSNR, 0.886 vs 0.837 SSIM, 0.10 vs 0.14 px seam offset), yields a
+usable panorama for all eleven scenes versus six, and is about seven times faster.
+Software, container recipe, and evaluation code are openly available; all example
+data are third-party open data.
 
 **Keywords:** panorama stitching; 360° imaging; terrestrial laser scanning; E57;
-open-source; self-hosting; Docker; web visualization; photogrammetry
+open-source; self-hosting; Docker; web visualization
 
 ---
 
@@ -42,7 +40,7 @@ open-source; self-hosting; Docker; web visualization; photogrammetry
 | Permanent link to reproducible capsule | https://doi.org/10.5281/zenodo.23323560 |
 | Legal code license | GNU General Public License v3.0 or later (GPL-3.0-or-later) |
 | Code versioning system | git |
-| Languages / tools | Python, JavaScript; Hugin, GIMP, Pannellum, three.js, Caddy, Garage, Docker |
+| Languages / tools | Python, JavaScript; FastAPI, Hugin, Pannellum, three.js, Caddy, Garage, Docker |
 | Compilation / runtime | Docker + Compose (single command) |
 | Link to developer documentation | https://github.com/anayana/For3Dsuite#readme (platform/README.md) |
 | Support e-mail | angel.naya@posteo.de |
@@ -51,35 +49,28 @@ open-source; self-hosting; Docker; web visualization; photogrammetry
 
 ## 1. Motivation and significance
 
-Interactive 360° panoramas and 3D point clouds are increasingly used to document
-and communicate spatial states — in forest and environmental monitoring,
-surveying, cultural heritage, and teaching. Two obstacles recur in practice.
-First, the common routes are either proprietary and cloud-bound (camera apps with
-vendor hosting) or fragmented: a stitching tool, a web viewer, and a server must
-be wired together by hand, with no reproducible, containerized path from raw
-frames to a published, walkable scene. Second, a valuable data source is routinely
-discarded: terrestrial laser scanners (TLS) acquire RGB images whose camera poses
-are stored alongside the geometry in the E57 exchange format, yet these images are
-usually treated only as a means to colourize the point cloud or, as panoramic
-reflectance images, to register scans [6, 7] — not as navigable panoramas in their
-own right.
+Interactive 360° panoramas and 3D point clouds are used to document and
+communicate spatial states in forest and environmental monitoring, surveying,
+cultural heritage, and teaching. Two obstacles recur. First, the common routes are
+either proprietary and cloud-bound (camera apps with vendor hosting) or
+fragmented: a stitching tool, a web viewer, and a server must be wired together by
+hand, and there is no reproducible path from raw captures to a published, walkable
+scene. Second, a valuable data source is routinely left unused: terrestrial laser
+scanners (TLS) record RGB images whose camera poses are stored alongside the
+geometry in the E57 exchange format [5], yet these images serve mainly to colourize
+the point cloud or, as panoramic reflectance images, to register scans [6, 7] — not
+as navigable panoramas in their own right.
 
-We address both with a single open-source tool. Its contribution is not any
-individual component — panorama stitching [1, 2], Pannellum [3], and GIMP are
-established — but their
-**integration into one automated, containerized, GUI-driven, vendor-agnostic
-chain**, and specifically the **unification of the two input classes**: captures
-whose pose must be estimated (consumer/DSLR fisheye) and captures whose pose is
-already known (scanner RGB in E57 [5]). The former are stitched; the latter are
-reprojected directly to the equirectangular domain, which is faster and free of
-stitching failure modes. The same output can be enriched with data derived from
-the point cloud (stem detection, diameter at breast height, height, crown
-metrics, quantitative structure models, growth projection) and served fully
-self-hosted, giving data sovereignty without a cloud dependency.
-
-The tool spans the cost and device spectrum — from a ~20 € consumer 360° camera to
-a six-figure TLS — into the same web scene, lowering the barrier for reproducible
-spatial documentation.
+We address both with one open-source tool. Its contribution is not an individual
+component — panorama stitching [1, 2] and web panorama viewers [3] are established
+— but their integration into **one automated, containerized, GUI-driven chain**,
+and specifically the **unification of the two input classes**: captures whose pose
+must be estimated are stitched; captures whose pose is known are reprojected
+directly to the equirectangular domain, which is faster and free of stitching
+failure modes. Scenes can carry georeferenced markers, for example tree-inventory
+data derived from the same point cloud, and are served fully self-hosted, without
+a cloud dependency. The same chain thus covers the device spectrum from consumer
+360° cameras to survey-grade TLS.
 
 ## 2. Software description
 
@@ -88,126 +79,113 @@ spatial documentation.
 ![**Figure 1.** Two input classes, one chain. The input class is determined from
 the data (`detect_input_class`), not declared by the user: an `.e57` container
 carries pose and is reprojected; a single 2:1 image is taken over as is; several
-images without pose are stitched. For TLS input, inventory derived from the same
-point cloud is attached to the scene as georeferenced markers.
+images without pose are stitched. For TLS input, the point cloud is added to the
+scene; inventory data derived from it with the repository scripts can be attached
+as georeferenced markers (dashed).
 ](figures/fig1_architektur.svg){width=100%}
 
+The system is packaged as Docker services orchestrated by Compose: a
+processing/API service (Python, FastAPI, job queue), an S3-compatible object store
+(Garage), a reverse proxy with automatic TLS (Caddy), and the browser-based studio
+GUI. A single command brings up the stack.
 
-The system is packaged as a set of Docker services orchestrated by Compose: a
-processing/API service (Python, FastAPI job queue), an S3-compatible object store
-(Garage), a reverse proxy with automatic TLS (Caddy), and a browser-based studio
-GUI. A single command brings up a reproducible stack.
-
-At ingestion the tool determines the input class automatically
-(`detect_input_class`): an uploaded `.e57` triggers **reprojection**; a single
-image with a 2:1 aspect ratio is accepted as a finished equirectangular panorama;
-several images trigger **stitching**. A single non-2:1 image is deliberately
-rejected rather than guessed, so the tool never silently mis-handles ambiguous
-input. In the container, the same upload endpoint without a declared type
-correctly recognizes `equirect` (one 2:1 image) and `fisheye` (six frames) and
-runs the corresponding chain through to a published scene.
+At upload, the input class is determined automatically (`detect_input_class`): an
+`.e57` file triggers reprojection; a single image with a 2:1 aspect ratio is
+accepted as a finished equirectangular panorama; several images trigger stitching.
+A single image with another aspect ratio is rejected rather than guessed.
 
 ### 2.2 Software functionalities
 
 - **Stitching branch** (pose unknown): Hugin/Panotools with automatic control-point
   detection (`cpfind`, `cpclean`), optimization (`autooptimiser`), and seam
   blending (`nona`, `enblend`); no manual control points.
-- **Reprojection branch** (pose known): the per-image poses from the E57 are used
-  to resample the RGB images into a seamless equirectangular panorama (bilinear
-  sampling).
-- **Pre-processing**: batch exposure/crop/nadir–zenith handling (GIMP Script-Fu).
-- **Viewing**: web-based panorama and point-cloud viewer (Pannellum [3], three.js),
-  multi-resolution output; for very large clouds, dedicated streaming renderers
-  such as Potree [4] remain the reference.
-- **Enrichment**: georeferenced markers carrying point-cloud-derived inventory
-  data overlaid on the walkable scene.
+- **Reprojection branch** (pose known): the per-image poses from the E57 file are
+  used to resample the RGB images into a seamless equirectangular panorama
+  (bilinear sampling).
+- **Point cloud**: the E57 point cloud is converted into web-ready levels of detail.
+- **Viewing**: panorama viewer (Pannellum [3]) and point-cloud viewer (three.js);
+  for very large clouds, dedicated streaming renderers such as Potree [4] remain
+  the reference.
+- **Markers**: placed by clicking into the panorama in the studio GUI, or imported
+  from point-cloud analyses.
 - **Publishing**: self-hosted (Caddy + Garage) or as a static export.
 
 ## 3. Illustrative examples
 
-**Scanner RGB → walkable scene with data (Renon / ICOS IT-Ren).** A TLS E57 with
-six pinhole images and poses per setup is reprojected to a seamless equirectangular
-panorama; the co-registered point cloud is added, and inventory markers (stem
-detection, DBH, height, crown metrics, quantitative structure model, growth
-projection) are placed in the walkable scene. This demonstrates both outputs from
-one acquisition — panorama and data carrier.
+### 3.1 Scanner RGB → walkable scene with inventory markers
 
-*Inventory path and its range of validity.* On plot-wide TLS clouds the chain
-uses 3DFin [11] as stem detector. On two manually labelled plots of the
-SegmentedForests dataset [12] it reaches 98.5 % recall / 95.7 % precision
-(plot_06, 68 stems) and 94.5 % / 100 % (plot_07, 128 stems), clearly ahead of
-the simpler detectors we also tested. This accuracy depends on circumferential
-stem coverage: 3DFin accepts a diameter only if the stem cross-section at breast
-height is covered in at least 9 of 16 sectors (≈ 202°). The labelled plots offer a
-median arc of 280–360°; on the Renon stand, merged from four nearby scan
-positions, the median is 180°, and 3DFin declines a diameter for 29 of 37 detected
-stems — correct behaviour, since the data do not support one. The inventory
-markers are therefore only as reliable as the scan geometry behind them. A
-systematic comparison of detectors as a function of coverage is beyond the scope
-of this software paper; per-method results and scripts are documented in the
+A Leica BLK360 scan of the Renon forest plot (ICOS station IT-Ren, E57 [15]) with
+six pinhole images and poses per setup is reprojected to a seamless
+equirectangular panorama; the co-registered point cloud is added, and
+tree-inventory markers computed with the repository scripts (stem position, DBH,
+height, crown metrics, growth projection) are placed in the walkable scene. One
+acquisition thus yields both a visual record and a data carrier.
+
+The markers are only as reliable as the scan geometry behind them. For plot-wide
+TLS clouds the inventory scripts use 3DFin [11] as stem detector. On two manually
+labelled plots of the SegmentedForests dataset [12] it reaches 98.5 % recall /
+95.7 % precision (plot_06, 68 stems) and 94.5 % / 100 % (plot_07, 128 stems). This
+accuracy depends on circumferential stem coverage: 3DFin accepts a diameter only if
+the stem cross-section at breast height is covered in at least 9 of 16 sectors
+(≈ 202°). The labelled plots offer a median arc of 280–360°; on the Renon stand,
+merged from four nearby scan positions, the median is 180°, and 3DFin declines a
+diameter for 29 of 37 detected stems — correct behaviour, since the data do not
+support one. A systematic comparison of detectors as a function of coverage is
+beyond the scope of this paper; per-method results are documented in the
 repository (`scripts/BENCH_DETECTION.md`).
 
-**Consumer/DSLR fisheye → scene (stitching).** Six overlapping fisheye frames are
-stitched automatically and published as a navigable scene, demonstrating the
-pose-unknown branch across the low-cost end of the device spectrum.
+### 3.2 Panorama quality against CC0 ground truth
 
-**Quantitative comparison against CC0 ground truth.** From each of eleven CC0
-reference panoramas (Poly Haven, 8192×4096) we render synthetic captures and rebuild
-a panorama (2048×1024) — once by stitching six 180° fisheye frames (pose withheld),
-once by reprojecting six 90° pinhole frames plus zenith/nadir (pose used) — and
-measure both against the same original (PSNR, SSIM [8]).
-
-*Counting convention (used throughout):* **completed** means the chain wrote a
-panorama at all; **usable** additionally means the result is geometrically
-correct. The distinction matters for stitching, where two runs produce a
-complete but misregistered image.
+From each of eleven CC0 reference panoramas (Poly Haven, 8192×4096) we render
+synthetic captures and rebuild a panorama (2048×1024) — once by stitching six 180°
+fisheye frames (pose withheld), once by reprojecting six 90° pinhole frames plus
+zenith and nadir (pose used) — and measure both against the same original (PSNR,
+SSIM [8]). A run counts as **completed** if the chain writes a panorama and as
+**usable** if the result is also geometrically correct.
 
 | Branch | completed | usable | PSNR (dB) | SSIM | seam offset (px) | runtime |
 |---|--:|--:|--:|--:|--:|--:|
 | Stitching (pose estimated) | 8 / 11 | **6 / 11** | 22.98 ± 2.74 | 0.837 ± 0.060 | 0.14 (p95 0.53) | 14.6 s |
 | Reprojection (pose known) | 11 / 11 | **11 / 11** | **26.87 ± 1.96** | **0.886 ± 0.039** | **0.10 (p95 0.23)** | 2.1 s |
 
-Aggregate figures refer to the *usable* runs; the two misregistered stitches
-(8.6 and 11.7 dB) are excluded because they would otherwise dominate mean and
-spread, and are reported separately below.
+Aggregate figures refer to the usable runs. The pose-based branch is better on
+every measure (+3.9 dB, +0.05 SSIM, a third less local displacement) and
+reconstructs all eleven scenes. Stitching fails on five: three times `enblend`
+aborts (excessive overlap, degenerate mask geometry, no detectable seam), and twice
+the result is geometrically wrong (8.6 and 11.7 dB, confirmed by exhaustive search
+over rotation, tilt, and mirroring).
 
-The pose-based branch is better on every measure (+3.9 dB, +0.05 SSIM, a third
-less local displacement) and reconstructs all eleven scenes, while stitching fails
-on five: three times `enblend` aborts (excessive overlap, degenerate mask
-geometry, no detectable seam) and twice a geometrically wrong panorama results
-(confirmed under exhaustive search over rotation, tilt, and mirroring, staying
-below 11.7 dB).
+**Seam offset** is the local displacement measured by block-wise phase
+correlation [9] (64-px blocks, 50 % overlap, low-structure blocks discarded).
+Against the reference panorama it separates good from failed reconstructions more
+sharply than PSNR or SSIM: medians of 0.07–0.13 px (reprojection) and 0.11–0.19 px
+(good stitches) versus 5.95–6.14 px (failed stitches), a factor of ~40.
+
+The synthetic captures share one nodal point and simulate no sensor noise,
+exposure differences, or lens distortion; they measure the geometry of the chain,
+not camera image quality. Absolute PSNR is limited by the resolution chain and is
+meaningful only in the comparison of the two branches.
 
 ![**Figure 2.** Panorama evaluation against eleven CC0 references. The pose-based
-branch is more accurate and reconstructs every scene; the seam offset separates
-good from failed reconstructions by a factor of ~40 and is therefore usable as a
-ground-truth-free quality flag. Real captures with parallax lie ~56× above the
-synthetic case, which makes the synthetic figures a lower bound.
+branch is more accurate and reconstructs every scene. Seam offset against the
+reference separates good from failed stitches by a factor of ~40; the reference-free
+offset of a real capture (PASSTA) is ~56× higher than in the parallax-free
+synthetic control.
 ](figures/fig2_evaluation.svg){width=100%}
 
-**Seam offset as an automatic quality flag.** Block-wise phase correlation [9] against
-the reference (64-px blocks, 50% overlap, low-structure blocks discarded)
-separates good from failed reconstructions more sharply than PSNR or SSIM: median
-seam offset 0.11–0.19 px (good stitches) and 0.07–0.13 px (reprojection) versus
-5.95–6.14 px (failed stitches) — a factor of ~40, interpretable without knowing
-the ground truth of a single scene, and thus a robust threshold (here > 1 px
-median) for a GUI quality flag.
+### 3.3 Real captures: the cost of parallax
 
-### Real captures: the actual cost of parallax
+To quantify how far the synthetic setting is from reality, `eval_seams.py`
+measures seam offset **without a reference panorama**: `nona` remaps each capture
+separately into the panorama canvas, and where two source images overlap they show
+the same viewing direction — with perfect registration and rotation about the
+nodal point they would be identical there. Their local displacement is the error.
 
-The caveat that the synthetic figures are upper bounds can be resolved with open
-data. `eval_seams.py` measures seam offset **without a reference panorama**:
-`nona` remaps each capture separately into the panorama canvas, and in the
-overlaps two source images show the same viewing direction — with perfect
-registration and rotation about the nodal point they would be identical there.
-Their local displacement is the error.
-
-The real capture is **PASSTA LunchRoom** [10] (Zenodo, CC BY 4.0): 72 photographs from
-a rotating Canon EOS 70D with supplied calibration. As a control, synthetic
-captures with **identical geometry** are rendered from a CC0 panorama — 18
-positions, 93.6° rectilinear, same stitching chain, same canvas width. The only
-difference is that the real captures carry genuine parallax, sensor noise, and
-exposure differences:
+The real capture is **PASSTA LunchRoom** [10]: 72 photographs from a rotating
+Canon EOS 70D with supplied calibration. As a control, synthetic captures with
+identical geometry are rendered from a CC0 panorama (18 positions, 93.6°
+rectilinear, same stitching chain, same canvas width), so that the real captures
+differ only by genuine parallax, sensor noise, and exposure differences:
 
 | | synthetic (parallax-free) | real (rotating camera) |
 |---|--:|--:|
@@ -216,32 +194,20 @@ exposure differences:
 | maximum | 0.48 px | 29.99 px |
 | blocks above 1 px | 0.0 % | 67.5 % |
 
-**The median is ~56× higher and the 95th percentile ~140×.** This substantiates
-what could previously only be asserted: the synthetic evaluation understates the
-real stitching error by orders of magnitude, and the gap measured there between
-the two branches is a **lower bound**.
+The median is ~56× higher and the 95th percentile ~140×. The synthetic stitching
+figures are therefore upper bounds of real stitching quality, and the advantage of
+reprojection measured in Section 3.2 is a lower bound. PASSTA LunchRoom is an
+indoor scene with nearby objects, where parallax is strongest; outdoor scenes with
+mostly distant objects will fare better. The reprojection branch is unaffected: it
+has no overlap seams, because every viewing direction comes from exactly one
+camera. For an automatic quality flag this means that a threshold derived from
+synthetic data (e.g. > 1 px) does not transfer to real captures and has to be
+calibrated on real data.
 
-*Interpretation.* PASSTA LunchRoom is an indoor scene with nearby objects, and
-parallax is worst at short range. An outdoor stand with predominantly distant
-objects will fare better; the 3.95 px is therefore an example of the unfavourable
-case, not a universal value. Part of the difference also stems from noise and
-exposure variation rather than parallax alone. The pose-based branch is unaffected
-by all of this: it has no overlap seams, because every viewing direction comes
-from exactly one camera.
+### 3.4 Runtime per input class
 
-*Honesty of the numbers.* All synthetic captures share one nodal point; the
-PSNR/SSIM stitching figures are therefore **upper bounds**, and the section above
-quantifies the distance to reality (~56× in median seam offset). No sensor noise, exposure differences, or distortion are simulated — the
-geometry of the chain is measured, not camera image quality. Absolute PSNR is
-capped by the resolution chain and is meaningful only in the comparison of the two
-branches. The reprojection figures hold only since switching to bilinear sampling;
-with nearest-neighbour sampling the same branch scored 25.4 dB / SSIM 0.871
-instead of 28.2 / 0.935 (ph-mossy-forest) — an implementation artefact that could
-have been reported as a property of the method.
-
-**Runtime per input class, end to end.** Measured through the running
-containerized service — upload, queue, processing, and publication included — with
-the input type *not* declared, so the chain detects it itself:
+Measured end to end through the running containerized service (upload, queue,
+processing, publication), with the input type not declared:
 
 | Input class | captures | input | upload | processing | **total** |
 |---|--:|--:|--:|--:|--:|
@@ -249,46 +215,44 @@ the input type *not* declared, so the chain detects it itself:
 | DSLR/fisheye (stitching) | 18 | 6.9 MB | 0.4 s | 69.3 s | **69.7 s** |
 | TLS scan (E57, reprojection) | 1 | 177.9 MB | 4.8 s | 27.7 s | **32.5 s** |
 
-(Medians of two runs each, consumer CPU.) The input class was detected correctly
-in all six runs — an independent confirmation of the dispatch described in
-Section 2.1. Note that the most expensive case is not the largest dataset: the
-178 MB scan finishes in 32 s while 6.9 MB of individual frames take 70 s. Cost
-comes from *registration*, not data volume — precisely what pose-based
-reprojection avoids. No manual intervention was required in any class.
+Medians of two runs each on a consumer CPU; the input class was detected
+correctly in all runs, and no manual intervention was needed. The 178 MB scan
+finishes in 32 s, the 6.9 MB of individual frames take 70 s: cost comes from
+registration, not from data volume — precisely what pose-based reprojection
+avoids.
 
 ## 4. Impact
 
-The tool makes reproducible, self-hosted 360°/3D documentation accessible without
-vendor lock-in and across the full device–cost spectrum. Two contributions are of
-wider use. First, it turns the routinely discarded, pose-bearing scanner RGB
-images into first-class navigable panoramas and data carriers; the evaluation
-quantifies why this is preferable when pose is available (seamless, ~7× faster,
-no stitching failures). Second, the seam-offset metric provides a ground-truth-free
-quality signal that can gate automated batch processing. For environmental and
-forest monitoring specifically, the enrichment path couples a walkable visual
-record with quantitative inventory on the same acquisition, supporting
-communication and revisitation of plots.
+The tool makes reproducible, self-hosted 360°/3D documentation available without
+vendor lock-in, from consumer cameras to TLS, through one GUI. It turns the
+pose-bearing RGB images of laser scanners into navigable panoramas; the evaluation
+shows why this is preferable whenever pose is available (no stitching failures,
+higher accuracy, ~7× faster). For forest and environmental monitoring, one
+acquisition yields a walkable panorama, the point cloud, and inventory markers in
+the same scene, which supports communication and revisiting of plots. Seam offset
+provides a candidate quality signal for automated batch processing, subject to
+calibration on real captures.
 
 ## 5. Conclusions
 
 We presented an open-source, containerized, GUI-driven chain that converts
-multi-image captures — with or without known pose — into walkable web 3D scenes,
+multi-image captures — with or without known pose — into walkable web scenes,
 self-hostable end to end. A ground-truth evaluation shows the pose-based
 reprojection branch to be more accurate, more robust, and faster than stitching
-when scanner poses are available, and yields an interpretable automatic quality
-flag for the stitching branch. Future work: wire the quality flag into the GUI;
-integrate further representations (3D Gaussian splatting, meshes) in the same
-viewer; obtain a freely licensed set of raw dual-fisheye frames from a consumer
-360° camera, which would close the last gap in device coverage for the stitching
-branch; and run the prepared usability study (System Usability Scale [13, 14]).
+when scanner poses are available; a reference-free measurement on real captures
+quantifies how strongly parallax degrades stitching. Future work: calibrate the
+seam-offset quality flag on real captures and integrate it into the GUI; add a
+freely licensed set of raw dual-fisheye frames from a consumer 360° camera to the
+evaluation; and run a usability study with non-expert users (System Usability
+Scale [13, 14]).
 
 ## Data availability
 
 All data used in this work are third-party open data. Terrestrial laser scans:
 Renon / ICOS IT-Ren (Leica BLK360, E57; CC BY 4.0) [15] and SegmentedForests
-(MIT) [12]. Reference panoramas for the quantitative evaluation: eleven Poly Haven
-HDRIs (CC0, https://polyhaven.com). Real multi-image capture: PASSTA LunchRoom
-(CC BY 4.0) [10]. Source code, container recipe and evaluation scripts:
+(MIT) [12]. Reference panoramas: eleven Poly Haven HDRIs (CC0,
+https://polyhaven.com). Real multi-image capture: PASSTA LunchRoom (CC BY 4.0)
+[10]. Source code, container recipe, and evaluation scripts:
 https://github.com/anayana/For3Dsuite (GPL-3.0-or-later), archived at
 https://doi.org/10.5281/zenodo.23323560.
 
@@ -306,11 +270,11 @@ review & editing.
 
 ## Acknowledgements
 
-The author thanks the providers of the open datasets used here: the ICOS
-ecosystem station IT-Ren (Renon) and Chang et al. for the Renon laser scans, the
-authors of SegmentedForests and PASSTA, and
-the Poly Haven contributors. This research received no specific grant from any
-funding agency in the public, commercial, or not-for-profit sectors.
+The author thanks the providers of the open datasets used here: Chang et al. and
+the ICOS ecosystem station IT-Ren for the Renon laser scans, the authors of
+SegmentedForests and PASSTA, and the Poly Haven contributors. This research
+received no specific grant from any funding agency in the public, commercial, or
+not-for-profit sectors.
 
 ## References
 
@@ -355,8 +319,7 @@ CC BY 4.0. https://doi.org/10.5281/zenodo.19663081
 
 [11] Laino, D., Cabo, C., Prendes, C., et al. (2024). 3DFin: a software for
 automated 3D forest inventories from terrestrial point clouds. *Forestry* 97(4),
-479–496.
-https://doi.org/10.1093/forestry/cpae020
+479–496. https://doi.org/10.1093/forestry/cpae020
 
 [12] Laino, D., Cabo, C., Ordóñez, C., et al. (2026). SegmentedForests: a labelled
 dataset of terrestrial LiDAR point clouds for semantic segmentation of forests.
@@ -376,8 +339,6 @@ Zenodo. https://doi.org/10.5281/zenodo.17186174
 
 *Software used, with the versions that produced the reported figures:*
 Hugin/Panotools 2024.0.1 (GPL-2.0), Pannellum 2.5.6 (MIT), three.js r160 (MIT),
-Leaflet 1.9.4 (BSD-2), Caddy 2 (Apache-2.0), Garage 1.0.1 (AGPL-3.0), FastAPI
-(MIT), NumPy 1.26.4, Pillow 12.3.0, OpenCV 5.0.0, laspy 2.5.4, 3DFin/dendromatics,
-TreeGrOSS (GPL-3.0, isolated as a separate process).
-
-*Checked against publisher records (Oct 2026): [1]–[3], [5]–[7], [10]–[12], [15].*
+Caddy 2 (Apache-2.0), Garage 1.0.1 (AGPL-3.0), FastAPI (MIT), NumPy 1.26.4,
+Pillow 12.3.0, OpenCV 5.0.0, laspy 2.5.4, 3DFin/dendromatics, TreeGrOSS (GPL-3.0,
+isolated as a separate process).

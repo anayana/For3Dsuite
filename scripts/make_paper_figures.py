@@ -145,7 +145,7 @@ def fig_evaluation():
     rows = [("Reprojection", "0.10 px", GREEN),
             ("Stitching, successful", "0.14 px", ORANGE),
             ("Stitching, failed", "5.95 – 6.14 px", "#b02a2a"),
-            ("real, with parallax (PASSTA)", "3.95 px", "#b02a2a")]
+            ("real capture, reference-free (PASSTA)", "3.95 px", "#b02a2a")]
     for i, (lbl, val, col) in enumerate(rows):
         y = y1 + 26 + i * 24
         p.append(f'<circle cx="34" cy="{y-4}" r="5" fill="{col}"/>')
@@ -153,15 +153,15 @@ def fig_evaluation():
         p.append(f'<text x="330" y="{y}" font-size="12" font-weight="600" '
                  f'fill="{FG}" text-anchor="end">{esc(val)}</text>')
     p.append(f'<text x="380" y="{y1+50}" font-size="11.5" fill="{MUTED}">'
-             'Factor ~40 between successful and failed stitches —</text>')
+             'Against the reference: factor ~40 between</text>')
     p.append(f'<text x="380" y="{y1+68}" font-size="11.5" fill="{MUTED}">'
-             'interpretable without ground truth, hence usable</text>')
+             'successful and failed stitches.</text>')
     p.append(f'<text x="380" y="{y1+86}" font-size="11.5" fill="{MUTED}">'
-             'as an automatic quality flag (&gt; 1 px).</text>')
+             '</text>')
     p.append(f'<text x="380" y="{y1+112}" font-size="11.5" fill="{MUTED}">'
-             'Real captures lie ~56× above the synthetic case:</text>')
+             'Real capture (PASSTA): ~56× the parallax-free</text>')
     p.append(f'<text x="380" y="{y1+130}" font-size="11.5" fill="{MUTED}">'
-             'the synthetic figures are a lower bound.</text>')
+             'synthetic control (0.07 px, same geometry).</text>')
     p.append('</svg>')
     return "\n".join(p)
 
