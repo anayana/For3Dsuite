@@ -35,8 +35,15 @@ Inhalt der RAR-Archive unbekannt → Schritt 0b. Start mit `5_CB.rar` (kleinstes
 | 4 | Training: zunächst 1 Gebäude, danach die übrigen 4 | `.ply` je Gebäude | Nutzer (RunPod) |
 | 5 | Geometrie-Prüfung: Splat-Zentren (nach `clean_splat.py`) gegen Referenzwolke, C2C-Abstände (Median, 95 %), Vollständigkeit bei Schwellen 2/5/10 cm, je Gebäude und Bauteilklasse | `scripts/eval_splat_geometry.py` + Tabelle/Abbildungen | Agent |
 | 6 | Demo-Rundgang: ein Gebäude als Splat mit Medien-Markern im Browser-Studio `create.html`, als eine offline lauffähige HTML-Datei | Demo-Datei + Bildschirmfotos | Agent, Nutzer prüft am Handy |
-| 7 | Journal festlegen: APC-Regel von *J. Cultural Heritage*, *DAACH*, *PFG*, *VAR* prüfen | Zieljournal | Nutzer liest die Gebühren-Seite ab, Agent wertet aus |
+| 7 | Journal: **1. J. Cultural Heritage**, 2. *PFG* — beide Hybrid, Abo-Weg ohne Gebühr (geprüft 13.10.2026, s. u.) | Zieljournal | erledigt; vor Einreichung erneut prüfen |
 | 8 | Manuskript (Gliederung → Methoden/Ergebnisse → Rest) unter `Paper_ODT/Heritage_Toolkit_Paper/` | Entwurf | Agent |
+
+## Journal (geprüft 13.10.2026)
+
+| Journal | IF (Drittseiten, nicht JCR) | bestes Q (SJR) | ohne Gebühr? |
+|---|---|---|---|
+| J. Cultural Heritage (Elsevier) | 3,3–3,5 | Q1 | ja, Abo-Weg; OA-APC 3580 USD (Elsevier-Seite „open-access-options") |
+| PFG (Springer) | 3,3 | Q1 | ja, Abo-Weg, Wahl erst nach Annahme; OA-APC 2790 € (Springer „how-to-publish-with-us") |
 
 ## Erfahrungswerte
 
