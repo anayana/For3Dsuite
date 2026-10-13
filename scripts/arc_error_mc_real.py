@@ -95,6 +95,12 @@ def m_hough(sl, cell=.005, k=12):
         return None
     from scipy.spatial import cKDTree
     p = sl[:, :2]
+    # auf 1-cm-Raster ausduennen: bei dichten Wolken liegen k Nachbarn sonst nur
+    # Millimeter auseinander und die Normale ist reines Rauschen
+    _, keep = np.unique(np.floor(p / .01).astype(np.int64), axis=0, return_index=True)
+    p = p[np.sort(keep)]
+    if len(p) < 12:
+        return None
     _, nb = cKDTree(p).query(p, k=min(k, len(p)))
     q = p[nb] - p[nb].mean(axis=1, keepdims=True)
     cov = np.einsum("nki,nkj->nij", q, q)

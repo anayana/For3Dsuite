@@ -5,7 +5,9 @@ Liest eine Szene von paperC_scene.py (truth.csv, pool.csv) und die gepackten
 Standpunkte (paperC_pack.py: legs/legNNN.npz). Setzt Konfigurationen als
 Teilmengen des Pools zusammen und misst je Stamm im Kernplot:
 
-  arc_deg      belegte Sektoren (16 x 22,5 Grad) um das WAHRE Zentrum, Brusthoehe +/-5 cm
+  arc_geo_deg  geometrisch sichtbarer Umfang (Grad) aus allen Standpunkten der Konfiguration
+  arc_deg      belegte Sektoren (16 x 22,5 Grad) um das WAHRE Zentrum, Brusthoehe +/-5 cm (wie 3DFin)
+  arc1_deg     belegte 1-Grad-Klassen (unterschaetzt bei duennen Punkten)
   n_bh         Punkte in der 10-cm-Scheibe
   BHD je Verfahren (kreisfit, geofit, ransac, zylinder, hough, robust) auf dem
                Band 1,05-1,55 m, Fehler gegen den wahren BHD (Ellipsenumfang/pi)
@@ -37,6 +39,52 @@ from arc_error_mc_real import m_hough, m_robust            # noqa: E402
 
 NS = [1, 2, 3, 4, 6, 9]
 N_RANDOM = 10
+
+
+def visibility(truth, pool, nang=360, cos_min=0.1):
+    """Geometrisch sichtbarer Anteil jedes Kernstamms je Standpunkt in Brusthoehe:
+    360 Punkte auf dem wahren elliptischen Umfang; sichtbar, wenn dem Scanner
+    zugewandt (Einfall cos > cos_min, wie im Scanplaner) und die Sichtlinie keinen
+    anderen Stamm schneidet. Ergebnis {leg: bool[n_kern, nang]} -- unabhaengig von
+    der Punktdichte, daher die Wahrheit fuer 'wie viel Umfang war sichtbar'."""
+    st = truth[truth.kind.isin(["stem", "under"])]
+    core = truth[(truth.kind == "stem") & (truth.core == 1)]
+    th = np.linspace(0, 2 * np.pi, nang, endpoint=False)
+    # Umfangspunkte und Normalen der Kernstaemme (Ellipse a, b, Drehung rot)
+    P, N = [], []
+    for _, t in core.iterrows():
+        ang = th - t.rot_rad
+        rad = t.a_m * t.b_m / np.sqrt((t.b_m * np.cos(ang)) ** 2 + (t.a_m * np.sin(ang)) ** 2)
+        px, py = t.x + rad * np.cos(th), t.y + rad * np.sin(th)
+        # Normale der Ellipse numerisch aus Nachbarpunkten
+        tx, ty = np.roll(px, -1) - np.roll(px, 1), np.roll(py, -1) - np.roll(py, 1)
+        nx, ny = ty, -tx
+        s = np.sign(nx * (px - t.x) + ny * (py - t.y)); nl = np.hypot(nx, ny)
+        P.append(np.stack([px, py], 1)); N.append(np.stack([nx * s / nl, ny * s / nl], 1))
+    P, N = np.array(P), np.array(N)                                   # (S, A, 2)
+    occ = st[["x", "y"]].values; occ_r = np.maximum(st.a_m.values, st.b_m.values)
+    own = {sid: j for j, sid in enumerate(st.id.values)}
+    out = {}
+    for _, lg in pool.iterrows():
+        sp = np.array([lg.x, lg.y])
+        v = sp[None, None, :] - P                                     # Punkt -> Scanner
+        d = np.linalg.norm(v, axis=2)
+        cosi = np.einsum("sak,sak->sa", N, v) / d
+        vis = cosi > cos_min
+        # Verdeckung: Abstand der Strecke Scanner-Punkt zu jedem anderen Stammzentrum
+        u = v / d[..., None]
+        for j, cid in enumerate(core.id.values):
+            cand = np.flatnonzero(np.hypot(*(occ - sp).T) < d[j].max() + 1.5)
+            cand = cand[cand != own[cid]]
+            if not len(cand):
+                continue
+            w = occ[cand][None, :, :] - P[j][:, None, :]               # (A, C, 2)
+            proj = np.einsum("ack,ak->ac", w, u[j])
+            perp = np.abs(w[..., 0] * u[j][:, None, 1] - w[..., 1] * u[j][:, None, 0])
+            hit = (proj > 0) & (proj < d[j][:, None]) & (perp < occ_r[cand][None, :])
+            vis[j] &= ~hit.any(axis=1)
+        out[int(lg.leg)] = vis
+    return core.id.values, out
 
 
 def configs(pool, L, seed):
@@ -78,6 +126,8 @@ def main():
         legs[int(f.stem[3:])] = {k: z[k][m] for k in ("x", "y", "z", "obj")}
     pool = pool[pool.leg.isin(legs)]
     methods = args.methods.split(",")
+    core_ids, vis = visibility(truth, pool)
+    vrow = {sid: k for k, sid in enumerate(core_ids)}
     rows = []
     cfgs = configs(pool, args.L, args.seed)
     for i, (lay, n, rep, sel) in enumerate(cfgs, 1):
@@ -96,7 +146,8 @@ def main():
             fine = int(np.count_nonzero(np.histogram(ang, bins=360, range=(-180, 180))[0]))
             row = {"layout": lay, "n_scans": n, "rep": rep, "stem": sid, "dbh_true_cm": t.dbh_true_cm,
                    "dist_min_m": round(float(np.min(np.hypot(sx - t.x, sy - t.y))), 2),
-                   "n_bh": int(bh.sum()), "arc_deg": sec * 22.5, "arc1_deg": fine}
+                   "n_bh": int(bh.sum()), "arc_deg": sec * 22.5, "arc1_deg": fine,
+                   "arc_geo_deg": int(np.any([vis[l][vrow[sid]] for l in sel], axis=0).sum())}
             band = np.abs(z - 1.3) <= .25
             pts = np.stack([x, y, z], axis=1)
             sl = pts[band]
