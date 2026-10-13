@@ -111,6 +111,24 @@ footer p { margin: 0 0 8px; }
     <p>Abschätzung, welcher Teil des Stammumfangs in Brusthöhe bei einem geplanten Scan-Design erfasst wird, mit Verdeckung durch Nachbarstämme und Unterwuchs.</p>
   </header>
 
+  <section id="saved">
+    <h2>Gespeicherte Rechnungen</h2>
+    <div class="row">
+      <label style="flex:1 1 16rem">Bezeichnung<input id="savename" type="text" maxlength="120" placeholder="z. B. Abt. 12b, Variante Raster 15 m"></label>
+      <button type="button" class="primary" id="savebtn" style="align-self:flex-end">Aktuelle Rechnung speichern</button>
+    </div>
+    <p class="small" id="savemode" style="margin-top:6px">Gespeichert wird in diesem Browser.</p>
+    <div class="tablewrap" style="margin-top:8px">
+      <table id="savedtab"><thead><tr><th>Datum</th><th>Bezeichnung</th><th>Standort</th><th>Mischung</th><th>≥ Ziel</th><th></th></tr></thead><tbody></tbody></table>
+    </div>
+    <p class="small" id="savedempty">Noch keine gespeicherten Rechnungen.</p>
+    <div class="row" style="margin-top:8px">
+      <button type="button" class="link" id="exportbtn" hidden>Alle als Datei sichern</button>
+      <label class="link-like" style="display:inline-flex;flex-direction:row;align-items:center;gap:6px;color:var(--accent);cursor:pointer"><span style="text-decoration:underline;text-underline-offset:2px">Datei laden</span><input id="importfile" type="file" accept=".json,application/json" style="position:absolute;width:1px;height:1px;opacity:0"></label>
+      <span class="small" id="savemsg" role="status"></span>
+    </div>
+  </section>
+
   <section>
     <h2><span class="no">1</span> Standort</h2>
     <div class="site">
@@ -828,6 +846,136 @@ const redrawTheme = () => { drawMap(); drawEuMap(); };
 const mq = window.matchMedia("(prefers-color-scheme: dark)");
 mq.addEventListener && mq.addEventListener("change", redrawTheme);
 new MutationObserver(redrawTheme).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+
+// ---------- Gespeicherte Rechnungen ----------
+// Im Claude-Konto (db, privater Bereich data/users/<id>) wenn verfügbar und beschreibbar, sonst im Browser.
+const Store = (() => {
+  const KEY = "scanplaner-saved";
+  let col = null, mode = "browser";
+  const lsGet = () => { try { const v = JSON.parse(localStorage.getItem(KEY) || "[]"); return Array.isArray(v) ? v : []; } catch (e) { return []; } };
+  const lsPut = a => { try { localStorage.setItem(KEY, JSON.stringify(a)); return true; } catch (e) { return false; } };
+  async function init() {
+    const c = window.claude; if (!c || typeof c.use !== "function") return mode;
+    try {
+      const [db, user] = await Promise.all([c.use("db"), c.use("user")]);
+      if (!db || !user) return mode;
+      const uid = await user.id(); if (!uid) return mode;
+      if ((await user.can("data.write")) === false) return mode;
+      col = db.collection("data/users/" + uid); mode = "account";
+    } catch (e) { col = null; mode = "browser"; }
+    return mode;
+  }
+  async function list() {
+    const local = lsGet().map(r => ({...r, src: "browser"}));
+    if (mode !== "account") return local.sort((a, b) => String(b.created).localeCompare(String(a.created)));
+    try {
+      const snap = await col.orderBy("created", "desc").limit(300).get();
+      const acc = snap.docs.map(d => ({...d.data(), id: d.id, src: "account"}));
+      return acc.concat(local).sort((a, b) => String(b.created).localeCompare(String(a.created)));
+    } catch (e) { return local; }
+  }
+  async function save(rec) {
+    if (mode === "account") {
+      try { await col.add(rec); return "account"; }
+      catch (e) { if (e && e.code === "invalid_argument") { mode = "browser"; col = null; } else throw e; }
+    }
+    const a = lsGet(); a.push({...rec, id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6)});
+    if (!lsPut(a)) throw {code: "storage"};
+    return "browser";
+  }
+  async function remove(r) {
+    if (r.src === "account" && col) return col.doc(r.id).delete();
+    lsPut(lsGet().filter(x => x.id !== r.id));
+  }
+  return {init, list, save, remove, get mode() { return mode; }};
+})();
+
+let savedRows = [];
+function mixText(m) {
+  const tot = m.reduce((a, x) => a + (+x.share || 0), 0) || 1;
+  return m.map(x => `${(spById(x.sp) || {de: x.sp}).de} ${fmt(100 * x.share / tot)} %`).join(", ");
+}
+function esc(t) { return String(t ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c])); }
+async function renderSaved() {
+  savedRows = await Store.list();
+  $("savemode").textContent = Store.mode === "account"
+    ? "Gespeichert wird in deinem Konto. Nur du siehst diese Rechnungen, auf jedem Gerät, auf dem du angemeldet bist."
+    : "Gespeichert wird nur in diesem Browser. Mit „Alle als Datei sichern“ lassen sich Rechnungen sichern oder auf ein anderes Gerät mitnehmen.";
+  $("savedempty").hidden = savedRows.length > 0;
+  $("savedtab").hidden = !savedRows.length;
+  $("savedtab").querySelector("tbody").innerHTML = savedRows.map((r, i) => {
+    const d = new Date(r.created), s = r.summary || {};
+    return `<tr><td>${isNaN(d) ? "–" : d.toLocaleDateString("de-DE") + " " + d.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"})}</td>
+      <td style="white-space:normal">${esc(r.name)}${r.src === "browser" && Store.mode === "account" ? ' <span class="small">(nur Browser)</span>' : ""}</td>
+      <td style="white-space:normal">${esc(s.place || s.site || "")}</td><td style="white-space:normal">${esc(s.mix || "")}</td>
+      <td>${s.share != null ? fmt(s.share) + " %" : "–"}</td>
+      <td><button type="button" data-load="${i}">Laden</button> <button type="button" data-del="${i}">Löschen</button></td></tr>`;
+  }).join("");
+}
+function snapshot() {
+  const s = state && state.s, p = read();
+  return {
+    v: 1, name: $("savename").value.trim() || `Rechnung ${new Date().toLocaleDateString("de-DE")}`,
+    created: new Date().toISOString(),
+    state: {f: p, mix: mix.map(({dirty, ...m}) => m)},
+    summary: {
+      site: `${p.lat} N, ${p.lon} O · ${$("zcode").textContent}`, place: p.place || "",
+      mix: mixText(mix), share: s ? Math.round(s.share * 1000) / 10 : null,
+      scans: state ? state.pos.length : null, layout: p.layout, a: p.a,
+    },
+  };
+}
+function restore(rec) {
+  const f = rec.state && rec.state.f; if (!f) return;
+  for (const id of IDS) if (id in f && $(id)) $(id).value = f[id];
+  if (Array.isArray(rec.state.mix) && rec.state.mix.length) mix = rec.state.mix.filter(m => spById(m.sp)).map(m => ({...m, dirty: true}));
+  anyEdited = true; $("savename").value = rec.name || "";
+  syncLayout(); onSite(); centerOnSite(Math.max(view.z, 1)); run();
+  $("savemsg").textContent = `„${rec.name}“ geladen.`;
+}
+$("savebtn").addEventListener("click", async () => {
+  const b = $("savebtn"); b.disabled = true;
+  try {
+    const where = await Store.save(snapshot());
+    $("savemsg").textContent = where === "account" ? "Im Konto gespeichert." : "Im Browser gespeichert.";
+    await renderSaved();
+  } catch (e) {
+    $("savemsg").textContent = e && e.code === "quota_exceeded" ? "Speicher voll. Bitte alte Rechnungen löschen." : "Speichern hat nicht geklappt. Bitte später noch einmal versuchen.";
+  } finally { b.disabled = false; }
+});
+$("savedtab").addEventListener("click", async e => {
+  const l = e.target.closest("[data-load]"), d = e.target.closest("[data-del]");
+  if (l) { restore(savedRows[+l.dataset.load]); window.scrollTo({top: $("eumap").getBoundingClientRect().top + window.scrollY - 20}); }
+  if (d) {
+    if (d.dataset.armed !== "1") { d.dataset.armed = "1"; d.textContent = "Wirklich löschen?"; setTimeout(() => { if (d.isConnected) { d.dataset.armed = ""; d.textContent = "Löschen"; } }, 4000); return; }
+    try { await Store.remove(savedRows[+d.dataset.del]); $("savemsg").textContent = "Gelöscht."; } catch (err) { $("savemsg").textContent = "Löschen hat nicht geklappt."; }
+    renderSaved();
+  }
+});
+$("importfile").addEventListener("change", async e => {
+  const file = e.target.files && e.target.files[0]; if (!file) return;
+  try {
+    const data = JSON.parse(await file.text()), recs = Array.isArray(data) ? data : [data];
+    let n = 0;
+    for (const r of recs) if (r && r.state && r.state.f) { const {id, src, ...clean} = r; await Store.save(clean); n++; }
+    $("savemsg").textContent = n ? `${n} Rechnung${n > 1 ? "en" : ""} übernommen.` : "In der Datei wurden keine Rechnungen gefunden.";
+    renderSaved();
+  } catch (err) { $("savemsg").textContent = "Die Datei konnte nicht gelesen werden (erwartet: JSON aus „Alle als Datei sichern“)."; }
+  e.target.value = "";
+});
+(async () => {
+  const c = window.claude, dl = c && typeof c.use === "function" ? await c.use("downloads").catch(() => null) : null;
+  if (dl) {
+    $("exportbtn").hidden = false;
+    $("exportbtn").addEventListener("click", async () => {
+      const rows = savedRows.map(({src, ...r}) => r);
+      try { await dl.save({filename: `scanplaner-rechnungen-${new Date().toISOString().slice(0, 10)}.json`, data: JSON.stringify(rows, null, 1)}); }
+      catch (err) { if (!err || err.code !== "declined") $("savemsg").textContent = "Die Datei wurde nicht gespeichert."; }
+    });
+  }
+})();
+renderSaved();
+Store.init().then(renderSaved);
 
 const saved = load();
 if (!mix.length) { mix = [rowFromSpecies("kie", 70), rowFromSpecies("bi", 30)]; }
