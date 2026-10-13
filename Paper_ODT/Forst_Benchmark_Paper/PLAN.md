@@ -61,6 +61,14 @@ Verfahren: Baseline `inventory_from_cloud.py` (± `stem_continuity`), 3DFin
 `ransac`, `zylinder` (`dbh_methods.py`). lidR/CSP nur, wenn R verfügbar
 (in der Cloud-Umgebung nicht installiert).
 
+Weitere Verfahren (Kandidaten, Verfügbarkeit offen):
+- **FORTLS** (R, Molina-Valero et al. 2022, Environ. Model. Softw. 150:105337): Bestandsschätzung aus
+  Einzelscans mit Verdeckungskorrektur — passt direkt zur Fragestellung. CRAN ist aus der Cloud gesperrt;
+  Installation über GitHub-Quellen oder auf dem Windows-Rechner prüfen.
+- **SimpleTree/SimpleForest** (Lehrstuhl Waldwachstum Freiburg; Hackenberg et al. 2015, Forests 6:4245):
+  QSM-basierter BHD; läuft als CompuTree-Plugin unter Windows.
+- **lidR** (R) über conda-forge installierbar (`r-lidr`).
+
 ## 4. Gegenprobe auf echten Daten
 
 | Daten | Vorgehen | Referenz |

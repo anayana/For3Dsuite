@@ -1,232 +1,251 @@
 <title>TLS-Scanplaner</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: Messprotokoll — oben Standort (Karte + Vorschläge), darunter links Eingabe, rechts Ergebnisse; auf dem Handy untereinander */
+/* Layout: schlichtes Formular — Abschnitte 1–5 in Arbeitsreihenfolge, Ergebnis rechts daneben; auf dem Handy untereinander */
 :root {
-  --bg: #f3f5f0; --panel: #ffffff; --fg: #1b211c; --muted: #5b665e; --line: #d6dcd3;
-  --accent: #9a6a00; --accent-soft: #f4e6c4; --sea: #e4ebee;
-  --ok: #2f7d3a; --warn: #b07800; --bad: #c2412d; --ghost: #b9c1b6;
-  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
-  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --f-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --bg: #ffffff; --surface: #f5f6f5; --fg: #1c1f1d; --muted: #5b635e; --line: #d3d8d4;
+  --accent: #24553a; --accent-fg: #ffffff; --sea: #e8eef0; --ghost: #c4cac6;
+  --ok: #2e7d32; --warn: #a66300; --bad: #b3261e;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --f-data: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
-  --bg: #0d1117; --panel: #161b22; --fg: #e6edf3; --muted: #8b949e; --line: #30363d;
-  --accent: #e6b23c; --accent-soft: #3a2f14; --sea: #10202b;
-  --ok: #3fb950; --warn: #d29922; --bad: #f85149; --ghost: #3d444d; color-scheme: dark } }
+  --bg: #121413; --surface: #1a1d1b; --fg: #e4e7e5; --muted: #9aa39d; --line: #343b37;
+  --accent: #86bf9b; --accent-fg: #0f1a13; --sea: #172229; --ghost: #3b423e;
+  --ok: #6bbf6f; --warn: #e0a040; --bad: #ef6b5f; color-scheme: dark } }
 :root[data-theme="dark"] {
-  --bg: #0d1117; --panel: #161b22; --fg: #e6edf3; --muted: #8b949e; --line: #30363d;
-  --accent: #e6b23c; --accent-soft: #3a2f14; --sea: #10202b;
-  --ok: #3fb950; --warn: #d29922; --bad: #f85149; --ghost: #3d444d; color-scheme: dark }
+  --bg: #121413; --surface: #1a1d1b; --fg: #e4e7e5; --muted: #9aa39d; --line: #343b37;
+  --accent: #86bf9b; --accent-fg: #0f1a13; --sea: #172229; --ghost: #3b423e;
+  --ok: #6bbf6f; --warn: #e0a040; --bad: #ef6b5f; color-scheme: dark }
 
-body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
-.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 20px; }
-header h1 { font-family: var(--f-display); font-weight: 600; font-size: 2rem; letter-spacing: .01em; margin: 0; text-wrap: balance; }
-header p { margin: 4px 0 0; color: var(--muted); max-width: 68ch; }
-.grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
-@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 16px; padding-block: 24px 48px; display: flex; flex-direction: column; gap: 28px; }
+header { border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+h1 { font-size: 1.45rem; font-weight: 600; margin: 0; }
+header p { margin: 4px 0 0; color: var(--muted); max-width: 70ch; }
+h2 { font-size: 1.05rem; font-weight: 600; margin: 0 0 12px; display: flex; gap: 8px; align-items: baseline; }
+h2 .no { color: var(--muted); font-weight: 400; font-variant-numeric: tabular-nums; }
+h3 { font-size: .95rem; font-weight: 600; margin: 0 0 8px; }
+section { min-width: 0; }
+[hidden] { display: none !important; }
 
-.site { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.cols { display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: 32px; align-items: start; }
+@media (max-width: 880px) { .cols { grid-template-columns: minmax(0, 1fr); } }
+.site { display: grid; grid-template-columns: minmax(0, 420px) minmax(0, 1fr); gap: 24px; align-items: start; }
 @media (max-width: 760px) { .site { grid-template-columns: minmax(0, 1fr); } }
-.mapwrap { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1 / 1; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; background: var(--sea); }
-#eumap { cursor: crosshair; touch-action: none; }
-.mapbtns { position: absolute; right: 8px; top: 8px; display: flex; flex-direction: column; gap: 4px; }
-.mapbtns button { width: 32px; height: 32px; padding: 0; font-size: 1.1rem; line-height: 1; }
-.siteinfo { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.coords { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.zone { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.zone .code { font-family: var(--f-data); font-size: 1.6rem; font-weight: 500; }
-.zone .swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--line); align-self: center; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; }
-.chips button { border-radius: 999px; padding: 4px 12px; }
-.chips button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
-.k2 { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.stack { display: flex; flex-direction: column; gap: 28px; min-width: 0; }
 
-form { display: flex; flex-direction: column; gap: 14px; }
-fieldset { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); margin: 0; padding: 12px 14px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; min-width: 0; }
-legend { font-family: var(--f-display); font-weight: 600; font-size: .95rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); padding: 0 6px; }
-label { display: flex; flex-direction: column; gap: 3px; font-size: .82rem; color: var(--muted); min-width: 0; }
-label.full { grid-column: 1 / -1; }
-input, select, textarea, button { font: inherit; color: var(--fg); }
-input, select, textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; font-family: var(--f-data); font-size: .9rem; width: 100%; box-sizing: border-box; }
-textarea { min-height: 84px; resize: vertical; }
-input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.regionnote { margin: 0; font-size: .82rem; line-height: 1.45; padding: 8px 10px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 4px 4px 0; }
-.regionnote:empty { display: none; }
-button { cursor: pointer; border-radius: 4px; border: 1px solid var(--line); background: var(--panel); padding: 6px 10px; font-size: .85rem; }
-button:hover { border-color: var(--accent); }
-button.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+.fields.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 420px) { .fields.three { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+label { display: flex; flex-direction: column; gap: 3px; font-size: .85rem; color: var(--muted); min-width: 0; }
 .span { grid-column: 1 / -1; }
-.hint { grid-column: 1 / -1; font-size: .78rem; color: var(--muted); margin: 0; }
-
-.results { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
-@media (max-width: 560px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; min-width: 0; }
-.tile .k { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-.tile .v { font-family: var(--f-data); font-size: 1.45rem; font-variant-numeric: tabular-nums; }
-.tile.main { border-color: var(--accent); background: var(--accent-soft); }
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; min-width: 0; }
-.panel h2 { font-family: var(--f-display); font-weight: 600; font-size: 1.15rem; margin: 0 0 8px; letter-spacing: .02em; }
-.mapbox { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1 / 1; }
-canvas { width: 100%; height: 100%; display: block; touch-action: manipulation; }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .8rem; color: var(--muted); margin-top: 8px; }
-.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
-.info { font-family: var(--f-data); font-size: .82rem; color: var(--muted); min-height: 1.4em; margin-top: 6px; }
-.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
-@media (max-width: 1000px) { .two { grid-template-columns: minmax(0, 1fr); } }
-svg text { font-family: var(--f-data); font-size: 10px; fill: var(--muted); }
-.tablewrap { overflow-x: auto; }
-table { border-collapse: collapse; width: 100%; font-family: var(--f-data); font-size: .82rem; font-variant-numeric: tabular-nums; }
-th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-th { color: var(--muted); font-weight: 500; font-family: var(--f-body); }
-th:first-child, td:first-child { text-align: left; }
-tr.best td { background: var(--accent-soft); font-weight: 500; }
-.verdict { margin: 0 0 10px; }
-.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .78rem; font-weight: 600; }
-.pill.ok { background: var(--ok); color: var(--bg); } .pill.bad { background: var(--bad); color: var(--bg); }
+input, select, textarea, button { font: inherit; color: var(--fg); }
+input, select, textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 2px; padding: 6px 8px; width: 100%; box-sizing: border-box; font-variant-numeric: tabular-nums; }
+textarea { min-height: 72px; resize: vertical; font-family: var(--f-data); font-size: .85rem; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button { cursor: pointer; border: 1px solid var(--line); background: var(--surface); border-radius: 2px; padding: 6px 12px; font-size: .9rem; }
+button:hover { border-color: var(--muted); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+button.link { border: 0; background: none; padding: 0; color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-.note { font-size: .82rem; color: var(--muted); max-width: 80ch; }
-.note p { margin: 0 0 6px; }
+.small { font-size: .85rem; color: var(--muted); margin: 0; }
+
+.mapwrap { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1 / 1; border: 1px solid var(--line); background: var(--sea); }
+canvas { width: 100%; height: 100%; display: block; }
+#eumap { cursor: crosshair; touch-action: none; }
+.mapbtns { position: absolute; right: 6px; top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.mapbtns button { width: 30px; height: 30px; padding: 0; background: var(--bg); }
+dl.kv { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 14px; margin: 0; font-size: .9rem; }
+dl.kv dt { color: var(--muted); }
+dl.kv dd { margin: 0; }
+.zone-sw { display: inline-block; width: 10px; height: 10px; border: 1px solid var(--line); margin-right: 6px; vertical-align: 0; }
+.sp-list { display: flex; flex-wrap: wrap; gap: 4px 6px; }
+.sp-list button { padding: 2px 8px; font-size: .85rem; }
+
+.tablewrap { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; font-size: .82rem; }
+th:first-child, td:first-child { text-align: left; }
+.mix td { padding: 4px 4px; }
+.mix select { min-width: 13rem; }
+.mix input { width: 5.2rem; text-align: right; }
+.mix .rm { padding: 2px 8px; }
+@media (max-width: 640px) {
+  .mix thead { display: none; }
+  .mix tr { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .mix td { border: 0; padding: 0; text-align: left; white-space: normal; }
+  .mix td:first-child { grid-column: 1 / -1; }
+  .mix td[data-l]::before { content: attr(data-l); display: block; font-size: .78rem; color: var(--muted); }
+  .mix select { min-width: 0; }
+  .mix input { width: 100%; }
+}
+tr.best td { background: var(--surface); font-weight: 600; }
+.notes { margin: 8px 0 0; padding-left: 18px; font-size: .88rem; }
+.notes li { margin-bottom: 4px; }
+.notes .warn { color: var(--warn); }
+
+.result-head { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+@media (max-width: 520px) { .result-head { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.result-head div { padding: 10px 12px 10px 0; min-width: 0; }
+.result-head .k { font-size: .82rem; color: var(--muted); }
+.result-head .v { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.result-head .main .v { color: var(--accent); font-weight: 600; }
+.figs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+@media (max-width: 980px) { .figs { grid-template-columns: minmax(0, 1fr); } }
+.plotbox { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1 / 1; border: 1px solid var(--line); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: .82rem; color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
+.info { font-size: .85rem; color: var(--muted); min-height: 1.4em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+svg text { font-size: 10px; fill: var(--muted); font-family: var(--font); }
+.verdict { margin: 0 0 8px; }
+.verdict b.ok { color: var(--ok); } .verdict b.bad { color: var(--bad); }
+footer { border-top: 1px solid var(--line); padding-top: 14px; font-size: .85rem; color: var(--muted); max-width: 85ch; }
+footer p { margin: 0 0 8px; }
 .busy { opacity: .55; }
-@media (prefers-reduced-motion: no-preference) { .results { transition: opacity .15s; } }
 </style>
 
 <div class="wrap">
   <header>
     <h1>TLS-Scanplaner</h1>
-    <p>Standort auf der Karte wählen, Bestand und Scan-Design festlegen: Das Werkzeug schätzt für jeden Stamm, welcher Teil des Umfangs in Brusthöhe von mindestens einem Standpunkt gesehen wird, inklusive Verdeckung durch Nachbarstämme und Unterwuchs.</p>
+    <p>Abschätzung, welcher Teil des Stammumfangs in Brusthöhe bei einem geplanten Scan-Design erfasst wird, mit Verdeckung durch Nachbarstämme und Unterwuchs.</p>
   </header>
 
-  <section class="panel">
-    <h2>Standort</h2>
+  <section>
+    <h2><span class="no">1</span> Standort</h2>
     <div class="site">
       <div class="mapwrap">
-        <canvas id="eumap" aria-label="Europakarte mit Klimazonen; antippen, um den Standort zu setzen"></canvas>
-        <div class="mapbtns"><button type="button" id="zin" aria-label="Hineinzoomen">+</button><button type="button" id="zout" aria-label="Herauszoomen">−</button></div>
+        <canvas id="eumap" aria-label="Europakarte mit Klimazonen; antippen setzt den Standort"></canvas>
+        <div class="mapbtns"><button type="button" id="zin" aria-label="Vergrößern">+</button><button type="button" id="zout" aria-label="Verkleinern">−</button></div>
       </div>
-      <div class="siteinfo">
-        <div class="coords">
-          <label>Breite (°N)<input id="lat" type="number" step="0.01" min="27" max="72" value="52.47"></label>
-          <label>Länge (°O)<input id="lon" type="number" step="0.01" min="-25" max="45" value="13.25"></label>
+      <div class="stack" style="gap:14px">
+        <div class="fields three">
+          <label>Breite (° N)<input id="lat" type="number" step="0.01" min="27" max="72" value="52.47"></label>
+          <label>Länge (° O)<input id="lon" type="number" step="0.01" min="-25" max="45" value="13.25"></label>
           <label>Höhe (m ü. NN)<input id="elev" type="number" step="50" min="0" max="4800" value="50"></label>
+          <label class="span">Ortsangabe<input id="place" type="text" placeholder="z. B. Revier, Abteilung"></label>
         </div>
-        <label>Ortsangabe (frei)<input id="place" type="text" placeholder="z. B. Grunewald, Berlin"></label>
-        <div>
-          <div class="k2">Klimazone (Köppen-Geiger)</div>
-          <div class="zone"><span class="swatch" id="zsw"></span><span class="code" id="zcode">–</span><span id="zname"></span></div>
-        </div>
-        <p class="regionnote" id="regionnote"></p>
-        <div>
-          <div class="k2">Baumarten, die hier verbreitet sind</div>
-          <div class="chips" id="chips"></div>
-        </div>
-        <p class="hint">Antippen übernimmt die Art als Hauptbaumart. Der Standort hält fest, wo der Bestand steht, und klärt, welche Art gemeint ist (eine Kiefer in Portugal ist meist eine andere als in Finnland). Die Bestandszahlen trägt der Förster unten ein.</p>
+        <dl class="kv">
+          <dt>Klimazone</dt><dd><span class="zone-sw" id="zsw"></span><span id="zcode">–</span> <span id="zname" class="small" style="display:inline"></span></dd>
+          <dt>Hinweis</dt><dd id="regionnote" class="small" style="display:block"></dd>
+          <dt>Verbreitete Arten</dt><dd><div class="sp-list" id="chips"></div></dd>
+        </dl>
+        <p class="small">Antippen einer Art fügt sie der Mischung hinzu. Der Standort klärt, welche Art gemeint ist, und dokumentiert, wo der Bestand steht.</p>
       </div>
     </div>
   </section>
 
-  <div class="grid">
-    <form id="f" autocomplete="off">
-      <fieldset>
-        <legend>Bestand</legend>
-        <label class="full">Hauptbaumart<select id="species"></select></label>
-        <p class="regionnote span" id="spnote"></p>
-        <label>Alter (Jahre)<input id="age" type="number" min="1" max="600" step="1" value="80"></label>
-        <label>Kronenansatz (m)<input id="cb" type="number" min="0" max="40" step="0.5" value="8"></label>
+  <section>
+    <h2><span class="no">2</span> Bestand</h2>
+    <div class="tablewrap">
+      <table class="mix" id="mix">
+        <thead><tr><th>Baumart</th><th>Anteil %</th><th>BHD Ø cm</th><th>Streuung cm</th><th>Kronenansatz m</th><th>Stämme je Stock</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="row" style="margin-top:8px">
+      <button type="button" id="addsp">Baumart hinzufügen</button>
+      <button type="button" class="link" id="preset">Typische Werte einsetzen</button>
+      <span class="small" id="sharesum"></span>
+    </div>
+    <ul class="notes" id="spnote"></ul>
+    <form id="f" autocomplete="off" style="margin-top:14px">
+      <div class="fields three">
         <label>Stammzahl (Stöcke/ha)<input id="dens" type="number" min="20" max="5000" step="10" value="600"></label>
-        <label>Stämme je Stock<input id="multi" type="number" min="1" max="8" step="1" value="1"></label>
-        <label>Verteilung<select id="pattern"><option value="random">zufällig</option><option value="regular">regelmäßig</option><option value="cluster">geklumpt</option></select></label>
-        <label>BHD-Verteilung<select id="dist"><option value="normal">einschichtig (normal)</option><option value="revj">ungleichaltrig (umgek. J)</option></select></label>
-        <label>BHD Mittel (cm)<input id="dbh" type="number" min="7" max="150" step="1" value="32"></label>
-        <label id="lbl-sd">BHD Streuung (cm)<input id="dbhsd" type="number" min="0" max="60" step="1" value="9"></label>
-        <label class="full">Unterwuchs in Brusthöhe (Stämmchen/ha, Ø 2–6 cm)<input id="under" type="number" min="0" max="20000" step="100" value="200"></label>
-        <label>Plot-Seitenlänge (m)<input id="L" type="number" min="20" max="120" step="5" value="50"></label>
+        <label>Alter (Jahre)<input id="age" type="number" min="1" max="600" step="1" value="80"></label>
+        <label>Unterwuchs (Stämmchen/ha)<input id="under" type="number" min="0" max="20000" step="100" value="200"></label>
+        <label>Räumliche Verteilung<select id="pattern"><option value="random">zufällig</option><option value="regular">regelmäßig</option><option value="cluster">geklumpt</option></select></label>
+        <label>BHD-Verteilung<select id="dist"><option value="normal">einschichtig</option><option value="revj">ungleichaltrig</option></select></label>
+        <label>Plotgröße (m)<input id="L" type="number" min="20" max="120" step="5" value="50"></label>
         <label>Randpuffer (m)<input id="B" type="number" min="0" max="30" step="1" value="10"></label>
-        <label class="full">Eigene Stammliste (optional, Zeilen <code>x,y,BHD_cm</code>)<textarea id="csv" placeholder="12.4,3.1,38&#10;15.0,9.8,42&#10;…"></textarea></label>
-        <p class="hint">Mit eigener Liste werden Stammzahl, Verteilung und BHD ignoriert, der Plot ist dann der Umriss der Liste.</p>
-        <div class="span row"><button type="button" id="preset">Typische Werte der Art einsetzen</button></div>
-      </fieldset>
+        <label class="span"><span>Eigene Stammliste (optional, Zeilen <code>x,y,BHD_cm</code>, ersetzt die Simulation)</span><textarea id="csv" placeholder="12.4,3.1,38"></textarea></label>
+      </div>
+    </form>
+  </section>
 
-      <fieldset>
-        <legend>Scanner</legend>
-        <label>Nutzbare Reichweite (m)<input id="range" type="number" min="5" max="200" step="5" value="40"></label>
-        <label>Winkelauflösung (°)<input id="res" type="number" min="0.005" max="0.5" step="0.005" value="0.04"></label>
-      </fieldset>
-
-      <fieldset>
-        <legend>Scan-Design</legend>
-        <label>Anordnung<select id="layout"><option value="grid">Raster (quadratisch)</option><option value="tri">versetzt (Dreieck)</option><option value="rand">zufällig</option></select></label>
-        <label id="lbl-a">Abstand (m)<input id="a" type="number" min="3" max="80" step="0.5" value="15"></label>
-        <label id="lbl-n" hidden>Anzahl Standpunkte<input id="n" type="number" min="1" max="400" step="1" value="9"></label>
-        <label>Zufallszahl (Seed)<input id="seed" type="number" min="1" step="1" value="7"></label>
-      </fieldset>
-
-      <fieldset>
-        <legend>Ziel</legend>
-        <label>Mindest-Bogen (°)<input id="target" type="number" min="22.5" max="360" step="22.5" value="202.5"></label>
-        <label>Zielanteil Stämme (%)<input id="goal" type="number" min="10" max="100" step="5" value="90"></label>
-        <label class="full">Mindestpunkte je 10-cm-Scheibe (0 = aus)<input id="minpts" type="number" min="0" max="100000" step="10" value="0"></label>
-        <p class="hint">202,5° = 9 von 16 Sektoren, die Voreinstellung von 3DFin für eine BHD-Messung. Vorläufiger Startwert, wird im Forst-Paper überprüft.</p>
-      </fieldset>
+  <div class="cols">
+    <div class="stack">
+      <section>
+        <h2><span class="no">3</span> Scanner</h2>
+        <div class="fields">
+          <label>Nutzbare Reichweite (m)<input id="range" form="f" type="number" min="5" max="200" step="5" value="40"></label>
+          <label>Winkelauflösung (°)<input id="res" form="f" type="number" min="0.005" max="0.5" step="0.005" value="0.04"></label>
+        </div>
+      </section>
+      <section>
+        <h2><span class="no">4</span> Scan-Design</h2>
+        <div class="fields">
+          <label>Anordnung<select id="layout" form="f"><option value="grid">Raster</option><option value="tri">versetzt (Dreieck)</option><option value="rand">zufällig</option></select></label>
+          <label id="lbl-a">Abstand (m)<input id="a" form="f" type="number" min="3" max="80" step="0.5" value="15"></label>
+          <label id="lbl-n" hidden>Anzahl Standpunkte<input id="n" form="f" type="number" min="1" max="400" step="1" value="9"></label>
+          <label>Zufallszahl<input id="seed" form="f" type="number" min="1" step="1" value="7"></label>
+        </div>
+      </section>
+      <section>
+        <h2><span class="no">5</span> Ziel</h2>
+        <div class="fields">
+          <label>Mindest-Bogen (°)<input id="target" form="f" type="number" min="22.5" max="360" step="22.5" value="202.5"></label>
+          <label>Zielanteil Stämme (%)<input id="goal" form="f" type="number" min="10" max="100" step="5" value="90"></label>
+          <label class="span">Mindestpunkte je 10-cm-Scheibe (0 = keine Vorgabe)<input id="minpts" form="f" type="number" min="0" max="100000" step="10" value="0"></label>
+        </div>
+        <p class="small" style="margin-top:8px">202,5° entspricht 9 von 16 Sektoren, der Voreinstellung von 3DFin. Vorläufiger Startwert; die Schwelle wird im zugehörigen Forschungsvorhaben geprüft.</p>
+      </section>
       <div class="row">
         <button type="button" class="primary" id="sweep">Abstände vergleichen</button>
         <button type="button" id="reseed">Neu würfeln</button>
         <button type="button" id="copy">Standpunkte kopieren</button>
       </div>
-    </form>
+    </div>
 
-    <div class="results" id="results">
-      <div class="tiles">
-        <div class="tile main"><div class="k">Stämme ≥ Ziel</div><div class="v" id="t-share">–</div></div>
-        <div class="tile"><div class="k">Median-Bogen</div><div class="v" id="t-arc">–</div></div>
-        <div class="tile"><div class="k">Standpunkte</div><div class="v" id="t-scans">–</div></div>
-        <div class="tile"><div class="k">je ha</div><div class="v" id="t-sha">–</div></div>
+    <section id="results">
+      <h2><span class="no">6</span> Ergebnis</h2>
+      <div class="result-head">
+        <div class="main"><div class="k">Stämme ≥ Ziel</div><div class="v" id="t-share">–</div></div>
+        <div><div class="k">Median-Bogen</div><div class="v" id="t-arc">–</div></div>
+        <div><div class="k">Standpunkte</div><div class="v" id="t-scans">–</div></div>
+        <div><div class="k">Standpunkte je ha</div><div class="v" id="t-sha">–</div></div>
       </div>
-
-      <div class="two">
-        <div class="panel">
-          <h2>Plot</h2>
-          <div class="mapbox"><canvas id="map" aria-label="Karte der Stämme und Standpunkte"></canvas></div>
+      <div class="tablewrap" style="margin-top:12px">
+        <table id="bysp"><thead><tr><th>Baumart</th><th>Stämme</th><th>≥ Ziel</th><th>Median-Bogen</th><th>Median Punkte</th></tr></thead><tbody></tbody></table>
+      </div>
+      <div class="figs" style="margin-top:16px">
+        <div>
+          <h3>Plot</h3>
+          <div class="plotbox"><canvas id="map" aria-label="Plot mit Stämmen und Standpunkten"></canvas></div>
           <div class="legend">
             <span><i style="background:var(--ok)"></i>≥ Ziel</span>
             <span><i style="background:var(--warn)"></i>≥ halbes Ziel</span>
             <span><i style="background:var(--bad)"></i>darunter</span>
-            <span><i style="background:var(--ghost)"></i>Puffer / Unterwuchs</span>
-            <span><i style="background:var(--accent);border-radius:1px"></i>Standpunkt</span>
+            <span><i style="background:var(--ghost)"></i>Puffer, Unterwuchs</span>
+            <span><i style="background:var(--accent);border-radius:0"></i>Standpunkt</span>
           </div>
-          <div class="info" id="info">Stamm antippen für Details.</div>
+          <div class="info" id="info">Stamm antippen für Einzelwerte.</div>
         </div>
-        <div class="panel">
-          <h2>Verteilung der Bögen</h2>
+        <div>
+          <h3>Verteilung der Bögen</h3>
           <div id="hist"></div>
           <div class="info" id="pts"></div>
         </div>
       </div>
-
-      <div class="panel">
-        <h2>Abstand gegen Abdeckung</h2>
-        <p class="verdict" id="verdict">„Abstände vergleichen“ rechnet die aktuelle Anordnung für 6–30 m Abstand durch und markiert den größten Abstand, der das Ziel erreicht.</p>
+      <div style="margin-top:18px">
+        <h3>Abstand und Abdeckung</h3>
+        <p class="verdict small" id="verdict">„Abstände vergleichen“ rechnet die gewählte Anordnung für 6 bis 30 m Abstand und markiert den größten Abstand, der das Ziel erreicht.</p>
         <div class="tablewrap"><table id="sweeptab" hidden><thead><tr><th>Abstand</th><th>Standpunkte</th><th>je ha</th><th>≥ Ziel</th><th>Median-Bogen</th><th>Median Punkte</th></tr></thead><tbody></tbody></table></div>
       </div>
-
-      <div class="panel note">
-        <h2>Was das Modell kann und was nicht</h2>
-        <p>Geometrie im Brusthöhen-Querschnitt (1,3 m): Stämme und Unterwuchs als Kreise, Sichtlinien vom Scanner mit Verdeckung, Reichweite und streifendem Einfall (unter ~6° kein Treffer). Der Bogen zählt die 16 Sektoren à 22,5°, in denen ein Stamm gesehen wird, wie 3DFin.</p>
-        <p>Nicht modelliert: Äste und Kronen in Brusthöhe, Gelände und Hangneigung, Stammneigung, Strahldivergenz, Wind. Die typischen Werte je Baumart sind grobe Richtwerte, nicht kalibriert; maßgeblich sind die Zahlen aus der Inventur. Die Ziel-Schwellen sind vorläufig; die Kalibrierung gegen HELIOS++-Simulationen und echte Punktwolken ist Teil des laufenden Forst-Papers.</p>
-        <p>Daten: Köppen-Geiger-Klimazonen 1986–2010 nach Rubel et al. (2017), Raster aus dem Paket <code>kgcpy</code> (BSD-3), hier auf 1/12° vergröbert. Landesgrenzen: Natural Earth (gemeinfrei).</p>
-      </div>
-    </div>
+    </section>
   </div>
+
+  <footer>
+    <p><b>Modell.</b> Geometrie im Brusthöhen-Querschnitt (1,3 m): Stämme und Unterwuchs als Kreise, Sichtlinien vom Scanner mit Verdeckung, Reichweite und streifendem Einfall (unter etwa 6° kein Treffer). Der Bogen zählt die 16 Sektoren zu 22,5°, in denen ein Stamm erfasst wird, wie bei 3DFin.</p>
+    <p><b>Nicht enthalten.</b> Äste und Kronen in Brusthöhe, Gelände und Hangneigung, Stammneigung, Strahldivergenz, Wind. Typische Werte je Baumart sind grobe Richtwerte; maßgeblich sind die Inventurdaten. Die Ziel-Schwellen sind vorläufig.</p>
+    <p><b>Daten.</b> Köppen-Geiger-Klimazonen 1986–2010 nach Rubel et al. (2017), Raster aus dem Paket kgcpy (BSD-3), auf 1/12° vergröbert. Landesgrenzen: Natural Earth (gemeinfrei).</p>
+  </footer>
 </div>
 
 <script>
 (() => {
 const $ = id => document.getElementById(id);
-const IDS = ["lat","lon","elev","place","species","age","cb","dens","multi","pattern","dist","dbh","dbhsd","under","L","B","csv","range","res","layout","a","n","seed","target","goal","minpts"];
-const STAND = ["dens","multi","pattern","dist","dbh","dbhsd","under","cb"];
+const IDS = ["lat","lon","elev","place","age","dens","pattern","dist","under","L","B","csv","range","res","layout","a","n","seed","target","goal","minpts"];
 
 // ---------- Klimazonen ----------
 const KG = {lon0: -25, lat1: 72, step: 1 / 12, w: 840, h: 540, rle: "HgcfGiD/IP8g/yAqHgQfGiD/IP8g/yAtHgIfHSD/IP8g/yAsHwIeAR8GHgEfGyD/IP8g/yAmHyMgAR8DIP8g/yD/ICQfIiACHwQg/yD/IP8gIx8oIP8g/yD/ICMfKCD/IP8g/yAjHykg/yD/IP8gIh8oIP8g/yA5FAMg7B8iIP8g/yAjFAUgAxQHIAEUDSALFA4gzx8iIP8g/yAjFAUgAxQWIAoUDyDOHyMg/yD/ICEUByACFBUgAxQEIAQUEiDOHyEg/yD/IBMfAhQJIAYUFyABFAkgAhQdIMUfISD/IP8gEx8CFAogBRQXIAEUCSACFB4gxB8hIP8g/yAOFAEgAR8BFAMfARQmIAEUCSACFCggvB8hIP8g/yAIFAcfARQjIAIUPCC5Hx8g/yD/IAkUBx8BFCIgAxQ9ILgfHiD/IP8gCxQNHwEUGyACFEIgqB8GIB0fAiD/IOwUAiADFAQgBBQCIAsUeCCmHwYg/yD/IAwUAyACFAUgAxQDIAoUER8BFGUgpx8MIP8g/yADFAcgARQJHwEUByAEFAkfARQBHwEUaiCoHyMg/yDmFBYfBBQBHwEUBCABFAcfARQEHwEUYyCvHwIeBx8ZIP8g5xQVIAEfAxQZHwEULB8BFDAgsB4JHxgg/yDoFBcfARQFHwEUFB8CFAIfARQSHwMUDh8CFDMgExQFIJkeBB8EHgEfEiD/IOoUGh8CFAIfAhQWHwEUGB8CFEwgAxQUIJAfGyD/IOoUGR8DFAMfARQBHwIUBx8BFHMgAhQVII8eAx8YIP8g6hQRHwMUBB8DFAMfBhQEHwQUDh8BFHsgjh8VIP8g5RQYHwEUCR8EFAMfBxQEHwMUAR8EFAkfBBR4II4fFSD/IOUUGx8CFAMfBRQCHwIUAh8GFAQfBxQLHwEUeCCPHxUg/yDlFBsfAhQDHwUUAh8HFAEfAxQGHwIUhyABFAEgjB8IIP8g4hQFIAYUCh8CFBgfBBQBHwEUAh8NFJ0gfh8HIP8g4xQGIAUUIx8DFAIfBBQCHwwUnSABFAEgex8GIP8g5BQFIAYUGR8BFAwfARQBHwcUAh8GFAEfAhStIP8g/yBOFAMgAhQKIAIUAiABFCIfAxQBHwMUAR8HFAIfBhS2IP8g/yBHFAQgARQJIAMUFB8CFBEfDBQGHwMUtyD/IP8gRRQOIAMUEx8BFAIfAhQDHwMUAx8CFAcfBxQBHwEUCB8EFLkg/yD/IDsLAhQBCwEUIx8BFAofBhQBHwUUAx8KFMsg/yD/IDQLAhQaIAEUCB8BFAUfAhQCHwIUAh8MFAIfCxTLIP8g/yAzCwEUIR8BFAQfARQCHwMUAR8EFAIfDBQCHwcUBh8CFMggQhQDIP8g6gsDFCMfARQDHwUUAR8KFAEfBxQCHwYU0yA+FAIfBRQPIP8g2QsBFA4fARQbHxIUAh8BFN0gPRQDHwUUDiD/INoUNh8IFAQfARTcIDsUAh8CFBEg/yDRCwgUAx8BFAEfAxQhHwIUAR8IFAgfAxToIDsUDiD/INELBhQHHwEUHx8CFAEfChQCHwEUAR8DFO8gOhQOIP8g0QsBFAELARQBCwIUIx8CFAUfCRQBHwwU7SA4FA0g/yDRCwMgCRQBIAMUFh8CFAEfAxQDHxIUAh8EFPQgMRQMIP8g0QsCIA4UFR8GFAMfExT7IDAUDCD/IOAUFB8LFAEfDxQCHwIUnx8BFF0gLRQMIP8g2xQZHwIUCB8CFAEfBxQBHwYUox8BFBgfARRJICcUDSD/INsUFB8CFAMfBBQFHwsUAR8HFK4fARQCHwEUCR8CFEkgJhQNIP8gxgsBIBQUFR8LFAUfBhQCHwMUsx8CFAEfARRXICMUDSD/INsUEx8CFAEfAhQBHwgUAh8CFAQfBBQCHwMUth8BFFYgIRQOIP8g2xQUHwUUCB8JFAMfART/FBIgIRQOIP8g0wsCIAMUAiABFBMfAxQEHwIUAR8OFP8UFSAhFA4g/yDSCwMgAQsCFBMfBhQHHw4UAR8CFP8UEyAdFBEg/yDSCwcUEx8IFAIfEhQDHwMU/xQOIB0UESD/INMLAiABFBYfGBQBHwMUBR8CFP8UECAaFBEg/yDQCwEUAQsBFBwfCxQBHwsU/xQZIBwUDyD/INALARQYHwEUBB8DFAMfCxT/FCAgHBQPIP8gxwsBIAULAxQIHwEUAR8CFAwfAhQFHwIUBB8IFP8UISAeFA4g/yDJCwYUBR8BFAIfBRQGHwEUAx8KFAofBRT/FB4gDBQEIBQUCSD/IMkLBhQJHwQUAR8CFAEfBRQFHwMUAh8JFP8UJSAMFAUgExQJIP8gyAsGFAUfAxQCHwkUAR8EFAIfAhQCHwEUBB8DFAIfAhQBHwIU/xQhIA0UBSATFAkgZgsBIAIfAyD/IFYLChQFHxAUAR8DFAEfCBQEHwMUBh8BFMMgCRRQIA4UAiAXFAogUxgCIBALAyABHwQg/yBQCwEgBAsJFAofAxQCHwUUAx8CFAEfCRTSIAgUTyAPFAMgFhQKIBYfBQsBHwQgRAsEHwYg/yBUCwgUBh8BFAsfARQIHwsU0SAIFE0gDxQIIBIUCiAVHw8gQQsBHwogAh8MIP8gQAsLFBwfBxTYIBAUPyAOFBcgBBQNIBUfECBBCwIfCCACHwwg/yBACwYKAQsEFBcfAxQGHwcU1SAPFD4gDxQYIAMUDSARHxcgHwsBHwEUAiAFGAEfASADDgEgBhQECwEgBAsBHxgg/yBACwsUBxMBFAwfARQMHwEUAx8BFNkgDRQjGAwUDSAPFCkgDx8IDgIfEiALCwIfAQsDIAYLAh8CCwEfAxQBHwMLARQBHwUYAiADCwIUAh8CFAELBh8VIP8gQAsLFBsfAxQDHwUUAh8CFNsgIRQLGAgUBiARFDIgDh8KDgIfAQsEHwwLASAKCwEfBAsCIAQLAx8CFAELAR8DFAEfAgsBDgEfBRQBHwIgAgsBFAEfBBQDCwQfFiD/ID8LChQBCwEUDh8EFAkfAhQEHwQU4CAgFAsYBxQGIBIUMiANHw8LAx8OIAkLAR8FCwIgAQsEHwoLARQBDgIfBBQBHwIUAQsCFAIfCBQBCwEfFyD/ID4LBxQMHwEUBh8EFAEfBhQBHwQU6CAgFAoYBxQFIBAUNSAJHwgOAR8KDgEfAQsCHw0gCQsCHwULAR8CCwQfCAsBHwMYAQ4CHwIUAR8DCwIUAh8fCwEfAwsBIP8gOwsIFBsfARQCHwMU6yA/FDogCR8jCwEgCQsDHwcLBB8NDgIUAh8ECwIUAh8dCwEfAQsBHwMLASD/IDsLBxQgHwIU7CA+FDogCR8IDgEfFQsBHwMLAiAGCwIgAQsDHwcLBB8LDgEfAQ4CFAEfARQBHwIUAQsBFAQfGwsBHwYLASD/IDgLCRQWHwEU+CA8FDwgBh8UDgEfEAsCIAMLAR8DCwYfBwsDHwkLAR8ECwIfBRQIHx0LBh8EIP8gMQsIFBcfBBQBHwMUYyAEFAUgBhR+IDgUQSAFHxELAR8BCwIfBQsBHwILAh8ICwEgAx8ECwQfAgsDHwQLBB8NCwEUAR8GFAcfKCD/IDALARQBCwYUgSAFFAQgBxR9IDkUQSAEHw4LAh8E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CwIUAgsBFAMKBBQCEwEKARQiEwEUAxMCFAYTARQBEwEUARMEFAMTAhQNEwEUJxMIChEgGRNOIAITByAEE0wUARMEFBMTFRQDEwsUQiD/IBYKBwsBCgQgRAoJCwEKAwsCCgYUAQoCFCITARQGEwEUARMDFAUTARQBEwIUAhMDFAMTARQKEwEUKxMHChIgGBNNIAQTASAJE0wUGBMhFAETARRCIP8gFgoHCwEKAyBFCgwLAgoGFAIKARQpEwIUARMCFAYTBhQBEwIUAxMBFAgTARQCEwEUKxMGChITASAXE0kgARMEIA0TShQYEysUMBMBFAsg/yAYCgggRwoQCwEUAh8BCgEUIRMBFAITARQEEwUUBhMMFAETARQJEwQUAxMBFCMTCQoTEwEgGhM8IAoTASAYE0EUGBMtFBMTARQUEwYUBRMBFAcg/yAZCgggRgoQCwEKARQBHwEKARQiEwIUARMCFAITBRQFEwoUDhMEFAMTAhQCEwEUHRMJChcgGRMyIBMTAyAIEwIgDxM+FAETARQXEy4UBxMCFAETAhQEEwMUCxMNFA4TASD/IBkKBAsBCgIgRwoPCwEUAR8CFAEKARQEHwEUGhMBFAMTARQBEwEUARMHFAITARQBEwoUAhMBFAITAhQCEwEUBxMDFAMTAxQdEwwKFSAZEzEgFBMEIAcTAyABEwEgAxMBIAkTAyABEz4UEhMwFAUTBBQBEwoUCRMQFAETARQHEwQg/yAbCgMgSQoPFAEfAxQHHwIUGRMBFAUTAxQCEx0UAxMBFAETAxQCEwMUGhMQChcgHRMEIAMTFyAEEwIgJxMCIAETASAEE0oUCxMBFAETARQBEzYUARMEFAITCxQFEwEUAhMeIP8gGwoDIEkKDAsDFAILAhQHHwEUBx8DFBETAxQDEwIUAhMECgMTFxQDEwQUAhMCFAETARQZEwkKHyAbEwUgAxMSICsTASAIEwMgAhNJFAoTARQBExQUARNZFAMTAiD/IBsKAiBKChALARQEHwEUDh8CFAUfARQPEwgKAhMBCgETFxQBEwEUAhMHFAETAxQCEwEUCxMBFAUTCgoiIBoTBCAEEwYgARMLIDQTBCABE0wUAxMZFAQTLBQBEygUARMBFAITAyD/IGkKDhQCCwEUIBMCFAQTBwoJEwMKARMlFAUTARQDEwEUAhMMCiMgPRMCIAITGCAO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IOUKDCBJCrsTAgoBEwEUAxMDCkcTAQoGExwKEBOOEg0TAhICEwESARMDEgETARIBEwISBBMBEiEg5QoLIEoKuhMDCgITARQBEwMKSRMBCgITAQoBExwKEROREgETBRIBEwESCBMDEgITBBICEwESIiDsCgIgQgrEEwEKBBMGCkkTHgoTE5YSDBMBEgMTARIBEwISJSD/IDAKzBMECkwTGgoUE4USARMFEgETBxIIEwISCxMBEgMTARIiIP8gMArNEwQKDxMUCgITAgoBEwMKHxMcChIThxIBEwISAhMBEgETBBIEEwISBBMBEgoTARIoIP8gEgoBIAEKCiAOCsITAQoQEwMKDBMFCgETFAoBEwIKIRMbChITdxIBEw8SBBMGEgITBBI5IP8gFAoLIA0KwRMCCgETAgoNEwIKCRMHFAETBBQBEwEUARMMCgETCAofExkKExNoEgMTDBIBEwYSAhMEEgETAxICEwISAhMDEgETBxIBEwESNSD/IA4KASAFCgogDgrKEwEKDxMBCgETCxQDEwEUARMFFAMTEQoJEwMKEBMYCgcJBAoLE2YSChMGEgETBBICEwUSARMBEgETARIFEwESBBMBEgETAxICEwESNiD/IAwKBiAECuATAgoPExwUARMTCgQTBgoNExcKBwkFCgoTXRIDEwkSBxMFEgITBBIDEwQSCBMCEkIg/yAQCgMgAwrsEwIKARMpCgQTEwoLExQKBgkKCgcTVxIBEwMSAxMHEgETARIBEwISBhMBEgETAhIDEwQSAhMCEgITAhJLIP8gEAoEIAIK7hMVFAkTCgoIExMKCRMTCgYJCwoIE1YSARMCEgcTARIVEwMSBBMBEk8g/yASCgMgAgqzEwMKNxMGCgITAQoBEwMUARMGFAUfAxQBEwMUAhMHCgcTFQoHExMKBgkMCgcTUhIkEwISARMBEgMTARJPIP8gFwqzEwQKOBMCCgMTDxQGEwQUAhMHCgkTBRQBEycKBgkNCgYTTRIpEwESViD/IBcKthMECjoTCBQBExcKAhMBCgoTKgoGCQ8KBhNLEiMTARIBEwESWyD/IAEKCCAPCrUTAhQBEwMKLxMCCgUTCRQCEwEUCxMMCgETAgoIEwEKARMpCgYJEQoFE0kSJRMCEgETARJZIP8KCiAMCgEgAQq9EwEKKhMCCgYTBAoBEwQUARMBFAMTAhQDEwIUBBMBFAETCQoBEwMKBRMECgITDRQBEwwKAhMLCgcJEQoFE0cSgyD7CgEgAwoKIA4KuhMCCjETAQoEEwEKAhMOFAITAhQBEwwKAhMCCggTAgoCEwIUARMKFAETCwoDEwoKBwkSCgUTRhIsEwISVSDyCv8KExMBCgYTChQBEwoKARMJCgQTAQoJEwMKARMMFAQTEwoJCRMKBRNHEioTAhIFEwESTyDxCv8KGxMCCgITAgoCEwoKBBMBCgETBAoGEwEKDBMIFAETBBQHExAKCgkUCgQTRxIqEwISBRMBEk8g8Qr/ChoTAwoBEwIKARMKCgcTAQoJEwIKDxMCCgITBhQIEw4KCwkWCgQTRxIpEwESVSDuCv8KHRMBCgITCQoWEwEKEhMKFAUTARQDEwgKEAkUCgQTRxIBEwESKBMBEgQTARIBEwISTCDwCv8KHhMCCgITBQoWEwEKFBMCCgETBRQBEwIUBhMIChAJFQoFE0USKhMDEgITAxJNIPEK/woiEwEKMBMBCgITBhQEEwQUARMFCgETAwoDEwEKCAkXCgQTQRIBEwISKxMMEgETARJGIPMK/wpUEwYUAxMBFAQTARQBEwwKCAkYCgQTNhIBEwMSARMEEgITAhIvEwMSARMBEgETBBJGIPIK/woxEwEKJRMGFAETARQEExAKBwkTCgEJBQoCEzgSAhMFEgMTARIJCQESHhMCEgETARIFEwESTSDyCv8KMBMCCiATAQoFEwkUBBMNCgETAgoGCRMKAgkECgQTMBIBEwESARMBEgYTAhIMCQISdSD1Cv8KGxMBCjUTBQoBEwQUBxMPCgcJFAoFCQEKBRMCCgITKhIXCQQSdCD1CuwTBAo1EwIKKhMLFAETARQEEw8KBwkUCgcJAQoDEwEKARMsEhMJCRJyIPUK4hMCCgETAQoBEwEKAxMICgETAQpbExAUBBMLCgETAgoICRMKBQkCCgoTCgoDEwEKARMYEhIJCxJwBgEg/yABCr8TAQoCEwIUAQoCEwEKAhMCCgUUBBMBCgMTAgoCEwkUAxMCCloTDxQGEwsKAhMBCgUJAgoBCQ8KAgkBChYTAgoEEwEKBRMWEgoJARIECRESbAYCIP8gAQoDIAEKtRMBCgETAQoGFAIKARQCCgETAQoDEwEUAQoEEwEUBRMFCgETARQGEwYKXRMNFAYTCwoICRYKBgkBChoTFRIKCRYSbQYBIP8gAQoCIAIKqRQCCwEKBxMBCgETAQoJFAMfARQBHwEUAwoCFAQKCBQDEwIUAhMFCgETAxQCCl0TCRQIEwwKBhMBCgIJFgoDCQEKAQkBChsTFBIJCRgSbAYBIP8gBAqiCwEKAhQDCwEKARQCCgUUBAoBFAEKBxMBCgEUAgoBFAEfAhQBCgEUAQoBFAIfARQCCgQUCRMECgITBwpbEwwUARMEFAMTAhQBEwkKBRMBCgIJCAoBCQMKAQkKCgIJBQoaExQSCAkWEgEJARJtIP8gBQoGIAIKmAsBFAEKAhQKCgETARQECgMTAQoEFAUKARQECgETAQoDEwEKARQNEwEKAxMBCgETBAoBEwEKXhMWFAETCAoDEwEKAhMBCgEJDQoCCQoKAQkEChsTExIICRgSBxMBEg8JARIDCQESBwkBEkkg/yAGCgMgBQqUFAofAhQBCwEKChQBCgEUBBMBCgMUAgoBFAIKARQBEwEUBR8CFAEfARQFEwEUAxMCCgETARQBEwEKAhMDCmETFBQCEwkKCAkLCgwJBQoFCQEKCQkCCgkTAQoCExESCAkaEgMTBBIKCQESAgkVEkMg/yAQCo0LAQoFCwEUAR8DFAEfAxQDCwEfAxQCCgIUBAoBFAkfAxQFHwMUBwoBEwEUARMBCgUTARQBEwIKAhMBCmsTBxQIEwkKBwkKCgEJAQoECQYKAQkHCgMJAQoECQEKEBMCCgETEhIECRwSEQkaEgEJARIBCQESPSD/IBAKjQsBCgIUAgoCCwEUAR8EFAQfAhQBHwMUAgoBFAEfAhQDHw0UAR8DFAMKAhQCEwEKARMCCgETARQBEwEKARMDClkTAgoSEwEKAxMEFAwTCQoICQEKAQkECgEJBAoGCQsKAwkBCgIJBgoFCQEKCxMREgIJHxIJCRcgAQkOEjwg/yAQCocUAgoBFAEfARQBCgMUAR8BFAMfBxQBHwgUAx8LFAEfCxQIEwMKARQCEwEUAhMBClwTAQoCEwEKEhMDFAETARQBEwIUAhMCFAETARQCEwkKCRMBCgMTAQoBCQQKBQkNCgIJAgoBCQUKAQkDCgEJAQoLExESAQkhEgIJDyAGCQIgAgkSEjwGASD/IBEKfgsBCgUUAQsBFAEfAQoBFAIfAhQBCgMUAR8CFAEfBRQBHwkUAx8EFAEfBRQDHwIUAR8C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CgEJJQwHIB4MCyAgDAIgAwwCIAYMBw0CDBEJAQoJCQcgGAwYCQEKCBMBCgIUAhMCCgITAQoFEwEKChMECgYJBAoDEwEKAwkBCgMTBQoECR4KAQkBCgIJEiCTCQcKAxMEFAITBBQCHwEUAR8BFAEfCxQBEwEUARMEEgIJBBIFEwIgug0ICgINCAoBDQ4KAQ0BCgULAQoDDQEKSwkWCgIJAQwHIB8MAyABDAIgAQwDIB8MBCADDAIgBQwRDQEMCQkBCgkJBiAZDAQgAgwSCQEKCBMBCgETCAoFEwEKBhMBCgMTAgoGCQYKDBMDCgUJAgoCCQUKAgkBCgMJAgoCCQoKBAkECgEJDSCaCQQKAxMDFAETARQDEwIUARMEFAMfBRQCHwEUAhMDEgoTAiC7DSEKCg0CCgQNAQoTDQQKNAkDCgQJCQoDDAYgJQwBICMMBCAHDBINAQwCDQEMCAkCCgoJBCAgDBAJAQoJEwEKBBMBFAITAQoGEwIKCRMCCgYJBwoPEwIKAQkDCgEJAQoHCQEKAQkECgMJAQoBCQQKDAkBCgEJCiCcCQUKAxMBFAQTBBQCHwEUBR8IEwIUARMNILwNHgoCDQEKBw0NCgQNFgodFAEKBBQCCgsJAQoLCQEKBAwGIEcMBA0BDAEgBgwGIAEMCw0DDAENAQwICQIKCQkGIBwMAiABDAUgAQwLCQEKCxMCFAETAwoBEwMKAhMICgsJAQoBCQUKBBMBChYTAgobCQUKAQkBCgIJBCCdCQgKAhQCEwEUARMBFA0fAhQGEwwgvQ0FCgENHAoDDSsKGQsBCgEUBAoBFAEKGwkCDAYgQwwIDQEMASAFDAcgAgwKDQIMDAkCCgoJBCAdDAIgAQwEIAMMCAkCDAEJAQoCCQEKBxMBFAETAQoDEwMKARMGChQJAQoBEwIKCQkDCgMTAQoBEwEKARMSCgUTAgoHCQ8gngkICgETAgoBEwEUBBMEFAETAxQDEwIUAR8DFAgTBSC9DVEKGBQBCgIUAQoBFAgKFwkCDAUgQgwLIAUMByAFDBUJAQoLCQUgKAwLCQEKCRMCDQEKARMDCgETBQoBCQQKBAkBCgsJAgoDEwEKCQkDCgoTAgoCEwIUAhMDCgETAwoMCRAgoQkGCgEJAgoBEwQUAhMEFAMTAhQBEwIUAR8CFAIfARQBHwQUAR8DFAEgvQ1RCgcJAgoF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DBIJCQYBCQIMCyAaDAkNAwwBDQEKAg0BDAENAwoCCQEKAQkDCgEJAQoEEwEXAQ0BDAEJCAYECQEKBAwFDQEMAg0BDAQNAQwDDQIMAg0FDC8JFgoBCQIKAwkBCgMJAQoGCQEKChMICgQJAgYCCQEMAQ0HDAgJCyAMCQQMBiAJCQsKARMFCQETBxQCEwEUARMHFAITBBQCEwgSAQkDIMINDAwBDQUMCA0BDAkNBQwRDQ4MAg0FCg8JAQYBCQIGDAwCBgMMAwYGIE8MAyAFDAogMgwRDQEKAQkGBgEJAwwMIBkMDA0FDAINAgoECQIKAgkBCgETAQoCFwENAwwBCQkGAwkCCgENAgYEDAINAwwODQMMLgkVCgEJAwoPEwMKAhMGCgMJAgoBCQEKBQkFDAENCQwFCRAgBAkHDAkJASADCQwKARQEEwMSARMBEgETAhQDEwoUAxMEFAETCBIDEwEgwg0UDBQNAQwQDQwMBA0HCg8JAgYMDAMGAgwDBgQgUQwEIAMMDSAyDBANAwkJDA4gFwwLDQQMAQ0BDAENAwoECQIKBBMBCgEMAw0CDAMJBwYGDAMGAwwGBgIMCw0BDDAJEwoDCQIKEhMHCgEJAgoECQEKDA0KDAQJGwwJCQ8TAhQFEwESARMFFAETCBQBEwMUAhMNEgETBCDCDRMMJQ0HDAENAgwIDQcKDwkBBgMJAQYEDAYGAQwFBgEgVAwUIDIMCg0BDAQNBQkBCgEJBwwQIBQMDA0FDAENAwoCEwEKAQkDCgITAQoBDAMNAwwFCQYGBwwIBgMMIiACDAIgBwwQCQoKAQkCCgIJBAoWEwIKAxMBCgEJAgoBEwMKAgkECgUTAQoDDQsMAQ0BCgQJGQwCDQEMBQkMEwQUAhMHFAETARQDEwgUAhMDFAETDRIBEwQgwQ0UDCANAwwBDQgMDA0ICg4JAgoBCQIGAgwHBgEMBCBWDA0NAgwGICYMASAKDAoNAQwCDQEMAQ0BDAUJAgoBCQUMEyAQDA0NCQoCEwEKAQkDCgINAwwMCQYMAQYDDAINAgwGBgEMAiAGDBkgEwwJCQoKAgkGCgsNAQoHEwIKCRMGCgUJAQYBCgcJAQoCDQ0KBgkCCgMJAwoBCQwKAQ0DDAENAQwDCQkTBRQFEysgwQ0DDAENEAwQDQQMBQ0DDAENAQwBDQsMDg0JChIMBg0CDAEGAgwDIFUMFiAxDAwNCQoDCQUMFCAPDAsNAQwBDQITAQ0HCgETAQoCCQINAgwQCQQMAg0BDA4gDAwRDQEMAyAPDAwJEgoKDQMKAhMCCgQTAgoCEwEKARMDCgITBAoFCQMKBAkEDAENARcCDQMMAw0EChMJAQoCCQQKAhcBDQEXAg0BDAENAgkGEwISARMCFAMfAhQDEwsUARMfIMEMAQ0BDAQNDAwGDQEMCg0EDAUNEAwIBgEMCQ0IChEMAg0FDAMGAgwDIFUMDw0CDAQgNQwKDQIMAQ0DDAENAQoECQQMFCAODAsNDQoEDQEMAw0CDAEGAgwKBgEJAgwFIAIMAyADDAUgBwwBIAUMFyALDA0JCwoQDQUTAwoBEwcKDAkBCgIJAQoJDAQNAwwHDQIKBBMBCggTAgoBEwEKAgkBCgQTAQoDFwUNARcBEwEJARMDCQETAhQBEwIUAh8CFAITERQEEwkSAhMIFAETBSDADAINAQwEDQYMAw0BDAQNBgwGDQcMAQ0SDAoGAQwIDQoKDw0GDAkgVwwNDQMMBCA0DAUNAQwLDQMKBAkCDBYgDQwLDQ4KAQ0DDAINAhcBDQEMAQYDDAkJAgwBBgEMBCAIDAQgBgwDIAUMFyAJDAwNAwoFCQEKAQkCCgwTAwoBDQgKARMDCgITAwoCCQIKBgkCBgMNCwwDDQUXAQ0CDAUKAhMDCgMTAQoCEwYKAhMHDQMXBBMJFAETAhQEExMUAhMbIMAMCA0CDAgNCAwFDQYMAQ0SDAENAQwJBgIMDA0ICgMJAQoIDQcMCSBZDAoNBQwFIDQMASAGDAYNAgwBDQUKAwkBDBggCwwMDQ0MAQ0DDAINBAwBBgMMAQYBDAQGAQwCCQEMCiAPDAQgBgwhDQQMBg0FDAINAQoPEwMXAg0IFwITBAoBEwEKAgkBCgEJBAYBDAEGAwwCDQIMAQ0HDAEGAgwBDQwMAgoBEwYXAQ0BFwITAhQCEwkXAwwBDQEXBBMGFAYTBhQCEwwUAhMRFAIfARQBEwggwAwIDQEMBw0KDAINAQwCDQQMBA0NDA0GAwwODQgKCg0IDAUGASBdDAgNAgwCDQEMBiA7DAcNAgwBDQYKAQkBDAkgAQwPIAoMDA0MDAINBQwBDQQMBQYBIAEMBQkBDAMNAQwHIA8MAg0BDAEgBAwtDQIMBA0ECg0NARcEDQQXAQ0CFwUNAxMBCgEJAQYGDAQNBAwCDQYMAQYBDQoXAQ0HCgENAxcCDQIXBBgBFw0NAhcEExAUARMXFAETCRQDEwkgvwwQDQQMAg0MDAUNEAwJBgEMAQYCDBANBwoDBgIKBA0IDAcgXQwHDQIMCiA7DAcNCgwJIAMMDyAKDAkNCRcBDQUMAg0EDAENBAwBDQEMAwYBIAIGAgwPIA8MBCADDCYNAgwKDQgKCA0GFwENCBcCDQEXAQ0CDAENAQwDBgUMAg0IDAENBQwBDQUMAg0QFxIYARcFDQEXBBMNFAQTCRQCEwIUARMIFAETFSC/DA8NBAwEDQcMCQ0MDA0GBAwQDQgKAgkBBgEKAg0IDAggXgwRID0MBw0DDAENBQwJIAcMDSAKDAUNAgwCDQEMAg0LDAMNAgoBCQEMAw0CDAEGBCAEBgUMBiABDAQgDwwEIAIMJQ0DDAUNAgwCDQwKAg0ZDAIGBQwBBgEMAg0LDAENBwwCBgMMAQ0MFwENBRcCDQEMAg0BDAEXGRMHFAETChQBEwwUAhMEEgwTAhQCIL8MDQ0EDAoNAQwKDQkMDgYJDAIGAgwKDQgKAgYCCgENAgYBDQYMBQYBDAEgXwwLDQEMAg0BDAIgPgwFDQMMAQ0GDAggDAwJIAsMAg0BDAINBwwBDQkMBA0CDAEGAgwBDQIMAQYDIAcGBQwEIAMMAyAODDMNAQwDDQcMAQ0ODAMNBQwBDQUXAQ0CDAEGAQwDDQIMAQYBDAMNFxcBDQIXEAwHFwYMAw0BFxYUAxMCFAETGBIBBgQSBxMDFAEgvwwKDQYMAQ0CDBQNAQwUBggMAQYEDAsNCQYCDQUMAw0BDAcFASAhDAEgPgwLDQQMAyBADAcNBQwIIA0MCCANDAMNAgwCDQQMAw0HDAQNAQwCDQYMAQYBIAcGAwwHIAMNAQwBIAoMAiADDCgNBQwDDQQMBQ0EDAEGAQwBDQEMAQ0CDAEGAwwCBgQMAg0CDAINAwwBDQIXAQ0CBgEMAQ0EDAEGAgwDDQEMAQ0TFwENBBcSDQEMAQYCDAIXAgwJFgEXFBMDFAETFhIBBg0SAhMCFAEgvwwHDQEMAQ0GDAENAQwBDQEMKAYNDA0NAQwBDQYGAQwBDQcMBAYCDAMgHwwFIDwMCw0FDAMgQgwHDQIMAg0BDAUgDgwIIAoMAiADDAINAwwBDQQMAg0GDAgNAgwCDQEYAQ0BDAEGASAHBgEMCSANDAQgBQwjDQcMAw0EDAUGAQwBBgIMBA0DBgYMAQ0BDAIGAQwBDQIMAg0GFwINAQwBDQYMAQYBDAENCxcCDQQXAQ0BFwINBxcTDQEXAQ0CDAIXIBMbBg0SARMDIL4MBw0LDCkGDQwTDQIMAgYBDAENBQwFBgQgHgwIIDwMCw0EDAMgQwwCIAEMAw0BDAINBAwDIA8MByAJDA4NAQwCDQgMBQ0BDAUNBAYCIAcMCCAODAQgBAwmDQcMAQ0WDAEGAg0EDAINAgwBBgMMAg0FDAEGAQ0DDAYNDBcBDQoXPxMbEgEGDBICEwEgvgwHDQEMAQ0BDAINBQwpBhAMEQ0BDAQGAQwBDQMMAgYBDAMGAyAdDAsgOwwMDQMMAyBGDAUNBQwDIBAMBSALDBANCQwQBgEgCgwBIBEMAyAFDB0NAwwCDQEMAQ0BDAENFQwDDQkGAgwBBgYMBQ0EDAEGAgwDDQEMAQYCDAINFxcvFgEXEBMbBg0SARMBIL0MBw0BDAcNAgwvBgwMFAYDDAcGAQwBBgEFASAcDAYNAQwHIDoMEiBHDAQNAgwGIBMMAiANDAkNAgwEDQEMAg0EDAYNAgwDBgQNAgwBBgEgHAwCIAYMDA0BDBANBAwBDQQMAg0NDAIGCAwBBgENAQwDDQEMAQYDDAENAQYDDAENAgwBDQQMAwYBDAENAwwBBgQMBQ0PFykMARYBFwIYARcFFgIXEhMKFwkTBwYCEwISAQYFFgESASC9DAYNAgw5BgsMFQYIDAIGAQUCIBsMECA5DBIgRwwDDQEMCiAhDBINBAwKBgQMAwYBDAEgIwwKDQMMEA0EDAENAgwBDQEMAQ0ODAENAQwBBhINAQwBBgMNAgwCDQIMAw0BDAEGAQwBDQIMAgYBDAMGAgwDDQ0XHQwFFgEXAxYCFwMWAQYDFgEXBRYCFwEWARcUEwEXEBMGBgETAR8BEwESAQYGIL0MBQ0DDDkGCwwQBgEMAgYBDAQGBwUCIBwMECA5DBEgSQwPICAMEA0GDAkGBgwEIAwMASAVDB4NAgwHDQ4MAQ0DBgcMAQ0DDAEGBQwDBgEMAQ0CDAINAQwDDQEMAgYBDAYNBAwDDQsXDA0BFxIWARcBDAQWARcBFgEMARYBBgEMAhYCFwEWAQwBFgIXBBYBFykTBAYCEwQGBiC7DAYNBAw6Bg0MDQYCDAEGAgwEBgMFBCAeDA4gOgwRIEoMDyAgDBANBgwIBgYMBSAKDAMgFAwoDQIMAQ0ODAEGBAwBDQQMAwYGDAMNAgwFDQEMAgYBDAENAQwFDQUMBA0KFwkNARcVDAQGAQwBFgEMAhYBFzgTAxICEwEGAhMBBgEXAgYEILoMBg0DDD0GDgwIBgkMBAYCBQMMASAgDAsgOgwSIEoMBw0DDAYgIAwJDQEMBQ0FDBINAQwCIAgMBCAJDAEgCQwgDQEMAg0CDAENAgwCDREGBgwCDQMMAQYFDAQNAgwCDQMMAgYCDAENAQwDDQsMAQ0IFxoMCQYCDAEWARcDGAIXDxYBFxkWARcNEwYGAxcCBgQgugxHBhAMAQYNDAMGBAUCDAEgIwwIIDoMEiBKDAYNBQwFICEMDA0BDAUNAgwSDQEMBCAEDAUgEgwRDQEMDQ0HDAENFgwBBgYMAg0CDAEGBgwBDQQMAg0BDAEGBAwBDQ8MAQ0IFwgNBBcQFgIMBAYBFgEXBRgBFwIMAhYBFwsWARcZFgEXCBgBFwYYARcBEwQGCCC6DEcGHgwKICQGBiA6DBMgSgwGDQUMBSAiDBINAwwdIBIMIA0HDAENAgwBDRQGBwwCDQIMAQYFDAMNAgwCDQEMBw0WFwcNBhcSDAYWARcFFgUXCBYFFw8WAxcBFgMXAhYBFxMTARcCBgcgugwFDQEMQAYdDAIGAQwFBQEMBCAjBgMgPQwSIEwMAw0BDAENBQwFICMMAiACDAoNAQwBDQUMGyAUDCQNAgwBDRcMAgYHDAIGBgwCDQMMAQ0CDAINAQwGDRQXBg0CDAEXGAwCFgEXARYBDAEWAhcCFgIXARYDFwIWAxcBFgIMAhYEFwcWAhcIFgYXAhYCFxQGBSC6DEQGDAwHBgoMCAYCBQIMAyAkBgIgPgwLIAMMAyBMDAUNBQwFICQMASADDAkNAgwBDQUMGyAUDBsNBwwEDQwMAg0LDAIGAwwDBgEMAQYGDAUNAQwNDQEMAg0PFwQNAQYBFwENARcYFgQMAxYGFwEWAQwDFgMMAhYFFwMWARcGFgMXBRYKFxYGBCC6DEMGCwwKBgcMCwYBBQEMBiBjDAogUwwGDQMMBiAnDA0NBQwGDQMMCCADDAEgAgwDIAIMASAUDBkNAgwEDQkMAQ0HDAQNBwwCBgIMBgYBDAoGAQwGBgEMAg0BDAEGBgwCDQsXAg0BFwINAQYCDQEXGRYBDAEWAQwKFgIMAhYDDAMWARcBFgMXARYDFwcWCRcBFgMXCRYDFxAGAiC6DAMNAgw+BgkMDQYFDBUgYwwJIFMMDyAnDA8NAgwUIAgMAyAVDAQgAQwbDQIMBg0IDAQNBAwBDQEMAQ0DDAwNAwwBBgMMAQYCDAEGAgwCDQIMAwYDDAINDRcDDQEXFwwBFwMMARYCDBUWERcDFgQXCxYIFwwGAyC6DEIGCgwOBgUMAwYBDBEgZQwBIAEMAiBTDAwgAgwCICgMDg0DDBkgBAwCIBoMGg0BDAINAQwDDQwMBA0NDAcNAwwBBgoMAQ0EDAEGBQ0CDAENBgYBDQEXAQ0BBgENARcXFgEXAQwBFgIXAQwYFgEXARYCDAIWDRcPDAUWAhcOBgMgugxEBgcMEQYDDAIGAwwRIJkMAiAYDAEgBgwLIC0MBg0BDAYNCgwVIAQMASAQDAEgBAwCIAIMIQ0EDAMNAwwIDQIMAQ0IDAcNBQwBBgkMAQ0FBgEMAQYEDAEGAQ0CBgINAQwBDQIGAxcaFgEMHBYDDAIWAhcCFgwXCQwHFgEXDhYBFwIWAiC6DEQGBgwTBggMAQYBDA4gmgwCIBIMAyAIDAsgLQwODQoMFiAPDAIgAgwyDQcMAwYBDAYNAwwHDQQMAw0BBgoMAQ0EDAMGCA0DBgQNARcbDBsWAQwEFgIXBBYDFwIWBxcEDAwWAxcOBgIguwxEBgEMFQYNDAwgrgwFIAcMCyAtDBENCAwWIA0MOA0DDAENAwwBDQEMCw0CDAsGDAwBDQUGAQwCDQQGAQ0DBgENARcbFgEXAhYCDAgWAwwNFgEXAQwFFgQXARYDFwUWBAwBFgEXAwwMFwEWAhcNBgMgvAxYBg8MBQYBBQIMASCsDAEgAQwBIAIMAyAIDAgNAQwCIC0MEg0BDAQNAQwBDQMMEyAODAMgAQwwDQIMBA0DDAUNAwwGDQUMAQYCDAEGAg0BDAEGDwwBDQIGAQ0KBgENARcBGAEXFxYBBgIWAgwkFgEMARYDFwEWARcCFgMXARYDFwIMDRYBFw8GAyC9DFYGEwUDILUMAiAFDA8gKwwYDQEMAw0BDBMgEgwwDQEMBg0CDAUNBAwGDQQMAQYcDQcGAxcaDAEWAQwCFgIMJhYFFwEWBBcGDQEMChcPFgEGAyDADFAGFAUEIKEMAiATDBUgKwwIIAEMKCASDBsNAwwUDQIMAg0EDAMNAgwCDQMMBg0BDAEGHA0IBgUNAxcZFgEMDxYCDBgWAhcCFgMXARYCFwUNAhcBDQEMBxYCFwEWARcLBgMgwAxVBg4FAyCdDAIgAwwFIA4MFyAsDAggAwwpIA8MHA0BDAINAgwRDQIMAg0CDAoNAwwHBhsNAwYCDQQGBAwBFwEMAQ0BFxAWAxcHDAUWAQwkFgUXARYCDAINAhcBDAEXBAwHFwMWARcKFgEGAyDADFUGDAUFIJwMDCAEDBgNAgwEIC8MByAEDAgNAQwgIA8MBCABDDINAgwJDQMMAQ0CDAgGBA0BBg8NBgYCDQMGBA0CDAENAhcQFgMXBRYBDAIWAQwBFgEXARYBDCwXAgwCDQEXGBYBBgQgwAxVBgoFBiABBQEglwwrDQMMAyAxDAYgAwwJDQMMICAPDAEgBQwCIAEMKw0BDAgNAgwBDQ4MAQYDDQIGDRcHDQEMAQ0GDAENAhcQDAIXCQwCFgEXARYBDAEWAgwxDQEXAQwBFwcWARcIFgEXBAYFIMAMSw0BDAENAwwEBgsFBiCWDDMgNAwEIAIMCg0BDAENBgwcIBgMFQ0BDBYNAwwDDQMMAQ0OBhMNBBcCDQcXAw0DFwMNARcNDAEXBgwEFwIMOBcCDAEXAxYBFwgWARcEFgIXAxYBIMAMSg0CDAYGEAUDIJcMAiABDB0NBAwGIAEMByA0DAQgAgwJDQoMEiABDAkgFAwEIAIMCQ0BDCUNBAwDDQUXAg0DDAEGBQ0CBhANAgwBDQIXBBgBFwINAhcCDQEMAQ0EFw8MAxcBFgEMOxcBDAIXAxYBFwcWAhcJFgEgwAxFBgEMBA0BDAgGBgwBBggFAiCbDBUNAQwDDQUMCCA9DAUgAgwIDQQMAQ0FDAwgAQwFIAcMBCASDCYNAQwBBgIMBAYBDAcNARcCDQEMBw0GBgcNAgYSDQEXAw0BFwEYARcCDAINAgwFDQEXBA0BFwEMARcBDQEXBAwCFgEMBBcBDD0XDBYBFwUWAhcBFgIgwAxFBgIMCAYSBQMgnAweDQMMAyA/DAUgAQwKDQEMAw0EDAwgAgwHIAUMAyAODBsNAQwPBgEMAQ0BDAIGAgwEDQIMAg0CFwINAQwGDQUMAQYQDQIGCQ0CFwENAhcBGAEXAQwCDQEMBQ0CFwUNAQwEFwQMPhcBDAQXDhYCFwQWARcDFgEgwAxMBgEMAgYCDAEGDwUDIJ0MHg0CDAIgQQwEIAIMCg0GDAUNAQwHIAMMByAEDAMgDgwgDQIMAw0BDAENAQwHBgIMAg0CDAINAQwBDQQXAQ0BDAUNBwwCBhcMAQ0FFwMNAQwIDQcMBxcBDEUXChYEFwUWBAYBIMAMTAYBDAQGEgUBIHEMAiArDCEgQgwCIAQMCA0FDAENAgwLIAQMByADDAQgDwwEIAIMEQ0BDAwNBgwDBgIMCQ0EFwENAgwCDQEMAg0CFwENAQwGBhQNAwwBDQIMARcBDQIMAg0BDBINAgxFFwIMARYBFwMWARcCFgIXAhYCFwYWAgYBIMAMTAYBDAMGDAUCBgUgcwwCICsMICBLDAcNBgwMIAIMAiADDAMgBAwCIBEMBCACDBsNAgwVDQIMAQ0CDAENAwwCDQQMCAYRDQQMAg0BDAENAQxdFwEMBBcCFgEMARYDFwMWBBcEFgMgwAxMBgEMAgYLBQEggQwHICYMGSBMDAMNAwwCDQIMBiABDAggAwwCIAIMBCAXDAQgAgwbDQEMBA0CDAYNAQwIDQIMAQ0GDAINBQwIBg8NBBcCDQEMAQ0CDGIXAgwDFgEXBhYCFwUWAiC/DAYNAQxDDQIMAgYKBQMgfwwNICUMFyBMDAUNAQwEDQMMAyABDAggCAwEIBYMBSACDBoNAQwEDQIMDg0DDAINBRcBDAQNAgwJDQEGCQ0BFwkNAQwVDQEMTxYBFwEMAhcEFgEMARYBFwMWAhcDFgIgvwwFDQIMQw0GDAEGBQUDIH8MECAlDBcgSgwLDQQMAyABDAcgCQwEIBYMBCADDBgNAgwJDQIMCg0CDAINAhcBDQUMAw0DDAkGCA0BFwMYAxcBDQEMbRYCDAMXAhYEFwIWAiC/DEQNAgwGDQUMAQYEBQIgYAwCIAgMBCARDBIgBQwDIB8MFSBIDAQNAQwEDQIMAw0EDAEgAgwCICkMHQ0BDAgNBAwNDQUMAQ0BFwENAwwBDQgMCA0EFwMYARcCDQIMdRYBDAEXBBYCIL8MEyAHDCkNCAwGBgYHASBfDAcgAwwIIAUMAiADDBUgBQwFIB8MFCBJDAgNAwwCDQMMAyAtDBgNAgwEDQMMAw0EDA8NAQwBDQIMAQ0CFwENCQwBDQIMBQ0FFwcNAQx0FgEMAhYCFwUgwAwEIAQMASABDAYgCwweDQIMBw0JDAEGBAwBBgUgQQwPIA0MNCADDAcgJQwPIEkMCA0CDAQNAgwDIC0MFw0BDAkNAQwBDQQMEQ0BDAMNARcDDQQMBQ0DDAENBRcHDQIMNQUEDBgFAgwmFgUXASDMDAIgDwwlDQMMCAUCDAIGAQUEIDgMASADDBYgBgxEICUMDSBKDAkNAgwFDQEMAiAEDAEgKAwdDQEMAQ0IDBUNAhcDDQcMBA0GFwQNBQwXDQIMGwUFDAgFBwwGBQcMKBcCIN0MLA0CDAMFByA3DB0gBAxFICYMCiBMDAYgAQwDDQEMCCAtDBwNBQwBDQQMAQ0BDAENAgwSDQMXAg0IDAEGAQwBDQwMMgUlDCcWARcCIN0MEg0BDBEFAQwFBQ0gMQxsICgMCSBNDAUgAgwCDQEMCSAsDCINAQwBDQIMAQ0EDAMgBgwMDQIXAQ0IDAEGAQwCDQkMFSABDAQNAQwTBQMMAgUmDCYWARcCIN4MDQ0CDAENAwwJBQEgAQUHDAEFASADBQUgBAUCICYFAwwBBQIMJA0BDEwgLAwGIE4MAyADDAUgAgwFICwMBCACDAwgAwwLDQMMBA0DDAMgCgwIDQcMAg0DDAIGAw0GDAcgAwwLIAMMGAUEBgIFJgwlFgEXARYBIN4MEA0CDAcgQAUBDAEFAwwBBQIMIw0BDE0gMAwCIFQMBSACDAQgLQwFIAIMASACDAYgBwwJDQMMAw0DDAUgDAwGDQcMAg0BDAMGAQUBBgEMAw0CDAcgBwwHIAIMGQUHBgEFJgwNBQUMFSDfDBcgPgUCDAEFAQwBBQMMAQUCDC4NAQwCDQEMPiCIDAMgAwwFIC0MBSAFDAUgCQwHDQgMAg0BDAMgDgwGDQYMBgYBBQIMAg0BDAUFASALDAIgAQwBIAIMGgUuDAsFBwwDBQEMEBcBIOAMESABDAIgPgUEDAEFAQwDBQEMIA0FDE4giQwDIAIMBiAwDAIgAwwHIAkMBg0EDAENAQwHIBEMBQ0GDAENAgwNIBEMGwYBBQUGAQUQBggFDwwLBQgMAgUBDBEg4QwNIEIFAQwBBQQMagUCDAogjQwBIAIMBSAzDAsgCgwFDQIMBA0BDAYgEgwFDQgMDCASDBoGAgUEBgEFEAYJBQwMDgUMDAEFAQwOIOIMDCBADAIFAQwBBQIMXwUCDAIFAQwDBQsMBSCSDAUgKwwBIAcMCiALDBEgEwwFDQIMAQ0CDA4gEgwDDQEMEgUbBggFKgwNIOMMCiBABQEMAgUCDAcFCAxRBgEFAQwDBgEFAgYBBQIMAwYEBQMMAyDMDAkgDQwKIAIMAiAVDBMgAQwBIBUMEgUfBgYFKQwPIOUMByBABQMMCQUHDCEGAQwwBgQMAQYCDAEGAQwBBgIMBAYBBQggzQwHIBAMBSAeDBAgGAwSBVEMDCDmDAUgOwwBIAQFBgwDBQgMKAYCDAMGAwwkBgoMAgYCDAIGAQUKIMwMByA1DAQgAgwBIB8MEwVQDAwg5AwIIBsMASAdBQEMAQUHDAIFCQwBBQMMGwYFDAEGAQwBBgEMAQYFDAEGCwwHBgIMEAYBDAEGBQwBBgMMBgYBDAEGAwULIJUMAiA0DAQgXAwVBgEFEQcGBQEHAQUBBwEFNAwLIOMMCiAxBQUGAQUCDAEFCAwCBQoMHAYODAYGEgwOBggMCwYEBQ4gkwwCIDQMASBeDBIFAgwCBgEFDQcCBQIHEwUDBwEFKgwHIOIMCiAxBQYGAQUCBgEFEwYBDBoGLgwGBgwMBgYBDAEGBQUPIJYMAiB+BQMMASANDBEFBAYBBQ4HHAUoDAgg4gwLIC8FBgYCBRIMAQUBBgEFAQYBDBkGCQgCBwYIAQYfDAIGBQwBBgMMAQYJDAEGBwUOIJYMCCB3BQcgCwwSBRIHIQUcDAEFBwwIIOIMDCAtBQUMAgYBBRIGAQwDBgQMFAYLCAIHCwYQDAEGDAwBBgMMAQYCDAQGBQwCBgoFDyCUDAogBAwEIGsFCSANDBEFDwcmBSMMByDhDA4gGAwBIBMFEwYBDAIFBAYBDAQGAgwQBg8IAgcOCAEGBgwCBhAMAgYCDAIGAwwDBgQMAQYMBRAgkwwXIAQMASBXDAQgAwUDDAEFCCAPDBAFDgcrBR8MByDhDAcNAQwIIAsFAyAHBQEMAiAQBQwGAQwBBgEMAQYCBQIMBAUGBgEMAQYCDAEGHggEBxAIAQYPDAEGAwwDBgIMAwYJDAEGDgUPIJMMHSAEDAIgTwwFBQIMAQUDDAEFBiARDBAFDQcOCAEGAggBBxsFHwwGIOAMDA0BDAggAwwEBQgMAQUCDAIgDgUBBgEFCgYBDAQGAgwBBQEGCAUCBgMMAQYfCAEGAQgBBgEIAQcQCAIGBgwBDQEMCAkFBgIJAQwDCQIGFQUPIJQMBw0BDBsgSgwJBQIMAQUDDAEFBCATDBAFDAcMCAEGBAgBBx0FHwwFIOAMCQ0CDAENAQwBDQEMDQUIDAEFAgwDBQcgAwUCBgEFAQYBBQMGAQwCBgIMBAYDDAIGBQwEBgIMAQYBDAEGHwgHBxAIAQYCCAEGCAwDBgEJCgYCCQMGFQUQIJQMBA0EDAcNAQwTIEgMDwUFIBQMEAUBBgIFBQYBBQIHDQgBBgIIAgcfBSAMAyDfDAgNAQwBDQIMAg0DDA0FAgwBBQcMAgUKBgEFAgYBBQEGAQwBBQIMCAYCDAMGBgwDBgMMAQYfCAoHDwgEBgcMAQYBDAEJAQYFCQMGAQkBBhQFAwYEBRAglQwODQMMBg0BDAkgRgwPBQYgFgwQBgoFAgcNCAIHIQUiDAEg3wwMDQEMAQ0DDAwFAwwFBQMMAQULBgEFAgYBDAIGAQUBDA0GCAwCBiIIAwYBCAsHDggBBgoMAQYECQMGFgUEBgMFECCgDAwNAgwJIEUMEQUGIBQMEQYNCAEHLwUhDAEg3wwODQEMAQ0DDAENAQwBDQEMDgYBBQIGAQUCDAQFBQYEDAEGBQwKBgoMAgYnCAMGBAgCBw8IBAYJDAIJBQYTBQsHBQUIIJoMASAHDAoNAQwKIEUMEgUGIBMMDgUBDAEGDQgIBysFHgwCIN4MDw0CDAMNBgwDDQIMAg0BDAIGBwwDBgEFBQYCDAQGBAwNBgMMAQYtCAEGBAgEBwIIAgcOBgcFAQYBDAIGAQwBBgEMAwYTBQEHAgUGBwgFBiCbDAIgBwwEIFYMCA0BDAgFByATDA8GDggGBy4FHiDeDBUNBgwBDQIMDgYBBQMGAQwFBgEMAQYEDBAGMwgFBwEIAgcVBQEGAQUCBhoFAQcGBQEHDAUHIJkMAiBhDBAFASAZDBMGDwgBBy8FHSDdDBgNAgwGDQEMBgYCDAIGAQwBBgIMCAYFDAINAgwMBjMICQcYBQkGCQUBBgIHGwUHIJkMASBiDA4FAiAZDBQGCAgGBzMFGiDdDCoGBAwJBgQMEAY1CAQHHgUJBgcHHAUGBwMg/QwMIBwMEwYHCAMHAQgBBzgFGCDcDCgGAQwBBgEFAgYGDAEGBgwRBjcIAgciBQIHCggBBxoFBCACBQMg/yACDAYgIAwPBgkIAQdABRYg2wwoBgIFBQYHDAIGAQwDDQEMDQY4CAEHSgUEIP8gDAwCIB8MEAYIB0MFFSDbDCcGAQUHBgcMAgYBDBAGOAgBBz0IAgcMBQIg/yAuDAcNAgwHBggHRwUSINoMJwUJBgMMAQYCDBMGMggCBgUHPAgBBxAg/yAuDAYNBAwFBgkIAwcBCAIHRQUPINkMJQUKBgQMAwYFDAEGBAwIBi8IBwYDCAEHSyD/IDEMBQ0CGAENAgwCDQIMAQYKCAUHRwUNINkMJgUJBhEMBwYqCAEGAggIB1Ag/yAxDAUNBQwCDQQMAQYJCAEGAQgDB0kFCyDYDCcFCAYRDAcGCggDBh0IBAYBCAgHTyD/IDEMBA0EDAMNBAwEBgcIBQdKBQog1gwoBQcGIggHBhkICwdTIAgHAQUBIP8gJwwEDQQMAg0FDAIGCggEB0sFCSDUDCwGAQUDBgMMAwYbCAkGGAgLB1UgBgcCBQIg/yAlDAUNAwwCDQYMAQYLCAUHTAUHINIMLwYBBQEGAwwCBhoIDAYZCAcHWiADBwMFAyD/ICMMBg0CDAMNBgYGCA4HSgUGIM8MKw0BDAYFAgYCDAIGFwgQBhgIBQdjBQMg/yAjDAYNAQwCDQYMAQYCCAEGAwgPB0sFBSDNBQIMKw0CDAQFAwYMCAYGAggYBhYIBgdkBQIg/yAjDAUNAQwCDQYMAQYDCBMHTAUEIMoFBwwfDQEMBw0BDAENAgwBDQIMAQUCBgsIIwYTCAcHaCD/ICEMCQ0BDAUGAwgUB00FAyDIDAIFBgwfDQIMCA0FDAEGAQUCBgoIJQYRCAYHaiD/ICEMBQ0BDAINAgwDBgQICgcDCAgHTQUDIMUMBQUEDCANAwwEDQEMAw0DDAMFAwYJCCcGEAgDBwEIAQdsIP8gHwwJDQIMAgYFCAoHBwgFB00FAiDEDCkNAgwEDQIMBQ0BDAMFAwYKCCcGEAgCB3Eg/yAdDAgNAgwCBgYICQcLCAIHTQUCIMMMDgUBDBsNAgwDDQEMCQYBBQQGCggqBgIIAgYJCAEHdSD/IBkMCQ0BDAMGBQgKB1sFASDCDA0FBAwZDQcMCAYBBQUGCQgwBgEIAwYECAEHdyD/IBcMBwUBDAUGBQgJB1wFASDCDA0FAwwbDQUMBwYDBQUGCAgyBwIIAwd8IHMMASCfDAgFAQwFBgUICAddBQEgwAwKBQIMFAYCDAsNBAwHBgMHBQgDBgQIMgeFIAoFBSBhDAMFAQwDBQMglwwOBgcIBQdfIL8FAQwJBQMMFAYCDAoNAwwHBgMIAQcECAcGAggcBgEIAgYBCAkHAQgBB44FEiBWBQIMAQUDDAMFAQwDBQYgkwwOBgkIBAdfIL4MAQUCDAgFBAwVBgMMAQYDDAkGBQgvBgEICAeRBRYgUAUEDAEFBAwIBQcgkAwIBQIMAwYCBQIGBwgEB14gvQwCBQEMCAUIDAwGCgUCBgIMBQYECDsHkgUXIE0FCgwLBQcgjQwJBQIMAwUEBgcIBAcCCAEHWyC8BQEMAQUBDAcFDQwFBgMFCwYBDAYGBQg5B5QFGiBJBQYMEQUIIIwMCQUDDAEFBgYHCAMHAQgDB1oguwUCDAgFDQwFBQ4MBwYNCCsGAQgCBwEIAgeUBSEgQQUIDAkNAgwFBQogiwwJBQIMAwUEBggIAwcBCAQHWSC7BQIMAwUVDAEFDQwJBhIIAQYBCAwHBggQBgEIAgcCCAEHlgUkID0FCQwQBQogigwJBQMMAwUCBgEFAgYHCAMHAQgFB1gguwUBDAEFJQYBDAkGBA0CBgIIBAYBCA0HAwgCBwkIDQYBCAEHAQgBB5kFJSA7BQkMEQUKIIoMCQUDDAMGAwUCBgUIBQcCCAQHWCC6BScMBQYDDAIGCAgTBwIIAgcBCAEHCAgHBwIIAwcBCAEHAQgBB5oFJiA5BQkGAQwRBQkHByCEDAoFAgwEBgMFAQgKBwMIAwdYILoFGAwGBQgMCAYBDAIGBAgSBwYIAgcDCAEHBggIBwMIAgeeBSYgOAUKBgEMEAUKBwoggAwLBQIMBAYDBwIICAcFCAIHWCC6BQkMAQUPDAoFAgwCBgEMAw0DDAENAgYDCBcHDQgIB6UFEQcJBQoHAiA2BQoGAgwBBgEFBQwHBQwHDSAFBwEgdwwKBQMMAgUCBgEFAgcDCAcHBggBB1ggugUIDAEFEAwMBQEMAw0GDAENAQwBBgEIAQYCCA0HAggEBw8ICQemBQ4HFiA1BQsGAgUHDAUFDgcWIHQMCgUDDAMGAQUCBwcIAgdhILoFBQwDBREMEg0HBgEIEQcBCAIHEwgCB6kFCwYCBQIHFyA0BRcMAgUPBxcgcgwLBQMMAwYCBQEHaiC4BQYGAQwDBQ8MEg0CDAENBgYBCAkHHggCB6UFDwYCBQIHFyA0BRgMAQUOBxkgcQwLBQQMAgYECAEHaCC3BRwMDg0BDAINBwwBBgIIBQfHBREHGiA0BSYHGiBwDAsFBQYBDAEGBAgCB2cgtwUEBgIFFgwNDQYMAQ0CDAMGAwgBBwYIAQfFBQQHJiAzBRgMAQUMBxwgBgcEIDsHAiAoDAsFAgcBBQIMAQYECAIHaCC3BQMGAg0BDAEFFgwMDQUMAg0BDAMGAwgBB/cgMwUkBysgNAcHIAYHASAeBQEMCwUCBwEFAQYGCAIHaCC1BQUGBAUVDAwNAwwBDQIMAQ0CDAIGAggBB/ogMwUiBzMgKAcUIBwFBAwJBQEHAgUBBgYIAwdnILQFBgYEBQoHAwUIDAcNCAwBDQEMBQYCBQEH/SAxBSIHNyAjBxYgGgUHDAYFAgcCBQIGBQgDB2cgtAUGBgUFCAcEBQUGAgwIDQYMBwYDBQEH/wcCIC8FIAc5IB8HGyAXBQkMBQUCBwIFAwYDCAUHZiC0BQUGBwUGBwEFAwcBBQQGAQwEDQUMAQ0DDAgGBgUBBwIIBAf/BwUgJQcCBR4HPiAZBx4gBwcFIAcHAgUKDAQFAQcDBQEGAgUBBgIIBQdmILQFBAYJBQMHAgUDBwIGBQ0EDAMNAQwJBgQMBQYCBwEIAwf/BwsgIgcCBRwHQyATByEgBAcQBQ8HAwUBBgUIBAdnILQFAwYEDQQGAwUBBgoNBQwGBgwMBgYCB/8HEiAfBwMFGgdKIAwHNgUPBwMGBggDB2ggtAUDBgQNBQYBDQEGAg0CBgENAQwCBgENBgwDBgsFAgYCDAcGAgf/BxYgGwcGBQMHBgUNB00gCAc5BQ4HAwYBDAEGBAgBBwQIAQdlILQFAwYEDQ8GAQ0BDgENAwwBBgkFBgYCDAIGBwf/BxggGQcSBQcHUiAEBz0FDQcCBQEGBQgCBwQIAQdlILQFAwYFDQMGAQ0IDAEGAg0CBgINAQwBBgYHBgUBBgYFBAYCB/8HHCAWB7AFBwcEBQMGAwgCBwQIAQdlILQFAwYFDQIGAg0JBgINAQYDDQEGBAgDBwYGBwf/ByMgFAezBQMHBgUBBgUIAgcDCAIHZSC0BQMGBA0DBgINBQYDBQEGCggFBwQIAQf/BywgEQe9BQEGBAgBBwUIAgdlILQFBAYCDQMGAQ0BBgENAQYEBwgIAQYCDQEGAggEBwEIAQcCCAIH/wctIA8HvgUBBgQIAQcECAMHZSC1BQIGAg0CBgQFAwcKBgcICAf/BzAgDQfABgMIAwcDCAMHZSC2BQMGAwUBBxEIAwYCCAQHAQgBB/8HNSAIB7UIAgcKBgMIBAdrILcFBQcKBgUHAQgEBgMIBAcHCAIH/wfsCAEHCQYDCAQHbCC3BQQHCgUCBgMIBAYBCAEGAggHBwYIAQf/B98IAQcWBgIIAwduILcFBwcEBQEGEAgDB/8H/wcBCAUHbiC3BQkHAQUBBg4IAwcBCAEH/wf/BwIIBAdvILcFAgcEBQMGDggDB/8H/wcFCAUHbyC1BwcFAgYLCAIGAQgDB/8H/wcHCAUHbyC0BwgFAQYMBwIIBAf/B/8HCAgEB28gtAcJBQEGCwgBBwMIAgf/B/8HCQgEB24gtAcJBg4H/wf/BwkIAQcFCAIHbiCyBwoIAQYJCAEGAQf/B+ogAQeWILEHCwgBBgkH/wfsIAEHliCxBwoIAQYICAEH/wf/B4UgsQcFCAQHAQYGCAIH/wf/B4cgrwcGCAIGCQgCB/8H7ggBByUIAgdxIK4HBwgCBgUIBgf/B/MgAQcOCAQHDggCB3EgrgcICAYHAggCB/8H9SACBwwIBQcOCAMHcCCFBwIgJAf/B/8HCyAEBwcICAcLCAYHcCBUDAEFAiAtBwYgHwf/B/8HDSAEBwgIBQcNCAMHAQgCB3AgVAwBBQIgLQcGIB4H/wf/Bw8gAwcKCAQHCggCBwIIBAdwIFQMAQUCIC0HBCAeB/8H/wcMCAIHAyADBwgIBgcKCAEHAggFB3AgVA0DBQEgKgcFIB4H/wf/BwsIAwcFIAIHCAgGBwkIAQcDCAYHbyBUDQMFASAPBQENASAYBwYgHgf/B/8HCwgDBwYgAQcKCAQHDQgEB3EgVAUBDQIFASAODQEFAQ0BBQEgFwcGIBwH/wf/Bw0IAwcGIAIHBggHBw0IBAdxIFQNAyAKBgMNAwUBDQEGAQUBIBYHBiAbB/8H/wcOCAIHCCACBwcIBwcLCAQHcSBVBQIgCQYEDQQFAiAXBwYgGQf/B/8HGyACBwcIBgcNCAMHcCBgBgQNAwYBBQEgGAcGIBYH/wf/Bx8gAgcGCAQHEAgBB3EgWwYBBQIHAQUCBgENAg4BDQIFAiAGBwEGAgcDIAkHCCAWB/8H/wcgIAQHBQgDBw0IAQd0IFoGAgUCBwEFASABBQEGAQ0DBgEFASAHBwEGAgcDIAkHByARB/8H/wcoIAIHBQgDBxEIAQdwIFsGAwUCIAIFAQYBDQEGAQUBIAYGAgcBBgIHAyAJBwQgDgf/B/8HLyACBwYIAQeCIFwFAgcBIAQHAQUDIAUGBwcCIAkHAyAPB/8H/wcwIAIHiCBjBwEgCAYEDQIGAQcCIBsH/wf/BzEgAgcMIAEHeiBtBgUHAiAaB/8H/wc0IAMHBiABBwEgAQcBIAMHeCBuBwEIAwcBIBoH/wf/BzYgAwcEIAkHEAgBB2YgcAcCIBsH/wf/BzggAwcCIAoHdiCNB/8H/wc5IA8HEggBB2Igiwf/B/8HPCAQBxAIAgdhIIoH/wf/Bz0gEQcPCAEHYiCKB/8H/wc7IBQHcSCKB/8H/wc8IBMHcSCKB/8H/wc8IBMHcSCKB/8H/wc7IBUHcCCKB/8H/wc0CAEHBiAVB3A="};
@@ -405,53 +424,6 @@ function centerOnSite(z) {
   $("zout").addEventListener("click", () => zoomBy(.5));
 })();
 
-let local = [], groups = new Set(), dirty = false;
-function onSite() {
-  const lat = parseFloat($("lat").value), lon = parseFloat($("lon").value), elev = parseFloat($("elev").value) || 0;
-  const zone = zoneAt(lat, lon), z = ZONES[zone];
-  $("zcode").textContent = z ? z[0] : (zone === 32 ? "Meer" : "außerhalb");
-  $("zname").textContent = z ? z[1] : (zone === 32 ? "Bitte einen Punkt an Land wählen." : "Die Karte deckt Europa zwischen 27–72° N und 25° W–45° O ab.");
-  $("zsw").style.background = z ? z[2] : "transparent";
-  groups = siteGroups(lat, lon, elev, zone);
-  const grp = groups.has("mtn") || groups.has("medmtn") ? "mtn" : ZGROUP[zone];
-  $("regionnote").textContent = grp ? NOTES[grp] : "";
-  local = speciesAt(lat, lon, elev, zone);
-  fillSpecies(); renderChips(); speciesNote(); drawEuMap(); save();
-}
-function fillSpecies() {
-  const cur = $("species").value, ids = new Set(local.map(s => s.id));
-  const opt = sp => `<option value="${sp.id}">${sp.de} (${sp.la})</option>`;
-  $("species").innerHTML = (local.length ? `<optgroup label="Am Standort verbreitet">${local.map(opt).join("")}</optgroup>` : "")
-    + `<optgroup label="Weitere">${SPECIES.filter(sp => !ids.has(sp.id)).map(opt).join("")}</optgroup>`;
-  $("species").value = cur || "kie";
-}
-function renderChips() {
-  const cur = $("species").value;
-  $("chips").innerHTML = local.length
-    ? local.map(sp => `<button type="button" data-s="${sp.id}" aria-pressed="${sp.id === cur}" title="${sp.la}">${sp.de}</button>`).join("")
-    : `<span class="hint">Für diesen Punkt ist kein Wald zu erwarten.</span>`;
-}
-function speciesNote() {
-  const sp = SPECIES.find(x => x.id === $("species").value); if (!sp) return;
-  const parts = [`${sp.de} (${sp.la}).`];
-  if (sp.note) parts.push(sp.note);
-  for (const g of groups) if (sp.gn[g]) parts.push(sp.gn[g]);
-  if (!local.some(x => x.id === sp.id) && local.length) parts.push("An diesem Standort selten: Baumart oder Standort prüfen.");
-  const cb = parseFloat($("cb").value);
-  if (cb < 2) parts.push("Kronenansatz unter 2 m: Äste in Brusthöhe verdecken zusätzlich. Das Modell enthält sie nicht, die berechnete Abdeckung ist dann zu optimistisch.");
-  $("spnote").textContent = parts.join(" ");
-}
-function applySpecies() {
-  const sp = SPECIES.find(x => x.id === $("species").value); if (!sp) return;
-  for (const k in sp.v) $(k).value = sp.v[k];
-  $("cb").value = sp.cb; $("csv").value = ""; dirty = false; syncDist();
-}
-function pickSpecies(id) {
-  $("species").value = id;
-  if (!dirty) applySpecies();
-  renderChips(); speciesNote(); run();
-}
-
 // ---------- Simulation ----------
 const K = 80, NSEC = 16, BINS = 7200, BINW = 2 * Math.PI / BINS, SLICE = 0.10;
 const COS = new Float64Array(BINS), SIN = new Float64Array(BINS);
@@ -480,7 +452,7 @@ function parseCsv(txt) {
   return rows;
 }
 
-function makeStand(p) {
+function makeStand(p, mix) {
   const objs = [], hash = new Hash(2);
   const csvRows = parseCsv(p.csv || "");
   if (csvRows.length >= 2) {
@@ -500,17 +472,21 @@ function makeStand(p) {
     if (p.pattern === "cluster") { const q = parents[Math.floor(r() * parents.length)]; return [q[0] + normal(r) * 2.5, q[1] + normal(r) * 2.5]; }
     return [lo + r() * span, lo + r() * span];
   };
+  const tot = mix.reduce((a, m) => a + Math.max(0, +m.share || 0), 0) || 1;
+  const cum = []; let acc = 0; for (const m of mix) { acc += Math.max(0, +m.share || 0) / tot; cum.push(acc); }
+  const pick = () => { const u = r(); const j = cum.findIndex(c => u <= c); return j < 0 ? mix.length - 1 : j; };
   let placed = 0, tries = 0;
   while (placed < n && tries < n * 40) {
     tries++;
     const [x, y] = cand();
     if (x < lo || y < lo || x > lo + span || y > lo + span) continue;
     // ein Stock mit m Stämmen (Stockausschlag); m = 1 ist ein Einzelbaum
-    const m = Math.max(1, Math.round(p.multi || 1)), a0 = r() * 2 * Math.PI, stems = [];
+    const j = pick(), row = mix[j], dbh = +row.dbh || 20, sd = +row.sd || 0;
+    const m = Math.max(1, Math.round(+row.multi || 1)), a0 = r() * 2 * Math.PI, stems = [];
     for (let k = 0; k < m; k++) {
-      const d = p.dist === "revj" ? 7 - Math.max(1, p.dbh - 7) * Math.log(1 - r() * .999) : Math.max(7, p.dbh + p.dbhsd * normal(r));
+      const d = p.dist === "revj" ? 7 - Math.max(1, dbh - 7) * Math.log(1 - r() * .999) : Math.max(7, dbh + sd * normal(r));
       const rad = Math.min(d, 250) / 200, off = m > 1 ? .12 + rad + .15 * r() : 0, ang = a0 + 2 * Math.PI * k / m;
-      stems.push({x: x + off * Math.cos(ang), y: y + off * Math.sin(ang), r: rad, d: Math.min(d, 250), t: 1});
+      stems.push({x: x + off * Math.cos(ang), y: y + off * Math.sin(ang), r: rad, d: Math.min(d, 250), t: 1, sp: j});
     }
     const clash = (o, others) => others.some(q => Math.hypot(q.x - o.x, q.y - o.y) < q.r + o.r + .02);
     if (stems.some((o, k) => clash(o, stems.slice(0, k)) || clash(o, hash.near(o.x, o.y, o.r + 1.5)))) continue;
@@ -595,13 +571,110 @@ function summarize(p, res) {
   return {share: ok.filter(Boolean).length / n, medArc: med(res.arcs), medPts: med(res.pts), ok};
 }
 
+// ---------- Standort und Mischung ----------
+let local = [], groups = new Set();
+let mix = [];                                   // [{sp, share, dbh, sd, cb, multi, dirty}]
+const spById = id => SPECIES.find(x => x.id === id);
+
+function onSite() {
+  const lat = parseFloat($("lat").value), lon = parseFloat($("lon").value), elev = parseFloat($("elev").value) || 0;
+  const zone = zoneAt(lat, lon), z = ZONES[zone];
+  $("zcode").textContent = z ? z[0] : (zone === 32 ? "Meer" : "außerhalb der Karte");
+  $("zname").textContent = z ? z[1] : (zone === 32 ? "Bitte einen Punkt an Land wählen." : "Abgedeckt: 27–72° N, 25° W–45° O.");
+  $("zsw").style.background = z ? z[2] : "transparent";
+  groups = siteGroups(lat, lon, elev, zone);
+  const grp = groups.has("mtn") || groups.has("medmtn") ? "mtn" : ZGROUP[zone];
+  $("regionnote").textContent = grp ? NOTES[grp] : "–";
+  local = speciesAt(lat, lon, elev, zone);
+  renderChips(); renderMix(); drawEuMap(); save();
+}
+function renderChips() {
+  const inMix = new Set(mix.map(m => m.sp));
+  $("chips").innerHTML = local.length
+    ? local.map(sp => `<button type="button" data-s="${sp.id}" title="${sp.la}"${inMix.has(sp.id) ? ' aria-pressed="true" style="border-color:var(--accent)"' : ""}>${sp.de}</button>`).join("")
+    : `<span class="small">Für diesen Punkt ist kein Wald zu erwarten.</span>`;
+}
+function rowFromSpecies(id, share) {
+  const sp = spById(id);
+  return {sp: id, share, dbh: sp.v.dbh, sd: sp.v.dbhsd || Math.round(sp.v.dbh * .25), cb: sp.cb, multi: sp.v.multi, dirty: false};
+}
+function speciesOptions(cur) {
+  const ids = new Set(local.map(s => s.id));
+  const opt = sp => `<option value="${sp.id}"${sp.id === cur ? " selected" : ""}>${sp.de} (${sp.la})</option>`;
+  return (local.length ? `<optgroup label="Am Standort verbreitet">${local.map(opt).join("")}</optgroup>` : "")
+    + `<optgroup label="Weitere">${SPECIES.filter(sp => !ids.has(sp.id)).map(opt).join("")}</optgroup>`;
+}
+function renderMix() {
+  const num = (i, k, v, step, min, max) => `<input type="number" data-i="${i}" data-k="${k}" value="${v}" step="${step}" min="${min}" max="${max}" aria-label="${k}">`;
+  $("mix").querySelector("tbody").innerHTML = mix.map((m, i) => `<tr>
+    <td><select data-i="${i}" data-k="sp" aria-label="Baumart">${speciesOptions(m.sp)}</select></td>
+    <td data-l="Anteil %">${num(i, "share", m.share, 5, 0, 100)}</td><td data-l="BHD Ø cm">${num(i, "dbh", m.dbh, 1, 7, 150)}</td><td data-l="Streuung cm">${num(i, "sd", m.sd, 1, 0, 60)}</td>
+    <td data-l="Kronenansatz m">${num(i, "cb", m.cb, .5, 0, 40)}</td><td data-l="Stämme je Stock">${num(i, "multi", m.multi, 1, 1, 8)}</td>
+    <td>${mix.length > 1 ? `<button type="button" class="rm" data-rm="${i}" aria-label="Zeile entfernen">×</button>` : ""}</td></tr>`).join("");
+  mixInfo();
+}
+function mixInfo() {
+  const sum = mix.reduce((a, m) => a + (+m.share || 0), 0);
+  $("sharesum").textContent = Math.abs(sum - 100) < .01 ? "Summe der Anteile 100 %" : `Summe der Anteile ${fmt(sum)} %, wird auf 100 % umgerechnet`;
+  const items = [];
+  for (const m of mix) {
+    const sp = spById(m.sp); if (!sp) continue;
+    const parts = [];
+    if (sp.note) parts.push(sp.note);
+    for (const g of groups) if (sp.gn[g]) parts.push(sp.gn[g]);
+    let warn = "";
+    if (local.length && !local.some(x => x.id === sp.id)) warn += " An diesem Standort selten: Art oder Standort prüfen.";
+    if (+m.cb < 2) warn += " Kronenansatz unter 2 m: Äste in Brusthöhe verdecken zusätzlich; das Modell enthält sie nicht, die Abdeckung ist dann zu günstig.";
+    if (parts.length || warn) items.push(`<li><b>${sp.de}</b> (<i>${sp.la}</i>). ${parts.join(" ")}${warn ? `<span class="warn">${warn}</span>` : ""}</li>`);
+  }
+  $("spnote").innerHTML = items.join("");
+  renderChips();
+}
+function applyPresets() {
+  mix = mix.map(m => rowFromSpecies(m.sp, m.share));
+  const tot = mix.reduce((a, m) => a + (+m.share || 0), 0) || 1;
+  const w = k => mix.reduce((a, m) => a + spById(m.sp).v[k] * (+m.share || 0), 0) / tot;
+  const dom = spById(mix.reduce((a, m) => (+m.share > +a.share ? m : a)).sp);
+  $("dens").value = Math.round(w("dens") / 10) * 10; $("under").value = Math.round(w("under") / 100) * 100;
+  $("pattern").value = dom.v.pattern; $("dist").value = dom.v.dist; $("csv").value = "";
+  renderMix();
+}
+function addSpecies(id) {
+  if (mix.some(m => m.sp === id)) return;
+  const sum = mix.reduce((a, m) => a + (+m.share || 0), 0);
+  if (mix.length === 1 && !mix[0].dirty && !anyEdited) { mix = [rowFromSpecies(id, 100)]; applyPresets(); return; }
+  mix.push(rowFromSpecies(id, Math.max(0, 100 - sum)));
+  renderMix();
+}
+let anyEdited = false;
+$("mix").addEventListener("input", e => {
+  const el = e.target, i = +el.dataset.i, k = el.dataset.k; if (!k || !mix[i]) return;
+  if (k === "sp") return;
+  mix[i][k] = parseFloat(el.value); mix[i].dirty = true; anyEdited = true;
+  mixInfo(); schedule();
+});
+$("mix").addEventListener("change", e => {
+  const el = e.target, i = +el.dataset.i; if (el.dataset.k !== "sp" || !mix[i]) return;
+  const keep = mix[i].dirty ? mix[i] : null;
+  mix[i] = keep ? {...keep, sp: el.value} : rowFromSpecies(el.value, mix[i].share);
+  renderMix(); run();
+});
+$("mix").addEventListener("click", e => { const b = e.target.closest("[data-rm]"); if (!b) return; mix.splice(+b.dataset.rm, 1); renderMix(); run(); });
+$("addsp").addEventListener("click", () => {
+  const next = local.find(sp => !mix.some(m => m.sp === sp.id)) || SPECIES.find(sp => !mix.some(m => m.sp === sp.id));
+  if (next) { addSpecies(next.id); run(); }
+});
+$("preset").addEventListener("click", () => { applyPresets(); anyEdited = false; run(); });
+$("chips").addEventListener("click", e => { const b = e.target.closest("button[data-s]"); if (b) { addSpecies(b.dataset.s); run(); } });
+
 // ---------- Ausgabe ----------
 let state = null;
 const VERDICT0 = $("verdict").textContent;
+const median = arr => { if (!arr.length) return NaN; const s = Array.from(arr).sort((x, y) => x - y); return s[Math.floor((s.length - 1) / 2)]; };
 function run() {
   const p = read();
-  if (!(p.dens > 0 && p.L > 0 && p.range > 0 && p.res > 0 && p.a > 0)) return;
-  const stand = makeStand(p), L = stand.L;
+  if (!(p.dens > 0 && p.L > 0 && p.range > 0 && p.res > 0 && p.a > 0) || !mix.length) return;
+  const stand = makeStand(p, mix), L = stand.L;
   const pos = layout(p, L, p.a, stand);
   const res = evaluate(p, stand, pos), s = summarize(p, res);
   state = {p, stand, pos, res, s};
@@ -611,7 +684,14 @@ function run() {
   $("t-arc").textContent = fmt(s.medArc, 1) + "°";
   $("t-scans").textContent = pos.length;
   $("t-sha").textContent = fmt(pos.length / (L * L / 1e4), 1);
-  $("pts").textContent = `${res.ev.length} Stämme ausgewertet · Median ${fmt(s.medPts)} Punkte je 10-cm-Scheibe (Schätzung)`;
+  $("pts").textContent = `${res.ev.length} Stämme im Plot · Median ${fmt(s.medPts)} Punkte je 10-cm-Scheibe (Schätzung)`;
+  const rows = stand.fromCsv ? [] : mix.map((m, j) => {
+    const idx = res.ev.map((o, i) => (o.sp === j ? i : -1)).filter(i => i >= 0);
+    return {name: spById(m.sp).de, n: idx.length, ok: idx.filter(i => s.ok[i]).length,
+      arc: median(idx.map(i => res.arcs[i])), pts: median(idx.map(i => res.pts[i]))};
+  });
+  $("bysp").querySelector("tbody").innerHTML = rows.map(r => `<tr><td>${r.name}</td><td>${r.n}</td><td>${r.n ? fmt(100 * r.ok / r.n) + " %" : "–"}</td><td>${fmt(r.arc, 1)}°</td><td>${fmt(r.pts)}</td></tr>`).join("");
+  $("bysp").hidden = !rows.length;
   drawMap(); drawHist();
   save();
 }
@@ -645,10 +725,10 @@ function drawMap() {
   g.strokeStyle = css("--accent"); g.lineWidth = 2;
   for (const [x, y] of pos) {
     const cx = X(x), cy = Y(y);
-    g.beginPath(); g.moveTo(cx - 6, cy); g.lineTo(cx + 6, cy); g.moveTo(cx, cy - 6); g.lineTo(cx, cy + 6); g.stroke();
-    g.beginPath(); g.arc(cx, cy, 3.5, 0, 2 * Math.PI); g.stroke();
+    g.strokeRect(cx - 3.5, cy - 3.5, 7, 7);
+    g.beginPath(); g.moveTo(cx - 7, cy); g.lineTo(cx + 7, cy); g.moveTo(cx, cy - 7); g.lineTo(cx, cy + 7); g.stroke();
   }
-  g.fillStyle = css("--muted"); g.font = "11px " + css("--f-data");
+  g.fillStyle = css("--muted"); g.font = "11px " + css("--font");
   g.fillText(`${fmt(L)} m`, X(0) + 4, Y(0) - 5);
 }
 
@@ -657,7 +737,7 @@ function drawHist() {
   for (const a of res.arcs) counts[Math.round(a / (360 / NSEC))]++;
   const W = 360, H = 170, pl = 30, pb = 22, pt = 8, max = Math.max(1, ...counts), bw = (W - pl - 6) / (NSEC + 1);
   const xOf = a => pl + (a / (360 / NSEC)) * bw + bw / 2;
-  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Histogramm der Abdeckungsbögen">`;
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Häufigkeit der Abdeckungsbögen">`;
   for (const f of [0, .5, 1]) { const y = pt + (H - pt - pb) * (1 - f); s += `<line x1="${pl}" x2="${W - 6}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1"/><text x="${pl - 4}" y="${y + 3}" text-anchor="end">${Math.round(max * f)}</text>`; }
   counts.forEach((c, j) => {
     const a = j * 360 / NSEC, h = (H - pt - pb) * c / max, x = pl + j * bw + 1;
@@ -666,14 +746,14 @@ function drawHist() {
   });
   for (const a of [0, 90, 180, 270, 360]) s += `<text x="${xOf(a)}" y="${H - 6}" text-anchor="middle">${a}°</text>`;
   const tx = xOf(p.target) - bw / 2;
-  s += `<line x1="${tx}" x2="${tx}" y1="${pt}" y2="${H - pb}" stroke="var(--fg)" stroke-dasharray="3 3" stroke-width="1"/><text x="${tx + 3}" y="${pt + 9}" fill="var(--fg)">Ziel</text></svg>`;
+  s += `<line x1="${tx}" x2="${tx}" y1="${pt}" y2="${H - pb}" stroke="var(--fg)" stroke-dasharray="3 3" stroke-width="1"/><text x="${tx + 3}" y="${pt + 9}" style="fill:var(--fg)">Ziel</text></svg>`;
   $("hist").innerHTML = s;
 }
 
 function sweep() {
   const p = read();
-  if (p.layout === "rand") { $("verdict").textContent = "Der Vergleich gilt für Raster und versetzte Anordnung. Bitte eine davon wählen."; return; }
-  const stand = makeStand(p), L = stand.L, spacings = [30, 25, 20, 17.5, 15, 12.5, 10, 8, 6].filter(a => a <= L);
+  if (p.layout === "rand") { $("verdict").textContent = "Der Vergleich gilt für Raster und versetzte Anordnung."; return; }
+  const stand = makeStand(p, mix), L = stand.L, spacings = [30, 25, 20, 17.5, 15, 12.5, 10, 8, 6].filter(a => a <= L);
   const rows = [], tb = $("sweeptab").querySelector("tbody");
   $("results").classList.add("busy"); $("sweep").disabled = true;
   let i = 0;
@@ -686,10 +766,10 @@ function sweep() {
     const best = rows.find(r => r.share * 100 >= p.goal);
     tb.innerHTML = rows.map(r => `<tr class="${r === best ? "best" : ""}"><td>${fmt(r.a, 1)} m</td><td>${r.n}</td><td>${fmt(r.sha, 1)}</td><td>${fmt(r.share * 100)} %</td><td>${fmt(r.medArc, 1)}°</td><td>${fmt(r.medPts)}</td></tr>`).join("");
     $("sweeptab").hidden = false;
-    const name = p.layout === "tri" ? "Versetzt" : "Raster";
+    const name = p.layout === "tri" ? "Versetzte Anordnung" : "Raster";
     $("verdict").innerHTML = best
-      ? `<span class="pill ok">Empfehlung</span> ${name} mit ${fmt(best.a, 1)} m Abstand: ${best.n} Standpunkte (${fmt(best.sha, 1)} je ha), ${fmt(best.share * 100)} % der Stämme ≥ ${fmt(p.target, 1)}°.`
-      : `<span class="pill bad">Ziel verfehlt</span> Auch bei 6 m erreichen nur ${fmt(rows.at(-1).share * 100)} % der Stämme ${fmt(p.target, 1)}°. Zielanteil oder Mindest-Bogen prüfen, oder zusätzliche Standpunkte an den roten Stämmen setzen.`;
+      ? `<b class="ok">Empfehlung:</b> ${name} mit ${fmt(best.a, 1)} m Abstand, ${best.n} Standpunkte (${fmt(best.sha, 1)} je ha); ${fmt(best.share * 100)} % der Stämme erreichen ${fmt(p.target, 1)}°.`
+      : `<b class="bad">Ziel nicht erreicht:</b> Auch bei 6 m erreichen nur ${fmt(rows.at(-1).share * 100)} % der Stämme ${fmt(p.target, 1)}°.`;
     $("results").classList.remove("busy"); $("sweep").disabled = false;
   };
   step();
@@ -702,36 +782,41 @@ function onMapTap(ev) {
   const mx = (ev.clientX - rect.left) / sc - stand.B, my = (w - (ev.clientY - rect.top)) / sc - stand.B;
   let best = -1, bd = 8 / sc;
   res.ev.forEach((o, i) => { const d = Math.hypot(o.x - mx, o.y - my); if (d < bd) { bd = d; best = i; } });
-  if (best < 0) { $("info").textContent = "Stamm antippen für Details."; return; }
-  const o = res.ev[best];
-  $("info").textContent = `x ${fmt(o.x, 1)} m · y ${fmt(o.y, 1)} m · BHD ${fmt(o.d)} cm · Bogen ${fmt(res.arcs[best], 1)}° · ~${fmt(res.pts[best])} Punkte`;
+  if (best < 0) { $("info").textContent = "Stamm antippen für Einzelwerte."; return; }
+  const o = res.ev[best], sp = o.sp !== undefined && mix[o.sp] ? spById(mix[o.sp].sp).de + " · " : "";
+  $("info").textContent = `${sp}x ${fmt(o.x, 1)} m, y ${fmt(o.y, 1)} m · BHD ${fmt(o.d)} cm · Bogen ${fmt(res.arcs[best], 1)}° · etwa ${fmt(res.pts[best])} Punkte`;
 }
 
 function copyPositions() {
   if (!state) return;
-  const lat = $("lat").value, lon = $("lon").value, zc = $("zcode").textContent, pl = $("place").value.trim(), sp = $("species").selectedOptions[0];
-  const txt = `# ${lat} N, ${lon} O, ${$("elev").value} m · Köppen ${zc}${pl ? " · " + pl : ""} · ${sp ? sp.textContent : ""}, ${$("age").value} J., Kronenansatz ${$("cb").value} m\n` + "id,x,y\n"
+  const tot = mix.reduce((a, m) => a + (+m.share || 0), 0) || 1;
+  const mixTxt = mix.map(m => `${spById(m.sp).de} ${fmt(100 * m.share / tot)} %`).join(", ");
+  const pl = $("place").value.trim();
+  const txt = `# ${$("lat").value} N, ${$("lon").value} O, ${$("elev").value} m · Köppen ${$("zcode").textContent}${pl ? " · " + pl : ""}\n`
+    + `# ${mixTxt} · ${$("dens").value} Stöcke/ha · Alter ${$("age").value} J.\nid,x,y\n`
     + state.pos.map((q, i) => `S${String(i + 1).padStart(2, "0")},${q[0].toFixed(2)},${q[1].toFixed(2)}`).join("\n");
   const done = () => { $("copy").textContent = "Kopiert"; setTimeout(() => $("copy").textContent = "Standpunkte kopieren", 1500); };
   const fallback = () => { $("info").textContent = txt.replace(/\n/g, "  "); };
   try { navigator.clipboard.writeText(txt).then(done, fallback); } catch (e) { fallback(); }
 }
 
-function save() { try { localStorage.setItem("scanplaner3", JSON.stringify(read())); } catch (e) {} }
+const STORE = "scanplaner4";
+function save() { try { localStorage.setItem(STORE, JSON.stringify({f: read(), mix})); } catch (e) {} }
 function load() {
-  try { const v = JSON.parse(localStorage.getItem("scanplaner3") || "null"); if (v) for (const id of IDS) if (id in v && $(id) && id !== "species") $(id).value = v[id]; return v; } catch (e) { return null; }
+  try {
+    const v = JSON.parse(localStorage.getItem(STORE) || "null"); if (!v) return null;
+    for (const id of IDS) if (v.f && id in v.f && $(id)) $(id).value = v.f[id];
+    if (Array.isArray(v.mix) && v.mix.length && v.mix.every(m => spById(m.sp))) mix = v.mix;
+    return v;
+  } catch (e) { return null; }
 }
 function syncLayout() { const r = $("layout").value === "rand"; $("lbl-n").hidden = !r; $("lbl-a").hidden = r; }
-function syncDist() { $("lbl-sd").hidden = $("dist").value === "revj"; }
 
 let timer = 0;
 const schedule = () => { clearTimeout(timer); timer = setTimeout(run, 250); };
-$("f").addEventListener("input", e => { if (e.target.id === "species") return; syncLayout(); syncDist(); speciesNote(); schedule(); });
+const FORM_IDS = new Set(IDS.filter(id => !["lat", "lon", "elev", "place"].includes(id)));
+document.addEventListener("input", e => { if (FORM_IDS.has(e.target.id)) { syncLayout(); schedule(); } });
 $("f").addEventListener("submit", e => e.preventDefault());
-$("species").addEventListener("change", () => pickSpecies($("species").value));
-STAND.forEach(id => $(id).addEventListener("input", () => { dirty = true; }));
-$("chips").addEventListener("click", e => { const b = e.target.closest("button[data-s]"); if (b) pickSpecies(b.dataset.s); });
-$("preset").addEventListener("click", () => { applySpecies(); speciesNote(); run(); });
 ["lat", "lon", "elev"].forEach(id => $(id).addEventListener("change", () => { onSite(); centerOnSite(Math.max(view.z, 1)); }));
 $("place").addEventListener("input", save);
 $("sweep").addEventListener("click", sweep);
@@ -745,9 +830,10 @@ mq.addEventListener && mq.addEventListener("change", redrawTheme);
 new MutationObserver(redrawTheme).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
 
 const saved = load();
+if (!mix.length) { mix = [rowFromSpecies("kie", 70), rowFromSpecies("bi", 30)]; }
 onSite();
-if (saved && SPECIES.some(sp => sp.id === saved.species)) { $("species").value = saved.species; dirty = true; }
-else { $("species").value = "kie"; applySpecies(); }
-renderChips(); speciesNote(); syncLayout(); syncDist(); run();
+if (!saved) applyPresets();
+syncLayout(); run();
 })();
 </script>
+
