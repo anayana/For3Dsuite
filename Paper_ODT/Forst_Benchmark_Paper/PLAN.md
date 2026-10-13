@@ -5,6 +5,13 @@ Stand 13.10.2026 · Entwurf zur Bestätigung · noch nichts gerechnet
 **Forschungsfrage:** Ab welchem Abdeckungsbogen in Brusthöhe (und welcher Punktzahl je
 Scheibe) liefern Detektoren und BHD-Verfahren verlässliche Ergebnisse?
 
+**Schwerpunkt (nach Literaturabgleich):** BHD-Fehler und Ausfallrate **als Funktion des
+Bogens, je Verfahren** (Kreisfit, RANSAC, Zylinder, GeoFit, 3DFin-Annahmeregel) → daraus
+eine Qualitätsregel „ab welchem Bogen ist ein BHD vertrauenswürdig“. Scan-Design ist gut
+untersucht (u. a. Li et al., IEEE TGRS, HELIOS-Simulation; Remote Sens. 11(13):1602) und
+bleibt hier **nur Folgerung** (ein Abschnitt), nicht Hauptbeitrag. Volltexte zur Abgrenzung
+noch nötig (vom Nutzer, arXiv/ScienceDirect hier gesperrt).
+
 ## 1. Szenen
 
 | ID | Inhalt | Wahrheit | Zweck |
@@ -76,12 +83,21 @@ Prüft, ob die Schwellen aus S1/S2 auf echte Rinde/Äste übertragbar sind.
   (b) Rechnung auf deinem Windows-Rechner (helios-Env existiert laut `helios_run.py`);
   (c) GitHub Actions (kostenlos nur bei öffentlichem Repo).
 
-## 6. Zieljournal (ohne Gebühr)
+## 6. Veröffentlichungen (ohne Gebühr)
 
-Empfehlung: **Forestry** (Oxford, hybrid; dort ist SegmentedForests erschienen →
-passende Leserschaft). Ausweichen: *European Journal of Forest Research*, dann *PFG*.
-Gebührenfreiheit des Abo-Wegs (keine Page/Colour Charges) **vor Einreichung auf der
-Journalseite prüfen** — von hier nicht prüfbar.
+| Nr. | Was | Wo | Wann |
+|---|---|---|---|
+| C1 | Bogen-Fehler-Kurven je Verfahren, Qualitätsregel, Gegenprobe echte Daten (englisch) | *Forestry* → *EJFR* → *PFG* | zuerst |
+| C2 | Praxisbeitrag: Scanplanung je Bestandstyp + Qualitätsprüfung nach dem Scan, mit Scanplaner (`scanplaner.html`) (deutsch) | *AFZ-DerWald*; Kurzfassung für *waldwissen.net* | nach Annahme von C1 |
+
+- C2 erst nach C1: sonst Konflikt mit der Erstveröffentlichungs-Regel des Journals;
+  C2 zitiert C1 und bringt keine neuen Ergebnisse.
+- waldwissen.net publiziert über Partnerinstitute (FVA, LWF, BFW, WSL) — ob ein
+  unabhängiger Autor direkt einreichen kann, ist ungeklärt → dort anfragen.
+- Gebührenfreiheit des Abo-Wegs (keine Page/Colour Charges) **vor Einreichung auf der
+  Journalseite prüfen** — von hier nicht prüfbar.
+- Für C2 Bestandstypen des Scanplaners mit offenen Inventurdaten belegen
+  (z. B. BWI für Mitteleuropa, IFN Portugal für Algarve) statt Richtwerten.
 
 ## 7. Reihenfolge
 
@@ -89,4 +105,5 @@ Journalseite prüfen** — von hier nicht prüfbar.
 2. `helios_scene.py` erweitern (Abschn. 1), Wahrheitstabelle.
 3. Pool simulieren → Teilmengen → Kennzahlen (S1).
 4. S2 (QSM-Stämme), Gegenprobe echte Daten.
-5. Abbildungen, Manuskript.
+5. Abbildungen, Manuskript C1.
+6. Nach Annahme: Praxisbeitrag C2, Scanplaner mit belegten Schwellen und Bestandswerten.
