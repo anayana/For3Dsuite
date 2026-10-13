@@ -31,23 +31,17 @@ open-source; self-hosting; Docker; web visualization
 
 ---
 
-## Code metadata
+## Highlights
 
-| | |
-|---|---|
-| Current code version | v1.0 |
-| Permanent link to code/repository | https://github.com/anayana/For3Dsuite |
-| Permanent link to reproducible capsule | https://doi.org/10.5281/zenodo.23323560 |
-| Legal code license | GNU General Public License v3.0 or later (GPL-3.0-or-later) |
-| Code versioning system | git |
-| Languages / tools | Python, JavaScript; FastAPI, Hugin, Pannellum, three.js, Caddy, Garage, Docker |
-| Compilation / runtime | Docker + Compose (single command) |
-| Link to developer documentation | https://github.com/anayana/For3Dsuite#readme (platform/README.md) |
-| Support e-mail | angel.naya@posteo.de |
+- Open, containerized GUI chain turns 360° and TLS captures into web 3D scenes
+- The input class is detected automatically: stitch, reproject, or take over
+- Pose-based reprojection of E57 scanner images beats stitching on every metric
+- Reprojection gives usable panoramas for 11 of 11 scenes, stitching for 6
+- Real parallax raises seam offset ~56× over a parallax-free synthetic control
 
 ---
 
-## 1. Motivation and significance
+## 1. Introduction
 
 Interactive 360° panoramas and 3D point clouds are used to document and
 communicate spatial states in forest and environmental monitoring, surveying,
@@ -72,7 +66,7 @@ data derived from the same point cloud, and are served fully self-hosted, withou
 a cloud dependency. The same chain thus covers the device spectrum from consumer
 360° cameras to survey-grade TLS.
 
-## 2. Software description
+## 2. Software design
 
 ### 2.1 Software architecture
 
@@ -94,7 +88,7 @@ At upload, the input class is determined automatically (`detect_input_class`): a
 accepted as a finished equirectangular panorama; several images trigger stitching.
 A single image with another aspect ratio is rejected rather than guessed.
 
-### 2.2 Software functionalities
+### 2.2 Functionality
 
 - **Stitching branch** (pose unknown): Hugin/Panotools with automatic control-point
   detection (`cpfind`, `cpclean`), optimization (`autooptimiser`), and seam
@@ -110,7 +104,7 @@ A single image with another aspect ratio is rejected rather than guessed.
   from point-cloud analyses.
 - **Publishing**: self-hosted (Caddy + Garage) or as a static export.
 
-## 3. Illustrative examples
+## 3. Application and evaluation
 
 ### 3.1 Scanner RGB → walkable scene with inventory markers
 
@@ -166,13 +160,6 @@ exposure differences, or lens distortion; they measure the geometry of the chain
 not camera image quality. Absolute PSNR is limited by the resolution chain and is
 meaningful only in the comparison of the two branches.
 
-![**Figure 2.** Panorama evaluation against eleven CC0 references. The pose-based
-branch is more accurate and reconstructs every scene. Seam offset against the
-reference separates good from failed stitches by a factor of ~40; the reference-free
-offset of a real capture (PASSTA) is ~56× higher than in the parallax-free
-synthetic control.
-](figures/fig2_evaluation.svg){width=100%}
-
 ### 3.3 Real captures: the cost of parallax
 
 To quantify how far the synthetic setting is from reality, `eval_seams.py`
@@ -221,7 +208,7 @@ finishes in 32 s, the 6.9 MB of individual frames take 70 s: cost comes from
 registration, not from data volume — precisely what pose-based reprojection
 avoids.
 
-## 4. Impact
+## 4. Discussion
 
 The tool makes reproducible, self-hosted 360°/3D documentation available without
 vendor lock-in, from consumer cameras to TLS, through one GUI. It turns the
@@ -245,6 +232,19 @@ seam-offset quality flag on real captures and integrate it into the GUI; add a
 freely licensed set of raw dual-fisheye frames from a consumer 360° camera to the
 evaluation; and run a usability study with non-expert users (System Usability
 Scale [13, 14]).
+
+## Code availability
+
+- Name of the software: For3Dsuite
+- Developer and contact: Angel Naya, angel.naya@posteo.de
+- Year first available: 2026
+- Hardware requirements: consumer PC; no GPU required (runtimes in Section 3.4)
+- Software requirements: Docker and Docker Compose
+- Program languages: Python, JavaScript
+- Program size: about 2 MB of source code
+- License: GNU General Public License v3.0 or later (GPL-3.0-or-later)
+- Source code: https://github.com/anayana/For3Dsuite
+- Archived version (v1.0): https://doi.org/10.5281/zenodo.23323560
 
 ## Data availability
 

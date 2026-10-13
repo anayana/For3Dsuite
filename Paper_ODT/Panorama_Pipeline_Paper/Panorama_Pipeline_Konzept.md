@@ -26,11 +26,12 @@ Einzelwerkzeugen (die sind bekannt), sondern in der **Integration**:
    lizenzierten Beispielen für jede Klasse** (Abschnitt 6) und gemessener
    Laufzeit je Klasse (Abschnitt 5.3).
 
-**Zieljournal (Vorschlag):** primär *SoftwareX* (Elsevier; Original Software
-Publication, WoS/Scopus, verlangt öffentliches Repo + Reproduzierbarkeit).
-Alternativ *Environmental Modelling & Software* (höherer IF, wenn die Wald-/
-Umwelt-Anwendung stärker gewichtet wird) oder *ISPRS Int. J. of Geo-Information*
-(photogrammetrisch-räumliche Rahmung, Open Access). Manuskriptsprache: Englisch.
+**Zieljournal:** *Computers & Geosciences* (Elsevier, Application Article; IF ≈ 4,1,
+Q1 Geosciences; Hybrid — Veröffentlichung auf dem Abo-Weg ohne Gebühren). Verlangt
+Highlights und einen Abschnitt „Code availability". Ausweichoption ohne Gebühren:
+*PFG – Journal of Photogrammetry, Remote Sensing and Geoinformation Science*
+(Springer, Hybrid, IF ≈ 3,3–3,8). Journals mit Pflicht-Publikationsgebühr
+(SoftwareX, MDPI) scheiden aus. Manuskript: `Manuscript_EN.md`.
 
 ---
 

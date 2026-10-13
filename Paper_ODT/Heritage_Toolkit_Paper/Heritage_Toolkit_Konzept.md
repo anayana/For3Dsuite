@@ -7,7 +7,7 @@
 - **Rolle:** Paper B = Werkzeug- und Transferbeitrag. **Nicht** Teil der drei
   Dissertations-Paper (kulturell / sozial / pädagogisch), sondern deren Werkzeug;
   in der Diss. im Methodenteil zitiert.
-- **Abgrenzung zu Paper A** (SoftwareX, Panorama-Kette): A = Bildverarbeitung
+- **Abgrenzung zu Paper A** (Computers & Geosciences, Panorama-Kette): A = Bildverarbeitung
   (Stitching vs. E57-Reprojektion). B = **Erinnerungsebene + Gaussian Splatting +
   Anleitung** für Laien. B baut auf A auf, wiederholt es nicht.
 - **Zieljournale:** Virtual Archaeology Review (Valencia, ES-Kontext) ·

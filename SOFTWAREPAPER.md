@@ -65,5 +65,5 @@ braucht dichte Aufnahme, Bonität/Alter extern. (Details: [EXPOSE.md](EXPOSE.md)
 - Ein kompaktes Architektur-Diagramm.
 
 ## Zieljournale
-SoftwareX · Environmental Modelling & Software · Journal of Open Source Software (leicht) ·
-Methods in Ecology and Evolution (Applications) · Ecological Informatics · Remote Sensing.
+Computers & Geosciences (gewählt, ohne Gebühren) · PFG (Ausweichoption) · Environmental Modelling & Software ·
+Methods in Ecology and Evolution (Applications) · Ecological Informatics. Keine Journals mit Pflicht-Gebühr.
