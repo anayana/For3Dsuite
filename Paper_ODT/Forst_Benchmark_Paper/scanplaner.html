@@ -37,7 +37,8 @@ input, select, textarea, button { font: inherit; color: var(--fg); }
 input, select, textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; font-family: var(--f-data); font-size: .9rem; width: 100%; box-sizing: border-box; }
 textarea { min-height: 84px; resize: vertical; }
 input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.presets { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; }
+.regionnote { grid-column: 1 / -1; margin: 0; font-size: .82rem; line-height: 1.45; padding: 8px 10px; border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0 4px 4px 0; }
+.regionnote:empty { display: none; }
 button { cursor: pointer; border-radius: 4px; border: 1px solid var(--line); background: var(--panel); padding: 6px 10px; font-size: .85rem; }
 button:hover { border-color: var(--accent); }
 button.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
@@ -86,16 +87,16 @@ tr.best td { background: var(--accent-soft); font-weight: 500; }
     <form id="f" autocomplete="off">
       <fieldset>
         <legend>Bestand</legend>
-        <div class="presets" role="group" aria-label="Beispielbestände">
-          <button type="button" data-preset="buche">Buchen-Altbestand</button>
-          <button type="button" data-preset="fichte">Fichten-Mischbestand</button>
-          <button type="button" data-preset="stange">Stangenholz</button>
-          <button type="button" data-preset="verj">Mischbestand + Verjüngung</button>
-        </div>
-        <label>Stammzahl (N/ha)<input id="dens" type="number" min="20" max="5000" step="10" value="600"></label>
+        <label class="full">Region<select id="region"></select></label>
+        <label class="full">Bestandstyp<select id="stype"></select></label>
+        <label class="full">Standort (frei, z. B. Ort oder Koordinaten)<input id="place" type="text" placeholder="z. B. Monchique, Algarve"></label>
+        <p class="regionnote" id="regionnote"></p>
+        <label>Stammzahl (Stöcke/ha)<input id="dens" type="number" min="20" max="5000" step="10" value="600"></label>
+        <label>Stämme je Stock<input id="multi" type="number" min="1" max="8" step="1" value="1"></label>
         <label>Verteilung<select id="pattern"><option value="random">zufällig</option><option value="regular">regelmäßig</option><option value="cluster">geklumpt</option></select></label>
+        <label>BHD-Verteilung<select id="dist"><option value="normal">einschichtig (normal)</option><option value="revj">ungleichaltrig (umgek. J)</option></select></label>
         <label>BHD Mittel (cm)<input id="dbh" type="number" min="7" max="150" step="1" value="32"></label>
-        <label>BHD Streuung (cm)<input id="dbhsd" type="number" min="0" max="60" step="1" value="9"></label>
+        <label id="lbl-sd">BHD Streuung (cm)<input id="dbhsd" type="number" min="0" max="60" step="1" value="9"></label>
         <label class="full">Unterwuchs in Brusthöhe (Stämmchen/ha, Ø 2–6 cm)<input id="under" type="number" min="0" max="20000" step="100" value="200"></label>
         <label>Plot-Seitenlänge (m)<input id="L" type="number" min="20" max="120" step="5" value="50"></label>
         <label>Randpuffer (m)<input id="B" type="number" min="0" max="30" step="1" value="10"></label>
@@ -168,7 +169,7 @@ tr.best td { background: var(--accent-soft); font-weight: 500; }
       <div class="panel note">
         <h2>Was das Modell kann und was nicht</h2>
         <p>Geometrie im Brusthöhen-Querschnitt (1,3 m): Stämme und Unterwuchs als Kreise, Sichtlinien vom Scanner mit Verdeckung, Reichweite und streifendem Einfall (unter ~6° kein Treffer). Der Bogen zählt die 16 Sektoren à 22,5°, in denen ein Stamm gesehen wird, wie 3DFin.</p>
-        <p>Nicht modelliert: Äste und Kronen in Brusthöhe, Gelände und Hangneigung, Stammneigung, Strahldivergenz, Wind. Die Beispielbestände sind typische Werte, nicht kalibriert. Die Ziel-Schwellen sind vorläufig; die Kalibrierung gegen HELIOS++-Simulationen und echte Punktwolken ist Teil des laufenden Forst-Papers.</p>
+        <p>Nicht modelliert: Äste und Kronen in Brusthöhe, Gelände und Hangneigung, Stammneigung, Strahldivergenz, Wind. Region und Bestandstyp setzen nur Startwerte für die Bestandsstruktur (Richtwerte, nicht kalibriert); die Geometrie selbst ist ortsunabhängig. Alle Werte sind frei änderbar. Die Ziel-Schwellen sind vorläufig; die Kalibrierung gegen HELIOS++-Simulationen und echte Punktwolken ist Teil des laufenden Forst-Papers.</p>
       </div>
     </div>
   </div>
@@ -177,13 +178,46 @@ tr.best td { background: var(--accent-soft); font-weight: 500; }
 <script>
 (() => {
 const $ = id => document.getElementById(id);
-const IDS = ["dens","pattern","dbh","dbhsd","under","L","B","csv","range","res","layout","a","n","seed","target","goal","minpts"];
-const PRESETS = {
-  buche:  {dens: 250, pattern: "random",  dbh: 45, dbhsd: 12, under: 0},
-  fichte: {dens: 600, pattern: "random",  dbh: 32, dbhsd: 9,  under: 200},
-  stange: {dens: 1500, pattern: "regular", dbh: 16, dbhsd: 4, under: 0},
-  verj:   {dens: 500, pattern: "cluster", dbh: 35, dbhsd: 12, under: 3000},
+const IDS = ["region","stype","place","dens","multi","pattern","dist","dbh","dbhsd","under","L","B","csv","range","res","layout","a","n","seed","target","goal","minpts"];
+const STAND = ["dens","multi","pattern","dist","dbh","dbhsd","under"];
+// Richtwerte zur Orientierung, nicht kalibriert. Felder: Stöcke/ha, Stämme je Stock,
+// Verteilung, BHD-Verteilung, BHD-Mittel, -Streuung (cm), Unterwuchs (Stämmchen/ha)
+const T = (name, dens, multi, pattern, dist, dbh, dbhsd, under) => ({name, v: {dens, multi, pattern, dist, dbh, dbhsd, under}});
+const REGIONS = {
+  boreal: {name: "Boreal (Karelien, Fennoskandien)",
+    note: "Schmale, gerade Stämme, oft hohe Stammzahl. Fichtenverjüngung und Birke bilden Unterwuchs. Gelände meist flach, auf Moränen blockig.",
+    types: [T("Kiefern-Heidewald", 700, 1, "random", "normal", 22, 6, 300),
+            T("Fichten-Birken-Mischbestand", 1000, 1, "random", "normal", 20, 7, 1500),
+            T("Birken-Jungbestand", 2000, 1, "random", "normal", 10, 3, 500),
+            T("Fichten-Altbestand (Taiga)", 600, 1, "cluster", "revj", 24, 0, 1200)]},
+  central: {name: "Mitteleuropa (temperat)",
+    note: "Große Spannweite von lichten Buchen-Altbeständen bis zu dichten Stangenhölzern. Verjüngung im Unterstand ist häufig der Hauptgrund für Verdeckung.",
+    types: [T("Buchen-Altbestand", 250, 1, "random", "normal", 45, 12, 0),
+            T("Fichten-Mischbestand", 600, 1, "random", "normal", 32, 9, 200),
+            T("Kiefern-Reinbestand (Pflanzreihen)", 700, 1, "regular", "normal", 28, 6, 100),
+            T("Eichen-Hainbuchen-Mischwald", 400, 1, "random", "normal", 35, 15, 1500),
+            T("Stangenholz", 1500, 1, "regular", "normal", 16, 4, 0),
+            T("Plenterwald", 450, 1, "random", "revj", 28, 0, 2000),
+            T("Mischbestand mit Verjüngung", 500, 1, "cluster", "normal", 35, 12, 3000)]},
+  alpine: {name: "Gebirge (Alpen, Karpaten)",
+    note: "Rottenstruktur (geklumpt) und Hanglage. Hangneigung ist im Modell nicht abgebildet; auf steilen Hängen verdecken hangaufwärts stehende Stämme stärker.",
+    types: [T("Fichten-Lärchen-Gebirgswald", 450, 1, "cluster", "normal", 35, 12, 300),
+            T("Bergmischwald (Fi-Ta-Bu)", 500, 1, "random", "revj", 30, 0, 1500)]},
+  atlantic: {name: "Atlantisch (Irland, Großbritannien, Bretagne)",
+    note: "Viele Nadelholz-Plantagen in Reihen, oft dicht und ungeastet; tote Äste in Brusthöhe sind dort häufig, im Modell aber nicht enthalten.",
+    types: [T("Sitkafichten-Plantage", 1600, 1, "regular", "normal", 25, 6, 0),
+            T("Eichen-Eschen-Laubwald", 350, 1, "random", "normal", 38, 14, 2000)]},
+  med: {name: "Mediterran (Algarve, Iberien)",
+    note: "Sehr unterschiedliche Strukturen: lichte Korkeichen-Weiden mit wenigen dicken Stämmen, aber auch Eukalyptus-Ausschlagbestände mit mehreren Stämmen je Stock und dichte Macchie. Tiefer Kronenansatz und Äste in Brusthöhe (nicht modelliert) mindern die Abdeckung zusätzlich.",
+    types: [T("Korkeichen-Montado", 60, 1, "random", "normal", 45, 15, 0),
+            T("Eukalyptus-Ausschlag", 1100, 3, "regular", "normal", 12, 4, 200),
+            T("Strandkiefer mit Macchie", 400, 1, "random", "normal", 30, 8, 2500),
+            T("Steineichen-Niederwald", 1200, 4, "random", "normal", 10, 4, 3000)]},
+  trop: {name: "Tropen (Tieflandregenwald)",
+    note: "Ungleichaltrig mit vielen dünnen und wenigen sehr dicken Stämmen, dichter Unterwuchs. Brettwurzeln verfälschen den BHD in 1,3 m und sind nicht modelliert.",
+    types: [T("Tieflandregenwald", 550, 1, "random", "revj", 22, 0, 5000)]},
 };
+const CUSTOM = "custom";
 const K = 80, NSEC = 16, BINS = 7200, BINW = 2 * Math.PI / BINS, SLICE = 0.10;
 const COS = new Float64Array(BINS), SIN = new Float64Array(BINS);
 for (let b = 0; b < BINS; b++) { COS[b] = Math.cos((b + .5) * BINW); SIN[b] = Math.sin((b + .5) * BINW); }
@@ -245,9 +279,17 @@ function makeStand(p) {
     tries++;
     const [x, y] = cand();
     if (x < lo || y < lo || x > lo + span || y > lo + span) continue;
-    const d = Math.max(7, p.dbh + p.dbhsd * normal(r)), rad = d / 200;
-    if (hash.near(x, y, rad + 1.2).some(o => Math.hypot(o.x - x, o.y - y) < o.r + rad + .1)) continue;
-    const o = {x, y, r: rad, d, t: 1}; objs.push(o); hash.add(o); placed++;
+    // ein Stock mit m Stämmen (Stockausschlag); m = 1 ist ein Einzelbaum
+    const m = Math.max(1, Math.round(p.multi || 1)), a0 = r() * 2 * Math.PI, stems = [];
+    for (let k = 0; k < m; k++) {
+      const d = p.dist === "revj" ? 7 - Math.max(1, p.dbh - 7) * Math.log(1 - r() * .999) : Math.max(7, p.dbh + p.dbhsd * normal(r));
+      const rad = Math.min(d, 250) / 200, off = m > 1 ? .12 + rad + .15 * r() : 0, ang = a0 + 2 * Math.PI * k / m;
+      stems.push({x: x + off * Math.cos(ang), y: y + off * Math.sin(ang), r: rad, d: Math.min(d, 250), t: 1});
+    }
+    const clash = (o, others) => others.some(q => Math.hypot(q.x - o.x, q.y - o.y) < q.r + o.r + .02);
+    if (stems.some((o, k) => clash(o, stems.slice(0, k)) || clash(o, hash.near(o.x, o.y, o.r + 1.5)))) continue;
+    for (const o of stems) { objs.push(o); hash.add(o); }
+    placed++;
   }
   const nu = Math.round(p.under * areaHa);
   for (let i = 0; i < nu; i++) {
@@ -331,6 +373,7 @@ const fmt = (x, d = 0) => Number.isFinite(x) ? x.toLocaleString("de-DE", {minimu
 const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 
 let state = null;
+const VERDICT0 = $("verdict").textContent;
 function run() {
   const p = read();
   if (!(p.dens > 0 && p.L > 0 && p.range > 0 && p.res > 0 && p.a > 0)) return;
@@ -338,6 +381,8 @@ function run() {
   const pos = layout(p, L, p.a, stand);
   const res = evaluate(p, stand, pos), s = summarize(p, res);
   state = {p, stand, pos, res, s};
+  $("sweeptab").hidden = true;
+  $("verdict").textContent = VERDICT0;
   $("t-share").textContent = fmt(s.share * 100) + " %";
   $("t-arc").textContent = fmt(s.medArc, 1) + "°";
   $("t-scans").textContent = pos.length;
@@ -439,7 +484,8 @@ function onMapTap(ev) {
 
 function copyPositions() {
   if (!state) return;
-  const txt = "id,x,y\n" + state.pos.map((q, i) => `S${String(i + 1).padStart(2, "0")},${q[0].toFixed(2)},${q[1].toFixed(2)}`).join("\n");
+  const pl = $("place").value.trim(), reg = REGIONS[$("region").value], ty = $("stype").selectedOptions[0];
+  const txt = `# ${reg ? reg.name : ""}${pl ? " · " + pl : ""} · ${ty ? ty.textContent : ""}\n` + "id,x,y\n" + state.pos.map((q, i) => `S${String(i + 1).padStart(2, "0")},${q[0].toFixed(2)},${q[1].toFixed(2)}`).join("\n");
   const done = () => { $("copy").textContent = "Kopiert"; setTimeout(() => $("copy").textContent = "Standpunkte kopieren", 1500); };
   const fallback = () => { $("csv").blur(); $("info").textContent = txt.replace(/\n/g, "  "); };
   try { navigator.clipboard.writeText(txt).then(done, fallback); } catch (e) { fallback(); }
@@ -447,17 +493,37 @@ function copyPositions() {
 
 function save() { try { localStorage.setItem("scanplaner", JSON.stringify(read())); } catch (e) {} }
 function load() {
-  try { const v = JSON.parse(localStorage.getItem("scanplaner") || "null"); if (v) for (const id of IDS) if (id in v && $(id)) $(id).value = v[id]; } catch (e) {}
+  try {
+    const v = JSON.parse(localStorage.getItem("scanplaner") || "null"); if (!v) return;
+    if (v.region in REGIONS) { $("region").value = v.region; fillTypes(); }
+    for (const id of IDS) if (id in v && $(id)) $(id).value = v[id];
+  } catch (e) {}
 }
 function syncLayout() { const r = $("layout").value === "rand"; $("lbl-n").hidden = !r; $("lbl-a").hidden = r; }
 
 let timer = 0;
 const schedule = () => { clearTimeout(timer); timer = setTimeout(run, 250); };
-$("f").addEventListener("input", () => { syncLayout(); schedule(); });
+$("f").addEventListener("input", e => { if (e.target.id === "region" || e.target.id === "stype") return; syncLayout(); syncDist(); schedule(); });
 $("f").addEventListener("submit", e => e.preventDefault());
-document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => {
-  const v = PRESETS[b.dataset.preset]; for (const k in v) $(k).value = v[k]; $("csv").value = ""; run();
-}));
+function fillRegions() {
+  $("region").innerHTML = Object.entries(REGIONS).map(([k, r]) => `<option value="${k}">${r.name}</option>`).join("");
+}
+function fillTypes(keep) {
+  const reg = REGIONS[$("region").value] || REGIONS.central;
+  $("stype").innerHTML = reg.types.map((t, i) => `<option value="${i}">${t.name}</option>`).join("") + `<option value="${CUSTOM}">eigene Werte</option>`;
+  if (keep !== undefined) $("stype").value = keep;
+  $("regionnote").textContent = reg.note;
+}
+function applyType() {
+  const reg = REGIONS[$("region").value], t = reg && reg.types[+$("stype").value];
+  if (!t) return;
+  for (const k in t.v) $(k).value = t.v[k];
+  $("csv").value = "";
+}
+function syncDist() { $("lbl-sd").hidden = $("dist").value === "revj"; }
+$("region").addEventListener("change", () => { fillTypes(); applyType(); syncDist(); run(); });
+$("stype").addEventListener("change", () => { applyType(); syncDist(); run(); });
+STAND.forEach(id => $(id).addEventListener("input", () => { $("stype").value = CUSTOM; }));
 $("sweep").addEventListener("click", sweep);
 $("reseed").addEventListener("click", () => { $("seed").value = Math.floor(Math.random() * 9999) + 1; run(); });
 $("copy").addEventListener("click", copyPositions);
@@ -467,6 +533,7 @@ const mq = window.matchMedia("(prefers-color-scheme: dark)");
 mq.addEventListener && mq.addEventListener("change", () => { drawMap(); });
 new MutationObserver(() => drawMap()).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
 
-load(); syncLayout(); run();
+fillRegions(); $("region").value = "central"; fillTypes("1");
+load(); fillTypes($("stype").value || "1"); syncLayout(); syncDist(); run();
 })();
 </script>
