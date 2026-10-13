@@ -59,7 +59,7 @@ export function normalizeMarker(m) {
   n.text = typeof m.text === 'string' ? m.text : '';
   n.media = (Array.isArray(m.media) ? m.media : legacyMedia(m))
     .filter(it => it && MEDIA_TYPES.has(it.type) && typeof it.src === 'string'
-                  && safeUrl(it.src));
+                  && safeMediaUrl(it.src));
   n.links = (Array.isArray(m.links) ? m.links : Array.isArray(m.sources) ? m.sources : [])
     .filter(okLink);
   n.attributes = m.attributes || {};
@@ -97,6 +97,14 @@ export function safeUrl(u) {
   return s;
 }
 
+// Medienquellen: zusaetzlich eingebettete Bilder/Audio/Video (data:) und
+// lokale Vorschau (blob:) -- nur fuer <img>/<audio>/<video>, nie fuer Links.
+export function safeMediaUrl(u) {
+  if (typeof u !== 'string') return '';
+  if (/^data:(image|audio|video)\/[a-z0-9.+-]+;base64,/i.test(u) || /^blob:/i.test(u)) return u;
+  return safeUrl(u);
+}
+
 // Text -> HTML: alles wird escaped; danach Markdown-Teilmenge (**fett**,
 // *kursiv*, [Text](URL), Leerzeile = Absatz) und die Inline-Tags der Altdaten
 // (<b>, <i>, <em>, <strong>, <br> -- ohne Attribute).
@@ -127,13 +135,13 @@ const el = (tag, cls, text) => {
 
 export function mediaElement(it) {
   ensureStyles();
-  const src = safeUrl(it.src);
+  const src = safeMediaUrl(it.src);
   if (!src) return null;
   let e;
   if (it.type === 'video') {
     e = el('video');
     e.controls = true; e.playsInline = true; e.preload = 'metadata';
-    const p = safeUrl(it.poster || '');
+    const p = safeMediaUrl(it.poster || '');
     if (p) e.poster = p;
   } else if (it.type === 'audio') {
     e = el('audio');
