@@ -107,3 +107,14 @@ Prüft, ob die Schwellen aus S1/S2 auf echte Rinde/Äste übertragbar sind.
 4. S2 (QSM-Stämme), Gegenprobe echte Daten.
 5. Abbildungen, Manuskript C1.
 6. Nach Annahme: Praxisbeitrag C2, Scanplaner mit belegten Schwellen und Bestandswerten.
+
+## 8. Stand der Rechnung
+
+- **13.10.2026 – Monte-Carlo, idealer Kreis** (`scripts/arc_error_mc.py`, `Paper_ODT/Forst_Benchmark_Paper/results/arc_error_mc.csv`;
+  13 Bögen × σ 2/5/10 mm × N 50/200/1000 × BHD 20/40 cm, 300 Wiederholungen):
+  Kasa-basierte Verfahren (kreisfit, ransac, zylinder) unterschätzen bei kurzen Bögen systematisch
+  (BHD 40, σ 5 mm, N 200: −2,4 cm bei 90°, −7,1 cm bei 67,5°); der geometrische Fit bleibt
+  unverzerrt und nahe der Cramér-Rao-Schranke. Schwelle RMSE ≤ 2 cm & |Bias| ≤ 1 cm: geofit 45–135°,
+  übrige 90–180° (je nach σ, N, BHD) — **unter idealen Bedingungen deutlich unter 3DFins 202,5°**.
+  Noch ohne Unrundheit, Ausreißer (Äste, Unterwuchs) und Registrierfehler → nächster Schritt.
+- HELIOS++ 2.2.2 lauffähig in der Cloud (conda-forge über micromamba, `/opt/mm/root/envs/helios`).
