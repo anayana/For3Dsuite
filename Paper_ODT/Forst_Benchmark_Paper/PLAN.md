@@ -150,3 +150,13 @@ Prüft, ob die Schwellen aus S1/S2 auf echte Rinde/Äste übertragbar sind.
 - **Nebenbefund HELIOS-Pilot**: Sektorzählung (16 × 22,5°) bewertet eine echte Halbsicht (≤ 180°) oft als
   202,5–225° → 3DFins Regel lässt Einzelseitensicht durch. Wird in den HELIOS-Läufen mit `arc1_deg`
   (1°-Bins) quantifiziert.
+- **HELIOS S1b** (800 N/ha, BHD 30 ± 9 cm, unrunde Stämme 0,85–1, Rinde ± 3 mm, VZ-400, 0,06°; 40 Standpunkte,
+  72 Konfigurationen, 9 360 Stamm-Fälle; `results/helios_S1b.csv`). Bogen = **geometrisch sichtbarer Umfang**
+  (Sichtlinien mit Verdeckung, unabhängig von der Punktdichte):
+  - RMSE ≤ 2 cm & |Bias| ≤ 1 cm ab **≈ 180°** für Kasa, RANSAC, Zylinder, Huber; geofit knapp; Hough ab 225–270°.
+    135–180°: RMSE ≈ 2–4 cm; < 135°: 4–18 cm.
+  - Sektorzählung (3DFin) 202,5° entspricht im Median 192° geometrischem Bogen; nur 6,8 % der Stämme mit
+    Sektor ≥ 202,5° haben < 180° (Nebenbefund aus dem Pilot damit **abgeschwächt**). → 3DFins Regel trifft
+    in HELIOS ziemlich genau die Grenze, ab der die BHD-Fehler klein werden.
+  - Scan-Design: 4 Standpunkte im Raster → 82 % der Stämme ≥ 180°, 4 eng gestellte (wie Renon) → 71 %, Median
+    256° gegen 190°. Einzelstandpunkt: maximal ~172°.
