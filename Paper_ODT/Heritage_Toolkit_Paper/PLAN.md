@@ -11,11 +11,24 @@ Stand 13.10.2026 · Grundlage: `UEBERGABE.md`, `Heritage_Toolkit_Konzept.md`
 - Kein Oral-History-Teil (keine eigene Erhebung).
 - `platform/dev/export_static.py` nur mit `--html-only`.
 
+## Dateien (Zenodo 14626611, 31,3 GB, vom Nutzer abgelesen)
+
+| Datei | Größe | md5 |
+|---|---|---|
+| `1_SC.rar` | 7,2 GB | a41d08054beb7b1675fbadaa2abafd9f |
+| `2_OSA.rar` | 7,3 GB | 6d8eb0a68339d17935c0039dca961f25 |
+| `3_SS.rar` | 4,2 GB | 42d55c23c4c5ec148b8b045826b0fb14 |
+| `4_CG.rar` | 10,5 GB | 0a0c3576e1a233651dff36e92873ad04 |
+| `5_CB.rar` | 2,1 GB | 1814a907a649ef500ee90e19679615d1 |
+
+Inhalt der RAR-Archive unbekannt → Schritt 0b. Start mit `5_CB.rar` (kleinstes).
+
 ## Schritte
 
 | # | Schritt | Ergebnis | Wer |
 |---|---|---|---|
 | 0 | Dateiliste (Namen und Größen) von Zenodo 14626611 ablesen | Format und Größe bekannt | Nutzer |
+| 0b | `5_CB.rar` in Colab laden, md5 prüfen, Inhalt auflisten (ohne Entpacken) | Ordner und Dateitypen bekannt | Nutzer (Colab), Agent wertet aus |
 | 1 | Pellis-Eintrag in `DATA_SOURCES.md` (CC BY 4.0, ✅) | Lizenz dokumentiert | Agent |
 | 2 | Formatwandler: Pellis-Kameraparameter → COLMAP-Textformat (`cameras.txt`, `images.txt`, `points3D.txt` aus Referenzwolke), Test mit kleinem Ausschnitt | `scripts/pellis_to_colmap.py` + Test | Agent |
 | 3 | Trainings-Rezept: `scripts/train_colab.ipynb` / `train_kaggle.ipynb` um Pellis-Variante ergänzen (gsplat, vorhandene Posen, Bildgröße an Free-GPU angepasst) | Notebook, das der Nutzer per Klick startet | Agent baut, Nutzer startet |
@@ -27,7 +40,9 @@ Stand 13.10.2026 · Grundlage: `UEBERGABE.md`, `Heritage_Toolkit_Konzept.md`
 
 ## Offene Punkte
 
-- Dateiformat der Kameraparameter und Punktwolken (hängt an Schritt 0).
-- Passt der Datensatz in Colab-/Kaggle-Speicher? (hängt an Schritt 0; sonst Gebäude einzeln laden)
+- Dateiformat der Kameraparameter und Punktwolken (hängt an Schritt 0b).
+- Speicher: Gebäude einzeln laden (größtes Archiv 10,5 GB + entpackt). Colab bevorzugt, weil dort
+  mehr Platz als in Kaggles `/kaggle/working` (20 GB); die freie Colab-Plattengröße prüft
+  Schritt 0b mit `df -h`.
 - Splat-Zentren oder gerenderte Tiefe als Messgröße: Start mit Zentren (einfacher, keine GPU),
   Tiefe nur, falls die Zentren zu verrauscht sind.
