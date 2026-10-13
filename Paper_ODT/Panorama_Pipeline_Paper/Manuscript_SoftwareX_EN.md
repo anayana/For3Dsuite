@@ -132,34 +132,20 @@ detection, DBH, height, crown metrics, quantitative structure model, growth
 projection) are placed in the walkable scene. This demonstrates both outputs from
 one acquisition — panorama and data carrier.
 
-*Validated against ground truth.* The inventory path is not a demonstrator. On
-two TLS plots of the SegmentedForests dataset [12], in which every point is manually
-classified, stem detection can be scored for accuracy rather than mere agreement
-(recall / precision; a hit is a detection within 0.6 m of a reference stem):
-
-| Method | plot_06 (68 stems) | plot_07 (128 stems) |
-|---|--:|--:|
-| own numpy baseline | 60.3 % / 42.3 % | 34.4 % / 74.6 % |
-| + stem-continuity filter | 57.4 % / 70.9 % | — |
-| lidR [13] (own implementation) | 66.2 % / 45.9 % | — |
-| CspStandSegmentation | 57.4 % / 27.7 % | — |
-| **3DFin** [11] (authors' configuration) | **98.5 % / 95.7 %** | **94.5 % / 100 %** |
-
-We report the uncomfortable result openly: the established domain tool 3DFin
-clearly outperforms our own baseline, consistently across both plots, and the
-chain therefore uses it as the detector on plot-wide TLS clouds rather than
-merely as a comparison. Because the dataset also labels shrubs, downed wood,
-rocks, and stakes, it is further verifiable *what* the weaker methods detect
-instead of stems — for the baseline on plot_06, half of the false alarms sit on
-shrub and ground vegetation.
-
-*Scope.* This superiority is conditional on circumferential coverage. On our own
-Renon stand (median 180° arc versus 280–360° in the reference plots) 3DFin
-refuses a diameter for 29 of 37 detections — correct behaviour, since the data do
-not support one; a sweep over the ground-model resolution (cloth simulation
-filter [14]) does not change this.
-Our own methods still return numbers there, resting on 180° arcs — a statement
-about the acquisition, not about the methods.
+*Inventory path and its range of validity.* On plot-wide TLS clouds the chain
+uses 3DFin [11] as stem detector. On two manually labelled plots of the
+SegmentedForests dataset [12] it reaches 98.5 % recall / 95.7 % precision
+(plot_06, 68 stems) and 94.5 % / 100 % (plot_07, 128 stems), clearly ahead of
+the simpler detectors we also tested. This accuracy depends on circumferential
+stem coverage: 3DFin accepts a diameter only if the stem cross-section at breast
+height is covered in at least 9 of 16 sectors (≈ 202°). The labelled plots offer a
+median arc of 280–360°; on the Renon stand, merged from four nearby scan
+positions, the median is 180°, and 3DFin declines a diameter for 29 of 37 detected
+stems — correct behaviour, since the data do not support one. The inventory
+markers are therefore only as reliable as the scan geometry behind them. A
+systematic comparison of detectors as a function of coverage is beyond the scope
+of this software paper; per-method results and scripts are documented in the
+repository (`scripts/BENCH_DETECTION.md`).
 
 **Consumer/DSLR fisheye → scene (stitching).** Six overlapping fisheye frames are
 stitched automatically and published as a navigable scene, demonstrating the
@@ -294,12 +280,12 @@ flag for the stitching branch. Future work: wire the quality flag into the GUI;
 integrate further representations (3D Gaussian splatting, meshes) in the same
 viewer; obtain a freely licensed set of raw dual-fisheye frames from a consumer
 360° camera, which would close the last gap in device coverage for the stitching
-branch; and run the prepared usability study (System Usability Scale [15, 16]).
+branch; and run the prepared usability study (System Usability Scale [13, 14]).
 
 ## Data availability
 
 All data used in this work are third-party open data. Terrestrial laser scans:
-Renon / ICOS IT-Ren (Leica BLK360, E57; CC BY 4.0) [17] and SegmentedForests
+Renon / ICOS IT-Ren (Leica BLK360, E57; CC BY 4.0) [15] and SegmentedForests
 (MIT) [12]. Reference panoramas for the quantitative evaluation: eleven Poly Haven
 HDRIs (CC0, https://polyhaven.com). Real multi-image capture: PASSTA LunchRoom
 (CC BY 4.0) [10]. Source code, container recipe and evaluation scripts:
@@ -377,21 +363,13 @@ dataset of terrestrial LiDAR point clouds for semantic segmentation of forests.
 *Forestry* 99(2). https://doi.org/10.1093/forestry/cpaf062 · Data:
 https://doi.org/10.5281/zenodo.17396681
 
-[13] Roussel, J.-R., et al. (2020). lidR: An R package for analysis of Airborne
-Laser Scanning (ALS) data. *Remote Sensing of Environment* 251, 112061.
-https://doi.org/10.1016/j.rse.2020.112061
-
-[14] Zhang, W., et al. (2016). An easy-to-use airborne LiDAR data filtering method
-based on cloth simulation. *Remote Sensing* 8(6), 501.
-https://doi.org/10.3390/rs8060501
-
-[15] Brooke, J. (1996). SUS: a "quick and dirty" usability scale. In: *Usability
+[13] Brooke, J. (1996). SUS: a "quick and dirty" usability scale. In: *Usability
 Evaluation in Industry*, Taylor & Francis, 189–194.
 
-[16] Sauro, J., Lewis, J. R. (2016). *Quantifying the User Experience: Practical
+[14] Sauro, J., Lewis, J. R. (2016). *Quantifying the User Experience: Practical
 Statistics for User Research*, 2nd ed., Morgan Kaufmann.
 
-[17] Chang, M., Candotti, A., von Ellenrieder, K., Tomelleri, E., Camurri, M.
+[15] Chang, M., Candotti, A., von Ellenrieder, K., Tomelleri, E., Camurri, M.
 (2025). Data for: "A multi-platform LiDAR dataset for standardized forest
 inventory measurement at long term ecological monitoring sites" [Dataset].
 Zenodo. https://doi.org/10.5281/zenodo.17186174
@@ -402,4 +380,4 @@ Leaflet 1.9.4 (BSD-2), Caddy 2 (Apache-2.0), Garage 1.0.1 (AGPL-3.0), FastAPI
 (MIT), NumPy 1.26.4, Pillow 12.3.0, OpenCV 5.0.0, laspy 2.5.4, 3DFin/dendromatics,
 TreeGrOSS (GPL-3.0, isolated as a separate process).
 
-*Checked against publisher records (Oct 2026): [1]–[3], [5]–[7], [10]–[14], [17].*
+*Checked against publisher records (Oct 2026): [1]–[3], [5]–[7], [10]–[12], [15].*
