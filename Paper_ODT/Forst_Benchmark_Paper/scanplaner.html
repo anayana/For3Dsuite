@@ -1,0 +1,472 @@
+<title>TLS-Scanplaner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: Messprotokoll — links Eingabe-Formular, rechts Karte + Kennzahlen; auf dem Handy untereinander */
+:root {
+  --bg: #f3f5f0; --panel: #ffffff; --fg: #1b211c; --muted: #5b665e; --line: #d6dcd3;
+  --accent: #9a6a00; --accent-soft: #f4e6c4;
+  --ok: #2f7d3a; --warn: #b07800; --bad: #c2412d; --ghost: #b9c1b6;
+  --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-data: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d1117; --panel: #161b22; --fg: #e6edf3; --muted: #8b949e; --line: #30363d;
+  --accent: #e6b23c; --accent-soft: #3a2f14;
+  --ok: #3fb950; --warn: #d29922; --bad: #f85149; --ghost: #3d444d; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0d1117; --panel: #161b22; --fg: #e6edf3; --muted: #8b949e; --line: #30363d;
+  --accent: #e6b23c; --accent-soft: #3a2f14;
+  --ok: #3fb950; --warn: #d29922; --bad: #f85149; --ghost: #3d444d; color-scheme: dark }
+
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 40px; display: flex; flex-direction: column; gap: 20px; }
+header h1 { font-family: var(--f-display); font-weight: 600; font-size: 2rem; letter-spacing: .01em; margin: 0; text-wrap: balance; }
+header p { margin: 4px 0 0; color: var(--muted); max-width: 68ch; }
+.grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+form { display: flex; flex-direction: column; gap: 14px; }
+fieldset { border: 1px solid var(--line); border-radius: 6px; background: var(--panel); margin: 0; padding: 12px 14px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; min-width: 0; }
+legend { font-family: var(--f-display); font-weight: 600; font-size: .95rem; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); padding: 0 6px; }
+label { display: flex; flex-direction: column; gap: 3px; font-size: .82rem; color: var(--muted); min-width: 0; }
+label.full { grid-column: 1 / -1; }
+input, select, textarea, button { font: inherit; color: var(--fg); }
+input, select, textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; font-family: var(--f-data); font-size: .9rem; width: 100%; box-sizing: border-box; }
+textarea { min-height: 84px; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; grid-column: 1 / -1; }
+button { cursor: pointer; border-radius: 4px; border: 1px solid var(--line); background: var(--panel); padding: 6px 10px; font-size: .85rem; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+.hint { grid-column: 1 / -1; font-size: .78rem; color: var(--muted); margin: 0; }
+
+.results { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 560px) { .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tile { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; min-width: 0; }
+.tile .k { font-size: .75rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.tile .v { font-family: var(--f-data); font-size: 1.45rem; font-variant-numeric: tabular-nums; }
+.tile.main { border-color: var(--accent); background: var(--accent-soft); }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; min-width: 0; }
+.panel h2 { font-family: var(--f-display); font-weight: 600; font-size: 1.15rem; margin: 0 0 8px; letter-spacing: .02em; }
+.mapbox { position: relative; width: 100%; max-width: 100%; aspect-ratio: 1 / 1; }
+canvas { width: 100%; height: 100%; display: block; touch-action: manipulation; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: .8rem; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+.info { font-family: var(--f-data); font-size: .82rem; color: var(--muted); min-height: 1.4em; margin-top: 6px; }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 1000px) { .two { grid-template-columns: minmax(0, 1fr); } }
+svg text { font-family: var(--f-data); font-size: 10px; fill: var(--muted); }
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-family: var(--f-data); font-size: .82rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; font-family: var(--f-body); }
+th:first-child, td:first-child { text-align: left; }
+tr.best td { background: var(--accent-soft); font-weight: 500; }
+.verdict { margin: 0 0 10px; }
+.pill { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .78rem; font-weight: 600; }
+.pill.ok { background: var(--ok); color: var(--bg); } .pill.bad { background: var(--bad); color: var(--bg); }
+.row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.note { font-size: .82rem; color: var(--muted); max-width: 80ch; }
+.note p { margin: 0 0 6px; }
+.busy { opacity: .55; }
+@media (prefers-reduced-motion: no-preference) { .results { transition: opacity .15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>TLS-Scanplaner</h1>
+    <p>Bestandsdaten eintragen, Scan-Design wählen: Das Werkzeug schätzt für jeden Stamm, welcher Teil des Umfangs in Brusthöhe von mindestens einem Standpunkt gesehen wird, inklusive Verdeckung durch Nachbarstämme und Unterwuchs.</p>
+  </header>
+
+  <div class="grid">
+    <form id="f" autocomplete="off">
+      <fieldset>
+        <legend>Bestand</legend>
+        <div class="presets" role="group" aria-label="Beispielbestände">
+          <button type="button" data-preset="buche">Buchen-Altbestand</button>
+          <button type="button" data-preset="fichte">Fichten-Mischbestand</button>
+          <button type="button" data-preset="stange">Stangenholz</button>
+          <button type="button" data-preset="verj">Mischbestand + Verjüngung</button>
+        </div>
+        <label>Stammzahl (N/ha)<input id="dens" type="number" min="20" max="5000" step="10" value="600"></label>
+        <label>Verteilung<select id="pattern"><option value="random">zufällig</option><option value="regular">regelmäßig</option><option value="cluster">geklumpt</option></select></label>
+        <label>BHD Mittel (cm)<input id="dbh" type="number" min="7" max="150" step="1" value="32"></label>
+        <label>BHD Streuung (cm)<input id="dbhsd" type="number" min="0" max="60" step="1" value="9"></label>
+        <label class="full">Unterwuchs in Brusthöhe (Stämmchen/ha, Ø 2–6 cm)<input id="under" type="number" min="0" max="20000" step="100" value="200"></label>
+        <label>Plot-Seitenlänge (m)<input id="L" type="number" min="20" max="120" step="5" value="50"></label>
+        <label>Randpuffer (m)<input id="B" type="number" min="0" max="30" step="1" value="10"></label>
+        <label class="full">Eigene Stammliste (optional, Zeilen <code>x,y,BHD_cm</code>)<textarea id="csv" placeholder="12.4,3.1,38&#10;15.0,9.8,42&#10;…"></textarea></label>
+        <p class="hint">Mit eigener Liste werden Stammzahl, Verteilung und BHD ignoriert, der Plot ist dann der Umriss der Liste.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Scanner</legend>
+        <label>Nutzbare Reichweite (m)<input id="range" type="number" min="5" max="200" step="5" value="40"></label>
+        <label>Winkelauflösung (°)<input id="res" type="number" min="0.005" max="0.5" step="0.005" value="0.04"></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Scan-Design</legend>
+        <label>Anordnung<select id="layout"><option value="grid">Raster (quadratisch)</option><option value="tri">versetzt (Dreieck)</option><option value="rand">zufällig</option></select></label>
+        <label id="lbl-a">Abstand (m)<input id="a" type="number" min="3" max="80" step="0.5" value="15"></label>
+        <label id="lbl-n" hidden>Anzahl Standpunkte<input id="n" type="number" min="1" max="400" step="1" value="9"></label>
+        <label>Zufallszahl (Seed)<input id="seed" type="number" min="1" step="1" value="7"></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>Ziel</legend>
+        <label>Mindest-Bogen (°)<input id="target" type="number" min="22.5" max="360" step="22.5" value="202.5"></label>
+        <label>Zielanteil Stämme (%)<input id="goal" type="number" min="10" max="100" step="5" value="90"></label>
+        <label class="full">Mindestpunkte je 10-cm-Scheibe (0 = aus)<input id="minpts" type="number" min="0" max="100000" step="10" value="0"></label>
+        <p class="hint">202,5° = 9 von 16 Sektoren, die Voreinstellung von 3DFin für eine BHD-Messung.</p>
+      </fieldset>
+      <div class="row">
+        <button type="button" class="primary" id="sweep">Abstände vergleichen</button>
+        <button type="button" id="reseed">Neu würfeln</button>
+        <button type="button" id="copy">Standpunkte kopieren</button>
+      </div>
+    </form>
+
+    <div class="results" id="results">
+      <div class="tiles">
+        <div class="tile main"><div class="k">Stämme ≥ Ziel</div><div class="v" id="t-share">–</div></div>
+        <div class="tile"><div class="k">Median-Bogen</div><div class="v" id="t-arc">–</div></div>
+        <div class="tile"><div class="k">Standpunkte</div><div class="v" id="t-scans">–</div></div>
+        <div class="tile"><div class="k">je ha</div><div class="v" id="t-sha">–</div></div>
+      </div>
+
+      <div class="two">
+        <div class="panel">
+          <h2>Karte</h2>
+          <div class="mapbox"><canvas id="map" aria-label="Karte der Stämme und Standpunkte"></canvas></div>
+          <div class="legend">
+            <span><i style="background:var(--ok)"></i>≥ Ziel</span>
+            <span><i style="background:var(--warn)"></i>≥ halbes Ziel</span>
+            <span><i style="background:var(--bad)"></i>darunter</span>
+            <span><i style="background:var(--ghost)"></i>Puffer / Unterwuchs</span>
+            <span><i style="background:var(--accent);border-radius:1px"></i>Standpunkt</span>
+          </div>
+          <div class="info" id="info">Stamm antippen für Details.</div>
+        </div>
+        <div class="panel">
+          <h2>Verteilung der Bögen</h2>
+          <div id="hist"></div>
+          <div class="info" id="pts"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Abstand gegen Abdeckung</h2>
+        <p class="verdict" id="verdict">„Abstände vergleichen“ rechnet die aktuelle Anordnung für 6–30 m Abstand durch und markiert den größten Abstand, der das Ziel erreicht.</p>
+        <div class="tablewrap"><table id="sweeptab" hidden><thead><tr><th>Abstand</th><th>Standpunkte</th><th>je ha</th><th>≥ Ziel</th><th>Median-Bogen</th><th>Median Punkte</th></tr></thead><tbody></tbody></table></div>
+      </div>
+
+      <div class="panel note">
+        <h2>Was das Modell kann und was nicht</h2>
+        <p>Geometrie im Brusthöhen-Querschnitt (1,3 m): Stämme und Unterwuchs als Kreise, Sichtlinien vom Scanner mit Verdeckung, Reichweite und streifendem Einfall (unter ~6° kein Treffer). Der Bogen zählt die 16 Sektoren à 22,5°, in denen ein Stamm gesehen wird, wie 3DFin.</p>
+        <p>Nicht modelliert: Äste und Kronen in Brusthöhe, Gelände und Hangneigung, Stammneigung, Strahldivergenz, Wind. Die Beispielbestände sind typische Werte, nicht kalibriert. Die Ziel-Schwellen sind vorläufig; die Kalibrierung gegen HELIOS++-Simulationen und echte Punktwolken ist Teil des laufenden Forst-Papers.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+const $ = id => document.getElementById(id);
+const IDS = ["dens","pattern","dbh","dbhsd","under","L","B","csv","range","res","layout","a","n","seed","target","goal","minpts"];
+const PRESETS = {
+  buche:  {dens: 250, pattern: "random",  dbh: 45, dbhsd: 12, under: 0},
+  fichte: {dens: 600, pattern: "random",  dbh: 32, dbhsd: 9,  under: 200},
+  stange: {dens: 1500, pattern: "regular", dbh: 16, dbhsd: 4, under: 0},
+  verj:   {dens: 500, pattern: "cluster", dbh: 35, dbhsd: 12, under: 3000},
+};
+const K = 80, NSEC = 16, BINS = 7200, BINW = 2 * Math.PI / BINS, SLICE = 0.10;
+const COS = new Float64Array(BINS), SIN = new Float64Array(BINS);
+for (let b = 0; b < BINS; b++) { COS[b] = Math.cos((b + .5) * BINW); SIN[b] = Math.sin((b + .5) * BINW); }
+const SCOS = new Float64Array(K), SSIN = new Float64Array(K);
+for (let k = 0; k < K; k++) { SCOS[k] = Math.cos(2 * Math.PI * k / K); SSIN[k] = Math.sin(2 * Math.PI * k / K); }
+
+function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function normal(r) { let u = 0; while (u === 0) u = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * r()); }
+
+function read() {
+  const p = {};
+  for (const id of IDS) { const el = $(id); p[id] = (el.type === "number") ? parseFloat(el.value) : el.value; }
+  return p;
+}
+
+// Räumliches Gitter für Überlappungs- und Nachbarschaftsabfragen
+class Hash {
+  constructor(cell) { this.c = cell; this.m = new Map(); }
+  key(x, y) { return Math.floor(x / this.c) + "," + Math.floor(y / this.c); }
+  add(o) { const k = this.key(o.x, o.y); (this.m.get(k) || this.m.set(k, []).get(k)).push(o); }
+  near(x, y, rad) {
+    const out = [], c = this.c, i0 = Math.floor((x - rad) / c), i1 = Math.floor((x + rad) / c), j0 = Math.floor((y - rad) / c), j1 = Math.floor((y + rad) / c);
+    for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) { const a = this.m.get(i + "," + j); if (a) out.push(...a); }
+    return out;
+  }
+}
+
+function parseCsv(txt) {
+  const rows = [];
+  for (const line of txt.split(/\r?\n/)) {
+    const v = line.split(/[,;\t ]+/).map(s => parseFloat(s.replace(",", "."))).filter(Number.isFinite);
+    if (v.length >= 3 && v[2] > 0) rows.push(v);
+  }
+  return rows;
+}
+
+function makeStand(p) {
+  const objs = [], hash = new Hash(2);
+  const csvRows = parseCsv(p.csv || "");
+  if (csvRows.length >= 2) {
+    const xs = csvRows.map(r => r[0]), ys = csvRows.map(r => r[1]);
+    const x0 = Math.min(...xs) - 1, y0 = Math.min(...ys) - 1;
+    const L = Math.max(Math.max(...xs) - x0, Math.max(...ys) - y0) + 1;
+    for (const [x, y, d] of csvRows) { const o = {x: x - x0, y: y - y0, r: d / 200, d, t: 1}; objs.push(o); hash.add(o); }
+    return {objs, hash, L, B: 0, fromCsv: true};
+  }
+  const r = rng(p.seed * 7919 + 13), L = p.L, B = p.B, lo = -B, span = L + 2 * B;
+  const areaHa = span * span / 1e4, n = Math.round(p.dens * areaHa);
+  const g = Math.sqrt(1e4 / p.dens), parents = [];
+  if (p.pattern === "cluster") { const np = Math.max(1, Math.round(n / 6)); for (let i = 0; i < np; i++) parents.push([lo + r() * span, lo + r() * span]); }
+  let regIdx = 0; const cols = Math.ceil(span / g);
+  const cand = () => {
+    if (p.pattern === "regular") { const i = regIdx % cols, j = Math.floor(regIdx / cols); regIdx++; return [lo + (i + .5) * g + (r() - .5) * .5 * g, lo + (j + .5) * g + (r() - .5) * .5 * g]; }
+    if (p.pattern === "cluster") { const q = parents[Math.floor(r() * parents.length)]; return [q[0] + normal(r) * 2.5, q[1] + normal(r) * 2.5]; }
+    return [lo + r() * span, lo + r() * span];
+  };
+  let placed = 0, tries = 0;
+  while (placed < n && tries < n * 40) {
+    tries++;
+    const [x, y] = cand();
+    if (x < lo || y < lo || x > lo + span || y > lo + span) continue;
+    const d = Math.max(7, p.dbh + p.dbhsd * normal(r)), rad = d / 200;
+    if (hash.near(x, y, rad + 1.2).some(o => Math.hypot(o.x - x, o.y - y) < o.r + rad + .1)) continue;
+    const o = {x, y, r: rad, d, t: 1}; objs.push(o); hash.add(o); placed++;
+  }
+  const nu = Math.round(p.under * areaHa);
+  for (let i = 0; i < nu; i++) {
+    const x = lo + r() * span, y = lo + r() * span, rad = (2 + 4 * r()) / 200;
+    if (hash.near(x, y, 1).some(o => Math.hypot(o.x - x, o.y - y) < o.r + rad)) continue;
+    const o = {x, y, r: rad, d: rad * 200, t: 0}; objs.push(o); hash.add(o);
+  }
+  return {objs, hash, L, B, fromCsv: false};
+}
+
+function layout(p, L, a, stand) {
+  const pos = [];
+  if (p.layout === "rand") {
+    const r = rng(p.seed * 104729 + 5);
+    for (let i = 0; i < Math.max(1, Math.round(p.n)); i++) pos.push([r() * L, r() * L]);
+  } else if (p.layout === "tri") {
+    const dy = a * Math.sqrt(3) / 2, rows = Math.max(1, Math.floor(L / dy)), oy = (L - (rows - 1) * dy) / 2;
+    for (let j = 0; j < rows; j++) { const y = oy + j * dy; for (let x = (j % 2 ? .75 : .25) * a; x < L; x += a) pos.push([x, y]); }
+  } else {
+    const m = Math.max(1, Math.floor(L / a)), o = (L - (m - 1) * a) / 2;
+    for (let i = 0; i < m; i++) for (let j = 0; j < m; j++) pos.push([o + i * a, o + j * a]);
+  }
+  // Standpunkt aus einem Stamm herausschieben
+  for (const q of pos) for (const o of stand.hash.near(q[0], q[1], 1.5)) {
+    const dx = q[0] - o.x, dy = q[1] - o.y, d = Math.hypot(dx, dy);
+    if (d < o.r + .3) { const f = (o.r + .35) / (d || 1e-6); q[0] = o.x + (d ? dx : 1) * f; q[1] = o.y + (d ? dy : 0) * f; }
+  }
+  return pos;
+}
+
+function evaluate(p, stand, pos) {
+  const {objs, hash, L} = stand, range = p.range, resRad = p.res * Math.PI / 180;
+  const ev = objs.filter(o => o.t === 1 && o.x >= 0 && o.y >= 0 && o.x <= L && o.y <= L);
+  const mask = new Uint32Array(ev.length), pts = new Float64Array(ev.length);
+  const evIdx = new Map(ev.map((o, i) => [o, i]));
+  const depth = new Float64Array(BINS);
+  for (const [sx, sy] of pos) {
+    depth.fill(Infinity);
+    for (const o of hash.near(sx, sy, range + 1)) {
+      const dx = o.x - sx, dy = o.y - sy, D = Math.hypot(dx, dy);
+      if (D <= o.r || D - o.r > range) continue;
+      const half = Math.asin(o.r / D), tc = Math.atan2(dy, dx);
+      const b0 = Math.floor((tc - half) / BINW), b1 = Math.floor((tc + half) / BINW), r2 = o.r * o.r;
+      for (let b = b0; b <= b1; b++) {
+        const idx = ((b % BINS) + BINS) % BINS, proj = dx * COS[idx] + dy * SIN[idx], perp2 = D * D - proj * proj;
+        if (perp2 > r2 || proj <= 0) continue;
+        const t = proj - Math.sqrt(r2 - perp2);
+        if (t < depth[idx]) depth[idx] = t;
+      }
+    }
+    for (const o of hash.near(sx, sy, range + 1)) {
+      const i = evIdx.get(o); if (i === undefined) continue;
+      const tol = .02 + .3 * o.r, ds = o.r * 2 * Math.PI / K;
+      for (let k = 0; k < K; k++) {
+        const nx = SCOS[k], ny = SSIN[k], px = o.x + o.r * nx, py = o.y + o.r * ny;
+        const vx = sx - px, vy = sy - py, d = Math.hypot(vx, vy);
+        if (d > range || d < .05) continue;
+        const cosInc = (nx * vx + ny * vy) / d;
+        if (cosInc < .1) continue;
+        let th = Math.atan2(-vy, -vx); if (th < 0) th += 2 * Math.PI;
+        const bin = Math.min(BINS - 1, Math.floor(th / BINW));
+        if (depth[bin] < d - tol) continue;
+        mask[i] |= 1 << Math.floor(k * NSEC / K);
+        pts[i] += (ds * cosInc / (d * resRad)) * (SLICE / (d * resRad));
+      }
+    }
+  }
+  const arcs = new Float64Array(ev.length);
+  for (let i = 0; i < ev.length; i++) { let m = mask[i], c = 0; while (m) { c += m & 1; m >>>= 1; } arcs[i] = c * 360 / NSEC; }
+  return {ev, arcs, pts};
+}
+
+function summarize(p, res) {
+  const n = res.ev.length; if (!n) return {share: NaN, medArc: NaN, medPts: NaN, ok: []};
+  const ok = Array.from(res.arcs, (a, i) => a >= p.target - 1e-9 && (!p.minpts || res.pts[i] >= p.minpts));
+  const med = arr => { const s = Array.from(arr).sort((x, y) => x - y); return s[Math.floor((s.length - 1) / 2)]; };
+  return {share: ok.filter(Boolean).length / n, medArc: med(res.arcs), medPts: med(res.pts), ok};
+}
+
+const fmt = (x, d = 0) => Number.isFinite(x) ? x.toLocaleString("de-DE", {minimumFractionDigits: d, maximumFractionDigits: d}) : "–";
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+let state = null;
+function run() {
+  const p = read();
+  if (!(p.dens > 0 && p.L > 0 && p.range > 0 && p.res > 0 && p.a > 0)) return;
+  const stand = makeStand(p), L = stand.L;
+  const pos = layout(p, L, p.a, stand);
+  const res = evaluate(p, stand, pos), s = summarize(p, res);
+  state = {p, stand, pos, res, s};
+  $("t-share").textContent = fmt(s.share * 100) + " %";
+  $("t-arc").textContent = fmt(s.medArc, 1) + "°";
+  $("t-scans").textContent = pos.length;
+  $("t-sha").textContent = fmt(pos.length / (L * L / 1e4), 1);
+  $("pts").textContent = `${res.ev.length} Stämme ausgewertet · Median ${fmt(s.medPts)} Punkte je 10-cm-Scheibe (Schätzung)`;
+  drawMap(); drawHist();
+  save();
+}
+
+function statusColor(arc, i) {
+  const {p, s} = state;
+  if (s.ok[i]) return css("--ok");
+  return arc >= p.target / 2 ? css("--warn") : css("--bad");
+}
+
+function drawMap() {
+  if (!state) return;
+  const cv = $("map"), box = cv.parentElement, dpr = window.devicePixelRatio || 1;
+  const w = box.clientWidth; cv.width = w * dpr; cv.height = w * dpr;
+  const g = cv.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const {stand, pos, res} = state, L = stand.L, B = stand.B, span = L + 2 * B, sc = w / span;
+  const X = x => (x + B) * sc, Y = y => w - (y + B) * sc;
+  g.fillStyle = css("--bg"); g.fillRect(0, 0, w, w);
+  g.strokeStyle = css("--line"); g.lineWidth = 1; g.setLineDash([4, 3]);
+  g.strokeRect(X(0), Y(L), L * sc, L * sc); g.setLineDash([]);
+  g.fillStyle = css("--ghost");
+  for (const o of stand.objs) {
+    if (o.t === 1 && o.x >= 0 && o.y >= 0 && o.x <= L && o.y <= L) continue;
+    g.beginPath(); g.arc(X(o.x), Y(o.y), Math.max(o.t ? 1.6 : .8, o.r * sc), 0, 2 * Math.PI); g.fill();
+  }
+  res.ev.forEach((o, i) => {
+    g.fillStyle = statusColor(res.arcs[i], i);
+    g.beginPath(); g.arc(X(o.x), Y(o.y), Math.max(2.4, o.r * sc), 0, 2 * Math.PI); g.fill();
+  });
+  g.strokeStyle = css("--accent"); g.lineWidth = 2;
+  for (const [x, y] of pos) {
+    const cx = X(x), cy = Y(y);
+    g.beginPath(); g.moveTo(cx - 6, cy); g.lineTo(cx + 6, cy); g.moveTo(cx, cy - 6); g.lineTo(cx, cy + 6); g.stroke();
+    g.beginPath(); g.arc(cx, cy, 3.5, 0, 2 * Math.PI); g.stroke();
+  }
+  g.fillStyle = css("--muted"); g.font = "11px " + css("--f-data");
+  g.fillText(`${fmt(L)} m`, X(0) + 4, Y(0) - 5);
+}
+
+function drawHist() {
+  const {p, res} = state, counts = new Array(NSEC + 1).fill(0);
+  for (const a of res.arcs) counts[Math.round(a / (360 / NSEC))]++;
+  const W = 360, H = 170, pl = 30, pb = 22, pt = 8, max = Math.max(1, ...counts), bw = (W - pl - 6) / (NSEC + 1);
+  const xOf = a => pl + (a / (360 / NSEC)) * bw + bw / 2;
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Histogramm der Abdeckungsbögen">`;
+  for (const f of [0, .5, 1]) { const y = pt + (H - pt - pb) * (1 - f); s += `<line x1="${pl}" x2="${W - 6}" y1="${y}" y2="${y}" stroke="var(--line)" stroke-width="1"/><text x="${pl - 4}" y="${y + 3}" text-anchor="end">${Math.round(max * f)}</text>`; }
+  counts.forEach((c, j) => {
+    const a = j * 360 / NSEC, h = (H - pt - pb) * c / max, x = pl + j * bw + 1;
+    const col = a >= p.target - 1e-9 ? "var(--ok)" : a >= p.target / 2 ? "var(--warn)" : "var(--bad)";
+    s += `<rect x="${x}" y="${H - pb - h}" width="${bw - 2}" height="${h}" fill="${col}"><title>${fmt(a, 1)}°: ${c} Stämme</title></rect>`;
+  });
+  for (const a of [0, 90, 180, 270, 360]) s += `<text x="${xOf(a)}" y="${H - 6}" text-anchor="middle">${a}°</text>`;
+  const tx = xOf(p.target) - bw / 2;
+  s += `<line x1="${tx}" x2="${tx}" y1="${pt}" y2="${H - pb}" stroke="var(--fg)" stroke-dasharray="3 3" stroke-width="1"/><text x="${tx + 3}" y="${pt + 9}" fill="var(--fg)">Ziel</text></svg>`;
+  $("hist").innerHTML = s;
+}
+
+function sweep() {
+  const p = read();
+  if (p.layout === "rand") { $("verdict").textContent = "Der Vergleich gilt für Raster und versetzte Anordnung. Bitte eine davon wählen."; return; }
+  const stand = makeStand(p), L = stand.L, spacings = [30, 25, 20, 17.5, 15, 12.5, 10, 8, 6].filter(a => a <= L);
+  const rows = [], tb = $("sweeptab").querySelector("tbody");
+  $("results").classList.add("busy"); $("sweep").disabled = true;
+  let i = 0;
+  const step = () => {
+    if (i < spacings.length) {
+      const a = spacings[i++], pos = layout(p, L, a, stand), r = evaluate(p, stand, pos), s = summarize(p, r);
+      rows.push({a, n: pos.length, sha: pos.length / (L * L / 1e4), share: s.share, medArc: s.medArc, medPts: s.medPts});
+      setTimeout(step, 0); return;
+    }
+    const best = rows.find(r => r.share * 100 >= p.goal);
+    tb.innerHTML = rows.map(r => `<tr class="${r === best ? "best" : ""}"><td>${fmt(r.a, 1)} m</td><td>${r.n}</td><td>${fmt(r.sha, 1)}</td><td>${fmt(r.share * 100)} %</td><td>${fmt(r.medArc, 1)}°</td><td>${fmt(r.medPts)}</td></tr>`).join("");
+    $("sweeptab").hidden = false;
+    const name = p.layout === "tri" ? "Versetzt" : "Raster";
+    $("verdict").innerHTML = best
+      ? `<span class="pill ok">Empfehlung</span> ${name} mit ${fmt(best.a, 1)} m Abstand: ${best.n} Standpunkte (${fmt(best.sha, 1)} je ha), ${fmt(best.share * 100)} % der Stämme ≥ ${fmt(p.target, 1)}°.`
+      : `<span class="pill bad">Ziel verfehlt</span> Auch bei 6 m erreichen nur ${fmt(rows.at(-1).share * 100)} % der Stämme ${fmt(p.target, 1)}°. Zielanteil oder Mindest-Bogen prüfen, oder zusätzliche Standpunkte an den roten Stämmen setzen.`;
+    $("results").classList.remove("busy"); $("sweep").disabled = false;
+  };
+  step();
+}
+
+function onMapTap(ev) {
+  if (!state) return;
+  const cv = $("map"), rect = cv.getBoundingClientRect(), w = rect.width;
+  const {stand, res} = state, span = stand.L + 2 * stand.B, sc = w / span;
+  const mx = (ev.clientX - rect.left) / sc - stand.B, my = (w - (ev.clientY - rect.top)) / sc - stand.B;
+  let best = -1, bd = 8 / sc;
+  res.ev.forEach((o, i) => { const d = Math.hypot(o.x - mx, o.y - my); if (d < bd) { bd = d; best = i; } });
+  if (best < 0) { $("info").textContent = "Stamm antippen für Details."; return; }
+  const o = res.ev[best];
+  $("info").textContent = `x ${fmt(o.x, 1)} m · y ${fmt(o.y, 1)} m · BHD ${fmt(o.d)} cm · Bogen ${fmt(res.arcs[best], 1)}° · ~${fmt(res.pts[best])} Punkte`;
+}
+
+function copyPositions() {
+  if (!state) return;
+  const txt = "id,x,y\n" + state.pos.map((q, i) => `S${String(i + 1).padStart(2, "0")},${q[0].toFixed(2)},${q[1].toFixed(2)}`).join("\n");
+  const done = () => { $("copy").textContent = "Kopiert"; setTimeout(() => $("copy").textContent = "Standpunkte kopieren", 1500); };
+  const fallback = () => { $("csv").blur(); $("info").textContent = txt.replace(/\n/g, "  "); };
+  try { navigator.clipboard.writeText(txt).then(done, fallback); } catch (e) { fallback(); }
+}
+
+function save() { try { localStorage.setItem("scanplaner", JSON.stringify(read())); } catch (e) {} }
+function load() {
+  try { const v = JSON.parse(localStorage.getItem("scanplaner") || "null"); if (v) for (const id of IDS) if (id in v && $(id)) $(id).value = v[id]; } catch (e) {}
+}
+function syncLayout() { const r = $("layout").value === "rand"; $("lbl-n").hidden = !r; $("lbl-a").hidden = r; }
+
+let timer = 0;
+const schedule = () => { clearTimeout(timer); timer = setTimeout(run, 250); };
+$("f").addEventListener("input", () => { syncLayout(); schedule(); });
+$("f").addEventListener("submit", e => e.preventDefault());
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => {
+  const v = PRESETS[b.dataset.preset]; for (const k in v) $(k).value = v[k]; $("csv").value = ""; run();
+}));
+$("sweep").addEventListener("click", sweep);
+$("reseed").addEventListener("click", () => { $("seed").value = Math.floor(Math.random() * 9999) + 1; run(); });
+$("copy").addEventListener("click", copyPositions);
+$("map").addEventListener("click", onMapTap);
+window.addEventListener("resize", () => drawMap());
+const mq = window.matchMedia("(prefers-color-scheme: dark)");
+mq.addEventListener && mq.addEventListener("change", () => { drawMap(); });
+new MutationObserver(() => drawMap()).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+
+load(); syncLayout(); run();
+})();
+</script>
