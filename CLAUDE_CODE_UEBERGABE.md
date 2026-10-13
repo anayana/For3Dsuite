@@ -1,6 +1,7 @@
 # Übergabe an Claude Code — For3Dsuite: Studio-GUI + Medien-Marker
 
 Stand: 12.10.2026 · Repo: `anayana/for3dsuite` · geprüfter Commit: `7886ba3` (05.10.2026)
+Aktualisiert: 13.10.2026 (siehe „Stand 13.10.2026" direkt unter Abschnitt 0)
 
 Diese Datei ins Repo-Wurzelverzeichnis legen und Claude Code als Erstes lesen lassen.
 Zugehöriges Konzept: `Paper_ODT/Heritage_Toolkit_Paper/Heritage_Toolkit_Konzept.md`
@@ -29,6 +30,20 @@ Zugehöriges Konzept: `Paper_ODT/Heritage_Toolkit_Paper/Heritage_Toolkit_Konzept
 und der Abbruch ohne `platform/dev-data/` sind umgesetzt; `platform/dev/marker_counts.py`
 zählt/sichert/vergleicht die Marker je Szene. `docs/data/` wurde **nicht** geändert,
 es gibt also nichts zurückzuspielen (Rückspiel-Skript erst nötig, wenn das passiert).
+
+### Stand 13.10.2026 — was seit der Übergabe erledigt ist
+
+| Bereich | Stand |
+|---|---|
+| Export abgesichert | `export_static.py --html-only`; Vollexport bricht ohne `platform/dev-data/` ab; `marker_counts.py` |
+| Aufgabe A (Marker-Schema) | umgesetzt, s. „Stand A" |
+| Aufgabe D (`marker-card.js`) | umgesetzt, s. „Stand D" |
+| Aufgabe C (Editor) | **teilweise**: Browser-Studio `platform/web/gallery/create.html` (online: `https://anayana.github.io/For3Dsuite/create.html`) — 360°-Foto, Marker mit Titel/Text/Bild/Audio/Video/Link, Speichern als offline lauffähige HTML-Datei, kein Server. Offen: Zeit/Herkunft/Einwilligung im Formular, Splat-Marker per Klick, Studio im Docker-Stack auf neues Schema |
+| Aufgaben B, E, F, G | offen |
+| Lizenz | GPL-3.0-or-later (`LICENSE`); Fremddaten: `DATA_SOURCES.md` |
+| Galerie | Petra, Dr Johnson, Stump, FinnWoodlands in `publish.json` zurückgehalten (keine Datenlizenz gefunden) — wirkt beim nächsten Notebook-Export |
+| Paper A | fertig für *Computers & Geosciences* (ohne Gebühren): `Paper_ODT/Panorama_Pipeline_Paper/Manuscript_EN.*`; Software v1.0 auf Zenodo, DOI 10.5281/zenodo.23323560 |
+| Öffentliches Studio mit Server | verworfen: Hugging-Face-Docker-Spaces kosten seit Juli 2026 Geld; stattdessen Browser-Studio |
 
 ---
 
@@ -171,6 +186,11 @@ Tests: `tests/test_marker_schema.py`.
   Objektspeicher; Größenlimit; optional ffmpeg → MP4 (H.264) + Poster-Bild.
 
 ### C. Studio-Marker-Editor (`platform/web/studio/index.html`)
+
+**Stand C (teilweise):** Für fertige 360°-Fotos gibt es das Browser-Studio
+`platform/web/gallery/create.html` (Medien-Marker, Vorschau, Speichern als
+eigenständige HTML-Datei). Offen bleiben die Punkte unten für den Docker-Stack.
+
 - Formular je Marker: Titel, Text, Medien hochladen/entfernen, Links, Zeit,
   Herkunft, Einwilligung; **Vorschau** wie im Viewer.
 - **Splat-Szenen:** Marker per Klick in die 3D-Szene setzen (Raycast/Tiefe → `pos`).

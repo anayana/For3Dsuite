@@ -22,6 +22,16 @@ und zeigen sie per Klick in Infoboxen.
         Garage (S3): Bucket "originals" (privat) · Bucket "media" (öffentl.)
 ```
 
+## Ohne Server: Browser-Studio
+
+`web/gallery/create.html` (online: https://anayana.github.io/For3Dsuite/create.html)
+erstellt Szenen komplett im Browser: 360°-Foto (2:1, auf 4096 px verkleinert) laden,
+Marker per Klick oder Tipp setzen, je Marker Titel, Text, Bilder/Audio/Video (je bis
+25 MB) und Link. **Szene speichern** schreibt eine eigenständige HTML-Datei mit
+eingebettetem Panorama, Medien, Pannellum und `marker-card.js` — offline lauffähig,
+über „Gespeicherte Szene öffnen" wieder editierbar. Kein Upload, kein Backend.
+Für Stitching, E57 und Punktwolken braucht es den Stack unten.
+
 ## Schnellstart: lokale Entwicklung (ohne Docker)
 
 ```powershell
