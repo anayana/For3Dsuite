@@ -8,8 +8,10 @@ Stand 13.10.2026 · Repo `anayana/For3Dsuite` · Autor: Angel Naya, Independent 
 - Deutsch, **kurz und konkret**. Kein Füllstoff, keine langen Optionslisten. Nur exakte
   Bezeichnungen/Links; nichts raten — wenn etwas nicht prüfbar ist, das in einem Satz sagen.
 - Nutzer arbeitet **vom Handy**, ohne lokales Docker. PRs mergt **der Nutzer** (Agent darf nicht mergen).
-- **Kein Geld:** nur Journals ohne Pflicht-Publikationsgebühr; keine kostenpflichtigen Dienste
-  (RunPod, HF-Spaces o. ä.). GPU nur kostenlos: Google Colab (Free) oder Kaggle (Free GPU).
+- **Kein Geld:** nur Journals ohne Pflicht-Publikationsgebühr. **GPU: RunPod erlaubt** (Nutzer-
+  Entscheidung 13.10.2026; gemietet, ca. 0,20 € je Lauf laut `README_TRAINING.md`; vorhandenes
+  Muster `scripts/train_runpod.sh`). Alternativ kostenlos Google Colab (Free) oder Kaggle (Free GPU).
+  Sonstige kostenpflichtige Dienste (HF-Spaces o. ä.) weiterhin nicht.
 - **Nur offene Fremddaten und FOSS**, keine eigenen Aufnahmen/Interviews (derzeit). Lizenzen prüfen
   (`DATA_SOURCES.md`).
 - **Petra (CULTURE3D), Dr Johnson (Deep Blending), Stump (Mip-NeRF 360): keine Datenlizenz gefunden**
