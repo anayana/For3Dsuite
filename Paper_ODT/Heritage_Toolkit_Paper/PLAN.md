@@ -28,7 +28,7 @@ Inhalt der RAR-Archive unbekannt → Schritt 0b. Start mit `5_CB.rar` (kleinstes
 | # | Schritt | Ergebnis | Wer |
 |---|---|---|---|
 | 0 | Dateiliste (Namen und Größen) von Zenodo 14626611 ablesen | Format und Größe bekannt | Nutzer |
-| 0b | `5_CB.rar` laden, md5 prüfen, Inhalt auflisten (ohne Entpacken): `scripts/pellis_inspect.sh` (RunPod) | Ordner und Dateitypen bekannt | Nutzer startet, Agent wertet aus |
+| 0b | `5_CB.rar` per Handy laden, im RAR-Viewer öffnen (nicht entpacken), Screenshots der Ordner | Ordner und Dateitypen bekannt | Nutzer, Agent wertet aus |
 | 1 | Pellis-Eintrag in `DATA_SOURCES.md` (CC BY 4.0, ✅) | Lizenz dokumentiert | Agent |
 | 2 | Formatwandler: Pellis-Kameraparameter → COLMAP-Textformat (`cameras.txt`, `images.txt`, `points3D.txt` aus Referenzwolke), Test mit kleinem Ausschnitt | `scripts/pellis_to_colmap.py` + Test | Agent |
 | 3 | Trainings-Rezept `scripts/train_pellis_runpod.sh` nach Muster `train_runpod.sh` (gsplat, vorhandene Posen, ein Befehl im RunPod-Terminal) | Skript, das der Nutzer mit einem Befehl startet | Agent baut, Nutzer startet |
@@ -37,6 +37,13 @@ Inhalt der RAR-Archive unbekannt → Schritt 0b. Start mit `5_CB.rar` (kleinstes
 | 6 | Demo-Rundgang: ein Gebäude als Splat mit Medien-Markern im Browser-Studio `create.html`, als eine offline lauffähige HTML-Datei | Demo-Datei + Bildschirmfotos | Agent, Nutzer prüft am Handy |
 | 7 | Journal festlegen: APC-Regel von *J. Cultural Heritage*, *DAACH*, *PFG*, *VAR* prüfen | Zieljournal | Nutzer liest die Gebühren-Seite ab, Agent wertet aus |
 | 8 | Manuskript (Gliederung → Methoden/Ergebnisse → Rest) unter `Paper_ODT/Heritage_Toolkit_Paper/` | Entwurf | Agent |
+
+## Erfahrungswerte
+
+- Zenodo liefert auf RunPod ca. 1 MB/s je Verbindung (13.10.2026 gemessen) → 2,1 GB ≈ 35 min,
+  alle 31,3 GB ≈ 9 h. Für das Training jedes Archiv nur einmal laden.
+- RunPod-Preise (13.10.2026, Katalog): CPU `cpu3c` 2 vCPU 0,06 $/h; RTX 4000 Ada 0,20 $/h,
+  RTX 4090 0,34 $/h (Community). Guthaben ca. 4 $. Jeden Pod sofort nach dem Lauf löschen.
 
 ## Offene Punkte
 
