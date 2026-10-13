@@ -135,3 +135,18 @@ Prüft, ob die Schwellen aus S1/S2 auf echte Rinde/Äste übertragbar sind.
   übrige 90–180° (je nach σ, N, BHD) — **unter idealen Bedingungen deutlich unter 3DFins 202,5°**.
   Noch ohne Unrundheit, Ausreißer (Äste, Unterwuchs) und Registrierfehler → nächster Schritt.
 - HELIOS++ 2.2.2 lauffähig in der Cloud (conda-forge über micromamba, `/opt/mm/root/envs/helios`).
+- **Monte-Carlo mit Störungen** (`scripts/arc_error_mc_real.py`, `results/arc_error_mc_real.csv`;
+  7 Szenarien × 13 Bögen × N 200/1000 × BHD 20/40 cm, σ 5 mm, 100 Wdh.; 6 Verfahren inkl. Hough mit
+  Normalenvotum und Huber-robustem geometrischem Fit). Schwelle RMSE ≤ 2 cm & |Bias| ≤ 1 cm:
+  - **Ausreißer (Äste/Unterwuchs, 5–15 %)**: Kasa, geofit, Zylinder erreichen die Schwelle **nie**, auch nicht
+    bei 360° (RMSE 2–7 cm). RANSAC (mit 90°-Inlier-Bogen) ab 112,5–135°; Huber-robust erst ab 135–270°
+    (versagt bei kurzen Bögen, weil der Kasa-Startwert verzerrt ist); Hough ab 180–225°.
+  - **Unrunde Stämme** (Achsverhältnis 0,85–1): alle Verfahren brauchen bei BHD 40 cm **≈ 180–202,5°**;
+    Teilsicht einer Ellipse verfälscht den Durchmesser systematisch. → stützt 3DFins 202,5°-Regel.
+  - **Registrierversatz 5–10 mm**: kleiner Effekt (RMSE-Boden 0,5–0,9 cm), Schwellen kaum verändert.
+  - **Kombiniert**: RANSAC 135–180°, Huber 180–225°, Hough 225–315° bzw. nie, übrige nie.
+  - Zwischenfazit: Die nötige Abdeckung hängt stärker an der **Robustheit des Verfahrens** und der
+    **Unrundheit** als am Bogen allein; eine feste Schwelle für alle Verfahren ist nicht begründbar.
+- **Nebenbefund HELIOS-Pilot**: Sektorzählung (16 × 22,5°) bewertet eine echte Halbsicht (≤ 180°) oft als
+  202,5–225° → 3DFins Regel lässt Einzelseitensicht durch. Wird in den HELIOS-Läufen mit `arc1_deg`
+  (1°-Bins) quantifiziert.
