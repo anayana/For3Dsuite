@@ -73,7 +73,7 @@ Erinnerungszwilling eines Wohnhauses erstellen.* (X wird in E1 gemessen.)
 | 1 Aufnahme | Smartphone-Fotos, Consumer-360°, optional iPad-LiDAR | Anleitung + Checkliste | Anleitung fehlt |
 | 2 Rekonstruktion | Panorama (Paper-A-Kette) **oder** 3DGS | Hugin; COLMAP; gsplat/Nerfstudio; `build_colmap.py`, `points_to_splat.py`, `clean_splat.py` | Kette da, für Innenräume unerprobt |
 | 3 Viewer | begehbarer Raum, Browser + Mobil, optional XR | Pannellum, three.js, Splat-Renderer (`splat.html`) | da |
-| 4 Erinnerungsebene | Marker → Clip, Transkript, Übersetzung, Zeitschicht | eigenes Marker-Modul; Transkription Whisper; Index angelehnt an OHMS | **Konzept** (Museums-Rundgang-Konzept), Umsetzung fehlt |
+| 4 Erinnerungsebene | Marker → Clip, Transkript, Übersetzung, Zeitschicht | einheitliches Marker-Schema + `marker-card.js` (Text, Bild, Audio, Video, Links, Zeit, Herkunft); Browser-Studio `create.html` für Laien (offline-fähige HTML-Datei); Transkription Whisper; Index angelehnt an OHMS | **teilweise umgesetzt**: Medien-Marker und Browser-Studio da; Transkription, Zeitschicht-Filter, Mehrsprachigkeit fehlen |
 | 5 Rechte & Ethik | Einwilligungsstufen, Pseudonyme, Widerruf, Review | im Datenmodell (Abschn. 5) | fehlt |
 | 6 Veröffentlichung | statischer Export oder Self-Hosting | `export_static.py`, GitHub Pages, Caddy/Garage | da |
 | 7 Archiv | Langzeitsicherung, zitierbar | Zenodo-DOI; optional Omeka S | fehlt |

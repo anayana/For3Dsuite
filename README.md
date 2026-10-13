@@ -163,6 +163,15 @@ Punktwolken-Koordinaten (z. B. Einzelbaum-Inventuren) berechnen.
 Details, Schnellstart (lokal ohne Docker) und Server-Deployment:
 [platform/README.md](platform/README.md)
 
+## Browser-Studio (ohne Installation)
+
+Eigene 360°-Szenen lassen sich auch ganz ohne Server erstellen:
+**https://anayana.github.io/For3Dsuite/create.html** — 360°-Foto wählen, Marker mit
+Text, Bildern, Audio, Video und Links setzen, als **eine HTML-Datei** speichern. Die
+Datei läuft per Doppelklick, offline und auf jedem Webspace und lässt sich im Studio
+weiterbearbeiten. Nichts wird hochgeladen. Grenze: nur fertige 360°-Fotos (2:1);
+Stitching und E57 brauchen die Plattform unten.
+
 ## Qualitative Auswertung + Wachstumsprognose (Bausteine 4 & 5)
 
 Aus der reinen Visualisierung wird eine prognosefähige Bestandesbeschreibung.
