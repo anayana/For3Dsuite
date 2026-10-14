@@ -172,6 +172,23 @@ Datei läuft per Doppelklick, offline und auf jedem Webspace und lässt sich im 
 weiterbearbeiten. Nichts wird hochgeladen. Grenze: nur fertige 360°-Fotos (2:1);
 Stitching und E57 brauchen die Plattform unten.
 
+## iPad/iPhone-LiDAR → metrischer Gaussian Splat
+
+Kleine Räume low-cost vermessen und fotorealistisch zeigen: ARKit-Posen und
+LiDAR-Tiefe einer iPad-/iPhone-Pro-Aufnahme (3d Scanner App, Record3D, Polycam)
+werden ohne SfM direkt zu einem metrischen COLMAP-Datensatz. Hochaufgelöste
+Fotos lassen sich optional per PnP in denselben Rahmen einhängen. gsplat
+trainiert mit LiDAR-Tiefe als Prior, der Export liegt wieder in Metern. Daraus
+entstehen eine Messwolke (±1–3 cm), Raummaße und ein Splat. Im Viewer misst
+**📏 Messen** Strecken direkt im Splat. Ein Befehl auf einer Miet-GPU:
+
+```bash
+export CAPTURE_URL="https://…/scan.zip"   # optional: STILLS_URL="https://…/fotos.zip"
+curl -fsSL https://raw.githubusercontent.com/anayana/For3Dsuite/main/scripts/train_ipad_runpod.sh | bash
+```
+
+Anleitung (Aufnahme, Messen, Technik, Grenzen): [IPAD_PIPELINE.md](IPAD_PIPELINE.md)
+
 ## Qualitative Auswertung + Wachstumsprognose (Bausteine 4 & 5)
 
 Aus der reinen Visualisierung wird eine prognosefähige Bestandesbeschreibung.

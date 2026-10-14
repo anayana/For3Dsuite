@@ -46,6 +46,14 @@ curl -fsSL https://raw.githubusercontent.com/anayana/For3Dsuite/main/scripts/tra
 ```
 (Pod-Template mit **`-devel`/CUDA ≥ 12.4** wählen.)
 
+**c) iPad/iPhone-LiDAR-Raumscan → metrischer Splat** (Details: [IPAD_PIPELINE.md](../IPAD_PIPELINE.md))
+```bash
+# Daten nach /data einbinden (nicht ueber /workspace -- dort liegen die Skripte)
+docker run --gpus all -v "$PWD:/data" -e WORK=/data/ipad for3d-gpu \
+    scripts/train_ipad_runpod.sh /data/scan.zip [/data/fotos.zip]
+# -> ./ipad/raum_ergebnis.zip  (Splat in Metern, LiDAR-Messwolke, Bericht)
+```
+
 **Ergebnis weiterverarbeiten** (CPU): Hintergrund/Floater entfernen und als begehbare
 Szene einhängen —
 ```bash

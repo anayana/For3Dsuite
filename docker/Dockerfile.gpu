@@ -17,6 +17,9 @@ RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/wh
 
 WORKDIR /workspace
 COPY scripts/train_mipnerf.sh scripts/train_runpod.sh scripts/
+# iPad-LiDAR-Pipeline (scripts/train_ipad_runpod.sh nutzt die Nachbarskripte)
+COPY scripts/train_ipad_runpod.sh scripts/ipad_capture.py scripts/ipad_sfm.sh \
+     scripts/gsplat_export_metric.py scripts/ply_reduce.py scripts/
 COPY data/renon/colmap_renon4.zip data/renon/colmap_renon4.zip
 
 # Nutzung:

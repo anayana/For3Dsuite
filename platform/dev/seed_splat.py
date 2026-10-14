@@ -8,6 +8,10 @@ entfernen.
 
   python platform/dev/seed_splat.py stump_gaussians.ply --id stump-3dgs \
       --title "Mip-NeRF Stumpf (3DGS)" --description "..." [--camera-up 0 -1 0]
+
+  # metrischer Raumscan (scripts/train_ipad_runpod.sh): Messwerkzeug + Start im Raum
+  python platform/dev/seed_splat.py raum_splat.ply --id mein-raum --title "..." \
+      --camera-up 0 1 0 --metric
 """
 import argparse
 import json
@@ -51,7 +55,11 @@ def main():
     ap.add_argument("--description", default="Begehbares 3D-Gaussian-Splatting-Ergebnis.")
     ap.add_argument("--camera-up", nargs=3, type=float, default=None,
                     help="Up-Achse manuell; ohne Angabe automatisch aus der Bodenebene (PCA)")
-    ap.add_argument("--note", default="Trainiertes 3DGS (Neuansichts-Synthese).")
+    ap.add_argument("--note", default=None,
+                    help="Hinweistext im Viewer (Default je nach --metric)")
+    ap.add_argument("--metric", action="store_true",
+                    help="Splat liegt in Metern (iPad-LiDAR-Pipeline): Messwerkzeug im "
+                    "Viewer, Start in Augenhoehe mitten im Raum")
     ap.add_argument("--external-url",
                     help="Splat-.ply extern hosten (z. B. GitHub-Release): URL statt "
                     "Kopie ins Repo. Die .ply wird nur fuer bbox/Up/Thumbnail gelesen.")
@@ -89,10 +97,27 @@ def main():
     dest.mkdir(parents=True, exist_ok=True)
     thumbnail(xyz, col, args.camera_up, dest / "thumb.jpg")
 
+    if args.note is None:
+        args.note = ("Metrischer Raumscan (iPad-LiDAR + Fotos, 3DGS): 1 Einheit = 1 m. "
+                     "📏 Messen = Naeherung am Splat; genaue Masse in der LiDAR-Punktwolke."
+                     if args.metric else "Trainiertes 3DGS (Neuansichts-Synthese).")
     splat = {"camera_up": args.camera_up,
              "bbox": {"bbox_min": lo.tolist(), "bbox_max": hi.tolist()},
              "focus": focus.tolist(),
              "note": args.note}
+    if args.metric:
+        splat["metric"] = True
+        # Start in Augenhoehe (1,6 m ueber dem Boden) ueber dem Raumzentrum, Blick
+        # waagerecht entlang der laengeren Grundrissachse -- die Standardpose
+        # (1,7 m ueber dem Kern) laege in einem Raum oft schon ueber der Decke.
+        upv = np.array(args.camera_up, float); upv /= np.linalg.norm(upv)
+        h = xyz @ upv
+        floor = np.percentile(h, 2)
+        start = focus + upv * (floor + 1.6 - focus @ upv)
+        horiz = xyz - np.outer(h, upv)
+        _, V = np.linalg.eigh(np.cov((horiz - horiz.mean(0)).T))
+        splat["start"] = start.tolist()
+        splat["look"] = (start + V[:, -1]).tolist()
     if args.external_url:                          # extern gehostet (Release/CDN)
         splat["url"] = args.external_url
     else:                                          # ins Repo kopieren (kleine Dateien)

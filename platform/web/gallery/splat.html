@@ -45,6 +45,22 @@
     #spin.active { background: rgba(126,231,135,.22); color: #d8ffdb;
       border-color: rgba(126,231,135,.4); }
     #spin[hidden] { display: none; }
+    #measure { background: rgba(0,0,0,.55); backdrop-filter: blur(6px); color: #cfcfcf;
+      border: 1px solid rgba(255,255,255,.12); border-radius: 10px; cursor: pointer;
+      padding: 7px 13px; font-size: 12.5px; white-space: nowrap; }
+    #measure.active { background: rgba(88,166,255,.25); color: #dbeaff;
+      border-color: rgba(88,166,255,.5); }
+    #measure[hidden] { display: none; }
+    /* ---- Messen: Strecke zwischen zwei Klickpunkten (nur metrische Szenen) ---- */
+    #mlayer { position: absolute; inset: 0; z-index: 21; pointer-events: none;
+      width: 100%; height: 100%; }
+    #mlayer line { stroke: #58a6ff; stroke-width: 2.5; stroke-dasharray: 6 4; }
+    #mlayer circle { fill: #58a6ff; stroke: #fff; stroke-width: 2; }
+    #mlabel { position: absolute; z-index: 22; transform: translate(-50%, -140%);
+      pointer-events: none; color: #fff; background: rgba(13,17,23,.88);
+      border: 1px solid rgba(88,166,255,.6); border-radius: 8px; padding: 4px 10px;
+      font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    #mlabel[hidden] { display: none; }
     /* ---- Marker (3D-verankerte Info-Punkte); Karte: marker-card.js ---- */
     #markers { position: absolute; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
     .pin { position: absolute; transform: translate(-50%, -50%); pointer-events: auto;
@@ -74,6 +90,8 @@
       <button id="m-orbit">Umkreisen</button>
     </div>
     <button id="spin" title="Szene langsam drehen lassen (Vortragsmodus)">⟳ Drehen</button>
+    <button id="measure" hidden aria-pressed="false"
+      title="Strecke messen: zwei Punkte im Raum anklicken (Esc = beenden)">📏 Messen</button>
   </div>
   <div id="note" hidden></div>
   <div id="help">
@@ -82,6 +100,8 @@
   </div>
   <div id="err"></div>
   <div id="markers"></div>
+  <svg id="mlayer" aria-hidden="true"></svg>
+  <div id="mlabel" hidden></div>
 
   <script type="module">
     import * as THREE from 'three';
@@ -285,6 +305,89 @@
         xr.setReferenceSpace(xrBase.getOffsetReferenceSpace(xform));
       }
 
+      // ---- Messen: zwei Punkte auf dem Splat anklicken -> Strecke in Metern ----
+      // Nur fuer metrische Szenen (scene.splat.metric, z. B. iPad-LiDAR-Scans):
+      // sonst hat die Szene einen beliebigen Massstab und die Zahl waere falsch.
+      // Trefferpunkt = Strahl gegen die Splat-Ellipsoide (GaussianSplats3D-
+      // Raycaster) -> Naeherung (einige cm); genaue Masse in der LiDAR-Wolke.
+      const metric = sp.metric === true;
+      const mBtn = document.getElementById('measure');
+      const mSvg = document.getElementById('mlayer');
+      const mLabel = document.getElementById('mlabel');
+      const helpEl = document.getElementById('help');
+      const helpHTML = helpEl.innerHTML;
+      let measuring = false;
+      const mPts = [];                                   // 0..2 Weltpunkte
+      const _dims = new THREE.Vector2(), _scr = new THREE.Vector2();
+      function pickSplat(x, y) {
+        const rc = viewer.raycaster, mesh = viewer.splatMesh;
+        if (!rc || !mesh || !mesh.getSplatTree || !mesh.getSplatTree()) return null;
+        cam.updateMatrixWorld();
+        viewer.getRenderDimensions(_dims);
+        rc.setFromCameraAndScreenPosition(cam, _scr.set(x, y), _dims);
+        const hits = [];
+        rc.intersectSplatMesh(mesh, hits);
+        return hits.length ? hits[0].origin.clone() : null;
+      }
+      const fmtM = d => d.toFixed(2).replace('.', ',') + ' m';
+      function measureClick(x, y) {
+        const p = pickSplat(x, y);
+        if (!p) return;
+        if (mPts.length >= 2) mPts.length = 0;          // dritter Klick: neue Strecke
+        mPts.push(p);
+        window._measure = { points: mPts.map(v => v.toArray()),
+                            distance: mPts.length === 2 ? mPts[0].distanceTo(mPts[1]) : null };
+      }
+      function setMeasuring(on) {
+        measuring = on;
+        mBtn.classList.toggle('active', on);
+        mBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        cv.style.cursor = on ? 'crosshair' : 'grab';
+        if (!on) mPts.length = 0;
+        helpEl.innerHTML = on
+          ? '<b>Messen:</b> zwei Punkte anklicken · dritter Klick = neue Strecke · ' +
+            '<b>Esc</b> = beenden<br>Messung am Splat: Näherung (einige cm). ' +
+            'Genaue Maße: LiDAR-Punktwolke.'
+          : helpHTML;
+        if (on) helpEl.style.display = 'block';
+      }
+      const _ndc = new THREE.Vector3(), _camDir = new THREE.Vector3(), _rel = new THREE.Vector3();
+      function toScreen(p) {
+        cam.getWorldDirection(_camDir);
+        if (_rel.copy(p).sub(cam.position).dot(_camDir) <= 0.01) return null;
+        _ndc.copy(p).project(cam);
+        return [(_ndc.x * 0.5 + 0.5) * cv.clientWidth, (-_ndc.y * 0.5 + 0.5) * cv.clientHeight];
+      }
+      function updateMeasure() {
+        if (!metric) return;
+        const s = mPts.map(toScreen);
+        let svg = '';
+        if (s.length === 2 && s[0] && s[1])
+          svg += `<line x1="${s[0][0]}" y1="${s[0][1]}" x2="${s[1][0]}" y2="${s[1][1]}"/>`;
+        for (const q of s) if (q) svg += `<circle cx="${q[0]}" cy="${q[1]}" r="5"/>`;
+        mSvg.innerHTML = svg;
+        if (mPts.length === 2 && (s[0] || s[1])) {
+          const a = s[0] || s[1], b = s[1] || s[0];
+          mLabel.textContent = fmtM(mPts[0].distanceTo(mPts[1]));
+          mLabel.style.left = (a[0] + b[0]) / 2 + 'px';
+          mLabel.style.top = (a[1] + b[1]) / 2 + 'px';
+          mLabel.hidden = false;
+        } else mLabel.hidden = true;
+      }
+      if (metric) {
+        mBtn.hidden = false;
+        mBtn.onclick = () => setMeasuring(!measuring);
+        let downX = 0, downY = 0;
+        cv.addEventListener('pointerdown', e => { downX = e.clientX; downY = e.clientY; });
+        cv.addEventListener('pointerup', e => {
+          if (!measuring || Math.hypot(e.clientX - downX, e.clientY - downY) > 5) return;
+          const r = cv.getBoundingClientRect();
+          measureClick(e.clientX - r.left, e.clientY - r.top);
+        });
+        addEventListener('keydown', e => { if (e.key === 'Escape' && measuring) setMeasuring(false); });
+        window._measureAt = measureClick;                // Funktionstest
+      }
+
       function lookVec(y, p) {
         const cp = Math.cos(p);
         return t1.clone().multiplyScalar(cp * Math.cos(y))
@@ -329,6 +432,7 @@
           cam.lookAt(center);
         }
         updateMarkers();
+        updateMeasure();
         requestAnimationFrame(frame);
       }
       requestAnimationFrame(frame);
@@ -338,7 +442,8 @@
       cv.style.cursor = 'grab';
       cv.addEventListener('pointerdown', e => { drag = true; px = e.clientX; py = e.clientY;
         cv.style.cursor = 'grabbing'; cv.setPointerCapture(e.pointerId); });
-      cv.addEventListener('pointerup', e => { drag = false; cv.style.cursor = 'grab';
+      cv.addEventListener('pointerup', e => { drag = false;
+        cv.style.cursor = measuring ? 'crosshair' : 'grab';
         idleSince = performance.now(); });
       cv.addEventListener('pointermove', e => {
         if (!drag) return;
