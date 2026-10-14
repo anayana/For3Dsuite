@@ -35,9 +35,9 @@ Kamerahöhen danach 1,8–9,4).
 | 0b | `5_CB.rar` per Handy laden und entpacken, Parameterdateien hochladen | Format bekannt | ✅ 14.10.2026 |
 | 1 | Pellis-Eintrag in `DATA_SOURCES.md` (CC BY 4.0, ✅) | Lizenz dokumentiert | ✅ |
 | 2 | Formatwandler: Pellis-Kameraparameter → COLMAP (PINHOLE, Fotos mit OpenCV entzerrt) | `scripts/pellis_to_colmap.py` + `tests/test_pellis_to_colmap.py` | ✅ Posen; offen: Projektionsprobe gegen Punktwolke, Init-Wolke, Bedeutung `Orientation` |
-| 3 | Trainings-Rezept `scripts/train_pellis_runpod.sh` nach Muster `train_runpod.sh` (gsplat, vorhandene Posen, ein Befehl im RunPod-Terminal) | Skript, das der Nutzer mit einem Befehl startet | Agent baut, Nutzer startet |
+| 3 | `scripts/train_pellis_runpod.sh`: Laden (aria2c) + md5, Entpacken, `pellis_to_colmap.py` (auch .bin, weil gsplat 1.5.3 Text falsch liest), Posenprobe mit Abbruch, gsplat 1.5.3, PLY im System der Punktwolke, `eval_splat_geometry.py` | ein Befehl | ✅ gebaut, ungetestet auf GPU |
 | 4 | Training: zunächst 1 Gebäude, danach die übrigen 4 | `.ply` je Gebäude | Nutzer (RunPod) |
-| 5 | Geometrie-Prüfung: Splat-Zentren (nach `clean_splat.py`) gegen Referenzwolke, C2C-Abstände (Median, 95 %), Vollständigkeit bei Schwellen 2/5/10 cm, je Gebäude und Bauteilklasse | `scripts/eval_splat_geometry.py` + Tabelle/Abbildungen | Agent |
+| 5 | Geometrie-Prüfung: Splat-Zentren (Deckkraft ≥ 0,5, in Hülle der Referenz) gegen Referenzwolke, Abstand Median/95 %, Vollständigkeit 2/5/10 cm, je Bauteil-Label | `scripts/eval_splat_geometry.py` (+ Test) | ✅ Skript; läuft im Trainingsskript mit |
 | 6 | Demo-Rundgang: ein Gebäude als Splat mit Medien-Markern im Browser-Studio `create.html`, als eine offline lauffähige HTML-Datei | Demo-Datei + Bildschirmfotos | Agent, Nutzer prüft am Handy |
 | 7 | Journal: **1. J. Cultural Heritage**, 2. *PFG* — beide Hybrid, Abo-Weg ohne Gebühr (geprüft 13.10.2026, s. u.) | Zieljournal | erledigt; vor Einreichung erneut prüfen |
 | 8 | Manuskript (Gliederung → Methoden/Ergebnisse → Rest) unter `Paper_ODT/Heritage_Toolkit_Paper/` | Entwurf | Agent |
