@@ -25,7 +25,11 @@ need() { command -v "$1" >/dev/null || { echo "FEHLER: $1 fehlt"; exit 1; }; }
 need curl; need unzip
 
 fold() {  # fold <csv-url> -> Training/Validation (leer, wenn nicht enthalten)
-  curl -fsSL "$1" | awk -F, -v v="$VID" '$1 == v { print $3; exit }'
+  # erst ganz laden: bei "curl | awk ... exit" bricht curl mit Code 23 ab,
+  # und pipefail beendet das Skript
+  local csv
+  csv="$(curl -fsSL "$1")" || { echo "FEHLER: $1 nicht ladbar" >&2; return 1; }
+  awk -F, -v v="$VID" '$1 == v { print $3; exit }' <<< "$csv"
 }
 UPS="$(fold "$GH/depth_upsampling/upsampling_train_val_splits.csv")"
 RAW="$(fold "$GH/raw/raw_train_val_splits.csv")"
