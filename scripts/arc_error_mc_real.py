@@ -83,50 +83,44 @@ def sample(rng, scen, r, theta, n, sigma):
 
 
 # ------------------------------------------------------------------ Verfahren
-def m_hough(sl):
-    """Kreis-Hough nach scikit-image (hough_circle / hough_circle_peaks, normalisierte
-    Akkumulatoren), zweistufig: grob auf 1-cm-Raster ueber alle Radien R_MIN..R_MAX
-    (Akkumulator ueber den Bildrand hinaus, da das Zentrum bei kurzen Boegen ausserhalb
-    der Punkte liegt), dann fein auf 2,5-mm-Raster um den groben Kreis (+/- 1,5 cm).
-    Etablierte Standardimplementierung statt eigener Variante."""
-    if len(sl) < 12:
+def top_peak(acc, radii):
+    """Staerkstes Maximum ueber alle Radien (entspricht dem ersten Treffer von
+    hough_circle_peaks(total_num_peaks=1), ohne dessen Spitzensuche je Radius).
+    Rueckgabe (Zeile, Spalte, Radius) im Akkumulator oder None."""
+    k = int(np.argmax(acc))
+    if acc.flat[k] <= 0:
         return None
-    from skimage.transform import hough_circle, hough_circle_peaks
-    p = sl[:, :2]
+    ri, row, col = np.unravel_index(k, acc.shape)
+    return row, col, radii[ri]
 
+
+def m_hough(sl):
+    """Kreis-Hough mit scikit-image (hough_circle, normalisierte Akkumulatoren),
+    zweistufig: grob auf 1-cm-Raster ueber alle Radien R_MIN..R_MAX (Akkumulator ueber
+    den Bildrand hinaus, damit Zentren kurzer Boegen ausserhalb der Punkte liegen
+    duerfen), dann fein auf 2,5-mm-Raster um den groben Kreis (+/- 1,5 cm Radius).
+    Bildzeile = x, Bildspalte = y."""
+    if len(sl) < 12: return None
+    from skimage.transform import hough_circle
+    p = sl[:, :2]
     def raster(px, lo, size):
         ij = np.floor((p - lo) / px).astype(int)
         ok = (ij >= 0).all(1) & (ij < size).all(1)
         img = np.zeros((size, size), bool); img[ij[ok, 0], ij[ok, 1]] = True
         return img
-
-    # grob
-    px = .01
-    lo = p.min(axis=0) - .02
+    px = .01; lo = p.min(axis=0) - .02
     size = int(np.ptp(p, axis=0).max() / px) + 5
-    if size > 300:
-        return None
+    if size > 300: return None
     radii = np.arange(int(dm.R_MIN / px), int(dm.R_MAX / px) + 1)
-    acc = hough_circle(raster(px, lo, size), radii, normalize=True, full_output=True)
-    _, cx, cy, rr = hough_circle_peaks(acc, radii, total_num_peaks=1)
-    if not len(rr):
-        return None
-    pad = radii.max()
-    c0 = lo + (np.array([cx[0], cy[0]]) - pad + .5) * px
-    r0 = float(rr[0]) * px
-    # fein
-    px = .0025
-    half = r0 + .03
-    lo = c0 - half
-    size = int(2 * half / px) + 1
+    pk = top_peak(hough_circle(raster(px, lo, size), radii, normalize=True, full_output=True), radii)
+    if pk is None: return None
+    pad = radii.max(); c0 = lo + (np.array(pk[:2]) - pad + .5) * px; r0 = float(pk[2]) * px
+    px = .0025; half = r0 + .03; lo = c0 - half; size = int(2 * half / px) + 1
     radii = np.arange(max(int(dm.R_MIN / px), int((r0 - .015) / px)), int(min(dm.R_MAX, r0 + .015) / px) + 1)
-    acc = hough_circle(raster(px, lo, size), radii, normalize=True)
-    _, cx, cy, rr = hough_circle_peaks(acc, radii, total_num_peaks=1)
-    if not len(rr):
-        return None
-    r = float(rr[0]) * px
-    if r <= dm.R_MIN + 1e-4 or r >= dm.R_MAX - 1e-4:
-        return None
+    pk = top_peak(hough_circle(raster(px, lo, size), radii, normalize=True), radii)
+    if pk is None: return None
+    r = float(pk[2]) * px
+    if r <= dm.R_MIN + 1e-4 or r >= dm.R_MAX - 1e-4: return None
     return round(200 * r, 1)
 
 
