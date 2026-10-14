@@ -1,0 +1,104 @@
+# Lesenotiz li_scandesign (automatische Auszuege, kein Volltext)
+
+## Anfang (Titel, Autoren, Abstract)
+
+This article has been accepted for inclusion in a future issue of this journal. Content is final as presented, with the exception of pagination. IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING 1 An Iterative-Mode Scan Design of Terrestrial Laser Scanning in Forests for Minimizing Occlusion Effects Linyuan Li , Associate Member , IEEE,X i h a nM u , Maxime Soma, Peng Wan, Jianbo Qi, Ronghai Hu , Wuming Zhang , Yiyi Tong , and Guangjian Y an , Senior Member , IEEE Abstract— Occlusion effect, an inherent problem of terrestrial laser scanning (TLS) measurements, limits the potential of TLS data in tree attribute estimation. Multiple scans seek to mitigate this effect to provide enhanced sc an completeness. However, the numbers and locations of the scans (i.e., the scan design) are usually determined via a subjective assessment of the tree density, spatial patterns of trees, and attributes to be derived. These could cause suboptimal scan completeness and limit tree attribute estimation. This study proposed an iterative-mode scan design to minimize the occlusion effect. First, we introduced a PoTo index based on visibility analysis to evaluate how many trees can be scanned from a location and to select effective candidates for the optimal TLS location. Second, we introduced a cumulative degree of ring closure (CDRC) to quantify the scan completeness for each candidate and determine the optimal TLS location. The TLS data sets of virtual forests with ﬁeld-measured and synthetic plot parameter settings were simulated according to iterative- and regular-mode designs by using a Heidelberg light detection and ranging (LiDAR) Operations Sim ulator (HELIOS). The results demonstrated that an iterative-mode design can improve the scan completeness of trees compared to the regular-mode design. The tree attribute (diameter at breast height (DBH), tree height, stem curve, and crown volume) estimates of the iterative-mode design were less erroneous than those of the regular-mode design (e.g., the root-mean-square error (RMSE) could decrease the stem curve estimation by 38% and the crown volume estimation by 15%). This study suggests that the iterative-mode design can obtain an improved quality of the TLS data, especially for dense stands. Manuscript received January 20, 2020; revised July 7, 2020; accepted August 17, 2020. This work was supported in part by the National Natural Science Foundation of China unde r Grant 41871230 and Grant 41671414, in part by the China Scholarship Council under Grant 201706040156, and in part by the Institut National de la Recherche Agronomique (INRA) through UMT-CAPTE. (Corresponding author: Xihan Mu.) Linyuan Li is with the State Key Laboratory of Remote Sensing Science, Faculty of Geographical Science, Beijing Normal University, Beijing 100875, China, and also with INRA EMMAH UMR1114, 84914 Avignon, France. Xihan Mu, Yiyi Tong, and Guangjian Y an are with the State Key Laboratory of Remote Sensing Science, Faculty of Geographical Science, Beijing Normal University, Beijing 100875, China (e-mail: muxihan@bnu.edu.cn). Maxime Soma is with INRAE EMMAH UMR1114, Avignon 84914, France. Peng Wan is with the Changjiang River Scientiﬁc Research Institute (CRSRI), Wuhan 430010, China. Jianbo Qi is with the Key Laboratory for Silviculture and Conservation of Ministry of Education, Beijing Forestry University, Beijing 100083, China. Ronghai Hu is with the College of Resources and Environment, University of Chinese Academy of Scienc
+
+
+## Saetze mit Schluesselwoertern
+
+- Multiple scans seek to mitigate this effect to provide enhanced sc an completeness.
+- These could cause suboptimal scan completeness and limit tree attribute estimation.
+- Second, we introduced a cumulative degree of ring closure (CDRC) to quantify the scan completeness for each candidate and determine the optimal TLS location.
+- The TLS data sets of virtual forests with ﬁeld-measured and synthetic plot parameter settings were simulated according to iterative- and regular-mode designs by using a Heidelberg light detection and ranging (LiDAR) Operations Sim ulator (HELIOS).
+- The results demonstrated that an iterative-mode design can improve the scan completeness of trees compared to the regular-mode design.
+- The tree attribute (diameter at breast height (DBH), tree height, stem curve, and crown volume) estimates of the iterative-mode design were less erroneous than those of the regular-mode design (e.g., the root-mean-square error (RMSE) could decrease the stem curve estimation by 38% and the crown volume estimation by 15%).
+- Hence, the multiscan approach has the potential to provide full coverage of the stem surface and is the most accurate technique for measuring forest plots [3].
+- This subjective decision could lead to suboptimal coverage and biased sampling of a targeted area, which cannot 0196-2892 © 2020 IEEE.
+- This circumstance motivates the development of a scan design that considers the practical situation of occlusion effects and that has the potential to maximize the scan completeness and improve the TLS data quality.
+- Furthermore, the quantitative value of the occlu- sion effect can be an indicator fo r determining the optimal TLS locations.
+- Importantly, this study will offer insights into the inﬂuence of the scan design on the scan completeness and tree attribute estimation (diameter at breast height (DBH), tree height, stem curve, and crown volume) based on the simulated TLS point clouds.
+- 2) What are the performances of the proposed scan design on the scan completeness and tree attribute estimation?
+- Iterative-Mode Scan Design We assume that an individual tree can be represented by an enclosed circle in 2-D space.
+- The tree circle diameter is assigned to either DBH or crown diameter, depending on different applications.
+- For exam ple, the tree circle diameter equals the DBH for stem mapping, whereas it equals the crown diameter for crown variable estim ation (e.g., leaf area density).
+- We additionally introduced the cumulative degree of ring closure (CDRC) to assess the scan completeness of each tree for the locations in the iterative processes.
+- We also added a circle-shape buffer area (a radius of 5 m) for the optimal locations selected in previous iterations [the large blue circle in Fig.
+- This strategy has the potential of preventing too short of a distance among the scan locations, and it beneﬁts maximization of the scan’s completeness.
+- 3) Determining the Optimal TLS Location by CDRC: The CDRC is deﬁned as the angle of the union of scanned sectors for a tree circle (e.g., α A1 and α A2 in Fig.
+- The CDRC value is 0 ◦ when the circle is not scanned at all and equals 360 ◦ when the circle is completely scanned.
+- The scan completeness of each effective candidate for the optimal TLS location was quantiﬁed through the proposed CDRC index; hence, this index can determine the optimal TLS location.
+- The optimal TLS scan (xios, yios) is located at the position where the CDRC sum of all the tree circles reaches the maximum ( xios, yios) = argmax Ni∑ j=1 α j ( xiec, yiec) (2) where i refers to the i th iteration, α j (xiec, yiec) is the CDRC for the j th circle, and (xiec, yiec) refers to the location of the effective TLS scan candidate.
+- If the CDRC of the j th tree circle (CDRC j) reaches the TE deﬁned by the operator, then it is unnecessary to conduct additi onal sampling for this tree.
+- We also suggest setting a larger value for TE for the forest plot with a larger average tree circle diameter and vice versa.
+- Given that dense scans distributed in systematic grids can achieve more complete coverage for all trees in the plot [3], the regular-mode design of 16-scan measurements contains four scans located in the central region and the remainder distributed along the plot borders (see Section IV -D).
+- The stem visibility at ground level, stem den- sity, and DBH distribution was considered in the complexity assessment.
+- The ﬁeld plot parameters, including the tree location, height, and DBH, were collected by the integration of ﬁeld inventories and manual measurements from the TLS data.
+- The basic tree model was created by a 3-D realistic tree structure modeling software, OnyxTREE BROADLEAF 7.0, according to the exponential rel ationship between the tree height and DBH (Table I).
+- The vir tual forest scenarios were technically established by replicating the basic tree model and then transforming it (i.e., scale, translate, and rotate) according to the ﬁeld tree location, tree height, and DBH [Fig.
+- In this data set, we parameterized each tree as a circle with the radius of its DBH in the scan design optimization.
+- Thus, we parameterized the tree as a circle with a radius of 1.5 m in this data set.
+- TLS Data Simulation With HELIOS The Heidelberg LiDAR Operations Simulator (HELIOS) provides a tool for simulating the multipulse data, especially Authorized licensed use limited to: Beijing Normal University.
+- The HELIOS uses a ray casting method to accurately simulate the 3-D point clouds without simp lifying the multiple scat- tering mechanisms.
+- A graphical interface of interactive real-time 3-D visualization of the simulated surveys is provided in the HELIOS.
+- TABLE II CONFIGURA TION OF THE TLS S IMULA TION BY THE HELIOS IN THIS STUDY level.
+- The hemispherical scans of a plot have an identical coordinate sys- tem deﬁned by the HELIOS; thus, the coregistration process does not induce any error.
+- The point cloud of each indivi dual tree was extracted from the comprehensive point clouds according to the property value of the OBJ_ID ﬁeld in the output text ﬁle of the HELIOS simulation.
+- The extracted point clouds were used to analyze the completeness of the TLS scan sampling and to estimate the tree attributes, i.e., DBH, tree height, stem curve, and crown volume.
+- As shown in Table I, the DBH, tree height, and stem curve were extracted for the ﬁeld plots, while the crown volume was estimated for the synthetic plots.
+- 1) DBH and Tree Height: In the DBH calculation, we ﬁrst extracted a horizontal slice from 1.25 to 1.35 m above the calculated tree position.
+- The DBH was then computed by a least-squares regres- sion method with an algebraic estimation of the circle and a geometric reduction of the squared distances to the computed circle [30].
+- If the number of points found at a particular height layer is less than three, the diameter at this height cannot be estimated and was assigned to null in the 3DForest.
+- To evaluate the completeness of the stem points and the stem curve estimation accuracy for individual stems, we introduced a stem completeness index (SC), which is deﬁned as the ratio of the number of measured diameters to the number of height layers for a stem [15].
+- Comparison of the Scan Completeness Between Two Scan Designs Fig.
+- To assess the scan completeness for the iterative- and regular-mode scans, we compared the probability histogram of the CDRC of the tree circles.
+- Comparison of the DBH derived from scans between the iterative- and regular-mode designs in the ﬁeld plots (a)–(f).
+- TABLE III RMSE SO F STEM ATTRIBUTE ESTIMA TES DERIVED FROM ITERA TIVE - AND REGULAR -M ODE SCANS FOR ALL FIELD PLOTS C.
+- Comparison of Stem Attribute Estimates The comparisons of the DBH estimates derived from the iterative- and regular-mode point clouds are presented in Fig.
+- The estimation accuracy of DBH decreased with the increase in the complexity (“eas y,” “medium,” and “difﬁcult”) because the completeness o f the TLS data decreases with complexity, as shown in Table III.
+- The estimated DBH values from both designs are well corre lated with the reference values for the “easy” plots.
+- However, the iterative-mode estimates have better agreement with th e reference values for the “medium” and “difﬁcult” plot s (the mean root-mean-square error (RMSE) of DBH is 0.57 cm), whereas the regular- mode design was shown to obviously overestimate the DBH of several stems (the mean RMSE of DBH is 1.21 cm).
+- In particular, the regular-mode design produced three severely underestimated DBH in plot 6 (DBH = 0) due to the full obstruction for the 1.3-m-height layer of these stems.
+- Accurate DBH estimation requires a transect that includes points as much as possible and stems with a CDRC of larger than 200◦, and thus, for the stems from the “insufﬁcient” and “intermediate” class (see Fig.
+- 9 ), it is usually difﬁcult to obtain sufﬁcient intensity transect information for a reliable diameter estimation.
+- The results show good correlation with the reference values for both designs (e.g., RMSE = 20.47 cm for the iterative mode and RMSE = 21.67 cm for the regular mode in the “medium” plots, see Table III).
+- Additionally, to measure the effectiveness of the stem diameter estimation at the part within the crown and the part below crown, two evaluation factors, i.e., SCI and SCB deﬁned in Section III-D2, were investigated.
+- The stem diameter est imates were calculated for the part within the crown and the part below the crown (see Section III-D2).
+- : ITERA TIVE-MODE SCAN DESIGN OF TLS IN FORESTS FOR MINIMIZING OCCLUSION EFFECTS 13 TABLE IV RMSE SO FT H E STEM DIAMETER ESTIMA TES DERIVED FROM ITERA TIVE - AND REGULAR -M ODE SCANS FOR ALL THE FIELD PLOTS Fig.
+- In the stem diameter estimation with the crown, the stem edge points were difﬁcult to locate when the stem was partly obscured by the canopy elements, which causes difﬁculty associated with circle ﬁtting.
+- The new proposed design enabled the robust and accurate estimation of the stem curve at various tree ages and different stem densities (RMSE < 1.1 cm, see Table IV), where a sparser forest led to better results (e.g., lower RMSE for “easy” plots against “difﬁcult” plots).
+- Comparably, it was pronounced that many substantially misestimated stem diameters (±20 cm) were observed for the regular-mode design [see the blue dots with large bias in Fig.
+- 12(c), (e), and (f)], especially in the plots with high stem density (the RMSE is up to 1.65 cm).
+- The results show that the estimates derived from the iterative-mode design are less erroneous (lower RMSE) than those derived from the regular- mode design (Table V).
+- For example, the RMSE of the crown volume estimates is 9.155 m 3 for the iterative-mode design but 15.822 m 3 for the regular-mode design in the row plot [Fig.
+- Table V shows the RMSE of the crown volume for each type of pattern.
+- The ratio of the RMSE to the reference decreased by up to 15% via the iterative-mode design in the row-pattern plots.
+- Feasibility of the 2-D Simpliﬁcation of Trees The optimization of the iterative-mode scan design is based on the 2-D simpliﬁcation of the tree, i.e., a 3-D tree is represented by a circle.
+- : ITERA TIVE-MODE SCAN DESIGN OF TLS IN FORESTS FOR MINIMIZING OCCLUSION EFFECTS 15 TABLE V RMSE SO FT H E CROWN VOLUME ESTIMA TES DERIVED FROM ITERA TIVE - AND REGULAR -M ODE SCANS FOR THE SYNTHETIC PLOTS .T HE 8- AND 16-S CAN DESIGNS WERE ASSESSED .T HE PERCENTAGE REFERS TO THE RAT I O O F T H ERMSE TO THE REFERENCE VALUE circle, and the tree size is characterized by the circle diameter.
+- We suggest that the tree size can be the DBH or crown diameter depending on different applications.
+- For example, 3-D forest modeling, which is usually one of the main pur- poses of a TLS campaign, usually focuses on all the tree elements, including the stem, branches, and leaves, thereby needing the crown diameter as the tree size to produce a full plot coverage [4].
+- Such an increase in the occlusion effect illustrates the importance and difﬁculty of placing the scans when attempting to retrieve the crown variables or even the DBH in dense forest plots.
+- Inﬂuences of the Occlusion Effect on the TLS Location, Scan Completeness, and Tree Attribute Estimation The PoTo index maps of various plots highlighted that the occlusion effect is highly related to the spatial pattern, tree density, and tree sizes (Fig.
+- The statistical results of the CDRC of tree circle explicitly illustrate the differences in the sampling completeness between the two designs in ideal situations (Fig.
+- The DBH and stem curve estimation are severely affected by the occlusion effect.
+- 13), both scan designs show an evident negative bias with a reference proﬁle, especially for the upper layers of the crown.
+- 16 IEEE TRANSACTIONS ON GEOSCIENCE AND REMOTE SENSING TABLE VI RMSE SO FT H E STEM ATTRIBUTE ESTIMA TES DERIVED FROM THE BIASED ITERA TIVE -M ODE SCANS WITH RANDOM ERRORS FOR ALL THE FIELD PLOTS can effectively reduce the occlusion effect and improve the data quality.
+- In addition, the negative bias is also determined by the tree distribution.
+- If repeat campaigns (e.g., leaf-on and leaf-off) are planned, then marking the location of each scan position (e.g., with a small ﬂag or stake) is beneﬁcial.
+- The corresponding point clouds under the biased TLS scans were simulated by the HELIOS.
+- According to the joint interpretation of Tables III, IV , and VI, the overall estimation accuracy of the stem attribute i s slightly decreased due to the biased scans (e.g., the RMSE varied within 0.3 cm for the stem curve).
+- Notwithstanding, the biased iterative-mode scans still enabled high-accuracy estimation in terms of the DBH, tree height, and stem curve, which veriﬁes the performance of the new proposed design, especially for high-density plots.
+- The results revealed that the proposed design can improve the scan completeness and reﬁne the tree attribute estimation (DBH, tree height, stem curve, and crown volume).
+- Importantly, the iterative-mode design highlighted its merit in medium- and high-density stands, e.g., the RMSE decreased by 38% in the stem curve estimation in “difﬁcult” plots.
+- Given an observation point P and object circle O with a radius r , the tangent points T1 and T2 can be determined using the geometric model illustrated in Fig.
+- Points O, P, T1,a n d T2 are on circle C with radius R.
+- Illustration of the calculation of the tangent vector between a given point and a circle.
+- 3) Calculation of the endpoint s of the visible arc.
+- 16, the endpoints of the visible arc of circle B (taking circle B as an example) have the following situations: 1) two tangent points of circle B during no occlusion [Fig.
+- 16(a)]; 2) a tangent point of circle B and an intersection point between circle B and a tangent line of circle A during partial occlusion [Fig.
+- the intersection point of circle B can be derived by ⎧ ⎪⎪⎨ ⎪⎪⎩ (x − Oocx)2 + (y − Oocy)2 = r 2 x − Oocx Tx − Oocx = y − Oocy Ty − Oocy argmin((Ix − Oocx)2 + (Iy − Oocy)2) (A4) where the subscripts oc x and oc y mean the x–y coordi- nates of the center of the partially occluded circle B.
+- Tx and Ty refer to the x–y coordinates of a tangent point of circle A.
+- Each group of points (one observation point and two endpoints of the visible arc; black dots for a circle in Fig.
+- Nothdurft, “Inﬂuence of scanner position and plot size on the accuracy of tree detection and diameter estimation using terrestrial laser scanning on forest inventory plots,” Remote Sens.
+- Olsson, “Estimating tree stem density and diameter distribution in single-scan terrestrial laser measurements of ﬁeld plots: A simulation study,” Scandin.
+- Höﬂe, “HELIOS: A multi-purpose LiDAR simu- lation framework for research, planning and training of laser scanning operations with airborne, ground-based mobile and stationary platforms,” ISPRS Ann.

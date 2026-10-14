@@ -1,0 +1,83 @@
+name: fetch-data
+
+# Holt offene Fremddaten, die aus der Cloud-Umgebung nicht erreichbar sind
+# (Zenodo, PANGAEA): je Plot ein paralleler Job, der nur seine Datei per
+# HTTP-Range aus dem grossen ZIP zieht und das Brusthoehenband ausschneidet
+# (scripts/ci_fetch_one.py). Ein Sammeljob committet alles nach extdata/.
+# Ausgeloest durch eine Aenderung an .github/fetch-request.txt (oder manuell).
+on:
+  push:
+    paths: [".github/fetch-request.txt"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-data-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  segforests:
+    # Auswahl ueber die Commit-Nachricht: [segforests] / [laut]; ohne Marke beide
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[segforests]') || !contains(github.event.head_commit.message, '[laut]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 13
+      matrix:
+        plot: ["01","02","03","04","05","06","07","09","10","11","12","13","14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install "laspy[lazrs]" numpy
+      - run: |
+          python scripts/ci_fetch_one.py "https://zenodo.org/records/17396681/files/SegmentedForests.zip?download=1" \
+            --match "pointclouds/plot_${{ matrix.plot }}\.laz$" --out out/segforests --name plot_${{ matrix.plot }}
+          python scripts/ci_fetch_one.py "https://zenodo.org/records/17396681/files/SegmentedForests.zip?download=1" \
+            --match "3DFin_settings/plot_${{ matrix.plot }}\.ini$" --out out/segforests --name plot_${{ matrix.plot }}
+      - uses: actions/upload-artifact@v4
+        with: { name: "segforests-${{ matrix.plot }}", path: out, retention-days: 3 }
+
+  laut:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[laut]') || !contains(github.event.head_commit.message, '[segforests]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        plot: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install "laspy[lazrs]" numpy
+      - run: |
+          pip install zipfile-deflate64
+          python scripts/ci_fetch_one.py "https://zenodo.org/records/3698956/files/TLS_clouds.zip?download=1" \
+            --match "(^|[^0-9])0*${{ matrix.plot }}(?![0-9])[^/]*\.la[sz]$" --out out/laut --name tls_plot_${{ matrix.plot }}
+      - uses: actions/upload-artifact@v4
+        with: { name: "laut-${{ matrix.plot }}", path: out, retention-days: 3 }
+
+  commit:
+    needs: [segforests, laut]
+    if: always() && !cancelled()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: art, merge-multiple: true }
+      - run: |
+          mkdir -p extdata
+          cp -r art/* extdata/ 2>/dev/null || true
+          find extdata -type f -size +95M -print -delete   # GitHub-Grenze 100 MB je Datei
+          ls -laR extdata | head -80
+      - run: |
+          git config user.name "fetch-data bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add extdata
+          git commit -m "extdata: SegmentedForests 13 Plots, LAUT TLS 20 Plots (Brusthoehenband, CI)" || echo "nichts Neues"
+          for i in 1 2 3 4 5; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && break; sleep 10; done
