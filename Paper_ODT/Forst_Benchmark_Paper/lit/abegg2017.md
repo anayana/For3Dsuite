@@ -1,0 +1,56 @@
+# Lesenotiz abegg2017 (automatische Auszuege, kein Volltext)
+
+## Anfang (Titel, Autoren, Abstract)
+
+Article Terrestrial Laser Scanning for Forest Inventories—Tree Diameter Distribution and Scanner Location Impact on Occlusion Meinrad Abegg 1,2,*, Daniel Kükenbrink 2, Jürgen Zell 1, Michael E. Schaepman 2 and Felix Morsdorf 2 1 Forest Resources and Management, WSL Swiss Federal Institute for Forest, Snow and Landscape Research WSL, Zürcherstrasse 111, CH-8903 Birmensdorf, Switzerland; juergen.zell@wsl.ch 2 Remote Sensing Laboratories, Department of Geography, University of Zurich, Winterthurerstr 190, CH-8057 Zürich, Switzerland; daniel.kuekenbrink@geo.uzh.ch (D.K.); michael.schaepman@geo.uzh.ch (M.E.S.); felix.morsdorf@geo.uzh.ch (F.M.) * Correspondence: meinrad.abegg@wsl.ch; Tel.: +41-44-739-2412 Academic Editor: Timothy A. Martin Received: 31 March 2017; Accepted: 20 May 2017; Published: 26 May 2017 Abstract: The rapid development of portable terrestrial laser scanning (TLS) devices in recent years has led to increased attention to their applicability for forest inventories, especially where direct measurements are very expensive or nearly impossible. However, in terms of precision and reproducibility, there are still some pending questions. In this study, we investigate the inﬂuence of stand parameters on the TLS-related visibility in forest plots. We derived 2740 stand parameters from Swiss national forest inventory sample plots. Based on these parameters, we deﬁned virtual scenes of the forest plots with the software “Blender”. Using Blender’s ray-tracing features, we assessed the 3D coverage in a cubic space and 2D visibility properties for each of the virtual plots with different scanner placement schemes. We provide a formula to calculate the maximum number of possible hits for any object size at any distance from a scanner with any resolution. Additionally, we show that the Weibull scale parameter describing a stand, in addition to the number of trees and the mean diameter of the dominant 100 trees per hectare, has a signiﬁcant and relevant inﬂuence on the visibility of the sample plot. Furthermore, we show the effectiveness and the efﬁciency of 40 scanner location patterns. These experiments demonstrate that intuitively distributing scanner locations evenly within the sample plot, with similar distances between locations and from the edge of the sample plot, provides the best overall visibility of the stand. Keywords: terrestrial laser scanning; forest inventory; occlusion; stem diameter distribution 1. Introduction National Forest Inventories (NFI) deliver information on the forest area, the amount and change of forest resources, the development of the biotope forest in general, the carbon balance of a country [ 1–3] and other ecosystem services [ 4]. In the Swiss NFI, data collection is based on aerial photo interpretation, forest service interviews and ﬁeld measurements [5]. Field measurements provide the largest and most important collection of data for a NFI. On a national level, they comprise measurements of several thousand sample plots, each of which has to be visited by a ﬁeld team [6]. Field measurements consist of two methods: actual measurements and expert assessments. If possible, measurements are applied to determine forest features. However, certain forest features are nearly impossible to measure on standing trees or can only be measured at a very high cost with traditional Forests 2017, 8, 184; doi:10.3390/f8060184 www.mdpi.com/journal/forests Forests 2017, 8, 184 2 of 29 tools. Examples of such features are
+
+
+## Saetze mit Schluesselwoertern
+
+- Article Terrestrial Laser Scanning for Forest Inventories—Tree Diameter Distribution and Scanner Location Impact on Occlusion Meinrad Abegg 1,2,*, Daniel Kükenbrink 2, Jürgen Zell 1, Michael E.
+- Using Blender’s ray-tracing features, we assessed the 3D coverage in a cubic space and 2D visibility properties for each of the virtual plots with different scanner placement schemes.
+- Additionally, we show that the Weibull scale parameter describing a stand, in addition to the number of trees and the mean diameter of the dominant 100 trees per hectare, has a signiﬁcant and relevant inﬂuence on the visibility of the sample plot.
+- Keywords: terrestrial laser scanning; forest inventory; occlusion; stem diameter distribution 1.
+- Several factors, such as scanning resolution, the LiDAR technology applied, and weather conditions, inﬂuence the quality of the laser scans in terms of completeness and accuracy.
+- The analysis of visibility can contribute to quantifying the expected quality of TLS acquisitions in terms of completeness.
+- The goal of this study is to highlight both the potential and the limitations of TLS in terms of expected TLS points per object and to explain the inﬂuence of the stand and the scanner placement on the quality of the scans in terms of completeness.
+- (ii) To show the connection between the visibility of a sample plot and its stand describing parameters, such as diameter distribution, stem number and dominant diameter.
+- The radii of the six sample plots for the tree measurement of the different diameter classes range from 0.9 m to 12.62 m (0.9 m, 1.5 m, 2.5 m, 4 m, 7.98 m, 12.62 m).
+- The largest sample plot, a square area of 50× 50 m termed the “interpretation area”, is used to assess stand level parameters, such as stand structure and occurrence Forests 2017, 8, 184 3 of 29 of important elements in the stand, such as snags or coverage of regeneration [18].
+- At each grid intersection point, the trees are recorded on different circular plots depending on their size as mentioned earlier (Size classes: 0.1 m–0.39 m height, 0.4–1.29 m height, 0.1–3.9 cm DBH, 4–11.9 cm DBH, 12–35.9 cm DBH,≥36 cm DBH).
+- Nevertheless, the methods applied are the same, allowing all the measured trees of any given diameter at breast height (DBH) to be combined.
+- Since every tree of any diameter contributes to occlusion, we included all trees reaching 1.3 m in height for our evaluation.
+- The Weibull distribution consists of three parameters, a shape (Wshape ), a scale (Wscale ) and an offset that describes the smallest diameter.
+- The offset was set to 0.5 cm as a ﬁxed parameter because this is the smallest diameter measured at breast height.
+- We excluded the simulated samples that exceeded double the maximal determined Ddom in a Swiss NFI ﬁeld campaign (185 cm) and all the samples that have one simulated diameter that exceeds three times the maximal measured diameter in the Swiss NFI of 207 cm.
+- The Weibull parameters Wshape and Wscale deﬁned the shape of the diameter distribution.
+- No cylinder was allowed to overlap the scanner positions or another cylinder, and any overlapping cylinders were relocated to a new random position within the sample plot.
+- The cylinders were initially deﬁned as a Bézier curve with a certain diameter (bevel) and then converted to a mesh.
+- Rendering of the cylinder placement of one sample plot in Blender.
+- Theoretical Coverage of a Laser Scanning System in a 3D Space The goal of this experiment was to determine the theoretical minimal coverage of a laser scanning system in a cubic space.
+- We assumed the laser beam to be inﬁnitesimally small in diameter.
+- The location for the scanning system we chose to be the centre of the sample plot, at 1.3 m height above ground, corresponding to the height of the DBH measurement.
+- Forests 2017, 8, 184 6 of 29 As a measure of the coverage, we used the voxel traversal algorithm described in Section 2.1.5 to count the number of rays entering the sampled voxels (Nhits).
+- We calculated additional NFI-related stand parameters based on the generated diameter distribution ﬁles, to be used in the evaluation of the results.
+- One parameter is the mean diameter of the 100 largest trees per hectare ( Ddom).
+- The other parameter is the stem number of the trees with a minimal diameter at breast height of 12 cm (Ntree≥12cm).
+- Since the range of Vm is from 0 to 1, we applied an arc-sin-square-root transformation.
+- The displayed scanning locations, with their identiﬁcation number, can be combined to form scanning location patterns for the search for efﬁcient patterns, which are each evaluated for occlusion and coverage (visibility).
+- Theoretical Coverage of a Laser Scanning System in a 3D Space To investigate the theoretical coverage of a TLS system in a cubic space with an edge length of 50 m, we simulated laser range measurements with geometric vectors as a proxy for TLS laser pulses.
+- The number of laser beams (vectors) entering each voxel Nhits served as a measure of coverage, i.e., detection quality of the laser scanner.
+- Inﬂuence of Stand Parameters on Visibility in a 2D Space The hypothesis was that the structure of a stand, represented by a Weibull distribution, stem number and dominant diameter (Ddom), would have an inﬂuence on the visibility within the stand.
+- Ddom is the mean diameter of the 100 largest trees per hectare.
+- Theoretical Coverage of a Laser Scanning System in a 3D Space The ﬁrst goal of this study was to test the link between scanner resolution and a minimum object size that could theoretically be detected without accounting for occlusion, given the assumption of an inﬁnitesimally small laser beam.
+- Nevertheless, a laser beam with an increasing diameter when crossing the forest scene can hit multiple objects at the same time, leading to various effects in respect to the obtained point clouds.
+- For these objects, only multiple TLS measurements can improve the coverage, albeit in a linear fashion.
+- The number of trees (Ntree), the mean diameter of the 100 largest trees per hectare ( Ddom) and the number of trees with a DBH of≥12 cm (Ntree≥12cm) show a highly signiﬁcant inﬂuence as well.
+- The assessment of visibility in this experiment is based on range measurements of geometric vectors with an inﬁnitesimally small diameter.
+- As mentioned above, laser pulses of any TLS device have a starting diameter and a beam divergence.
+- Due to this increasing diameter (footprint) of the laser beam, a single laser pulse can hit multiple objects at the same time.
+- [ 23] noticed an overestimation of occluded volume when laser scanning data were simulated using an inﬁnitesimally small laser beam diameter.
+- Even though the Weibull distribution is a common choice to describe diameter distributions of stands [20], it does not encompass distributions with more than one local maximum, as described in [ 12].
+- This is useful for any application that is applied in such a setting, for example certain methods of stem detection or DBH derivation, as described by [34,37,39,49,50].
+- Inﬂuence of the Scanning Location within Sample Plots on Visibility in a 2D Space By simulating different scanning locations, we showed the effect of the scanner placement within a sample plot on occlusion and coverage.
+- Conclusions In this study, we investigated the maximal possible coverage of a TLS device in a 50 m cubic voxel space.
+- Parameters with the second and third strongest inﬂuence on visibility are the shape of the Weibull distribution and the mean diameter at breast height of the 100 largest trees per hectare.
+- Quantifying diameter distributions with the Weibull function.
