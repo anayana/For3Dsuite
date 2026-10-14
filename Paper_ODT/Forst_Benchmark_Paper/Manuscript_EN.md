@@ -87,8 +87,10 @@ All estimators operate on the points of one stem in the band 1.05–1.55 m (cyli
   admitted only if its inliers span at least 90°; final Kasa fit on the inliers (Fischler and Bolles, 1981).
 - **Cylinder**: circle fit in the plane normal to an axis whose tilt is optimised (Nelder–Mead,
   ≤ 15°), to remove the elliptical bias of tilted stems.
-- **Hough**: circle Hough transform with normal-directed voting; normals from local PCA (k = 12) after
-  1 cm thinning; 5 mm accumulator, 3 × 3 smoothing, radius coarse-to-fine (1 cm, 2 mm).
+- **Hough**: circle Hough transform of scikit-image (`hough_circle`, default normalised accumulators;
+  van der Walt et al., 2014) on a binary raster of the points, coarse-to-fine (1 cm raster over radii
+  4–75 cm with the accumulator extended beyond the image, then 2.5 mm raster within ±1.5 cm of the coarse
+  radius); the strongest accumulator cell is taken. No parameter was tuned.
 - **Huber-robust**: geometric fit with Huber loss (scale 1 cm), Kasa start.
 
 Implementations: `scripts/dbh_methods.py`, `scripts/arc_error_mc_real.py` (repository, Section *Code
@@ -122,6 +124,13 @@ from the centre), (b) 10 random draws from the pool, (c) the n positions closest
 ("clustered", as at Renon). Stem points are assigned by the HELIOS object identifier, i.e. segmentation
 is perfect, isolating coverage and fitting from detection.
 
+**Branches at breast height.** Because the stems above carry no branches, a fourth scene S1b-B repeats
+S1b with identical stems, positions and scan pool and adds branches as thin tapered cylinders
+(Poisson(6) per stem, attachment height 0.5–3.0 m, inclination −10° to +50°, length 0.3–2.0 m, base
+diameter 1.5–5 cm). Branches belong to the stem object, so their points enter the stem point set as they
+would after a real stem segmentation; in the core plot 88 % of the stems have at least one branch
+crossing the 1.05–1.55 m band (median 2).
+
 **Visible arc.** Occupied-sector counts and fine angular bins both depend on point density. We
 therefore compute the geometrically visible arc: for 360 points on the true elliptical perimeter at
 1.3 m, a point counts as visible from a position if it faces it (cosine of incidence > 0.1) and the line
@@ -133,7 +142,10 @@ true elliptical perimeter.
 
 Per estimator and arc class: bias, RMSE, share of stems within ±2 cm (failures counted as outside),
 failure rate. A *coverage threshold* is the smallest arc from which RMSE ≤ 2 cm, |bias| ≤ 1 cm and
-failure ≤ 10 % hold for all larger arcs. The 2 cm level corresponds to the DBH accuracy of 1–2 cm that the international
+failure ≤ 10 % hold for all larger arcs. For the share within 2 cm we additionally report the
+smallest arc class from which at least 80 % of the stems are within 2 cm, with 95 % confidence
+intervals from a cluster bootstrap over stems (B = 300; all cases of a stem are resampled together
+because the same stem appears in many configurations; `scripts/paperC_bootstrap.py`). The 2 cm level corresponds to the DBH accuracy of 1–2 cm that the international
 TLS benchmark found achievable (Liang et al., 2018).
 
 ## 3. Results
@@ -324,6 +336,9 @@ points within 30 cm; (c) LAUT, 460 well-covered trees against field DBH, with su
   FORTLS. Environmental Modelling & Software 150, 105337. https://doi.org/10.1016/j.envsoft.2022.105337
 - Ritter, T., Gollob, C., Nothdurft, A., 2020. Towards an optimization of sample plot size and scanner position
   layout for terrestrial laser scanning in multi-scan mode. Forests 11(10), 1099. https://doi.org/10.3390/f11101099
+- van der Walt, S., Schönberger, J.L., Nunez-Iglesias, J., Boulogne, F., Warner, J.D., Yager, N., Gouillart, E.,
+  Yu, T., the scikit-image contributors, 2014. scikit-image: image processing in Python. PeerJ 2, e453.
+  https://doi.org/10.7717/peerj.453
 - Winiwarter, L., Esmorís Pena, A.M., Weiser, H., Anders, K., Martínez Sánchez, J., Searle, M., Höfle, B., 2022.
   Virtual laser scanning with HELIOS++: a novel take on ray tracing-based simulation of topographic
   full-waveform 3D laser scanning. Remote Sensing of Environment 269, 112772. https://doi.org/10.1016/j.rse.2021.112772
