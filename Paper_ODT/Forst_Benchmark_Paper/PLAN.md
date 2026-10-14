@@ -171,3 +171,10 @@ Prüft, ob die Schwellen aus S1/S2 auf echte Rinde/Äste übertragbar sind.
 - **Alle drei Szenen zusammen** (26 712 Fälle): Anteil |Fehler| ≤ 2 cm bei Kasa/Zylinder 73 % (135–180°),
   82 % (180–225°), 93 % (225–270°), 98–99 % (≥ 270°). Raster mit 4 Standpunkten: 80–89 % der Stämme ≥ 180°,
   mit 6: 96–98 %.
+
+### Nachtrag 14.10.: Verbesserungen 1–4 umgesetzt
+- **Hough** jetzt scikit-image `hough_circle` (Standard, zweistufig, nichts getunt); Fehler im alten Code (x/y des Zentrums vertauscht) behoben; alle Datensätze neu. Hough überall am schwächsten (HELIOS 35 % ≤ 2 cm bei 180–225°; SegmentedForests 58 % bei 360°).
+- **Bootstrap** (Cluster über Stämme, B = 300, `results/bootstrap.csv`): 80-%-Punkt HELIOS Kasa 180–225°-Klasse (KI bis 225–270), SegmentedForests Kasa 225° (225–270), mit Umgebung nur RANSAC 360° (315–360), LAUT nie.
+- **Äste in Brusthöhe** (S1b-B, `results/helios_S1b_ast.csv`): Kleinste-Quadrate-Fits ≤ 43 % ≤ 2 cm bei jeder Abdeckung, RANSAC unverändert (79 % bei 180–225°).
+- **3DFin auf 12 echten Plots** mit simulierter Teilabdeckung (`results/fin_real/`): 296 Referenzstämme; BHD akzeptiert 10/24/36/49/54 % bei 1/2/3/4/6 Rasterpunkten; akzeptierte BHD zu 88 % ≤ 2 cm am Vollwert.
+- SegmentedForests-Referenz jetzt unabhängig von Hough (≥ 3 von 4 KQ-Fits): 458 Stämme.

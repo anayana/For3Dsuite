@@ -29,7 +29,10 @@ positions on a grid bring 80–89 % of stems above 180°; four positions cluster
 fall to 56 % at 1200 stems ha⁻¹. When branches cross the breast-height band and are not removed, least-squares
 fits fail at any coverage (≤ 22 % within 2 cm), whereas RANSAC is unaffected. On 458 labelled real stems (SegmentedForests) the Kasa fit needs about
 225° for 80 % of stems within 2 cm; with the surrounding points left in, least-squares fits saturate at 55 % even at full coverage,
-whereas RANSAC reaches 84 %, and 62 % against field DBH on 460 well-covered LAUT trees. A coverage threshold is
+whereas RANSAC reaches 84 %, and 62 % against field DBH on 460 well-covered LAUT trees. Running 3DFin
+itself on twelve real plots with simulated reduced coverage, 88 % of the accepted diameters were within
+2 cm of the full-coverage value, but only 49–54 % of the stems received a DBH with four to six spread
+positions. A coverage threshold is
 therefore defensible, but it must be stated per estimator, per expected stem shape and per
 segmentation quality, and scan positions must be spread rather than added.
 
@@ -149,6 +152,21 @@ intervals from a cluster bootstrap over stems (B = 300; all cases of a stem are 
 because the same stem appears in many configurations; `scripts/paperC_bootstrap.py`). The 2 cm level corresponds to the DBH accuracy of 1–2 cm that the international
 TLS benchmark found achievable (Liang et al., 2018).
 
+### 2.5 3DFin on real plots with reduced coverage
+
+To test the complete pipeline rather than isolated circle fits, 3DFin 0.6.0 (Laino et al., 2024) was run
+on the complete SegmentedForests plot clouds (12 plots, 2 cm voxel thinning) with the dataset authors'
+3DFin settings (`scripts/paperC_3dfin_real.py`, GitHub Actions workflow `compute-3dfin.yml`). The run
+on the full multi-scan cloud defines the reference: stems with an accepted DBH. Reduced coverage was
+then produced by virtual scan positions (1, 2, 3, 4 and 6 positions spread on a grid by greedy max–min,
+and 4 clustered near the plot centre) and a stem-occlusion model: a point is kept if it lies on the
+facing side of its own stem and the line of sight from at least one position does not cross another
+stem (all full-cloud detections act as occluders). Branches and foliage do not occlude in this model,
+so coverage is, if anything, overestimated in 3DFin's favour. 3DFin was rerun with the same settings on
+each reduced cloud; per reference stem we record the geometric visible arc (as in Section 2.3),
+detection (a 3DFin stem within 0.5 m), acceptance (non-zero DBH) and the DBH difference to the
+full-coverage 3DFin value.
+
 ## 3. Results
 
 ### 3.1 Monte Carlo
@@ -237,6 +255,19 @@ lower LAUT values include field-measurement error and the absence of any segment
 RANSAC and Huber 315° (270–315° for Huber); with surrounding points only RANSAC at 360° (315–360°);
 on LAUT no estimator reaches 80 % at any arc.
 
+### 3.5 3DFin on real plots with reduced coverage
+
+The full-cloud runs gave 296 reference stems in 12 plots (median DBH 23.6 cm). Under reduced coverage
+3DFin still detects most stems (66 % with one position, 83–96 % with two to six), but accepts a DBH for
+far fewer: 10 % with one position, 24 %, 36 %, 49 % and 54 % with two, three, four and six spread
+positions, and 36 % with four clustered positions, which behave like three spread ones (Fig. 7). By
+visible arc, acceptance rises from 16 % at 135–180° and 36 % at 180–225° to 52–56 % at 225–315° and
+76 % beyond 315°. The accepted diameters are accurate: 88 % lie within 2 cm of the full-coverage value
+(66 % at 135–180°, 78 % at 180–225°, 95 % at 225–270°, ≥ 96 % beyond), and 14 % of the accepted
+diameters come from stems with less than 180° visible. On real plots the sector rule thus acts as
+intended — it filters poorly covered stems — but at the price of completeness: with four spread
+positions half of the reference stems receive no DBH.
+
 ## 4. Discussion
 
 **Relation to Li et al. (2021).** Their 200° CDRC guideline is confirmed for least-squares fits of clean
@@ -247,6 +278,12 @@ point to about 225°, and with surrounding points no CDRC is sufficient for leas
 once non-stem points enter the band, least-squares fits fail at any coverage, while an arc-constrained
 RANSAC keeps its accuracy. A coverage rule therefore only makes sense together with a statement of how
 stem points were separated from branches and understorey.
+
+**3DFin trades completeness for accuracy.** On real plots the accepted 3DFin diameters met the 2 cm level
+for 78 % of stems at 180–225° and 95 % at 225–270°, close to the least-squares behaviour in HELIOS, but
+3DFin withheld a DBH for about half of the stems even with four or six spread positions, and for a
+quarter of the stems visible beyond 315°. Inventories that rely on the rule should therefore report the
+share of stems without DBH, and scan designs should aim at more coverage than the rule's 202.5°.
 
 **A single threshold does not fit all estimators.** Without outliers, least-squares fits need far
 less than 202.5°; with non-circular stems they need about 180–200°; with outliers they never become
@@ -269,7 +306,9 @@ scene and as simple cylinders, flat terrain, one scanner model, idealised outlie
 Range-dependent incidence effects and beam divergence are simulated by HELIOS but not varied systematically.
 Hough was run with scikit-image defaults; other accumulator normalisations or smoothing may behave
 differently, but no parameter was tuned for any estimator. On SegmentedForests the reference DBH is
-itself a fit to well-covered points, not a field measurement.
+itself a fit to well-covered points, not a field measurement. The 3DFin experiment simulates reduced coverage by
+removing points from a multi-scan cloud with a stem-only occlusion model; real single-position scans
+differ in point density and range effects, and its reference is 3DFin's own full-coverage result.
 
 ## 5. Conclusions
 
@@ -278,7 +317,8 @@ With clean stem points, least-squares fits need about 180° (simulation) to 225�
 visible arc for most stems to be within 2 cm, and 3DFin's 202.5° sector rule sits in this range.
 Without clean segmentation, no amount of coverage rescues least-squares fits; robust estimators such
 as RANSAC with an arc constraint are then the main lever. Scan positions should be spread rather than
-clustered, especially in dense stands.
+clustered, especially in dense stands. Coverage rules such as 3DFin's keep the accepted diameters accurate
+but leave many stems without a DBH; the share of rejected stems belongs in every TLS inventory report.
 
 ## Code availability
 
@@ -325,6 +365,11 @@ points within 30 cm; (c) LAUT, 460 well-covered trees against field DBH, with su
 visible arc in (a) stand S1b and (b) the same stand with branches crossing the 1.05–1.55 m band
 (S1b-B); stem and branch points are segmented together, as after a real stem segmentation. Dotted
 line: 202.5°.](figures/fig6_branches.png)
+
+![**Figure 7.** 3DFin on twelve SegmentedForests plots with simulated reduced coverage (1–6 virtual scan
+positions): share of the 296 reference stems detected and with an accepted DBH, and share of accepted
+diameters within ±2 cm of the full-coverage 3DFin value, by geometrically visible arc (classes with
+fewer than ten accepted diameters omitted). Dotted line: 202.5°.](figures/fig7_3dfin_real.png){width=60%}
 
 ## References
 

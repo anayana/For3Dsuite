@@ -166,8 +166,32 @@ def fig_branches():
     save(fig, "fig6_branches")
 
 
+def fig_fin_real():
+    import glob
+    fs = glob.glob(str(RES / "fin_real" / "*.csv"))
+    if not fs:
+        return
+    x = pd.concat([pd.read_csv(f).assign(plotid=Path(f).stem) for f in fs]); s = x[x.stem >= 0].copy()
+    s["acc"] = s.fin_dbh_cm.fillna(0) > 0
+    s["ok2"] = s.acc & ((s.fin_dbh_cm - s.ref_dbh_cm).abs() <= 2)
+    edges = [1, 90, 135, 180, 225, 270, 315, 361]; mids = [45, 112.5, 157.5, 202.5, 247.5, 292.5, 338]
+    s["cls"] = pd.cut(s.arc_geo_deg, edges, right=False)
+    g = s.groupby("cls", observed=False)
+    det, acc = g.detected.mean(), g.acc.mean()
+    ga = s[s.acc].groupby("cls", observed=False).ok2
+    okacc = ga.mean().where(ga.size() >= 10)                 # Klassen mit < 10 akzeptierten BHD ausblenden
+    fig, ax = plt.subplots(figsize=(4.2, 3.0))
+    for v, lab, col, mk in [(det, "Detected", "#2a78d6", "o"), (acc, "DBH accepted", "#eb6834", "s"),
+                            (okacc, "Within 2 cm (of accepted)", "#1baf7a", "^")]:
+        ax.plot(mids, 100 * v.values, color=col, marker=mk, ms=4, lw=1.6, label=lab)
+    ax.axvline(202.5, color=MUTED, lw=.8, ls=":"); ax.set_ylim(0, 102); ax.set_xticks([0, 90, 180, 270, 360])
+    ax.set_xlabel("Geometrically visible arc (°)"); ax.set_ylabel("Reference stems (%)"); ax.legend(fontsize=7, loc="lower right")
+    save(fig, "fig7_3dfin_real")
+
+
 def main():
     fig_real()
+    fig_fin_real()
     fig_mc()
     d = helios()
     fig_helios_error(d.copy()); fig_design(d); fig_sector(d)
