@@ -59,9 +59,11 @@ Kamerahöhen danach 1,8–9,4).
 ## Offene Punkte
 
 - Format der Punktwolke (Endung). Posen liegen mit `--transform` im System der Punktwolke.
-- Achsenkonvention (photogrammetrisch −Z → OpenCV +Z) nur aus den Daten abgeleitet; mit
-  `validate_colmap.py` gegen die Punktwolke bestätigen.
-- `Orientation` 0/1 (77/89 Fotos): vermutlich Quer-/Hochformat — an den Bildgrößen prüfen.
+- Achsenkonvention (photogrammetrisch −Z → OpenCV +Z) **an zwei Fotos bestätigt** (14.10.2026):
+  SIFT-Zuordnungen (340 Inlier) → relative Pose aus den Bildern; über alle 166×165 Paare und beide
+  Konventionen passt am besten 5_CB_001→002 mit Achsenumkehr (Abw. Rotation 0,7°, Richtung 0,7°).
+  Probe gegen die Punktwolke mit `validate_colmap.py` steht noch aus.
+- `Orientation` 0/1 (77/89 Fotos): Bedeutung offen; 001 und 002 (beide 0) sind 3872×2592 quer.
 - Speicher: Gebäude einzeln laden (größtes Archiv 10,5 GB + entpackt). Beim RunPod-Pod
   Container-/Volume-Disk ≥ 50 GB wählen; Schritt 0b zeigt den freien Platz mit `df -h`.
 - Splat-Zentren oder gerenderte Tiefe als Messgröße: Start mit Zentren (einfacher, keine GPU),
