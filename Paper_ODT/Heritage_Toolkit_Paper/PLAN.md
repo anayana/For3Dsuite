@@ -21,16 +21,18 @@ Stand 13.10.2026 · Grundlage: `UEBERGABE.md`, `Heritage_Toolkit_Konzept.md`
 | `4_CG.rar` | 10,5 GB | 0a0c3576e1a233651dff36e92873ad04 |
 | `5_CB.rar` | 2,1 GB | 1814a907a649ef500ee90e19679615d1 |
 
-Inhalt der RAR-Archive unbekannt → Schritt 0b. Start mit `5_CB.rar` (kleinstes).
+Inhalt `5_CB.rar` (vom Nutzer entpackt, 14.10.2026): Bilder, Punktwolke, `1_interior_parameters.txt`
+(MATLAB: K, ks=[k1 k2 k3], ps=[p1 p2]; 3872×2592, f = 3054,46 px) und `2_exterior_parameters.txt`
+(CSV, 166 Fotos: X,Y,K = Zentrum, OMEGA/PHI/KAPPA in Grad, R = (Rx·Ry·Rz)ᵀ, Spalte Orientation 0/1).
 
 ## Schritte
 
 | # | Schritt | Ergebnis | Wer |
 |---|---|---|---|
 | 0 | Dateiliste (Namen und Größen) von Zenodo 14626611 ablesen | Format und Größe bekannt | Nutzer |
-| 0b | `5_CB.rar` per Handy laden, im RAR-Viewer öffnen (nicht entpacken), Screenshots der Ordner | Ordner und Dateitypen bekannt | Nutzer, Agent wertet aus |
-| 1 | Pellis-Eintrag in `DATA_SOURCES.md` (CC BY 4.0, ✅) | Lizenz dokumentiert | Agent |
-| 2 | Formatwandler: Pellis-Kameraparameter → COLMAP-Textformat (`cameras.txt`, `images.txt`, `points3D.txt` aus Referenzwolke), Test mit kleinem Ausschnitt | `scripts/pellis_to_colmap.py` + Test | Agent |
+| 0b | `5_CB.rar` per Handy laden und entpacken, Parameterdateien hochladen | Format bekannt | ✅ 14.10.2026 |
+| 1 | Pellis-Eintrag in `DATA_SOURCES.md` (CC BY 4.0, ✅) | Lizenz dokumentiert | ✅ |
+| 2 | Formatwandler: Pellis-Kameraparameter → COLMAP (PINHOLE, Fotos mit OpenCV entzerrt) | `scripts/pellis_to_colmap.py` + `tests/test_pellis_to_colmap.py` | ✅ Posen; offen: Projektionsprobe gegen Punktwolke, Init-Wolke, Bedeutung `Orientation` |
 | 3 | Trainings-Rezept `scripts/train_pellis_runpod.sh` nach Muster `train_runpod.sh` (gsplat, vorhandene Posen, ein Befehl im RunPod-Terminal) | Skript, das der Nutzer mit einem Befehl startet | Agent baut, Nutzer startet |
 | 4 | Training: zunächst 1 Gebäude, danach die übrigen 4 | `.ply` je Gebäude | Nutzer (RunPod) |
 | 5 | Geometrie-Prüfung: Splat-Zentren (nach `clean_splat.py`) gegen Referenzwolke, C2C-Abstände (Median, 95 %), Vollständigkeit bei Schwellen 2/5/10 cm, je Gebäude und Bauteilklasse | `scripts/eval_splat_geometry.py` + Tabelle/Abbildungen | Agent |
@@ -54,7 +56,10 @@ Inhalt der RAR-Archive unbekannt → Schritt 0b. Start mit `5_CB.rar` (kleinstes
 
 ## Offene Punkte
 
-- Dateiformat der Kameraparameter und Punktwolken (hängt an Schritt 0b).
+- Format der Punktwolke (Endung, Koordinatensystem gleich wie Kamerazentren?).
+- Achsenkonvention (photogrammetrisch −Z → OpenCV +Z) nur aus den Daten abgeleitet; mit
+  `validate_colmap.py` gegen die Punktwolke bestätigen.
+- `Orientation` 0/1 (77/89 Fotos): vermutlich Quer-/Hochformat — an den Bildgrößen prüfen.
 - Speicher: Gebäude einzeln laden (größtes Archiv 10,5 GB + entpackt). Beim RunPod-Pod
   Container-/Volume-Disk ≥ 50 GB wählen; Schritt 0b zeigt den freien Platz mit `df -h`.
 - Splat-Zentren oder gerenderte Tiefe als Messgröße: Start mit Zentren (einfacher, keine GPU),
