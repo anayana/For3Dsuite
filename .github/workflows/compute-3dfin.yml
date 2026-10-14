@@ -27,8 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.12" }
-      - run: pip install "laspy[lazrs]" numpy scipy 3DFin
+        with: { python-version: "3.13" }
+      - run: pip install "3DFin==0.6.0" "dendromatics==0.7.0" "laspy==2.5.4" "lazrs==0.8.2" "pydantic==1.10.26" "CSF_3DFin==2.0.1" "dendroptimized==0.2.2" scipy
       - name: Wolke holen (Range-Request aus dem ZIP)
         run: |
           python - <<'PY'
@@ -53,6 +53,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with: { ref: "${{ github.ref_name }}" }
       - uses: actions/download-artifact@v4
         with: { path: dl, merge-multiple: true }
       - run: |
@@ -61,4 +62,4 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
           git add $D && git commit -m "Paper C: 3DFin auf SegmentedForests mit reduzierter Abdeckung" || exit 0
-          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep $((i*5)); done
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && exit 0; sleep $((i*5)); done; exit 1

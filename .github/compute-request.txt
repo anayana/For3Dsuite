@@ -1,1 +1,1 @@
-hough-v2 2026-10-14T13:23:17 (Achsen korrigiert, globales Maximum)
+hough-v3 2026-10-14T20:06:39
