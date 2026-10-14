@@ -1,0 +1,46 @@
+# Ergebnis eines GPU-Laufs (scripts/train_ipad_runpod.sh) ins Repo holen.
+#
+# Die Cloud-Entwicklungsumgebung erreicht nur GitHub, der GPU-Pod hat keinen
+# Zugang zum Repo. Dieser Workflow schlaegt die Bruecke: incoming/request.json
+# mit {"url": ..., "id": ...} committen -> der Runner laedt das Ergebnis-ZIP,
+# verkleinert den Splat fuer den Browser und committet nach incoming/<id>/.
+name: fetch-splat
+
+on:
+  push:
+    paths: ["incoming/request.json"]
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Ergebnis laden und verkleinern
+        run: |
+          set -euo pipefail
+          pip install -q numpy
+          URL=$(python -c "import json; print(json.load(open('incoming/request.json'))['url'])")
+          ID=$(python -c "import json; print(json.load(open('incoming/request.json'))['id'])")
+          KEEP=$(python -c "import json; print(json.load(open('incoming/request.json')).get('keep', 300000))")
+          case "$ID" in *[!a-z0-9-]*|"") echo "ungueltige id: $ID"; exit 1;; esac
+          curl -fL --retry 3 -m 900 "$URL" -o /tmp/ergebnis.zip
+          rm -rf /tmp/erg && mkdir -p /tmp/erg && unzip -q /tmp/ergebnis.zip -d /tmp/erg
+          ls -la /tmp/erg
+          mkdir -p "incoming/$ID"
+          SPLAT=$(ls /tmp/erg/*_splat.ply | head -1)
+          python scripts/ply_reduce.py "$SPLAT" "incoming/$ID/model.ply" --keep "$KEEP"
+          cp /tmp/erg/*_bericht.json "incoming/$ID/bericht.json"
+          ls -la "incoming/$ID"
+      - name: Committen
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add incoming/
+          git commit -m "incoming: Splat-Ergebnis vom GPU-Lauf abgeholt"
+          git push
