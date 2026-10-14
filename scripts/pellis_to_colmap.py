@@ -28,20 +28,29 @@ Die Verzeichnung (k1,k2,k3,p1,p2) kann COLMAP-PINHOLE nicht abbilden. Mit --imag
 werden die Fotos mit OpenCV entzerrt (gleiche K) und als PINHOLE geschrieben;
 ohne --images entsteht nur das Kameramodell (Probe/Trockenlauf).
 
+  *_point_cloud.txt (Ordner 2_PointCloud, bei 5_CB 0,94 GB)
+      Kopfzeile "//X Y Z R G B label Nx Ny Nz", dann eine Zeile je Punkt, Leerzeichen.
+      Liegt im System der Punktwolke -> nur zusammen mit --transform als Initwolke nutzen.
+
 Erzeugt:
   <out>/sparse/0/cameras.txt   (PINHOLE)
   <out>/sparse/0/images.txt    (world->camera, OpenCV-Konvention)
-  <out>/sparse/0/points3D.txt  (leer; Initwolke spaeter aus der Referenzwolke)
+  <out>/sparse/0/points3D.txt  (mit --cloud: Stichprobe der Referenzwolke mit RGB, sonst leer)
+  <out>/sparse/0/*.bin         (dasselbe binaer -- der COLMAP-Leser von gsplat 1.5.3,
+                                rmbrualla/pycolmap, bricht im Textformat an der ersten
+                                Leerzeile ab und liest daher nur die .bin-Dateien richtig)
   <out>/images/<PhotoID>.jpg   (nur mit --images, entzerrt)
 
 Nutzung:
   python scripts/pellis_to_colmap.py 1_interior_parameters.txt 2_exterior_parameters.txt \
-      out/5_CB [--transform 2_transformation_matrix.txt] [--images <ordner_mit_fotos>] [--no-flip]
+      out/5_CB [--transform 2_transformation_matrix.txt] [--cloud 1_point_cloud.txt] \
+      [--init-points 300000] [--images <ordner_mit_fotos>] [--no-flip]
 """
 import argparse
 import csv
 import os
 import re
+import struct
 import sys
 
 import numpy as np
@@ -117,6 +126,36 @@ def parse_transform(path):
     return s, R, t
 
 
+def sample_cloud(path, n, seed=0, chunk=1_000_000):
+    """Gleichverteilte Stichprobe von n Punkten (X Y Z R G B) aus der Text-Wolke.
+
+    Liest blockweise (die Datei ist ~1 GB), Reservoir je Block; Speicher ~ n + chunk Zeilen.
+    """
+    rng = np.random.default_rng(seed)
+    keep_xyz, keep_rgb, seen = np.empty((0, 3)), np.empty((0, 3), np.uint8), 0
+    pool_keys = np.empty(0)
+    with open(path, encoding="utf-8") as fh:
+        while True:
+            lines = [l for _, l in zip(range(chunk), fh)]
+            if not lines:
+                break
+            lines = [l for l in lines if l.strip() and not l.lstrip().startswith(("//", "#"))]
+            if not lines:
+                continue
+            a = np.loadtxt(lines, usecols=range(6), ndmin=2)
+            xyz, rgb = a[:, :3], np.clip(a[:, 3:6], 0, 255).astype(np.uint8)
+            # Zufallsschluessel je Punkt; die n kleinsten ueber alle Bloecke = Gleichverteilung
+            keys = rng.random(len(xyz))
+            pool_keys = np.concatenate([pool_keys, keys])
+            keep_xyz = np.concatenate([keep_xyz, xyz])
+            keep_rgb = np.concatenate([keep_rgb, rgb])
+            if len(pool_keys) > n:
+                sel = np.argpartition(pool_keys, n)[:n]
+                pool_keys, keep_xyz, keep_rgb = pool_keys[sel], keep_xyz[sel], keep_rgb[sel]
+            seen += len(xyz)
+    return keep_xyz, keep_rgb, seen
+
+
 def R_to_quat(R):
     """Rotationsmatrix -> Quaternion (w,x,y,z), COLMAP-Konvention."""
     t = np.trace(R)
@@ -136,6 +175,24 @@ def R_to_quat(R):
     return q if q[0] >= 0 else -q
 
 
+def write_binary(sparse, cam, images, xyz, rgb):
+    """COLMAP-Binaerformat (cameras/images/points3D.bin), Spuren leer."""
+    with open(os.path.join(sparse, "cameras.bin"), "wb") as fh:
+        fh.write(struct.pack("<Q", 1))
+        fh.write(struct.pack("<iiQQ", 1, 1, cam["W"], cam["H"]))   # id 1, Modell 1 = PINHOLE
+        fh.write(struct.pack("<4d", cam["fx"], cam["fy"], cam["cx"], cam["cy"]))
+    with open(os.path.join(sparse, "images.bin"), "wb") as fh:
+        fh.write(struct.pack("<Q", len(images)))
+        for image_id, q, t, name in images:
+            fh.write(struct.pack("<I4d3dI", image_id, *q, *t, 1))
+            fh.write(name.encode() + b"\x00")
+            fh.write(struct.pack("<Q", 0))                          # keine 2D-Punkte
+    with open(os.path.join(sparse, "points3D.bin"), "wb") as fh:
+        fh.write(struct.pack("<Q", len(xyz)))
+        for i in range(len(xyz)):
+            fh.write(struct.pack("<Q3d3BdQ", i + 1, *xyz[i], *rgb[i], 1.0, 0))
+
+
 def find_image(folder, name):
     for ext in (".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG", ".tif", ".TIF"):
         p = os.path.join(folder, name + ext)
@@ -150,10 +207,14 @@ def main():
     ap.add_argument("exterior")
     ap.add_argument("out")
     ap.add_argument("--transform", help="*_transformation_matrix.txt: Posen ins System der Punktwolke")
+    ap.add_argument("--cloud", help="*_point_cloud.txt: Stichprobe als Initwolke (points3D.txt)")
+    ap.add_argument("--init-points", type=int, default=300_000)
     ap.add_argument("--images", help="Ordner mit den Originalfotos (<PhotoID>.jpg)")
     ap.add_argument("--no-flip", action="store_true",
                     help="R ohne Achsenumkehr uebernehmen (nur falls die Projektionsprobe es zeigt)")
     args = ap.parse_args()
+    if args.cloud and not args.transform:
+        sys.exit("FEHLER: --cloud liegt im System der Punktwolke -> --transform mit angeben")
 
     cam = parse_interior(args.interior)
     poses = parse_exterior(args.exterior)
@@ -172,7 +233,7 @@ def main():
         fh.write(f"1 PINHOLE {cam['W']} {cam['H']} {cam['fx']:.6f} {cam['fy']:.6f} "
                  f"{cam['cx']:.6f} {cam['cy']:.6f}\n")
 
-    lines, missing, odd_size = [], [], []
+    lines, records, missing, odd_size = [], [], [], []
     if args.images:
         import cv2
         Kcv = np.array([[cam["fx"], 0, cam["cx"]], [0, cam["fy"], cam["cy"]], [0, 0, 1]])
@@ -195,14 +256,24 @@ def main():
                 continue
             cv2.imwrite(os.path.join(img_out, fname), cv2.undistort(img, Kcv, cam["dist"]),
                         [cv2.IMWRITE_JPEG_QUALITY, 95])
+        records.append((i, q, t, fname))
         lines.append(f"{i} {q[0]:.9f} {q[1]:.9f} {q[2]:.9f} {q[3]:.9f} "
                      f"{t[0]:.6f} {t[1]:.6f} {t[2]:.6f} 1 {fname}")
         lines.append("")
     with open(os.path.join(sparse, "images.txt"), "w") as fh:
         fh.write("# Image list: IMAGE_ID, QW,QX,QY,QZ, TX,TY,TZ, CAMERA_ID, NAME\n")
         fh.write("\n".join(lines) + "\n")
+    xyz, rgb = np.empty((0, 3)), np.empty((0, 3), np.uint8)
     with open(os.path.join(sparse, "points3D.txt"), "w") as fh:
         fh.write("# 3D point list: POINT3D_ID, X,Y,Z, R,G,B, ERROR, TRACK[]\n")
+        if args.cloud:
+            xyz, rgb, total = sample_cloud(args.cloud, args.init_points)
+            for i in range(len(xyz)):
+                fh.write(f"{i+1} {xyz[i,0]:.4f} {xyz[i,1]:.4f} {xyz[i,2]:.4f} "
+                         f"{rgb[i,0]} {rgb[i,1]} {rgb[i,2]} 1.0\n")
+            print(f"   Initwolke: {len(xyz):,} von {total:,} Punkten, "
+                  f"min {xyz.min(0).round(2)} max {xyz.max(0).round(2)}")
+    write_binary(sparse, cam, records, xyz, rgb)
 
     C = np.array([p["C"] for p in poses])
     print(f"-> COLMAP-Modell: {args.out}")

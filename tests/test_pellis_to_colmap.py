@@ -91,3 +91,52 @@ def test_transform_keeps_projection(tmp_path):
     after = proj(p["R"] @ R_t.T, s * R_t @ p["C"] + t_t, s * R_t @ X + t_t)
     assert np.allclose(before, after, atol=1e-6)
     assert 0 < before[0] < cam["W"] and 0 < before[1] < cam["H"]
+
+
+def test_cloud_sample(tmp_path):
+    cloud = tmp_path / "1_point_cloud.txt"
+    rows = ["//X Y Z R G B label Nx Ny Nz"]
+    rows += [f"{100+i*0.01:.8f} 108.7 7.15 {i % 256} 32 27 1.000000 0 0 1" for i in range(50)]
+    cloud.write_text("\n".join(rows) + "\n")
+    xyz, rgb, total = p2c.sample_cloud(cloud, 20, chunk=7)
+    assert total == 50 and len(xyz) == 20 and len(set(xyz[:, 0])) == 20
+    assert rgb.dtype == np.uint8 and np.all(rgb[:, 1] == 32)
+    xyz, _, _ = p2c.sample_cloud(cloud, 100)
+    assert len(xyz) == 50
+
+
+def test_binary_matches_pycolmap_layout(tmp_path):
+    """.bin-Dateien so lesen, wie es rmbrualla/pycolmap (gsplat 1.5.3) tut."""
+    import struct
+    i, e = write_inputs(tmp_path)
+    tr = tmp_path / "t.txt"
+    tr.write_text(TRANSFORM)
+    cloud = tmp_path / "c.txt"
+    cloud.write_text("//X Y Z R G B label Nx Ny Nz\n" + "".join(
+        f"{100+k:.3f} 108.7 7.1 {k} 2 3 1.0 0 0 1\n" for k in range(5)))
+    out = tmp_path / "out"
+    subprocess.run([sys.executable, str(REPO / "scripts" / "pellis_to_colmap.py"),
+                    str(i), str(e), str(out), "--transform", str(tr), "--cloud", str(cloud)],
+                   check=True, capture_output=True)
+    sp = out / "sparse/0"
+    with open(sp / "cameras.bin", "rb") as f:
+        assert struct.unpack("<Q", f.read(8))[0] == 1
+        cid, model, w, h = struct.unpack("<IiQQ", f.read(24))
+        assert (cid, model, w, h) == (1, 1, 3872, 2592)
+        assert abs(struct.unpack("<4d", f.read(32))[2] - 1943.11827) < 1e-6
+    with open(sp / "images.bin", "rb") as f:
+        n = struct.unpack("<Q", f.read(8))[0]
+        names = []
+        for _ in range(n):
+            d = struct.Struct("<I 4d 3d I").unpack(f.read(64))
+            name = b"".join(iter(lambda: f.read(1), b"\x00")).decode()
+            assert struct.unpack("<Q", f.read(8))[0] == 0
+            names.append(name)
+            assert d[8] == 1
+        assert names == ["5_CB_001.jpg", "5_CB_040.jpg"] and f.read() == b""
+    with open(sp / "points3D.bin", "rb") as f:
+        n = struct.unpack("<Q", f.read(8))[0]
+        ds = struct.Struct("<Q 3d 3B d Q")
+        pts = [ds.unpack(f.read(ds.size)) for _ in range(n)]
+        assert n == 5 and f.read() == b""
+        assert sorted(p[4] for p in pts) == [0, 1, 2, 3, 4]
