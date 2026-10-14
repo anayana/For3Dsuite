@@ -370,7 +370,8 @@ def test_arkitscenes_detected_and_measured(arkitscenes):
     assert d["laenge_m"] == pytest.approx(4.0, abs=0.04)
     assert d["breite_m"] == pytest.approx(3.0, abs=0.04)
     assert d["hoehe_m"] == pytest.approx(2.5, abs=0.04)
-    assert report["up"] == [0.0, 1.0, 0.0]             # aus den Daten geschaetzt
+    assert report["up"] == [0.0, 0.0, 1.0]             # ARKitScenes: Laserscanner, +Z
+    assert "warnung" not in d
 
 
 def test_arkitscenes_interpolated_poses(arkitscenes):
@@ -419,5 +420,22 @@ def test_arkitscenes_depth_at_other_time(tmp_path):
     hdr, data = b.split(b"end_header\n", 1)
     n = int([l for l in hdr.decode().splitlines() if l.startswith("element vertex")][0].split()[-1])
     p = np.frombuffer(data, [("p", "<f4", 3), ("c", "u1", 3)], n)["p"].astype(float)
+    p = sr.to_room(p)                                  # +Z-oben-Rahmen -> Raumrahmen
     dist = np.minimum(np.abs(p - sr.ROOM_LO), np.abs(p - sr.ROOM_HI)).min(1)
     assert np.percentile(dist, 99) < 0.01
+
+
+def test_height_plausibility():
+    # erster echter ARKitScenes-Lauf mit falscher Achse: 3,94 x 2,32 m, "Hoehe" 7,02 m
+    assert ic.height_warning({"laenge_m": 3.94, "breite_m": 2.32, "hoehe_m": 7.02})
+    assert not ic.height_warning({"laenge_m": 6.74, "breite_m": 3.66, "hoehe_m": 2.27})
+    assert not ic.height_warning({"laenge_m": 12.0, "breite_m": 8.0, "hoehe_m": 6.0})  # Halle
+
+
+def test_up_override(arkitscenes, tmp_path):
+    base, _, _ = arkitscenes
+    report = ic.main(["prepare", str(base), str(tmp_path / "out"), "--points-per-frame", "100",
+                      "--min-move", "0.01", "--no-sharpness", "--up", "1", "0", "0"])
+    assert report["up"] == [1.0, 0.0, 0.0]
+    # x-Achse = 4-m-Raumlaenge wird als "Hoehe" gemessen
+    assert report["raummasse_naeherung"]["hoehe_m"] == pytest.approx(4.0, abs=0.05)

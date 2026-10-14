@@ -16,6 +16,8 @@ import numpy as np
 ROOM_LO = np.array([0.0, 0.0, 0.0])
 ROOM_HI = np.array([4.0, 2.5, 3.0])
 GL_TO_CV = np.diag([1.0, -1.0, -1.0, 1.0])
+# Raumrahmen (+Y oben, wie ARKit) -> Laserscanner-Rahmen (+Z oben, wie ARKitScenes)
+Z_UP = np.array([[1.0, 0, 0, 0], [0, 0, -1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 
 
 def _hash(ix, iy, face, scale):
@@ -108,7 +110,8 @@ def write_arkitscenes(folder, n=24, size=(320, 240), depth_size=(64, 48), noise=
     color/ (Bilder), lowres_depth/ (verrauscht), confidence/, highres_depth/
     (exakt = "Laserscanner"), lowres_wide_intrinsics/*.pincam in Tiefen-
     aufloesung, lowres_wide.traj 20-mal so dicht wie die Bilder, Bildzeiten
-    liegen ZWISCHEN den Trajektorienpunkten (Interpolation)."""
+    liegen ZWISCHEN den Trajektorienpunkten (Interpolation). Posen wie bei
+    ARKitScenes im Laserscanner-Rahmen (+Z oben, siehe Z_UP)."""
     from PIL import Image
 
     folder = Path(folder)
@@ -123,7 +126,7 @@ def write_arkitscenes(folder, n=24, size=(320, 240), depth_size=(64, 48), noise=
     lines = []
     for j in range(20 * n + 1):                         # Trajektorie: alle 0,02 s
         t = t0 - 0.01 + 0.02 * j
-        c2w = pose_at(2 * np.pi * (t - t0) / (n * dt), seed)
+        c2w = Z_UP @ pose_at(2 * np.pi * (t - t0) / (n * dt), seed)
         w2c = np.linalg.inv(c2w)
         lines.append(f"{t:.3f} " + " ".join(f"{v:.9f}" for v in R_to_axis_angle(w2c[:3, :3]))
                      + " " + " ".join(f"{v:.9f}" for v in w2c[:3, 3]))
@@ -142,8 +145,13 @@ def write_arkitscenes(folder, n=24, size=(320, 240), depth_size=(64, 48), noise=
         Image.fromarray(np.full((dh, dw), 2, np.uint8)).save(folder / "confidence" / f"{name}.png")
         (folder / "lowres_wide_intrinsics" / f"{name}.pincam").write_text(
             f"{dw} {dh} {Kd[0, 0]} {Kd[1, 1]} {Kd[0, 2]} {Kd[1, 2]}\n")
-        gt.append((f"{name}.png", c2w))
+        gt.append((f"{name}.png", Z_UP @ c2w))
     return {"frames": gt, "K": K}
+
+
+def to_room(p):
+    """Punkte aus dem +Z-oben-Rahmen (ARKitScenes) zurueck in den Raumrahmen."""
+    return p @ Z_UP[:3, :3]
 
 
 def write_capture(folder, n=40, size=(480, 360), depth_size=(64, 48), stills=0,

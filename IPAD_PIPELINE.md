@@ -76,6 +76,22 @@ Ebenfalls frei, aber noch ohne Leser: **MuSHRoom** (iPhone + Kinect +
 Faro-Referenz, Zenodo) und **ScanNet++** (iPhone + DSLR + Laserscanner,
 Registrierung nötig).
 
+**Probelauf 14.10.2026** (Raum 41069021, RunPod A40, ca. 20 min inkl. Build):
+
+| Schritt | Ergebnis |
+|---|---|
+| Daten | 19 Bilder (1920×1440) mit LiDAR-Tiefe und Faro-Referenz, 47 MB |
+| iPad-LiDAR gegen Faro-Laserscanner | Median **2,1 cm**, 90 % unter **4,6 cm**, im Mittel 1,7 cm zu kurz (870.000 Pixel) |
+| Training | gsplat 1.5.3, 15.000 Schritte, halbe Auflösung, LiDAR-Tiefen-Loss + Posen-Feinjustage, ca. 10 min |
+| Splat in Metern | 1,83 Mio. Gaussians, Ausdehnung 3,66 × 6,74 × 2,27 m; verkleinert 700.000 (47,6 MB) |
+
+Dabei gefunden und behoben: ein Abbruch im Download-Skript und der Bildordner
+`wide/` (statt `color/` wie im README). Außerdem lag der Datensatz mit +Z oben
+vor statt +Y wie bei ARKit; daraus wurde zuerst 7,02 m „Raumhöhe“. Jetzt ist für
+ARKitScenes +Z fest eingestellt. Unplausible Höhen (über 4 m und mehr als das
+1,5-fache der Breite) meldet der Bericht als Warnung, und `--up X Y Z` setzt die
+Achse von Hand.
+
 ## 2. Verarbeitung: ein Befehl auf einer Miet-GPU
 
 Scan (und optional Fotos) als ZIP irgendwo per Link ablegen. Auf einem

@@ -158,7 +158,20 @@ print(f"   Raum (Naeherung): {d['laenge_m']:.2f} x {d['breite_m']:.2f} m, Hoehe 
       f"  | Posen: {r['posen']} | {r['frames']} Frames + {r['stills']} Fotos")
 PY
 echo "== Upload =="
-URL="$(curl -fsSL -F"file=@${NAME}_ergebnis.zip" https://0x0.st 2>/dev/null || true)"
+# Einweg-Hoster wechseln haeufig ihre Regeln (catbox lehnt Rechenzentrums-IPs ab:
+# "Invalid uploader") -- nacheinander probieren, erste echte URL gewinnt.
+upload() {
+  local f="$1" u
+  u="$(curl -fsS -m 300 -F"file=@$f" https://0x0.st 2>/dev/null || true)"
+  [[ "$u" == https://* ]] && { echo "$u"; return; }
+  u="$(curl -fsS -m 300 -F"file=@$f" https://tmpfiles.org/api/v1/upload 2>/dev/null \
+       | python -c 'import json,sys; print(json.load(sys.stdin)["data"]["url"].replace("tmpfiles.org/", "tmpfiles.org/dl/", 1))' 2>/dev/null || true)"
+  [[ "$u" == http* ]] && { echo "$u"; return; }
+  u="$(curl -fsS -m 300 -F reqtype=fileupload -F time=72h -F"fileToUpload=@$f" \
+       https://litterbox.catbox.moe/resources/internals/api.php 2>/dev/null || true)"
+  [[ "$u" == https://* ]] && { echo "$u"; return; }
+}
+URL="$(upload "${NAME}_ergebnis.zip")"
 echo "=========================================================="
 echo " FERTIG.  $(pwd)/${NAME}_ergebnis.zip ($(du -h "${NAME}_ergebnis.zip" | cut -f1))"
 echo "   ${NAME}_splat.ply          Splat in Metern (Viewer)"

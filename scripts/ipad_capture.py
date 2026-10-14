@@ -560,9 +560,13 @@ def load_arkitscenes(root):
 LOADERS = {"scanner3d": load_scanner3d, "record3d": load_record3d,
            "polycam": load_polycam, "nerfstudio": load_nerfstudio,
            "arkitscenes": load_arkitscenes}
-# ARKit-Weltrahmen: Schwerkraft-ausgerichtet, +Y oben (sonst: aus den Daten schaetzen)
-ARKIT_UP = {"scanner3d": True, "record3d": True, "polycam": True, "nerfstudio": False,
-            "arkitscenes": False}
+# Bekannte Oben-Achse je Format (None: aus den Daten schaetzen).
+# ARKit-Apps: Schwerkraft-ausgerichteter ARKit-Rahmen, +Y oben. ARKitScenes liegt
+# im Rahmen der Laserscanner (+Z oben) -- im Probelauf mit Raum 41069021 waren es
+# 2,27 m entlang z (Raumhoehe) gegen 6,74 m entlang y.
+FORMAT_UP = {"scanner3d": [0.0, 1.0, 0.0], "record3d": [0.0, 1.0, 0.0],
+             "polycam": [0.0, 1.0, 0.0], "nerfstudio": None,
+             "arkitscenes": [0.0, 0.0, 1.0]}
 
 
 def detect_format(path):
@@ -777,6 +781,13 @@ def depth_errors(depth, conf, gt_path, min_conf=2, max_depth=4.0):
     return (depth[m] - g[m]).astype(np.float32)
 
 
+def height_warning(dims):
+    """Ueber 4 m hoch und hoeher als 1,5 x die Breite: fuer einen Innenraum fast
+    immer eine falsch gewaehlte Oben-Achse (so beim ersten ARKitScenes-Lauf:
+    3,94 x 2,32 m bei 7,02 m "Hoehe")."""
+    return dims["hoehe_m"] > 4.0 and dims["hoehe_m"] > 1.5 * dims["breite_m"]
+
+
 def build(out, frames, stills, cams, args, up, extra_report=None):
     """sparse/0 + Messwolke + Bericht schreiben. frames/stills tragen c2w, wh, cam."""
     out = Path(out)
@@ -806,6 +817,11 @@ def build(out, frames, stills, cams, args, up, extra_report=None):
     write_ply_points(out / "lidar_points.ply", cloud_x, cloud_c)
 
     dims = room_dimensions(cloud_x, up)
+    if height_warning(dims):
+        dims["warnung"] = ("Raumhoehe unplausibel -- Oben-Achse pruefen und mit "
+                           "--up X Y Z vorgeben")
+        print(f"  ! Raumhoehe {dims['hoehe_m']:.2f} m unplausibel -- Oben-Achse "
+              f"{[float(v) for v in up]} pruefen (--up X Y Z)")
     centers = np.array([f["c2w"][:3, 3] for f in frames])
     report = {
         "frames": len(frames), "stills": len(kept_stills),
@@ -896,7 +912,7 @@ def cmd_prepare(args):
     (out / "frames.txt").write_text("\n".join(f["name"] for f in frames) + "\n")
     (out / "stills.txt").write_text("\n".join(stills) + ("\n" if stills else ""))
 
-    up = [0.0, 1.0, 0.0] if ARKIT_UP[fmt] else None
+    up = [float(v) for v in args.up] if args.up else FORMAT_UP[fmt]
     cams = group_cameras(frames)
     report = build(out, frames, [], cams, args, up,
                    {"format": fmt, "posen": "ARKit", "frames_gelesen": n_all})
@@ -1055,6 +1071,8 @@ def main(argv=None):
     p.add_argument("--depth-scale", type=float, default=0.001, help="PNG-Tiefe -> m (mm: 0.001)")
     p.add_argument("--cloud-voxel", type=float, default=0.01, help="Raster der Messwolke (m)")
     p.add_argument("--still-max", type=int, default=2400, help="lange Kante der Fotos (px)")
+    p.add_argument("--up", type=float, nargs=3, metavar=("X", "Y", "Z"),
+                   help="Oben-Achse vorgeben (sonst je Format bzw. aus den Daten)")
     p.set_defaults(func=cmd_prepare)
     r = sub.add_parser("refine", help="SfM-Posen (inkl. Fotos) metrisch an ARKit haengen")
     r.add_argument("out", help="Ausgabeordner von prepare")
