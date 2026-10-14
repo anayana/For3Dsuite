@@ -54,8 +54,10 @@ the two Vienna Woods plots of the SegmentedForests data set (Laino et al., 2026)
 coverage was 280–360°, the same software reached 95–100 % precision. Whether the rule was too strict
 at Renon, and whether it is appropriate for other estimators, is an open question.
 
-Previous work studied how scanner placement affects occlusion (Abegg et al., 2017 [TODO: read full
-text]) and compared diameter estimators (e.g. Hough transform versus least squares). Li et al. (2021)
+Abegg et al. (2017) ray-traced 2740 virtual plots derived from the Swiss national forest inventory and
+showed that visibility depends on stem number, dominant diameter and the Weibull scale of the diameter
+distribution, and that evenly distributed scan positions give the best visibility; they did not estimate
+diameters. Other work compared diameter estimators (e.g. Hough transform versus least squares). Li et al. (2021)
 introduced the cumulative degree of ring closure (CDRC) — the union of the angular sectors of a stem
 circle that are visible from the scan positions — to optimise scan positions in HELIOS-simulated
 forests, and noted that accurate DBH estimation requires a CDRC above about 200°. That statement rests
@@ -217,7 +219,7 @@ configuration. Our simulations predict that many of its stems lie below 180° vi
 diameters fitted there carry several centimetres of error — 3DFin's refusal was therefore justified,
 and estimates that our own pipeline produced for those stems should be flagged rather than reported.
 
-**Scan design.** Clustering wastes positions: at 1200 stems ha⁻¹, four clustered positions (56 % of
+**Scan design.** In line with Abegg et al. (2017), clustering wastes positions: at 1200 stems ha⁻¹, four clustered positions (56 % of
 stems ≥ 180°) perform like three grid positions (58 %). A tentative recommendation, to be refined with
 stand-specific simulations, is a spread grid of four to six positions per 0.16 ha (25–38 ha⁻¹) at
 400–1200 stems ha⁻¹, which brought 80–98 % of stems above 180° here.
