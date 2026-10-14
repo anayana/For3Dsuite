@@ -54,12 +54,15 @@ the two Vienna Woods plots of the SegmentedForests data set (Laino et al., 2026)
 coverage was 280–360°, the same software reached 95–100 % precision. Whether the rule was too strict
 at Renon, and whether it is appropriate for other estimators, is an open question.
 
-Previous work studied how scanner placement affects occlusion (Abegg et al., 2017), proposed
-visibility-driven or iterative scan designs (Li et al. [verify]) and compared diameter estimators
-(e.g. Hough transform versus least squares). To our knowledge, the diameter error of different
-estimators has not been quantified as a function of the actually visible arc, separately from point
-density, nor related to the coverage rules used in practice. [TODO: confirm after reading full texts
-of Abegg et al. 2017 and Li et al.]
+Previous work studied how scanner placement affects occlusion (Abegg et al., 2017 [TODO: read full
+text]) and compared diameter estimators (e.g. Hough transform versus least squares). Li et al. (2021)
+introduced the cumulative degree of ring closure (CDRC) — the union of the angular sectors of a stem
+circle that are visible from the scan positions — to optimise scan positions in HELIOS-simulated
+forests, and noted that accurate DBH estimation requires a CDRC above about 200°. That statement rests
+on one least-squares estimator, idealised segmentation and simulated stems. How the threshold depends
+on the estimator, on non-circular stems, on outliers from branches and understorey, and whether it holds
+for real bark and field-measured DBH, has to our knowledge not been quantified, nor has it been related
+to the sector rules used in inventory software.
 
 We ask: (i) how does the DBH error of common estimators depend on visible arc, and how is this
 modified by non-circular stems, outliers and registration offsets; (ii) does a sector-based rule
@@ -118,7 +121,8 @@ is perfect, isolating coverage and fitting from detection.
 therefore compute the geometrically visible arc: for 360 points on the true elliptical perimeter at
 1.3 m, a point counts as visible from a position if it faces it (cosine of incidence > 0.1) and the line
 of sight does not intersect another stem; the union over the positions of a configuration gives the
-visible arc (`scripts/paperC_eval.py`).
+visible arc (`scripts/paperC_eval.py`). This is the CDRC of Li et al. (2021), here evaluated on the
+true elliptical perimeter.
 
 ### 2.4 Metrics
 
@@ -198,6 +202,10 @@ lower LAUT values include field-measurement error and the absence of any segment
 
 ## 4. Discussion
 
+**Relation to Li et al. (2021).** Their 200° CDRC guideline is confirmed for least-squares fits of clean
+stem points (HELIOS: 82 % of stems within 2 cm at 180–225°), but real bark and thin stems shift the 80 %
+point to about 225°, and with surrounding points no CDRC is sufficient for least-squares fits.
+
 **A single threshold does not fit all estimators.** Without outliers, least-squares fits need far
 less than 202.5°; with non-circular stems they need about 180–200°; with outliers they never become
 reliable. The threshold is therefore a property of the estimator and of the expected cross-section,
@@ -261,8 +269,9 @@ The author declares no competing interests.
 - Laino, D., Cabo, C., Prendes, C., et al., 2024. 3DFin: a software for automated 3D forest inventories from
   terrestrial point clouds. Forestry. [verify]
 - Laino, D., Cabo, C., Ordóñez, C., et al., 2026. SegmentedForests. Forestry 99(2); doi:10.1093/forestry/cpaf062.
-- Li, … Iterative-mode scan design of terrestrial laser scanning in forests for minimizing occlusion
-  effects. IEEE Transactions on Geoscience and Remote Sensing. [verify year/volume]
+- Li, L., Mu, X., Soma, M., Wan, P., Qi, J., Hu, R., Zhang, W., Tong, Y., Yan, G., 2021. An iterative-mode
+  scan design of terrestrial laser scanning in forests for minimizing occlusion effects. IEEE Transactions
+  on Geoscience and Remote Sensing [verify volume/pages; accepted Aug 2020].
 - Liang, X., Hyyppä, J., Kaartinen, H., et al., 2018. International benchmarking of terrestrial laser
   scanning approaches for forest inventories. ISPRS Journal of Photogrammetry and Remote Sensing 144, 137–179.
 - Molina-Valero, J.A., et al., 2022. FORTLS: an R package for processing TLS data and estimating stand

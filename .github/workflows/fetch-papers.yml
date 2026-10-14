@@ -24,7 +24,12 @@ jobs:
       - run: |
           mkdir -p raw Paper_ODT/Forst_Benchmark_Paper/lit
           UA="Mozilla/5.0 (X11; Linux x86_64) research-bot"
-          curl -sL -A "$UA" "https://www.mdpi.com/1999-4907/8/6/184/pdf" -o raw/abegg2017.pdf || true
+          UA2="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+          for u in "https://www.mdpi.com/1999-4907/8/6/184/pdf?version=1496385432" "https://www.mdpi.com/1999-4907/8/6/184/pdf" "https://mdpi-res.com/d_attachment/forests/forests-08-00184/article_deploy/forests-08-00184.pdf"; do
+            curl -sL -A "$UA2" -H "Accept: application/pdf" "$u" -o raw/abegg2017.pdf || true
+            head -c 4 raw/abegg2017.pdf | grep -q "%PDF" && break
+          done
+          head -c 300 raw/abegg2017.pdf; echo
           curl -sL -A "$UA" "https://srs.bnu.edu.cn/docs/20210830175202006108.pdf" -o raw/li_scandesign.pdf || true
           for f in raw/*.pdf; do
             b=$(basename $f .pdf)
