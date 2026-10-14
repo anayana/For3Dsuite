@@ -18,7 +18,9 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get install -y poppler-utils >/dev/null
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pypdf
       - run: |
           mkdir -p raw Paper_ODT/Forst_Benchmark_Paper/lit
           UA="Mozilla/5.0 (X11; Linux x86_64) research-bot"
@@ -27,7 +29,7 @@ jobs:
           for f in raw/*.pdf; do
             b=$(basename $f .pdf)
             file $f
-            pdftotext -layout $f raw/$b.txt || continue
+            python3 -c "import sys,pypdf; r=pypdf.PdfReader(sys.argv[1]); open(sys.argv[2],'w').write('\n'.join((p.extract_text() or '') for p in r.pages))" $f raw/$b.txt || continue
             python3 - "$b" <<'PY'
           import re, sys
           b = sys.argv[1]
