@@ -16,6 +16,7 @@ permissions:
 jobs:
   fetch:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -29,6 +30,11 @@ jobs:
           ID=$(python -c "import json; print(json.load(open('incoming/request.json'))['id'])")
           KEEP=$(python -c "import json; print(json.load(open('incoming/request.json')).get('keep', 300000))")
           case "$ID" in *[!a-z0-9-]*|"") echo "ungueltige id: $ID"; exit 1;; esac
+          # Der Pod rechnet noch: bis zu 90 min warten, bis die Datei bereitsteht
+          for i in $(seq 1 180); do
+            if curl -fsI -m 20 "$URL" >/dev/null; then break; fi
+            echo "noch nicht bereit ($i) ..."; sleep 30
+          done
           curl -fL --retry 3 -m 900 "$URL" -o /tmp/ergebnis.zip
           rm -rf /tmp/erg && mkdir -p /tmp/erg && unzip -q /tmp/ergebnis.zip -d /tmp/erg
           ls -la /tmp/erg
