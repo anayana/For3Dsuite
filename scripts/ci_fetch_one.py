@@ -14,6 +14,10 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 from zenodo_zip_pick import HttpFile                       # noqa: E402
+try:
+    import zipfile_deflate64  # noqa: F401  -- LAUT-ZIP nutzt Deflate64 (Methode 9)
+except ImportError:
+    pass
 
 
 def main():

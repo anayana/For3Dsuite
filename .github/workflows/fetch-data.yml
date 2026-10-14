@@ -19,6 +19,8 @@ concurrency:
 
 jobs:
   segforests:
+    # Auswahl ueber die Commit-Nachricht: [segforests] / [laut]; ohne Marke beide
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[segforests]') || !contains(github.event.head_commit.message, '[laut]')
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
@@ -40,6 +42,7 @@ jobs:
         with: { name: "segforests-${{ matrix.plot }}", path: out, retention-days: 3 }
 
   laut:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[laut]') || !contains(github.event.head_commit.message, '[segforests]')
     runs-on: ubuntu-latest
     timeout-minutes: 120
     strategy:
@@ -53,6 +56,7 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install "laspy[lazrs]" numpy
       - run: |
+          pip install zipfile-deflate64
           python scripts/ci_fetch_one.py "https://zenodo.org/records/3698956/files/TLS_clouds.zip?download=1" \
             --match "(^|[^0-9])0*${{ matrix.plot }}(?![0-9])[^/]*\.la[sz]$" --out out/laut --name tls_plot_${{ matrix.plot }}
       - uses: actions/upload-artifact@v4
@@ -60,7 +64,7 @@ jobs:
 
   commit:
     needs: [segforests, laut]
-    if: always()
+    if: always() && !cancelled()
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
