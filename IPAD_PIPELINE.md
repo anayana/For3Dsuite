@@ -29,6 +29,7 @@ mit einem Laser-Entfernungsmesser gegenmessen.
 | Record3D | Export **„EXR + JPG"** | `record3d` |
 | Polycam | **Raw Data** (Developer Mode in den Einstellungen) | `polycam` |
 | beliebig | `transforms.json` (nerfstudio) mit `depth_file_path` | `nerfstudio` |
+| Apple ARKitScenes (freie iPad-Pro-Daten, siehe unten) | `scripts/arkitscenes_fetch.sh` | `arkitscenes` |
 
 Das Format wird automatisch erkannt (auch eine Ordnerebene tiefer im ZIP).
 
@@ -47,6 +48,33 @@ Das Format wird automatisch erkannt (auch eine Ordnerebene tiefer im ZIP).
 - JPG oder HEIC. HEIC braucht `pillow-heif`; das Pod-Skript installiert es selbst.
 - **Nicht** vorher mit KI hochrechnen oder nachschärfen: Jedes Bild bekäme andere
   „erfundene" Details, und der Splat bildet daraus Flimmern und Schweber.
+
+### Ohne eigenen Scan: freie iPad-Daten (ARKitScenes)
+
+Apple hat mit **ARKitScenes** über 5.000 echte iPad-Pro-Aufnahmen von Innenräumen
+veröffentlicht: Farbbilder, LiDAR-Tiefe mit Konfidenz und ARKit-Posen. Für rund
+2.200 davon gibt es zusätzlich die Tiefe aus einem **Faro-Laserscanner** als
+Referenz. Damit lässt sich die Pipeline an echten Daten erproben, und der Bericht
+zeigt, wie genau das iPad-LiDAR in diesem Raum wirklich war
+(`lidar_vs_laserscanner`: Median- und 90-%-Fehler in cm).
+
+```bash
+bash scripts/arkitscenes_fetch.sh 41069021          # ein Raum, grob 0,5–2 GB (geschätzt)
+python scripts/ipad_capture.py prepare arkitscenes_41069021 raum_daten
+# oder gleich mit Splat-Training auf der GPU:
+bash scripts/train_ipad_runpod.sh arkitscenes_41069021
+```
+
+Andere Räume: eine `video_id` aus
+[upsampling_train_val_splits.csv](https://github.com/apple/ARKitScenes/blob/main/depth_upsampling/upsampling_train_val_splits.csv)
+wählen (mit Laserscanner-Referenz und 1920×1440-Bildern).
+**Lizenz:** nur nicht-kommerzielle Nutzung, Quelle nennen (Baruch et al.,
+ARKitScenes, NeurIPS 2021). Die Ergebnisse daher nicht ohne Prüfung öffentlich in
+die Galerie stellen.
+
+Ebenfalls frei, aber noch ohne Leser: **MuSHRoom** (iPhone + Kinect +
+Faro-Referenz, Zenodo) und **ScanNet++** (iPhone + DSLR + Laserscanner,
+Registrierung nötig).
 
 ## 2. Verarbeitung: ein Befehl auf einer Miet-GPU
 
@@ -149,6 +177,9 @@ trainiert, statt mit falschen Fotoposen.
   bekannter Geometrie (`tests/test_ipad_pipeline.py`, `tests/synth_room.py`):
   Posen, Rückprojektion, COLMAP-Ausgabe, Foto-Einhängung (auch mit echtem COLMAP
   3.9), metrischer Export durch den gsplat-Parser und das 📏-Werkzeug im Browser.
+  Der ARKitScenes-Leser ist an einem synthetischen Datensatz im ARKitScenes-Layout
+  geprüft (Posen-Interpolation, Tiefe zu anderem Zeitpunkt, Referenzvergleich).
+  Ein Download war aus der Entwicklungsumgebung heraus nicht möglich.
   Die App-Leser folgen den dokumentierten Exportformaten. Bei der ersten echten
   Aufnahme lohnt ein Blick in `capture_report.json` (Frames, Punkte, Raummaße).
   Wird ein Export nicht erkannt, hilft eine Dateiliste des ZIPs bei der Anpassung.
@@ -159,6 +190,7 @@ trainiert, statt mit falschen Fotoposen.
 |---|---|
 | [scripts/ipad_capture.py](scripts/ipad_capture.py) | `prepare` / `known` / `refine` (numpy + Pillow) |
 | [scripts/ipad_sfm.sh](scripts/ipad_sfm.sh) | Fotos metrisch einhängen (COLMAP) |
+| [scripts/arkitscenes_fetch.sh](scripts/arkitscenes_fetch.sh) | freie iPad-Testdaten (Apple ARKitScenes) holen |
 | [scripts/gsplat_export_metric.py](scripts/gsplat_export_metric.py) | gsplat-Checkpoint → .ply in Metern |
 | [scripts/train_ipad_runpod.sh](scripts/train_ipad_runpod.sh) | alles in einem Befehl auf der GPU |
 | [platform/dev/seed_splat.py](platform/dev/seed_splat.py) `--metric` | in die Galerie, mit 📏 Messen |

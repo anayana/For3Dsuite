@@ -24,6 +24,7 @@ Unterstuetzte Exporte (--format auto erkennt sie):
   record3d    Record3D, Export "EXR + JPG": metadata.json, rgbd/<i>.jpg/.exr
   polycam     Polycam Raw Data (Developer Mode): keyframes/{images,cameras,depth,confidence}
   nerfstudio  transforms.json (OpenGL-Posen, optional depth_file_path)
+  arkitscenes Apple ARKitScenes (frei, iPad Pro; mit Laserscanner-Referenz)
 
 Zwei Schritte:
   prepare  Aufnahme lesen -> Datensatz mit ARKit-Posen (sofort trainierbar)
@@ -436,10 +437,132 @@ def load_nerfstudio(root):
     return frames
 
 
+def axis_angle_to_R(aa):
+    """Rodrigues: Drehvektor (rad) -> Rotationsmatrix."""
+    aa = np.asarray(aa, float)
+    th = np.linalg.norm(aa)
+    if th < 1e-12:
+        return np.eye(3)
+    k = aa / th
+    Kx = np.array([[0, -k[2], k[1]], [k[2], 0, -k[0]], [-k[1], k[0], 0]])
+    return np.eye(3) + math.sin(th) * Kx + (1 - math.cos(th)) * Kx @ Kx
+
+
+def slerp(q0, q1, a):
+    q0, q1 = np.asarray(q0, float), np.asarray(q1, float)
+    d = float(np.dot(q0, q1))
+    if d < 0:
+        q1, d = -q1, -d
+    if d > 0.9995:
+        q = q0 + a * (q1 - q0)
+    else:
+        th = math.acos(d)
+        q = (math.sin((1 - a) * th) * q0 + math.sin(a * th) * q1) / math.sin(th)
+    return q / np.linalg.norm(q)
+
+
+class Trajectory:
+    """Posen-Zeitreihe (c2w) mit Interpolation (Slerp + linear)."""
+
+    def __init__(self, ts, c2ws):
+        o = np.argsort(ts)
+        self.ts = np.asarray(ts, float)[o]
+        self.q = np.array([R_to_qvec(c2ws[i][:3, :3]) for i in o])
+        self.C = np.array([c2ws[i][:3, 3] for i in o])
+
+    def at(self, t, max_gap=0.25):
+        i = int(np.searchsorted(self.ts, t))
+        for j in (i - 1, i):                          # (fast) exakter Treffer
+            if 0 <= j < len(self.ts) and abs(self.ts[j] - t) < 5e-4:
+                return self._pose(self.q[j], self.C[j])
+        if i == 0 or i == len(self.ts) or self.ts[i] - self.ts[i - 1] > max_gap + 1e-6:
+            return None
+        a = (t - self.ts[i - 1]) / (self.ts[i] - self.ts[i - 1])
+        return self._pose(slerp(self.q[i - 1], self.q[i], a),
+                          (1 - a) * self.C[i - 1] + a * self.C[i])
+
+    @staticmethod
+    def _pose(q, C):
+        c2w = np.eye(4)
+        c2w[:3, :3], c2w[:3, 3] = qvec_to_R(q), C
+        return c2w
+
+
+def _ts_files(folder, ext=".png"):
+    """{Zeitstempel: Pfad} fuer ARKitScenes-Namen wie 41069021_305.244.png."""
+    out = {}
+    if folder.is_dir():
+        for f in folder.glob(f"*{ext}"):
+            m = re.search(r"_(\d+\.\d+)$", f.stem)
+            if m:
+                out[round(float(m.group(1)), 3)] = f
+    return out
+
+
+def _nearest(index, keys, t, tol):
+    if not len(keys):
+        return None
+    i = int(np.clip(np.searchsorted(keys, t), 1, len(keys) - 1)) if len(keys) > 1 else 0
+    cand = [k for k in (keys[max(i - 1, 0)], keys[i]) if abs(k - t) <= tol]
+    return min(cand, key=lambda k: abs(k - t)) if cand else None
+
+
+def load_arkitscenes(root):
+    """Apple ARKitScenes (iPad Pro, frei fuer nicht-kommerzielle Nutzung).
+
+    Ein Ordner je video_id mit lowres_wide.traj (Welt->Kamera als Drehvektor +
+    Translation, OpenCV-Kamera), lowres_depth/ + confidence/ (256x192, mm) und
+    Bildern: color/ (Upsampling-Teil, 1920x1440), wide/, vga_wide/ oder
+    lowres_wide/. Intrinsik aus <bild>_intrinsics/ oder lowres_wide_intrinsics/
+    (*.pincam: w h fx fy cx cy), wird auf die Bildgroesse skaliert. Optional
+    highres_depth/: Tiefe aus dem Faro-Laserscanner -> Genauigkeitspruefung.
+    """
+    root = Path(root)
+    traj = np.loadtxt(root / "lowres_wide.traj", ndmin=2)
+    c2ws = []
+    for row in traj:
+        w2c = np.eye(4)
+        w2c[:3, :3], w2c[:3, 3] = axis_angle_to_R(row[1:4]), row[4:7]
+        c2ws.append(np.linalg.inv(w2c))
+    tr = Trajectory(np.round(traj[:, 0], 3), c2ws)
+    img_dir = next((root / d for d in ("color", "wide", "vga_wide", "lowres_wide")
+                    if _ts_files(root / d)), None)
+    if img_dir is None:
+        sys.exit(f"{root}: keine Bilder (color/, wide/, vga_wide/ oder lowres_wide/)")
+    intr_dir = root / f"{img_dir.name}_intrinsics"
+    intr = _ts_files(intr_dir if intr_dir.is_dir() else root / "lowres_wide_intrinsics", ".pincam")
+    depth, conf = _ts_files(root / "lowres_depth"), _ts_files(root / "confidence")
+    gt = _ts_files(root / "highres_depth")
+    ki, kd = np.array(sorted(intr)), np.array(sorted(depth))
+    frames = []
+    for t, img in sorted(_ts_files(img_dir).items()):
+        c2w = tr.at(t)
+        k = _nearest(intr, ki, t, 0.2)
+        if c2w is None or k is None:
+            continue
+        w, h, fx, fy, cx, cy = np.loadtxt(intr[k])
+        f = {"src": str(img), "K": np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1.0]]),
+             "K_wh": (int(w), int(h)), "c2w": c2w, "depth": None, "conf": None, "t": t}
+        dk = _nearest(depth, kd, t, 0.02)
+        if dk is not None:
+            f["depth"] = str(depth[dk])
+            f["conf"] = str(conf[dk]) if dk in conf else None
+            if abs(dk - t) > 5e-4:                     # Tiefe minimal frueher/spaeter
+                dc = tr.at(dk)
+                if dc is not None:
+                    f["depth_c2w"] = dc
+        if t in gt:
+            f["gt_depth"] = str(gt[t])
+        frames.append(f)
+    return frames
+
+
 LOADERS = {"scanner3d": load_scanner3d, "record3d": load_record3d,
-           "polycam": load_polycam, "nerfstudio": load_nerfstudio}
-# ARKit-Weltrahmen: Schwerkraft-ausgerichtet, +Y oben
-ARKIT_UP = {"scanner3d": True, "record3d": True, "polycam": True, "nerfstudio": False}
+           "polycam": load_polycam, "nerfstudio": load_nerfstudio,
+           "arkitscenes": load_arkitscenes}
+# ARKit-Weltrahmen: Schwerkraft-ausgerichtet, +Y oben (sonst: aus den Daten schaetzen)
+ARKIT_UP = {"scanner3d": True, "record3d": True, "polycam": True, "nerfstudio": False,
+            "arkitscenes": False}
 
 
 def detect_format(path):
@@ -456,8 +579,10 @@ def detect_format(path):
             return "polycam", p
         if any(p.glob("frame_*.json")):
             return "scanner3d", p
+        if (p / "lowres_wide.traj").exists():
+            return "arkitscenes", p
     sys.exit(f"Kein bekanntes Aufnahmeformat in {path} gefunden "
-             "(scanner3d / record3d / polycam / nerfstudio).")
+             "(scanner3d / record3d / polycam / nerfstudio / arkitscenes).")
 
 
 # ---- Keyframe-Auswahl ---------------------------------------------------------
@@ -589,15 +714,25 @@ def write_ply_points(path, xyz, rgb):
 
 def lidar_points(frames, args, rng):
     """Je Frame: Trainingspunkte (mit Track) + Beitrag zur dichten Messwolke."""
-    xyz_t, rgb_t, trk_t, cloud_x, cloud_c = [], [], [], [], []
+    xyz_t, rgb_t, trk_t, cloud_x, cloud_c, errs = [], [], [], [], [], []
     n_cloud = 0
     for i, f in enumerate(frames):
         if not f.get("depth"):
             continue
         d = read_depth(f["depth"], f.get("depth_scale", args.depth_scale))
         conf = read_conf(f["conf"], d.shape) if f.get("conf") else None
-        xw, uv = backproject(d, f["K"], f["wh"], f["c2w"], conf,
-                             args.min_conf, args.max_depth)
+        if f.get("gt_depth"):                         # Referenz (Laserscanner)
+            errs.append(depth_errors(d, conf, f["gt_depth"], args.min_conf, args.max_depth))
+        if f.get("depth_c2w") is not None:            # Tiefe zu leicht anderem Zeitpunkt
+            xw, _ = backproject(d, f["K"], f["wh"], f["depth_c2w"], conf,
+                                args.min_conf, args.max_depth)
+            uv, z = project(xw, f["K"], np.linalg.inv(f["c2w"]))
+            ok = (z > 0.05) & (uv[:, 0] >= 0) & (uv[:, 0] < f["wh"][0]) \
+                & (uv[:, 1] >= 0) & (uv[:, 1] < f["wh"][1])
+            xw, uv = xw[ok], uv[ok].astype(np.float32)
+        else:
+            xw, uv = backproject(d, f["K"], f["wh"], f["c2w"], conf,
+                                 args.min_conf, args.max_depth)
         if not len(xw):
             continue
         with open_image(f["out"]) as im:
@@ -617,14 +752,38 @@ def lidar_points(frames, args, rng):
         sys.exit("Keine LiDAR-Tiefe gefunden -- Export enthaelt keine Tiefenbilder? "
                  "(3d Scanner App: 'All Data' exportieren; Polycam: Raw Data)")
     cx, cc = voxel_downsample(np.concatenate(cloud_x), np.concatenate(cloud_c), args.cloud_voxel)
-    return (np.concatenate(xyz_t), np.concatenate(rgb_t), trk_t, cx, cc)
+    ref = None
+    if errs and sum(len(e) for e in errs):
+        e = np.concatenate(errs)
+        ref = {"frames": len(errs), "pixel": int(len(e)),
+               "median_abs_cm": round(float(np.median(np.abs(e))) * 100, 2),
+               "p90_abs_cm": round(float(np.percentile(np.abs(e), 90)) * 100, 2),
+               "mittel_cm": round(float(np.mean(e)) * 100, 2),
+               "hinweis": "iPad-LiDAR-Tiefe minus Laserscanner-Tiefe (hohe Konfidenz)"}
+    return (np.concatenate(xyz_t), np.concatenate(rgb_t), trk_t, cx, cc, ref)
+
+
+def depth_errors(depth, conf, gt_path, min_conf=2, max_depth=4.0):
+    """LiDAR-Tiefe gegen hochaufgeloeste Referenztiefe (gleiche Kamera/Zeit), in m."""
+    gt = read_depth(gt_path)
+    Hd, Wd = depth.shape
+    v, u = np.mgrid[0:Hd, 0:Wd]
+    gu = ((u + 0.5) * gt.shape[1] / Wd).astype(int)   # Pixelzentrum im Referenzbild
+    gv = ((v + 0.5) * gt.shape[0] / Hd).astype(int)
+    g = gt[gv, gu]
+    m = (depth > 0.05) & (depth < max_depth) & (g > 0.05) & np.isfinite(g)
+    if conf is not None:
+        m &= conf >= min_conf
+    return (depth[m] - g[m]).astype(np.float32)
 
 
 def build(out, frames, stills, cams, args, up, extra_report=None):
     """sparse/0 + Messwolke + Bericht schreiben. frames/stills tragen c2w, wh, cam."""
     out = Path(out)
     rng = np.random.default_rng(0)
-    xyz, rgb, tracks, cloud_x, cloud_c = lidar_points(frames, args, rng)
+    xyz, rgb, tracks, cloud_x, cloud_c, ref = lidar_points(frames, args, rng)
+    if up is None:                                    # kein ARKit-Rahmen bekannt
+        up = estimate_up(frames, cloud_x)
     images = [{"name": f["name"], "cam": f["cam"], "w2c": np.linalg.inv(f["c2w"])}
               for f in frames]
     kept_stills = []
@@ -654,6 +813,7 @@ def build(out, frames, stills, cams, args, up, extra_report=None):
         "messwolke_voxel_m": args.cloud_voxel, "up": [float(v) for v in up],
         "kameraweg_m": round(float(np.linalg.norm(np.diff(centers, axis=0), axis=1).sum()), 2),
         "raummasse_naeherung": dims,
+        **({"lidar_vs_laserscanner": ref} if ref else {}),
         "hinweis": "Raummasse = robuste Huellmasse der LiDAR-Wolke (0,5-99,5 %), nur "
                    "aussagekraeftig, wenn Boden, Decke und alle Waende gescannt sind. "
                    "Genaue Masse in lidar_points.ply messen (CloudCompare). "
@@ -666,13 +826,18 @@ def build(out, frames, stills, cams, args, up, extra_report=None):
           f"Messwolke {len(cloud_x):,} Punkte")
     print(f"  Raum (Naeherung): {dims['laenge_m']:.2f} x {dims['breite_m']:.2f} m, "
           f"Hoehe {dims['hoehe_m']:.2f} m")
+    if ref:
+        print(f"  LiDAR gegen Laserscanner: Median {ref['median_abs_cm']:.1f} cm, "
+              f"90 % unter {ref['p90_abs_cm']:.1f} cm ({ref['frames']} Frames)")
     return report
 
 
 def frame_record(f):
     return {"name": f["name"], "out": f["out"], "wh": list(f["wh"]), "K": f["K"].tolist(),
             "c2w": f["c2w"].tolist(), "depth": f.get("depth"), "conf": f.get("conf"),
-            "depth_scale": f.get("depth_scale"), "t": f["t"]}
+            "depth_scale": f.get("depth_scale"), "t": f["t"],
+            "depth_c2w": None if f.get("depth_c2w") is None else f["depth_c2w"].tolist(),
+            "gt_depth": f.get("gt_depth")}
 
 
 def from_record(r):
@@ -680,6 +845,8 @@ def from_record(r):
     f["K"], f["c2w"], f["wh"] = np.array(r["K"]), np.array(r["c2w"]), tuple(r["wh"])
     if f.get("depth_scale") is None:
         f.pop("depth_scale")
+    if f.get("depth_c2w") is not None:
+        f["depth_c2w"] = np.array(f["depth_c2w"])
     return f
 
 
@@ -729,25 +896,41 @@ def cmd_prepare(args):
     (out / "frames.txt").write_text("\n".join(f["name"] for f in frames) + "\n")
     (out / "stills.txt").write_text("\n".join(stills) + ("\n" if stills else ""))
 
-    up = [0.0, 1.0, 0.0] if ARKIT_UP[fmt] else estimate_up(frames)
+    up = [0.0, 1.0, 0.0] if ARKIT_UP[fmt] else None
     cams = group_cameras(frames)
     report = build(out, frames, [], cams, args, up,
                    {"format": fmt, "posen": "ARKit", "frames_gelesen": n_all})
     (out / "capture.json").write_text(json.dumps({
-        "format": fmt, "up": up, "frames": [frame_record(f) for f in frames],
+        "format": fmt, "up": report["up"], "frames": [frame_record(f) for f in frames],
         "stills": stills, "args": {k: v for k, v in vars(args).items() if k != "func"},
     }, indent=1))
     print(f"== fertig: {out}/sparse/0 (Posen: ARKit, metrisch)")
     return report
 
 
-def estimate_up(frames):
-    """Ohne ARKit-Rahmen: mittlere Kamera-Oben-Richtung, auf Weltachse gerundet."""
-    up = -np.mean([f["c2w"][:3, 1] for f in frames], 0)
-    up /= np.linalg.norm(up)
-    ax = np.argmax(np.abs(up))
-    if abs(up[ax]) > math.cos(math.radians(15)):
-        up = np.eye(3)[ax] * np.sign(up[ax])
+def estimate_up(frames, cloud=None):
+    """Oben-Richtung ohne ARKit-Rahmen schaetzen.
+
+    Achse: die Weltachse, zu der die Blickrichtungen am senkrechtesten stehen
+    (man schaut ueberwiegend waagerecht). Vorzeichen: aus der Bild-unten-Richtung
+    der Kameras (Querformat); bei Hochformat-Aufnahmen ist sie waagerecht, dann
+    entscheidet die Punktwolke (am Boden liegen mehr Punkte als an der Decke).
+    """
+    Z = np.array([f["c2w"][:3, 2] for f in frames])
+    Y = np.array([f["c2w"][:3, 1] for f in frames])
+    ax = int(np.argmin(np.abs(Z).mean(0)))
+    m = float(Y[:, ax].mean())
+    if abs(m) > 0.3:
+        sign = -np.sign(m)
+    elif cloud is not None and len(cloud):
+        h = cloud[:, ax]
+        lo, hi = np.percentile(h, 1), np.percentile(h, 99)
+        band = 0.1 * max(hi - lo, 1e-6)
+        sign = 1.0 if (h < lo + band).sum() >= (h > hi - band).sum() else -1.0
+    else:
+        sign = 1.0
+    up = np.zeros(3)
+    up[ax] = sign
     return [float(v) for v in up]
 
 

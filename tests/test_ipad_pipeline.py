@@ -342,3 +342,82 @@ def test_newest_ckpt_is_numeric(tmp_path):
     for st in (6999, 29999):
         (tmp_path / f"ckpt_{st}_rank0.pt").write_bytes(b"")
     assert gx.newest_ckpt(str(tmp_path)).endswith("ckpt_29999_rank0.pt")
+
+
+# ---- Apple ARKitScenes (freie iPad-Daten) ----------------------------------------
+def test_axis_angle_and_slerp():
+    rng = np.random.default_rng(7)
+    for _ in range(50):
+        R = ic.qvec_to_R(rng.standard_normal(4))
+        assert np.allclose(ic.axis_angle_to_R(sr.R_to_axis_angle(R)), R, atol=1e-8)
+    qa, qb = ic.R_to_qvec(np.eye(3)), ic.R_to_qvec(ic.axis_angle_to_R([0, 0, 0.8]))
+    assert np.allclose(ic.qvec_to_R(ic.slerp(qa, qb, 0.5)), ic.axis_angle_to_R([0, 0, 0.4]))
+
+
+@pytest.fixture(scope="module")
+def arkitscenes(tmp_path_factory):
+    base = tmp_path_factory.mktemp("arkit")
+    gt = sr.write_arkitscenes(base / "41069021")
+    report = ic.main(["prepare", str(base), str(base / "out"), "--points-per-frame", "300",
+                      "--min-move", "0.01", "--no-sharpness"])
+    return base, gt, report
+
+
+def test_arkitscenes_detected_and_measured(arkitscenes):
+    base, gt, report = arkitscenes
+    assert report["format"] == "arkitscenes" and report["frames"] == 24
+    d = report["raummasse_naeherung"]                  # 5 mm Rauschen blaeht leicht auf
+    assert d["laenge_m"] == pytest.approx(4.0, abs=0.04)
+    assert d["breite_m"] == pytest.approx(3.0, abs=0.04)
+    assert d["hoehe_m"] == pytest.approx(2.5, abs=0.04)
+    assert report["up"] == [0.0, 1.0, 0.0]             # aus den Daten geschaetzt
+
+
+def test_arkitscenes_interpolated_poses(arkitscenes):
+    base, gt, _ = arkitscenes
+    cams, imgs, _ = read_colmap_bin(base / "out" / "sparse" / "0")
+    K = np.array([[cams[1][2][0], 0, cams[1][2][2]], [0, cams[1][2][1], cams[1][2][3]], [0, 0, 1]])
+    assert np.allclose(K, gt["K"], atol=1e-6)          # aus 64x48-pincam hochskaliert
+    by_index = {im["name"]: im for im in imgs.values()}
+    for i, (_, c2w) in enumerate(gt["frames"]):
+        est = np.linalg.inv(by_index[f"f_{i:05d}.png"]["w2c"])
+        assert np.linalg.norm(est[:3, 3] - c2w[:3, 3]) < 0.002    # < 2 mm
+        assert np.allclose(est[:3, :3], c2w[:3, :3], atol=2e-3)
+
+
+def test_arkitscenes_reference_depth_error(arkitscenes):
+    _, _, report = arkitscenes
+    ref = report["lidar_vs_laserscanner"]
+    # Rauschen sigma = 5 mm -> Median |Fehler| ~ 0,67 * 5 mm ~ 3,4 mm (+ mm-Rundung)
+    assert 0.25 <= ref["median_abs_cm"] <= 0.45
+    assert abs(ref["mittel_cm"]) < 0.1 and ref["frames"] == 24
+
+
+def test_arkitscenes_depth_at_other_time(tmp_path):
+    """Tiefe 8 ms neben dem Farbbild (60-Hz-Strom): Rueckprojektion mit der Pose
+    zum Tiefen-Zeitpunkt, Messwolke bleibt auf den Waenden."""
+    gt = sr.write_arkitscenes(tmp_path / "v", n=12, noise=0.0)
+    for sub in ("lowres_depth", "confidence"):
+        for f in sorted((tmp_path / "v" / sub).glob("*.png")):
+            t = float(f.stem.split("_")[1]) + 0.008
+            f.rename(f.with_name(f"41069021_{t:.3f}.png"))
+    # Tiefenbilder neu rendern, passend zum spaeteren Zeitpunkt
+    from PIL import Image
+    w, h, dw, dh = 320, 240, 64, 48
+    Kd = np.diag([dw / w, dh / h, 1]) @ gt["K"]
+    for i in range(12):
+        t = 100.0 + 0.4 * i + 0.008
+        c2w = sr.pose_at(2 * np.pi * (t - 100.0) / (12 * 0.4))
+        _, z = sr.render(c2w, Kd, dw, dh)
+        Image.fromarray(np.round(z * 1000).astype(np.uint16)).save(
+            tmp_path / "v" / "lowres_depth" / f"41069021_{t:.3f}.png")
+    frames = ic.load_arkitscenes(tmp_path / "v")
+    assert len(frames) == 12 and all("depth_c2w" in f for f in frames)
+    ic.main(["prepare", str(tmp_path / "v"), str(tmp_path / "out"), "--points-per-frame", "200",
+             "--min-move", "0.01", "--no-sharpness"])
+    b = (tmp_path / "out" / "lidar_points.ply").read_bytes()
+    hdr, data = b.split(b"end_header\n", 1)
+    n = int([l for l in hdr.decode().splitlines() if l.startswith("element vertex")][0].split()[-1])
+    p = np.frombuffer(data, [("p", "<f4", 3), ("c", "u1", 3)], n)["p"].astype(float)
+    dist = np.minimum(np.abs(p - sr.ROOM_LO), np.abs(p - sr.ROOM_HI)).min(1)
+    assert np.percentile(dist, 99) < 0.01

@@ -81,18 +81,69 @@ def render(c2w, K, w, h):
     return rgb.reshape(h, w, 3), z.reshape(h, w)
 
 
-def trajectory(n, seed=0):
-    """Umlauf im Raum, Blick nach aussen auf die Waende (typischer Raumscan)."""
-    rng = np.random.default_rng(seed)
+def pose_at(a, seed=0):
+    """Stetige Kamerabahn (Parameter a in rad): Umlauf im Raum, Blick nach aussen
+    auf die Waende, wechselnd auf Boden und Decke geneigt (typischer Raumscan)."""
     c = (ROOM_LO + ROOM_HI) / 2
-    poses = []
+    eye = c + np.array([0.7 * np.cos(a), -0.1 + 0.15 * np.sin(3 * a), 0.5 * np.sin(a)])
+    tilt = 0.8 * np.sin(5 * a) + 0.1 * np.sin(13 * a + seed)
+    return look_at(eye, eye + np.array([np.cos(a + 0.6), tilt, np.sin(a + 0.6)]))
+
+
+def trajectory(n, seed=0):
+    return [pose_at(2 * np.pi * i / n, seed) for i in range(n)]
+
+
+def R_to_axis_angle(R):
+    th = np.arccos(np.clip((np.trace(R) - 1) / 2, -1, 1))
+    if th < 1e-9:
+        return np.zeros(3)
+    w = np.array([R[2, 1] - R[1, 2], R[0, 2] - R[2, 0], R[1, 0] - R[0, 1]]) / (2 * np.sin(th))
+    return w * th
+
+
+def write_arkitscenes(folder, n=24, size=(320, 240), depth_size=(64, 48), noise=0.005,
+                      video_id="41069021", seed=0):
+    """Aufnahme im ARKitScenes-Layout (Upsampling-Teil + Trajektorie aus RAW):
+    color/ (Bilder), lowres_depth/ (verrauscht), confidence/, highres_depth/
+    (exakt = "Laserscanner"), lowres_wide_intrinsics/*.pincam in Tiefen-
+    aufloesung, lowres_wide.traj 20-mal so dicht wie die Bilder, Bildzeiten
+    liegen ZWISCHEN den Trajektorienpunkten (Interpolation)."""
+    from PIL import Image
+
+    folder = Path(folder)
+    for d in ("color", "lowres_depth", "confidence", "highres_depth", "lowres_wide_intrinsics"):
+        (folder / d).mkdir(parents=True, exist_ok=True)
+    rng = np.random.default_rng(seed)
+    w, h = size
+    dw, dh = depth_size
+    K = np.array([[0.85 * w, 0, w / 2], [0, 0.85 * w, h / 2], [0, 0, 1.0]])
+    Kd = np.diag([dw / w, dh / h, 1]) @ K
+    t0, dt = 100.0, 0.4                                 # Bild alle 0,4 s
+    lines = []
+    for j in range(20 * n + 1):                         # Trajektorie: alle 0,02 s
+        t = t0 - 0.01 + 0.02 * j
+        c2w = pose_at(2 * np.pi * (t - t0) / (n * dt), seed)
+        w2c = np.linalg.inv(c2w)
+        lines.append(f"{t:.3f} " + " ".join(f"{v:.9f}" for v in R_to_axis_angle(w2c[:3, :3]))
+                     + " " + " ".join(f"{v:.9f}" for v in w2c[:3, 3]))
+    (folder / "lowres_wide.traj").write_text("\n".join(lines) + "\n")
+    gt = []
     for i in range(n):
-        a = 2 * np.pi * i / n
-        eye = c + np.array([0.7 * np.cos(a), -0.1 + 0.15 * np.sin(3 * a), 0.5 * np.sin(a)])
-        tilt = 0.8 * np.sin(5 * a) + 0.1 * rng.standard_normal()   # Boden + Decke
-        tgt = eye + np.array([np.cos(a + 0.6), tilt, np.sin(a + 0.6)])
-        poses.append(look_at(eye, tgt))
-    return poses
+        t = t0 + dt * i
+        c2w = pose_at(2 * np.pi * i / n, seed)
+        name = f"{video_id}_{t:.3f}"
+        rgb, z = render(c2w, K, w, h)
+        _, zd = render(c2w, Kd, dw, dh)
+        zd = zd + noise * rng.standard_normal(zd.shape)
+        Image.fromarray(rgb).save(folder / "color" / f"{name}.png")
+        Image.fromarray(np.round(z * 1000).astype(np.uint16)).save(folder / "highres_depth" / f"{name}.png")
+        Image.fromarray(np.round(zd * 1000).astype(np.uint16)).save(folder / "lowres_depth" / f"{name}.png")
+        Image.fromarray(np.full((dh, dw), 2, np.uint8)).save(folder / "confidence" / f"{name}.png")
+        (folder / "lowres_wide_intrinsics" / f"{name}.pincam").write_text(
+            f"{dw} {dh} {Kd[0, 0]} {Kd[1, 1]} {Kd[0, 2]} {Kd[1, 2]}\n")
+        gt.append((f"{name}.png", c2w))
+    return {"frames": gt, "K": K}
 
 
 def write_capture(folder, n=40, size=(480, 360), depth_size=(64, 48), stills=0,
