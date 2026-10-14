@@ -13,6 +13,11 @@ Je Gebaeude liegen zwei Textdateien bei (Format am Beispiel 5_CB geprueft):
       PhotoID,X,Y,K,OMEGA,PHI,KAPPA,R11..R33,Orientation
       X,Y,K = Projektionszentrum (Spalte "K" ist die dritte Koordinate),
       OMEGA,PHI,KAPPA in Grad, R = (Rx(omega) Ry(phi) Rz(kappa))^T.
+  *_transformation_matrix.txt (3x4, MATLAB-Syntax)
+      [sR | t]: Aehnlichkeitstransformation vom Kamerasystem (lokal, Y oben) ins
+      System der Punktwolke (Z oben). Bei 5_CB: s = 1.3441, R orthonormal (Abw. 5e-7).
+      Mit --transform werden die Posen in das System der Punktwolke gebracht:
+      C' = sR C + t,  R_cam' = R_cam R^T  (s faellt bei der Projektion heraus).
 
 Konvention (aus den Daten abgeleitet, Projektion gegen die Punktwolke steht noch aus):
   R ist world->camera in photogrammetrischer Kamerabasis (Blick entlang -Z, y nach oben).
@@ -31,7 +36,7 @@ Erzeugt:
 
 Nutzung:
   python scripts/pellis_to_colmap.py 1_interior_parameters.txt 2_exterior_parameters.txt \
-      out/5_CB [--images <ordner_mit_fotos>] [--no-flip]
+      out/5_CB [--transform 2_transformation_matrix.txt] [--images <ordner_mit_fotos>] [--no-flip]
 """
 import argparse
 import csv
@@ -96,6 +101,22 @@ def parse_exterior(path):
     return out
 
 
+def parse_transform(path):
+    """3x4-Matrix [sR | t] -> (s, R, t); bricht ab, wenn sR keine Aehnlichkeit ist."""
+    nums = [float(v) for v in re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?",
+                                          open(path, encoding="utf-8").read())]
+    if len(nums) != 12:
+        sys.exit(f"FEHLER: {path}: 12 Zahlen (3x4) erwartet, {len(nums)} gefunden")
+    T = np.array(nums).reshape(3, 4)
+    A, t = T[:, :3], T[:, 3]
+    s = np.cbrt(np.linalg.det(A))
+    R = A / s
+    dev = np.abs(R @ R.T - np.eye(3)).max()
+    if s <= 0 or dev > 1e-4:
+        sys.exit(f"FEHLER: {path}: keine Aehnlichkeitstransformation (s={s:.4f}, Abw. {dev:.1e})")
+    return s, R, t
+
+
 def R_to_quat(R):
     """Rotationsmatrix -> Quaternion (w,x,y,z), COLMAP-Konvention."""
     t = np.trace(R)
@@ -128,6 +149,7 @@ def main():
     ap.add_argument("interior")
     ap.add_argument("exterior")
     ap.add_argument("out")
+    ap.add_argument("--transform", help="*_transformation_matrix.txt: Posen ins System der Punktwolke")
     ap.add_argument("--images", help="Ordner mit den Originalfotos (<PhotoID>.jpg)")
     ap.add_argument("--no-flip", action="store_true",
                     help="R ohne Achsenumkehr uebernehmen (nur falls die Projektionsprobe es zeigt)")
@@ -136,6 +158,12 @@ def main():
     cam = parse_interior(args.interior)
     poses = parse_exterior(args.exterior)
     flip = np.eye(3) if args.no_flip else FLIP
+    if args.transform:
+        s_t, R_t, t_t = parse_transform(args.transform)
+        for p in poses:
+            p["C"] = s_t * R_t @ p["C"] + t_t
+            p["R"] = p["R"] @ R_t.T
+        print(f"   Transformation: s={s_t:.6f}, t={t_t.round(3)}")
 
     sparse = os.path.join(args.out, "sparse", "0")
     os.makedirs(sparse, exist_ok=True)

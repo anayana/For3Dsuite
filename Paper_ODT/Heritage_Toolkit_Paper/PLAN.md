@@ -23,7 +23,9 @@ Stand 13.10.2026 · Grundlage: `UEBERGABE.md`, `Heritage_Toolkit_Konzept.md`
 
 Inhalt `5_CB.rar` (vom Nutzer entpackt, 14.10.2026): Bilder, Punktwolke, `1_interior_parameters.txt`
 (MATLAB: K, ks=[k1 k2 k3], ps=[p1 p2]; 3872×2592, f = 3054,46 px) und `2_exterior_parameters.txt`
-(CSV, 166 Fotos: X,Y,K = Zentrum, OMEGA/PHI/KAPPA in Grad, R = (Rx·Ry·Rz)ᵀ, Spalte Orientation 0/1).
+(CSV, 166 Fotos: X,Y,K = Zentrum, OMEGA/PHI/KAPPA in Grad, R = (Rx·Ry·Rz)ᵀ, Spalte Orientation 0/1),
+`2_transformation_matrix.txt` (3×4 [sR|t], s = 1,3441: Kamerasystem → System der Punktwolke, Z oben;
+Kamerahöhen danach 1,8–9,4).
 
 ## Schritte
 
@@ -56,7 +58,7 @@ Inhalt `5_CB.rar` (vom Nutzer entpackt, 14.10.2026): Bilder, Punktwolke, `1_inte
 
 ## Offene Punkte
 
-- Format der Punktwolke (Endung, Koordinatensystem gleich wie Kamerazentren?).
+- Format der Punktwolke (Endung). Posen liegen mit `--transform` im System der Punktwolke.
 - Achsenkonvention (photogrammetrisch −Z → OpenCV +Z) nur aus den Daten abgeleitet; mit
   `validate_colmap.py` gegen die Punktwolke bestätigen.
 - `Orientation` 0/1 (77/89 Fotos): vermutlich Quer-/Hochformat — an den Bildgrößen prüfen.

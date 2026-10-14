@@ -65,3 +65,29 @@ def test_colmap_output_recovers_centers(tmp_path):
         assert np.allclose(-R.T @ t, p["C"], atol=1e-4)
         # Blickrichtung (OpenCV +z) = Gegenrichtung der photogrammetrischen -Z-Achse
         assert np.allclose(R[2], -p["R"][2], atol=1e-6)
+
+
+TRANSFORM = """[ 0.717069 -0.152697 -1.126580 88.883987
+-1.134626 -0.012270 -0.720528 99.851013
+0.071570 1.335373 -0.135442 7.296434];
+"""
+
+
+def test_transform_keeps_projection(tmp_path):
+    """Ein Punkt projiziert vor und nach der Transformation auf dasselbe Pixel."""
+    tr = tmp_path / "transformation_matrix.txt"
+    tr.write_text(TRANSFORM)
+    s, R_t, t_t = p2c.parse_transform(tr)
+    assert abs(s - 1.34413) < 1e-4
+    i, e = write_inputs(tmp_path)
+    cam = p2c.parse_interior(i)
+    K = np.array([[cam["fx"], 0, cam["cx"]], [0, cam["fy"], cam["cy"]], [0, 0, 1]])
+    p = p2c.parse_exterior(e)[0]
+    X = p["C"] + 5 * (p2c.FLIP @ p["R"])[2]          # 5 Einheiten vor der Kamera
+    def proj(R, C, X):
+        x = K @ (p2c.FLIP @ R @ (X - C))
+        return x[:2] / x[2]
+    before = proj(p["R"], p["C"], X)
+    after = proj(p["R"] @ R_t.T, s * R_t @ p["C"] + t_t, s * R_t @ X + t_t)
+    assert np.allclose(before, after, atol=1e-6)
+    assert 0 < before[0] < cam["W"] and 0 < before[1] < cam["H"]
