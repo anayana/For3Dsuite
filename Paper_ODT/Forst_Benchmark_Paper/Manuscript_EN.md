@@ -262,6 +262,28 @@ CC BY 4.0). Derived breast-height bands of SegmentedForests and LAUT are in `ext
 
 The author declares no competing interests.
 
+## Figures
+
+![**Figure 1.** Monte Carlo experiment: RMSE of DBH versus visible arc for six estimators (DBH 40 cm, 200
+points, σ = 5 mm). (a) ideal circle, (b) non-circular cross-section (axis ratio 0.85–1), (c) 15 %
+outliers, (d) combined perturbations. Dashed line: 2 cm; dotted line: 202.5° (3DFin sector rule).](figures/fig1_mc_rmse_vs_arc.png)
+
+![**Figure 2.** HELIOS++ simulations, three stands pooled (26 712 stem × configuration cases). (a) RMSE of
+DBH and (b) share of stems within ±2 cm (failures counted as outside) versus geometrically visible
+arc.](figures/fig2_helios_error_vs_arc.png)
+
+![**Figure 3.** Share of stems with ≥ 180° visible arc versus number of scan positions for grid, random
+(mean of 10 draws) and clustered placement in stands of 400, 800 and 1200 stems ha⁻¹.](figures/fig3_design_coverage.png)
+
+![**Figure 4.** Occupied 22.5° sectors (3DFin rule) versus geometrically visible arc in the HELIOS++
+simulations; boxes show quartiles, whiskers 1.5 IQR. Dashed lines: 202.5° sector rule and 180°
+visible arc.](figures/fig4_sector_vs_geometric.png){width=55%}
+
+![**Figure 5.** Real point clouds, share of stems within ±2 cm versus retained arc. (a) SegmentedForests,
+stem points only (456 stems, reference: fit on full coverage); (b) the same stems with surrounding
+points within 30 cm; (c) LAUT, 460 well-covered trees against field DBH, with surrounding points within
+25 cm.](figures/fig5_real_data.png)
+
 ## References
 
 - Abegg, M., Kükenbrink, D., Zell, J., Schaepman, M.E., Morsdorf, F., 2017. Terrestrial laser scanning for forest
