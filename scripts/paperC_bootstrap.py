@@ -31,6 +31,11 @@ def load():
         x = pd.concat(h); x["ref"] = x.dbh_true_cm
         x["arc"] = pd.cut(x.arc_geo_deg, [1, 90, 135, 180, 225, 270, 315, 361], right=False, labels=[45, 112.5, 157.5, 202.5, 247.5, 292.5, 338]).astype(float)
         sets["helios"] = x.dropna(subset=["arc"])
+    f = RES / "helios_S1b_ast.csv"                         # S1b mit Aesten in Brusthoehe
+    if f.exists():
+        x = pd.read_csv(f); x["sid"] = "S1bB_" + x.stem.astype(str); x["ref"] = x.dbh_true_cm
+        x["arc"] = pd.cut(x.arc_geo_deg, [1, 90, 135, 180, 225, 270, 315, 361], right=False, labels=[45, 112.5, 157.5, 202.5, 247.5, 292.5, 338]).astype(float)
+        sets["helios_branches"] = x.dropna(subset=["arc"])
     for key in ("real_clean", "real"):
         fs = glob.glob(str(RES / key / "*.csv"))
         if fs:
