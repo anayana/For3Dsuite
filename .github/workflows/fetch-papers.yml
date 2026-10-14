@@ -51,6 +51,7 @@ jobs:
           PY
           done
           ls -la raw Paper_ODT/Forst_Benchmark_Paper/lit
+      - run: python3 scripts/ci_refcheck.py
       - run: |
           git config user.name "fetch-papers bot"
           git config user.email "actions@users.noreply.github.com"
