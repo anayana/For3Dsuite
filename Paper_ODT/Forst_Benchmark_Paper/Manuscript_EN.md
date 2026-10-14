@@ -5,8 +5,8 @@
 **Author:** Angel Naya, Independent Researcher, Berlin, Germany\
 **Corresponding author:** Angel Naya, angel.naya@posteo.de
 
-> DRAFT — 14 Oct 2026. Open items are marked **[TODO]**; references marked **[verify]** have not yet
-> been checked against the original.
+> DRAFT — 14 Oct 2026. References checked against Crossref/Zenodo (`lit/refs_check.md`).
+> Open: Zenodo archive of the code release at submission.
 
 ## Abstract
 
@@ -45,8 +45,8 @@ multi-scan inventories, especially in dense, multi-layered stands (Liang et al.,
 
 Detection is only half of the problem. A stem that is detected may still be seen on a short arc, and
 the diameter fitted to a short arc is poorly constrained: algebraic circle fits are known to be biased
-towards small radii on short, noisy arcs (Kåsa, 1976; Chernov, 2010). Inventory software reacts with
-coverage rules. 3DFin (Laino et al., 2024 [verify]) divides the cross-section into 16 sectors and
+towards small radii on short, noisy arcs (Kåsa, 1976; Al-Sharadqah and Chernov, 2009; Chernov, 2010). Inventory software reacts with
+coverage rules. 3DFin (Laino et al., 2024) divides the cross-section into 16 sectors and
 accepts a diameter only if at least nine contain points, i.e. 202.5°. In our own processing of an
 open TLS plot of the ICOS site Renon (Chang et al., 2025), this rule rejected the diameter of 29 of
 37 detected stems, because the median coverage of four closely spaced scan positions was 180°. On
@@ -57,7 +57,8 @@ at Renon, and whether it is appropriate for other estimators, is an open questio
 Abegg et al. (2017) ray-traced 2740 virtual plots derived from the Swiss national forest inventory and
 showed that visibility depends on stem number, dominant diameter and the Weibull scale of the diameter
 distribution, and that evenly distributed scan positions give the best visibility; they did not estimate
-diameters. Other work compared diameter estimators (e.g. Hough transform versus least squares). Li et al. (2021)
+diameters. Gollob et al. (2019) and Ritter et al. (2020) related scanner position layout and plot size to
+detection rate and diameter accuracy on real inventory plots. Other work compared diameter estimators (e.g. Hough transform versus least squares). Li et al. (2021)
 introduced the cumulative degree of ring closure (CDRC) — the union of the angular sectors of a stem
 circle that are visible from the scan positions — to optimise scan positions in HELIOS-simulated
 forests, and noted that accurate DBH estimation requires a CDRC above about 200°. That statement rests
@@ -110,7 +111,7 @@ Three 40 × 40 m core plots with a 10 m buffer were generated (`scripts/paperC_s
 400 stems ha⁻¹ (DBH 38 ± 11 cm), S1b 800 ha⁻¹ (30 ± 9 cm), S1c 1200 ha⁻¹ (24 ± 7 cm); random positions
 with a minimum gap of 10 cm. Stems are 4 m elliptical cylinders (axis ratio U(0.85, 1), 32 segments,
 rings every 0.25 m with ±3 mm bark roughness); crowns were omitted because only the breast-height
-cross-section is analysed. Scans were simulated with HELIOS++ 2.2.2 (Winiwarter et al., 2022 [verify])
+cross-section is analysed. Scans were simulated with HELIOS++ 2.2.2 (Winiwarter et al., 2022)
 using the RIEGL VZ-400 model (5 mm range accuracy, 0.3 mrad divergence), tripod height 1.5 m,
 0.06° angular resolution, vertical field −30° to +5°. Each scene has a pool of 40 positions
 (5 × 5 grid at 8 m spacing plus 15 random); each position is simulated once and the configurations
@@ -130,8 +131,8 @@ true elliptical perimeter.
 
 Per estimator and arc class: bias, RMSE, share of stems within ±2 cm (failures counted as outside),
 failure rate. A *coverage threshold* is the smallest arc from which RMSE ≤ 2 cm, |bias| ≤ 1 cm and
-failure ≤ 10 % hold for all larger arcs. The 2 cm level follows common inventory accuracy targets
-[TODO: cite a national inventory tolerance].
+failure ≤ 10 % hold for all larger arcs. The 2 cm level corresponds to the DBH accuracy of 1–2 cm that the international
+TLS benchmark found achievable (Liang et al., 2018).
 
 ## 3. Results
 
@@ -181,7 +182,7 @@ density. Random placement performs close to the grid.
 (plot 08 omitted for size, plot 09 failed to download); stem points (class 3) at 1.0–1.6 m above ground
 were clustered, and 456 stems with ≥ 330° observed coverage (1° bins) and ≥ 300 points served as
 reference; their reference DBH is the median of the four least-squares/RANSAC estimates on all points
-(no field DBH is available). LAUT (Gollob et al., 2020 [verify]; CC BY 4.0): 17 Austrian inventory plots
+(no field DBH is available). LAUT (Gollob et al., 2020a, b; CC BY 4.0): 17 Austrian inventory plots
 scanned with a Faro Focus3D X330, 1 908 trees with field DBH (median 15.6 cm) and field positions; stem
 points are all points within DBH/2 + 25 cm of the field position, i.e. without segmentation. Field
 positions and fitted centres agree to 4 cm (median). Coverage was reduced by retaining one contiguous
@@ -259,26 +260,44 @@ The author declares no competing interests.
 
 ## References
 
-- Abegg, M., Kükenbrink, D., Zell, J., Schaepman, M.E., Morsdorf, F., 2017. Terrestrial laser scanning for
-  forest inventories—tree diameter distribution and scanner location impact on occlusion. Forests 8(6), 184.
-- Chang, … 2025. [TODO: full Renon/ICOS data reference, Zenodo 17186174]
+- Abegg, M., Kükenbrink, D., Zell, J., Schaepman, M.E., Morsdorf, F., 2017. Terrestrial laser scanning for forest
+  inventories—tree diameter distribution and scanner location impact on occlusion. Forests 8(6), 184.
+  https://doi.org/10.3390/f8060184
+- Al-Sharadqah, A., Chernov, N., 2009. Error analysis for circle fitting algorithms. Electronic Journal of
+  Statistics 3, 886–911. https://doi.org/10.1214/09-EJS419
+- Chang, M., Candotti, A., von Ellenrieder, K., Tomelleri, E., Camurri, M., 2025. Data for: "A multi-platform
+  LiDAR dataset for standardized forest inventory measurement at long term ecological monitoring sites".
+  Zenodo. https://doi.org/10.5281/zenodo.17186174
 - Chernov, N., 2010. Circular and Linear Regression: Fitting Circles and Lines by Least Squares. CRC Press.
-- Fischler, M.A., Bolles, R.C., 1981. Random sample consensus. Communications of the ACM 24(6), 381–395.
-- Gollob, C., Ritter, T., Nothdurft, A., 2020. Comparison of 3D point clouds obtained by terrestrial laser
-  scanning and personal laser scanning on forest inventory sample plots. Data 5(4), 103. [verify authors]
+- Fischler, M.A., Bolles, R.C., 1981. Random sample consensus: a paradigm for model fitting with applications to
+  image analysis and automated cartography. Communications of the ACM 24(6), 381–395.
+- Gollob, C., Ritter, T., Nothdurft, A., 2020a. Comparison of 3D point clouds obtained by terrestrial laser
+  scanning and personal laser scanning on forest inventory sample plots. Data 5(4), 103.
+  https://doi.org/10.3390/data5040103
+- Gollob, C., Ritter, T., Nothdurft, A., 2020b. LAUT – Terrestrial and personal laser scanner data from Austrian
+  forest inventory plots. Zenodo. https://doi.org/10.5281/zenodo.3698956
+- Gollob, C., Ritter, T., Wassermann, C., Nothdurft, A., 2019. Influence of scanner position and plot size on the
+  accuracy of tree detection and diameter estimation using terrestrial laser scanning on forest inventory
+  plots. Remote Sensing 11(13), 1602. https://doi.org/10.3390/rs11131602
 - Kåsa, I., 1976. A circle fitting procedure and its error analysis. IEEE Transactions on Instrumentation and
-  Measurement IM-25(1), 8–14.
-- Laino, D., Cabo, C., Prendes, C., et al., 2024. 3DFin: a software for automated 3D forest inventories from
-  terrestrial point clouds. Forestry. [verify]
-- Laino, D., Cabo, C., Ordóñez, C., et al., 2026. SegmentedForests. Forestry 99(2); doi:10.1093/forestry/cpaf062.
-- Li, L., Mu, X., Soma, M., Wan, P., Qi, J., Hu, R., Zhang, W., Tong, Y., Yan, G., 2021. An iterative-mode
-  scan design of terrestrial laser scanning in forests for minimizing occlusion effects. IEEE Transactions
-  on Geoscience and Remote Sensing [verify volume/pages; accepted Aug 2020].
-- Liang, X., Hyyppä, J., Kaartinen, H., et al., 2018. International benchmarking of terrestrial laser
-  scanning approaches for forest inventories. ISPRS Journal of Photogrammetry and Remote Sensing 144, 137–179.
-- Molina-Valero, J.A., et al., 2022. FORTLS: an R package for processing TLS data and estimating stand
-  variables in forest inventories. Environmental Modelling & Software 150, 105337.
-- Weiser, H., Schäfer, J., Winiwarter, L., et al., 2022. Individual tree point clouds and tree measurements
-  from multi-platform laser scanning in German forests. Earth System Science Data 14, 2989–3012. [verify title]
-- Winiwarter, L., Esmorís Pena, A.M., Weiser, H., et al., 2022. Virtual laser scanning with HELIOS++.
-  Remote Sensing of Environment 269, 112772. [verify]
+  Measurement IM-25(1), 8–14. https://doi.org/10.1109/TIM.1976.6312298
+- Laino, D., Cabo, C., Prendes, C., Janvier, R., Ordóñez, C., Nikonovas, T., Doerr, S., Santín, C., 2024. 3DFin:
+  a software for automated 3D forest inventories from terrestrial point clouds. Forestry 97(4), 479–496.
+  https://doi.org/10.1093/forestry/cpae020
+- Laino, D., Cabo, C., Ordóñez, C., Bolanos, R., Janvier, R., Giulioni, F., Herrmann, M., Hudak, A., Parsons, R.,
+  Santín, C., 2026. SegmentedForests: a labelled dataset of terrestrial LiDAR point clouds for semantic
+  segmentation of forests. Forestry 99(2). https://doi.org/10.1093/forestry/cpaf062
+- Li, L., Mu, X., Soma, M., Wan, P., Qi, J., Hu, R., Zhang, W., Tong, Y., Yan, G., 2021. An iterative-mode scan
+  design of terrestrial laser scanning in forests for minimizing occlusion effects. IEEE Transactions on
+  Geoscience and Remote Sensing 59(4), 3547–3566. https://doi.org/10.1109/TGRS.2020.3018643
+- Liang, X., Hyyppä, J., Kaartinen, H., et al., 2018. International benchmarking of terrestrial laser scanning
+  approaches for forest inventories. ISPRS Journal of Photogrammetry and Remote Sensing 144, 137–179.
+  https://doi.org/10.1016/j.isprsjprs.2018.06.021
+- Molina-Valero, J.A., Martínez-Calvo, A., Ginzo Villamayor, M.J., Novo Pérez, M.A., Álvarez-González, J.G.,
+  Montes, F., Pérez-Cruzado, C., 2022. Operationalizing the use of TLS in forest inventories: the R package
+  FORTLS. Environmental Modelling & Software 150, 105337. https://doi.org/10.1016/j.envsoft.2022.105337
+- Ritter, T., Gollob, C., Nothdurft, A., 2020. Towards an optimization of sample plot size and scanner position
+  layout for terrestrial laser scanning in multi-scan mode. Forests 11(10), 1099. https://doi.org/10.3390/f11101099
+- Winiwarter, L., Esmorís Pena, A.M., Weiser, H., Anders, K., Martínez Sánchez, J., Searle, M., Höfle, B., 2022.
+  Virtual laser scanning with HELIOS++: a novel take on ray tracing-based simulation of topographic
+  full-waveform 3D laser scanning. Remote Sensing of Environment 269, 112772. https://doi.org/10.1016/j.rse.2021.112772
