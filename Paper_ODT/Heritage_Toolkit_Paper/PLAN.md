@@ -54,6 +54,9 @@ Kamerahöhen danach 1,8–9,4).
 
 - Zenodo liefert auf RunPod ca. 1 MB/s je Verbindung (13.10.2026 gemessen) → 2,1 GB ≈ 35 min,
   alle 31,3 GB ≈ 9 h. Für das Training jedes Archiv nur einmal laden.
+- Upload vom Handy in JupyterLab (14.10.2026, Mobilfunk): Bilder + Parameter kamen an, die Punktwolke
+  nur ~1 MB/min → nur im WLAN, Bildschirm an, Browser im Vordergrund. Pod nicht neu starten, während
+  ein Upload läuft (bricht ihn ab). Netzwerk-Volume erst ab 5 $ Guthaben möglich.
 - RunPod-Preise (13.10.2026, Katalog): CPU `cpu3c` 2 vCPU 0,06 $/h; RTX 4000 Ada 0,20 $/h,
   RTX 4090 0,34 $/h (Community). Guthaben ca. 4 $. Jeden Pod sofort nach dem Lauf löschen.
 
