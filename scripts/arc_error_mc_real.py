@@ -15,8 +15,7 @@ koennten:
   komb      unrund + ausr5 + vers5.
 
 Verfahren: die vier aus dbh_methods.py plus
-  hough     Hough-Kreistransformation (grob-fein ueber Radius und Zentrum), wie sie
-            u. a. die WSL fuer Teilboegen nutzt
+  hough     Kreis-Hough nach scikit-image (hough_circle, normalisiert), 5-mm-Raster
   robust    geometrischer Kreisfit mit Huber-Verlust (f_scale 1 cm)
 
   python scripts/arc_error_mc_real.py --out Paper_ODT/Forst_Benchmark_Paper/results/arc_error_mc_real.csv
@@ -84,47 +83,51 @@ def sample(rng, scen, r, theta, n, sigma):
 
 
 # ------------------------------------------------------------------ Verfahren
-def m_hough(sl, cell=.005, k=12):
-    """Hough-Kreis mit Normalenvotum (Standardvariante fuer Teilboegen): die
-    Flaechennormale je Punkt kommt aus einer lokalen Hauptachsenanalyse der k
-    naechsten Nachbarn; jeder Punkt stimmt nur fuer die zwei Zentren p +/- r*n.
-    Ohne Normale haeufen sich die Stimmen an der Einhuellenden der Stimmkreise und
-    der Radius wird bei kurzen Boegen systematisch falsch. Akkumulator 5 mm, 3x3
-    geglaettet; Radius grob (1 cm) ueber R_MIN..R_MAX, dann fein (2 mm)."""
+def m_hough(sl):
+    """Kreis-Hough nach scikit-image (hough_circle / hough_circle_peaks, normalisierte
+    Akkumulatoren), zweistufig: grob auf 1-cm-Raster ueber alle Radien R_MIN..R_MAX
+    (Akkumulator ueber den Bildrand hinaus, da das Zentrum bei kurzen Boegen ausserhalb
+    der Punkte liegt), dann fein auf 2,5-mm-Raster um den groben Kreis (+/- 1,5 cm).
+    Etablierte Standardimplementierung statt eigener Variante."""
     if len(sl) < 12:
         return None
-    from scipy.spatial import cKDTree
+    from skimage.transform import hough_circle, hough_circle_peaks
     p = sl[:, :2]
-    # auf 1-cm-Raster ausduennen: bei dichten Wolken liegen k Nachbarn sonst nur
-    # Millimeter auseinander und die Normale ist reines Rauschen
-    _, keep = np.unique(np.floor(p / .01).astype(np.int64), axis=0, return_index=True)
-    p = p[np.sort(keep)]
-    if len(p) < 12:
-        return None
-    _, nb = cKDTree(p).query(p, k=min(k, len(p)))
-    q = p[nb] - p[nb].mean(axis=1, keepdims=True)
-    cov = np.einsum("nki,nkj->nij", q, q)
-    _, vec = np.linalg.eigh(cov)
-    nrm = vec[:, :, 0]                              # kleinster Eigenwert = Normale
-    x0, y0 = p[:, 0].min() - dm.R_MAX - 2 * cell, p[:, 1].min() - dm.R_MAX - 2 * cell
-    nx = int((p[:, 0].max() + dm.R_MAX + 2 * cell - x0) / cell) + 1
-    ny = int((p[:, 1].max() + dm.R_MAX + 2 * cell - y0) / cell) + 1
 
-    def peak(r):
-        c = np.concatenate([p + r * nrm, p - r * nrm])
-        ix = np.clip(((c[:, 0] - x0) / cell).astype(np.int64), 0, nx - 1)
-        iy = np.clip(((c[:, 1] - y0) / cell).astype(np.int64), 0, ny - 1)
-        acc = np.bincount(ix * ny + iy, minlength=nx * ny).reshape(nx, ny).astype(np.float32)
-        a = np.pad(acc, 1)
-        return float(sum(a[1 + dx:1 + dx + nx, 1 + dy:1 + dy + ny] for dx in (-1, 0, 1) for dy in (-1, 0, 1)).max())
+    def raster(px, lo, size):
+        ij = np.floor((p - lo) / px).astype(int)
+        ok = (ij >= 0).all(1) & (ij < size).all(1)
+        img = np.zeros((size, size), bool); img[ij[ok, 0], ij[ok, 1]] = True
+        return img
 
-    coarse = np.arange(dm.R_MIN, dm.R_MAX + 1e-9, .01)
-    r0 = float(coarse[int(np.argmax([peak(r) for r in coarse]))])
-    fine = np.arange(max(dm.R_MIN, r0 - .01), min(dm.R_MAX, r0 + .01) + 1e-9, .002)
-    r1 = float(fine[int(np.argmax([peak(r) for r in fine]))])
-    if abs(r1 - dm.R_MIN) < 1e-4 or abs(r1 - dm.R_MAX) < 1e-4:
+    # grob
+    px = .01
+    lo = p.min(axis=0) - .02
+    size = int(np.ptp(p, axis=0).max() / px) + 5
+    if size > 300:
         return None
-    return round(200 * r1, 1)
+    radii = np.arange(int(dm.R_MIN / px), int(dm.R_MAX / px) + 1)
+    acc = hough_circle(raster(px, lo, size), radii, normalize=True, full_output=True)
+    _, cx, cy, rr = hough_circle_peaks(acc, radii, total_num_peaks=1)
+    if not len(rr):
+        return None
+    pad = radii.max()
+    c0 = lo + (np.array([cx[0], cy[0]]) - pad + .5) * px
+    r0 = float(rr[0]) * px
+    # fein
+    px = .0025
+    half = r0 + .03
+    lo = c0 - half
+    size = int(2 * half / px) + 1
+    radii = np.arange(max(int(dm.R_MIN / px), int((r0 - .015) / px)), int(min(dm.R_MAX, r0 + .015) / px) + 1)
+    acc = hough_circle(raster(px, lo, size), radii, normalize=True)
+    _, cx, cy, rr = hough_circle_peaks(acc, radii, total_num_peaks=1)
+    if not len(rr):
+        return None
+    r = float(rr[0]) * px
+    if r <= dm.R_MIN + 1e-4 or r >= dm.R_MAX - 1e-4:
+        return None
+    return round(200 * r, 1)
 
 
 def m_robust(sl, f_scale=.01):
