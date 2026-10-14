@@ -11,7 +11,8 @@
 # -> eval_splat_geometry.py. Ergebnisse unter /workspace/pellis/<Gebaeude>_*.
 #
 # Umgebung: Template mit CUDA-devel (nvcc), z. B. RunPod "PyTorch 2.x"; Disk >= 50 GB.
-# Variablen: STEPS (30000), FACTOR (2 = halbe Aufloesung), FORCE=1 (Posenprobe ignorieren).
+# Variablen: STEPS (30000), FACTOR (2 = halbe Aufloesung), FORCE=1 (Posenprobe ignorieren),
+#            SRC=<ordner> (lose hochgeladene Dateien statt RAR).
 set -euo pipefail
 
 B="${1:-5_CB}"
@@ -44,23 +45,31 @@ if [ -n "$NEED" ]; then
     || { echo "FEHLER: apt-get install$NEED fehlgeschlagen"; exit 1; }
 fi
 
-# ---- Archiv pruefen (liegt schon da) -----------------------------------------
+# ---- Daten: entweder <Gebaeude>.rar (wird entpackt) oder lose Dateien in SRC ----------
+# SRC=/workspace: Nutzer hat Fotos, Parameter- und Punktwolkendatei einzeln hochgeladen.
 RAR="$W/$B.rar"
-[ -f "$RAR" ] || { echo "FEHLER: $RAR fehlt -- bitte hochladen (kein Download auf dem Pod)"; exit 1; }
-GOT="$(md5sum "$RAR" | cut -d' ' -f1)"
-[ "$GOT" = "${MD5[$B]}" ] || { echo "FEHLER: md5 $GOT, erwartet ${MD5[$B]}"; exit 1; }
-echo "$B.rar md5 ok"
-
-echo "== Entpacke =="
-mkdir -p "$W/raw_$B"
-unrar x -o+ -idq "$RAR" "$W/raw_$B/"
-INT="$(find "$W/raw_$B" -name '*interior_parameters.txt' | head -1)"
-EXT="$(find "$W/raw_$B" -name '*exterior_parameters.txt' | head -1)"
-TRF="$(find "$W/raw_$B" -name '*transformation_matrix.txt' | head -1)"
-PCL="$(find "$W/raw_$B" -name '*point_cloud.txt' | head -1)"
-FIRST="$(find "$W/raw_$B" -iname "${B}_001.*" | head -1)"
+EXCL=()
+if [ -n "${SRC:-}" ]; then
+  RAWDIR="$SRC"
+  EXCL=(-not -path "$W/*")          # eigene Arbeitsdateien unter $W nicht mitfinden
+  echo "Daten lose in $RAWDIR (kein Archiv)"
+else
+  [ -f "$RAR" ] || { echo "FEHLER: $RAR fehlt -- bitte hochladen (kein Download auf dem Pod)"; exit 1; }
+  GOT="$(md5sum "$RAR" | cut -d' ' -f1)"
+  [ "$GOT" = "${MD5[$B]}" ] || { echo "FEHLER: md5 $GOT, erwartet ${MD5[$B]}"; exit 1; }
+  echo "$B.rar md5 ok"
+  echo "== Entpacke =="
+  RAWDIR="$W/raw_$B"
+  mkdir -p "$RAWDIR"
+  unrar x -o+ -idq "$RAR" "$RAWDIR/"
+fi
+INT="$(find "$RAWDIR" "${EXCL[@]}" -name '*interior_parameters.txt' | head -1)"
+EXT="$(find "$RAWDIR" "${EXCL[@]}" -name '*exterior_parameters.txt' | head -1)"
+TRF="$(find "$RAWDIR" "${EXCL[@]}" -name '*transformation_matrix.txt' | head -1)"
+PCL="$(find "$RAWDIR" "${EXCL[@]}" -name '*point_cloud.txt' | head -1)"
+FIRST="$(find "$RAWDIR" "${EXCL[@]}" -iname "${B}_001.*" | head -1)"
 for v in INT EXT TRF PCL FIRST; do
-  [ -n "${!v}" ] || { echo "FEHLER: $v nicht gefunden"; find "$W/raw_$B" -maxdepth 3 | head -40; exit 1; }
+  [ -n "${!v}" ] || { echo "FEHLER: $v nicht gefunden"; find "$RAWDIR" -maxdepth 3 | head -40; exit 1; }
   echo "  $v = ${!v}"
 done
 IMGDIR="$(dirname "$FIRST")"
