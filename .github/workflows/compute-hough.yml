@@ -20,9 +20,11 @@ concurrency:
 env:
   PIP: numpy scipy scikit-image pandas
   METHODS: hough
+  SF_METHODS: kreisfit,geofit,ransac,zylinder,hough,robust
 
 jobs:
   mc:
+    if: ${{ !contains(github.event.head_commit.message, '[sf-only]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 300
     strategy:
@@ -53,12 +55,13 @@ jobs:
       - run: pip install $PIP
       - run: |
           X=""; [ "${{ matrix.mode }}" = clutter ] && X="--with-clutter"
-          python scripts/paperC_real.py extdata/segforests/plot_${{ matrix.plot }}_band.npz --reps 5 --methods $METHODS $X \
+          python scripts/paperC_real.py extdata/segforests/plot_${{ matrix.plot }}_band.npz --reps 5 --methods $SF_METHODS $X \
             --out out/sf_${{ matrix.mode }}_${{ matrix.plot }}.csv
       - uses: actions/upload-artifact@v4
         with: { name: "sf-${{ matrix.mode }}-${{ matrix.plot }}", path: out, retention-days: 3 }
 
   laut:
+    if: ${{ !contains(github.event.head_commit.message, '[sf-only]') }}
     runs-on: ubuntu-latest
     timeout-minutes: 300
     strategy:

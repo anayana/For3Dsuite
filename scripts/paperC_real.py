@@ -6,7 +6,7 @@ Klasse 3 = Stamm). Vorgehen:
   1. Stammpunkte (Klasse --stem-class) im Band 1,05-1,55 m ueber Grund nach XY clustern.
   2. Nur Staemme mit >= 330 Grad belegter Rundum-Abdeckung (1-Grad-Klassen ueber
      den Kasa-Mittelpunkt) und >= 300 Punkten gelten als Referenz; Referenz-BHD =
-     Median der Verfahren auf ALLEN Punkten (es gibt keinen Feld-BHD).
+     Median von Kasa, geometrischem, RANSAC- und Zylinderfit (mind. 3 gueltig) auf ALLEN Punkten (es gibt keinen Feld-BHD).
   3. Abdeckung kuenstlich reduzieren: nur ein zusammenhaengender Bogen theta bleibt
      (zufaellige Lage, 10 Wiederholungen); dazu optional die NICHT-Stamm-Punkte des
      Bandes im Umkreis (Aeste, Strauch) als reale Ausreisser (--with-clutter).
@@ -71,10 +71,11 @@ def main():
         cov = np.count_nonzero(np.histogram(ang, bins=360, range=(-180, 180))[0])
         if cov < 330:
             continue
-        full = {m: v for m, v in estimate(S).items() if v is not None}
-        if len(full) < 4:
+        # Referenz nur aus den vier Kleinste-Quadrate-Verfahren (unabhaengig von Hough/Huber)
+        full = {m: v for m, v in estimate(S, ["kreisfit", "geofit", "ransac", "zylinder"]).items() if v is not None}
+        if len(full) < 3:
             continue
-        ref = float(np.median([full[m] for m in ("kreisfit", "geofit", "ransac", "zylinder") if m in full]))
+        ref = float(np.median(list(full.values())))
         nref += 1
         near = other[np.hypot(other[:, 0] - cx, other[:, 1] - cy) < fit[2] + .3] if a.with_clutter else other[:0]
         for th in ARCS:

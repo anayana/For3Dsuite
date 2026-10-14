@@ -36,7 +36,12 @@ def main():
     n = 0
     for f in sorted(rc.glob("sf_*.csv")):
         mode, plot = re.match(r"sf_(clean|clutter)_(\d+)", f.stem).groups()
-        n += swap(RES / ("real_clean" if mode == "clean" else "real") / f"plot_{plot}.csv", f, ["stem", "arc_deg", "rep", "n_pts"], col)
+        tgt = RES / ("real_clean" if mode == "clean" else "real") / f"plot_{plot}.csv"
+        b = pd.read_csv(f)
+        if all(f"{m}_cm" in b for m in ("kreisfit", "geofit", "ransac", "zylinder", "hough", "robust")):
+            b.to_csv(tgt, index=False); n += len(b)              # vollstaendige Neuberechnung
+        else:
+            n += swap(tgt, f, ["stem", "arc_deg", "rep", "n_pts"], col)
     for f in sorted(rc.glob("laut_*.csv")):
         plot = f.stem.split("_")[1]
         n += swap(RES / "laut" / f"plot_{plot}.csv", f, ["plot", "tree", "kind", "arc5_deg", "rep", "n_pts"], col)
