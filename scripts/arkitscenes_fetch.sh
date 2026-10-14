@@ -60,7 +60,16 @@ take_dir "$TMP/intr.zip" lowres_wide_intrinsics
 
 if [ -n "$UPS" ]; then
   get "$BASE/upsampling/$UPS/$VID.zip" "$TMP/ups.zip"
-  for d in color highres_depth lowres_depth confidence; do take_dir "$TMP/ups.zip" "$d"; done
+  mkdir -p "$TMP/ups" && unzip -q "$TMP/ups.zip" -d "$TMP/ups"
+  echo "   Inhalt des Upsampling-ZIPs:"
+  (cd "$TMP/ups" && find . -maxdepth 3 -type d | sort | sed 's/^/     /')
+  # Apples README nennt den Bildordner "color", Archive koennen "wide" heissen
+  for d in color wide highres_depth lowres_depth confidence; do
+    src="$(find "$TMP/ups" -type d -name "$d" | head -1)"
+    if [ -n "$src" ]; then rm -rf "${DST:?}/$d"; mv "$src" "$DST/$d"; fi
+  done
+  [ -d "$DST/color" ] || [ -d "$DST/wide" ] \
+    || { echo "FEHLER: kein Bildordner (color/ oder wide/) im Upsampling-ZIP"; exit 1; }
 else
   echo "   (nicht im Upsampling-Teil: VGA-Bilder, keine Laserscanner-Referenz)"
   for a in lowres_depth confidence vga_wide vga_wide_intrinsics; do
