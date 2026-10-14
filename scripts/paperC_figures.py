@@ -124,7 +124,32 @@ def fig_sector(d):
     save(fig, "fig4_sector_vs_geometric")
 
 
+def fig_real():
+    import glob
+    sets = []
+    for key, lab in [("real_clean", "a  SegmentedForests (456 stems)\n    stem points only"), ("real", "b  SegmentedForests (456 stems)\n    with surrounding points")]:
+        fs = glob.glob(str(RES / key / "*.csv"))
+        if fs:
+            x = pd.concat([pd.read_csv(f) for f in fs]); x["ref"] = x.ref_dbh_cm; sets.append((lab, x))
+    fs = glob.glob(str(RES / "laut" / "*.csv"))
+    if fs:
+        x = pd.concat([pd.read_csv(f) for f in fs]); x = x[x.kind == "reduced"].copy()
+        x["ref"] = x.dbh_field_cm; x["arc_deg"] = x.arc5_deg; sets.append(("c  LAUT, field DBH (460 trees)\n    with surrounding points", x))
+    fig, axs = plt.subplots(1, len(sets), figsize=(7.2, 2.8), sharey=True)
+    for ax, (lab, x) in zip(np.atleast_1d(axs), sets):
+        for m in ["kreisfit", "ransac", "geofit", "robust"]:
+            g = x.groupby("arc_deg").apply(lambda h: 100 * ((h[m + "_cm"] - h.ref).abs() <= 2).mean())
+            ax.plot(g.index, g.values, color=COLOR[m], marker=MARK[m], ms=4, lw=1.6, label=LABEL[m])
+        ax.axvline(202.5, color=MUTED, lw=.8, ls=":")
+        ax.set_title(lab, loc="left", fontsize=8, color=INK); ax.set_xticks([90, 180, 270, 360]); ax.set_xlabel("Retained arc (°)"); ax.set_ylim(0, 100)
+    np.atleast_1d(axs)[0].set_ylabel("Stems with |error| ≤ 2 cm (%)")
+    h, l = np.atleast_1d(axs)[0].get_legend_handles_labels()
+    fig.legend(h, l, ncol=4, fontsize=7, loc="lower center", bbox_to_anchor=(.5, -.1))
+    save(fig, "fig5_real_data")
+
+
 def main():
+    fig_real()
     fig_mc()
     d = helios()
     fig_helios_error(d.copy()); fig_design(d); fig_sector(d)

@@ -5,8 +5,8 @@
 **Author:** Angel Naya, Independent Researcher, Berlin, Germany\
 **Corresponding author:** Angel Naya, angel.naya@posteo.de
 
-> DRAFT — 13 Oct 2026. Open items are marked **[TODO]**; references marked **[verify]** have not yet
-> been checked against the original. Validation on real labelled point clouds (Section 3.4) is pending.
+> DRAFT — 14 Oct 2026. Open items are marked **[TODO]**; references marked **[verify]** have not yet
+> been checked against the original.
 
 ## Abstract
 
@@ -26,8 +26,11 @@ fits never do, even at full coverage. In the simulated stands, 82 % of stems are
 180–225° visible arc and over 90 % beyond 225°. The 3DFin sector rule corresponds to a median of about
 190° geometric arc and separates stems with 92 % from those with 63 % of estimates within 2 cm. Four
 positions on a grid bring 80–89 % of stems above 180°; four positions clustered near the plot centre
-fall to 56 % at 1200 stems ha⁻¹. A coverage threshold is therefore defensible, but it must be stated
-per estimator and per expected stem shape, and scan positions must be spread rather than added.
+fall to 56 % at 1200 stems ha⁻¹. On 456 labelled real stems (SegmentedForests) the Kasa fit needs about 225° for 80 % of stems within
+2 cm; with the surrounding points left in, least-squares fits saturate at 55 % even at full coverage,
+whereas RANSAC reaches 84 %, and 62 % against field DBH on 1 908 LAUT trees. A coverage threshold is
+therefore defensible, but it must be stated per estimator, per expected stem shape and per
+segmentation quality, and scan positions must be spread rather than added.
 
 **Keywords:** terrestrial laser scanning; diameter at breast height; occlusion; circle fitting;
 scan design; HELIOS++; forest inventory
@@ -166,13 +169,32 @@ bring 89 %, 82 % and 80 % of stems above 180° in the three stands; six bring 96
 clustered near the centre reach 89 %, 71 % and 56 %, i.e. the penalty of clustering grows with stand
 density. Random placement performs close to the grid.
 
-### 3.4 Validation on real point clouds
+### 3.4 Real point clouds
 
-[TODO] Planned: SegmentedForests plots 06/07 (Laino et al., 2026; MIT), LAUT (Gollob et al., 2020
-[verify]; CC BY 4.0) with field DBH, and Weiser et al. (2022) [verify]: reduce coverage of well-covered
-stems by removing scan positions where individual scans are available, otherwise by removing angular
-sectors, and compare the error-versus-arc curves with Sections 3.1–3.2. Data access from the
-computing environment is pending.
+**Data.** SegmentedForests (Laino et al., 2026; MIT): 12 of 14 TLS plots with point-wise semantic labels
+(plot 08 omitted for size, plot 09 failed to download); stem points (class 3) at 1.0–1.6 m above ground
+were clustered, and 456 stems with ≥ 330° observed coverage (1° bins) and ≥ 300 points served as
+reference; their reference DBH is the median of the four least-squares/RANSAC estimates on all points
+(no field DBH is available). LAUT (Gollob et al., 2020 [verify]; CC BY 4.0): 17 Austrian inventory plots
+scanned with a Faro Focus3D X330, 1 908 trees with field DBH (median 15.6 cm) and field positions; stem
+points are all points within DBH/2 + 25 cm of the field position, i.e. without segmentation. Field
+positions and fitted centres agree to 4 cm (median). Coverage was reduced by retaining one contiguous
+arc at random orientation (5 repetitions per stem and arc). Breast-height bands were extracted with
+`scripts/ext_band.py` in a GitHub Actions workflow (`.github/workflows/fetch-data.yml`).
+
+**Stem points only** (SegmentedForests, Fig. 5a). The Kasa fit reaches 56 % of stems within 2 cm at
+180°, 73 % at 202.5°, 82 % at 225° and 91 % at 270°; its RMSE falls from 6.1 cm at 135° to 2.9 cm at
+202.5° and 1.5 cm at 270°, with a negative bias on short arcs (−4.4 cm at 135°, −1.0 cm at 202.5°)
+as predicted by the Monte Carlo experiment. On these thinner stems (median DBH 16 cm), real bark
+shifts the 80 % point from about 180° (HELIOS) to about 225°. RANSAC with a 12 mm inlier tolerance
+is weaker on clean real stems (88 % at 360°), because rough bark excludes valid points.
+
+**With surrounding points** (Fig. 5b, c). When branches, understorey and unlabelled points within
+30 cm (SegmentedForests) or 25 cm (LAUT) remain, the least-squares fits saturate: at full coverage only
+55 % (Kasa) and 64 % (geometric) of SegmentedForests stems are within 2 cm, and 35–38 % of LAUT trees
+against field DBH. RANSAC rises with coverage to 84 % (SegmentedForests) and 62 % (LAUT) and is the
+best estimator from about 112° on, reproducing the outlier scenario of Section 3.1 on real data. The
+lower LAUT values include field-measurement error and the absence of any segmentation.
 
 ## 4. Discussion
 
@@ -193,15 +215,19 @@ stand-specific simulations, is a spread grid of four to six positions per 0.16 h
 400–1200 stems ha⁻¹, which brought 80–98 % of stems above 180° here.
 
 **Limitations.** Perfect segmentation (no detection errors), no branches or crowns at breast height
-in HELIOS, flat terrain, one scanner model, idealised outlier and registration models; real-data
-validation pending (Section 3.4). Range-dependent incidence effects and beam divergence are simulated
-by HELIOS but not varied systematically.
+in HELIOS, flat terrain, one scanner model, idealised outlier and registration models. Range-dependent incidence effects and beam divergence are simulated
+by HELIOS but not varied systematically. The Hough implementation (normal voting, 5 mm accumulator)
+performed worst throughout and may understate what tuned Hough variants achieve. On SegmentedForests
+the reference DBH is itself a fit to well-covered points, not a field measurement.
 
 ## 5. Conclusions
 
-[TODO after validation] Coverage rules for TLS diameters should be reported per estimator; robust
-estimators (RANSAC with arc constraint) are the main lever against outliers; non-circularity sets a
-floor of roughly 180–200° for least-squares fits of large stems; and scan positions should be spread.
+Coverage rules for TLS diameters should be reported per estimator and per segmentation quality.
+With clean stem points, least-squares fits need about 180° (simulation) to 225° (real bark) of
+visible arc for most stems to be within 2 cm, and 3DFin's 202.5° sector rule sits in this range.
+Without clean segmentation, no amount of coverage rescues least-squares fits; robust estimators such
+as RANSAC with an arc constraint are then the main lever. Scan positions should be spread rather than
+clustered, especially in dense stands.
 
 ## Code availability
 
