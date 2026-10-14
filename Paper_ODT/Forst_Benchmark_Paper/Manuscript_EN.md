@@ -19,16 +19,16 @@ Monte Carlo experiment (13 arcs, six estimators, seven perturbation scenarios in
 cross-sections, outliers from branches and understorey, and inter-scan registration offsets) with
 HELIOS++ simulations of three stands (400, 800 and 1200 stems ha⁻¹) scanned from 40 candidate positions,
 recombined offline into 216 scan configurations (26 712 stem × configuration cases). The visible arc is
-computed geometrically, independent of point density. For circular stems without outliers, 90–135° of
-visible arc suffices for a 2 cm RMSE; non-circularity raises this to about 180–202.5°, and with 5–15 %
-outliers only RANSAC with an arc constraint stays within 2 cm, from 112.5–180°, while least-squares
-fits never do, even at full coverage. In the simulated stands, 82 % of stems are within 2 cm at
-180–225° visible arc and over 90 % beyond 225°. The 3DFin sector rule corresponds to a median of about
+computed geometrically, independent of point density. For circular stems without outliers, 45–135° of
+visible arc suffices for a 2 cm RMSE; non-circularity raises this to about 180–202.5° for 40 cm stems,
+and with 5–15 % outliers only robust estimators reach it (RANSAC from 112.5–135°, Huber 135–270°, Hough
+180–225°), while least-squares fits never do, even at full coverage. In the simulated stands, 82 % of stems are within 2 cm at
+180–225° visible arc and over 90 % beyond 225° (Kasa and cylinder fits). The 3DFin sector rule corresponds to a median of about
 190° geometric arc and separates stems with 92 % from those with 63 % of estimates within 2 cm. Four
 positions on a grid bring 80–89 % of stems above 180°; four positions clustered near the plot centre
-fall to 56 % at 1200 stems ha⁻¹. On 456 labelled real stems (SegmentedForests) the Kasa fit needs about 225° for 80 % of stems within
-2 cm; with the surrounding points left in, least-squares fits saturate at 55 % even at full coverage,
-whereas RANSAC reaches 84 %, and 62 % against field DBH on 1 908 LAUT trees. A coverage threshold is
+fall to 56 % at 1200 stems ha⁻¹. On 456 labelled real stems (SegmentedForests) the Kasa fit needs about
+225° for 80 % of stems within 2 cm; with the surrounding points left in, least-squares fits saturate at 55 % even at full coverage,
+whereas RANSAC reaches 84 %, and 62 % against field DBH on 460 well-covered LAUT trees. A coverage threshold is
 therefore defensible, but it must be stated per estimator, per expected stem shape and per
 segmentation quality, and scan positions must be spread rather than added.
 
@@ -45,7 +45,8 @@ multi-scan inventories, especially in dense, multi-layered stands (Liang et al.,
 
 Detection is only half of the problem. A stem that is detected may still be seen on a short arc, and
 the diameter fitted to a short arc is poorly constrained: algebraic circle fits are known to be biased
-towards small radii on short, noisy arcs (Kåsa, 1976; Al-Sharadqah and Chernov, 2009; Chernov, 2010). Inventory software reacts with
+towards small radii on short, noisy arcs (Kåsa, 1976; Al-Sharadqah and Chernov,
+2009; Chernov, 2010). Inventory software reacts with
 coverage rules. 3DFin (Laino et al., 2024) divides the cross-section into 16 sectors and
 accepts a diameter only if at least nine contain points, i.e. 202.5°. In our own processing of an
 open TLS plot of the ICOS site Renon (Chang et al., 2025), this rule rejected the diameter of 29 of
@@ -58,7 +59,8 @@ Abegg et al. (2017) ray-traced 2740 virtual plots derived from the Swiss nationa
 showed that visibility depends on stem number, dominant diameter and the Weibull scale of the diameter
 distribution, and that evenly distributed scan positions give the best visibility; they did not estimate
 diameters. Gollob et al. (2019) and Ritter et al. (2020) related scanner position layout and plot size to
-detection rate and diameter accuracy on real inventory plots. Other work compared diameter estimators (e.g. Hough transform versus least squares). Li et al. (2021)
+detection rate and diameter accuracy on real inventory plots, and FORTLS (Molina-Valero et al., 2022)
+corrects stand estimates for occlusion in single-scan inventories. Li et al. (2021)
 introduced the cumulative degree of ring closure (CDRC) — the union of the angular sectors of a stem
 circle that are visible from the scan positions — to optimise scan positions in HELIOS-simulated
 forests, and noted that accurate DBH estimation requires a CDRC above about 200°. That statement rests
@@ -159,7 +161,8 @@ biased), Hough from 180–225°. In the combined scenario only RANSAC (135–180
 Pooled over the three stands (26 712 cases; 56, 130 and 185 core stems), the RMSE of Kasa, cylinder and
 RANSAC falls from 9–17 cm below 90° to 1.6–1.7 cm at 180–225° and 0.5–0.9 cm beyond 315°; Hough remains
 worst throughout (Fig. 2a). The share of stems within 2 cm rises from 45–56 % at 90–135° to 82 % at
-180–225°, 93 % at 225–270° and 98–99 % beyond 270° (Fig. 2b). Thicker stems need more coverage:
+180–225°, 93 % at 225–270° and 98–99 % beyond 270° for the Kasa and cylinder fits; RANSAC stays
+slightly lower beyond 225° (89–94 %) (Fig. 2b). Thicker stems need more coverage:
 at 180–225° RMSE is 2.0 cm in S1a (mean DBH 37 cm) versus 1.5–1.7 cm in S1b and S1c, consistent
 with the non-circularity effect in Section 3.1. A single scan position sees at most 172° of a
 stem (median 164°).
@@ -220,14 +223,14 @@ configuration. Our simulations predict that many of its stems lie below 180° vi
 diameters fitted there carry several centimetres of error — 3DFin's refusal was therefore justified,
 and estimates that our own pipeline produced for those stems should be flagged rather than reported.
 
-**Scan design.** In line with Abegg et al. (2017), clustering wastes positions: at 1200 stems ha⁻¹, four clustered positions (56 % of
-stems ≥ 180°) perform like three grid positions (58 %). A tentative recommendation, to be refined with
+**Scan design.** In line with Abegg et al. (2017), clustering wastes positions: at 1200 stems ha⁻¹, four
+clustered positions (56 % of stems ≥ 180°) perform like three grid positions (58 %). A tentative recommendation, to be refined with
 stand-specific simulations, is a spread grid of four to six positions per 0.16 ha (25–38 ha⁻¹) at
 400–1200 stems ha⁻¹, which brought 80–98 % of stems above 180° here.
 
-**Limitations.** Perfect segmentation (no detection errors), no branches or crowns at breast height
-in HELIOS, flat terrain, one scanner model, idealised outlier and registration models. Range-dependent incidence effects and beam divergence are simulated
-by HELIOS but not varied systematically. The Hough implementation (normal voting, 5 mm accumulator)
+**Limitations.** In HELIOS: perfect segmentation (no detection errors), no branches or crowns at breast
+height, flat terrain, one scanner model, idealised outlier and registration models.
+Range-dependent incidence effects and beam divergence are simulated by HELIOS but not varied systematically. The Hough implementation (normal voting, 5 mm accumulator)
 performed worst throughout and may understate what tuned Hough variants achieve. On SegmentedForests
 the reference DBH is itself a fit to well-covered points, not a field measurement.
 
@@ -252,7 +255,8 @@ clustered, especially in dense stands.
 
 Result tables (`Paper_ODT/Forst_Benchmark_Paper/results/`) and figure sources are in the repository;
 simulated scenes are reproducible from the scripts and seeds. Third-party data: Renon/ICOS IT-Ren
-(Chang et al., 2025; CC BY 4.0); SegmentedForests (Laino et al., 2026; MIT).
+(Chang et al., 2025; CC BY 4.0); SegmentedForests (Laino et al., 2026; MIT); LAUT (Gollob et al., 2020b;
+CC BY 4.0). Derived breast-height bands of SegmentedForests and LAUT are in `extdata/`.
 
 ## Declaration of competing interest
 
