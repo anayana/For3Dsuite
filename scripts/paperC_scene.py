@@ -11,6 +11,11 @@ Stammgeometrie: elliptischer Querschnitt (Achsverhaeltnis U(0.85, 1), zufaellig
 gedreht), 32 Segmente, Ringe alle 0,25 m mit +/- 3 mm Rindenrauheit je Vertex,
 Hoehe 4 m. Wahrer BHD = Ellipsenumfang/pi bei 1,3 m (Massband-Definition).
 Optional Unterwuchs als duenne Zylinder (2-6 cm, 0,5-2,5 m hoch).
+Optional Aeste (--branches k): je Stamm Poisson(k) Aeste mit Ansatz 0,5-3,0 m,
+Neigung -10..+50 Grad, Laenge 0,3-2,0 m, Durchmesser 1,5-5 cm; sie gehoeren zum
+Stammobjekt (gleiche HELIOS-Objekt-ID) und verunreinigen damit die Stammpunkte im
+Brusthoehenband wie bei einer realen Stammsegmentierung. Eigener Zufallsstrom:
+Staemme, Standpunkte und Wahrheit bleiben mit/ohne Aeste identisch.
 
   python scripts/paperC_scene.py data/paperC/S1b --dens 800 --seed 2
 
@@ -51,6 +56,32 @@ def stem_obj(rng, a, b, rot, height=STEM_H, bark=0.003, seg=SEG):
     return "\n".join(lines) + "\n"
 
 
+def branch_obj(rng, a, b, rot, k, seg=6):
+    """Aeste als duenne Kegelstuempfe ab der Stammoberflaeche; Rueckgabe (obj-Text ohne
+    Index-Versatz-Probleme: eigene Vertices ab off+1), Liste der Ansatzhoehen/Hoehenbereiche."""
+    v, f, info = [], [], []
+    for _ in range(k):
+        h0 = rng.uniform(.5, 3.0); az = rng.uniform(0, 2 * np.pi)
+        el = math.radians(rng.uniform(-10, 50)); ln = rng.uniform(.3, 2.0); r0 = rng.uniform(.0075, .025)
+        ang = az - rot
+        rs = a * b / math.sqrt((b * math.cos(ang)) ** 2 + (a * math.sin(ang)) ** 2)
+        p0 = np.array([(rs - .01) * math.cos(az), (rs - .01) * math.sin(az), h0])
+        u = np.array([math.cos(el) * math.cos(az), math.cos(el) * math.sin(az), math.sin(el)])
+        e1 = np.cross(u, [0, 0, 1.0]); e1 /= np.linalg.norm(e1); e2 = np.cross(u, e1)
+        base = len(v)
+        for t, rr in ((0, r0), (ln, r0 * .3)):
+            c = p0 + t * u
+            for i in range(seg):
+                ph = 2 * math.pi * i / seg
+                v.append(tuple(c + rr * (math.cos(ph) * e1 + math.sin(ph) * e2)))
+        for i in range(seg):
+            a0, a1 = base + i, base + (i + 1) % seg
+            f += [(a0, a1, a1 + seg), (a0, a1 + seg, a0 + seg)]
+        z1 = h0 + ln * math.sin(el)
+        info.append((min(h0, z1) - r0, max(h0, z1) + r0, rs + ln * math.cos(el)))
+    return v, f, info
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("outdir")
@@ -67,6 +98,7 @@ def main():
     ap.add_argument("--pulse", type=int, default=300000)
     ap.add_argument("--vmin", type=float, default=-40); ap.add_argument("--vmax", type=float, default=20)
     ap.add_argument("--scanner", default="riegl_vz400")
+    ap.add_argument("--branches", type=float, default=0, help="mittlere Astzahl je Stamm (0,5-3 m)")
     args = ap.parse_args()
 
     rng = np.random.default_rng(args.seed)
@@ -96,14 +128,25 @@ def main():
                 break
 
     truth, parts = [], []
+    brng = np.random.default_rng(args.seed + 1000)
     for i, (x, y, rad, d) in enumerate(pts, 1):
         q = rng.uniform(.85, 1.0)
         a = rad * 2 / (1 + q); b = a * q
         rot = float(rng.uniform(0, math.pi))
-        (out / "parts" / f"s{i:04d}.obj").write_text(stem_obj(rng, a, b, rot))
+        txt = stem_obj(rng, a, b, rot)
+        nb = int(brng.poisson(args.branches)) if args.branches > 0 else 0
+        nb_band = 0
+        if nb:
+            bv, bf, info = branch_obj(brng, a, b, rot, nb)
+            off = (int(round(STEM_H / RING_DZ)) + 1) * SEG
+            txt += "\n".join([f"v {vx:.4f} {vy:.4f} {vz:.4f}" for vx, vy, vz in bv] +
+                             [f"f {p+off+1} {q2+off+1} {r+off+1}" for p, q2, r in bf]) + "\n"
+            nb_band = sum(1 for z0, z1, _ in info if z0 <= 1.55 and z1 >= 1.05)
+        (out / "parts" / f"s{i:04d}.obj").write_text(txt)
         core = 0 <= x <= args.L and 0 <= y <= args.L
         truth.append({"id": i, "x": round(x, 3), "y": round(y, 3), "dbh_true_cm": round(100 * ellipse_perimeter(a, b) / math.pi, 2),
-                      "a_m": round(a, 4), "b_m": round(b, 4), "rot_rad": round(rot, 4), "core": int(core), "kind": "stem"})
+                      "a_m": round(a, 4), "b_m": round(b, 4), "rot_rad": round(rot, 4), "core": int(core), "kind": "stem",
+                      "n_branch": nb, "n_branch_band": nb_band})
         parts.append((i, f"parts/s{i:04d}.obj", x, y))
     nu = int(round(args.under * area_ha))
     for k in range(nu):
@@ -114,7 +157,8 @@ def main():
         i = len(parts) + 1
         (out / "parts" / f"u{i:05d}.obj").write_text(stem_obj(rng, r, r, 0.0, height=float(rng.uniform(.5, 2.5)), bark=0.0, seg=8))
         truth.append({"id": i, "x": round(float(x), 3), "y": round(float(y), 3), "dbh_true_cm": round(200 * r, 2),
-                      "a_m": round(r, 4), "b_m": round(r, 4), "rot_rad": 0, "core": 0, "kind": "under"})
+                      "a_m": round(r, 4), "b_m": round(r, 4), "rot_rad": 0, "core": 0, "kind": "under",
+                      "n_branch": 0, "n_branch_band": 0})
         parts.append((i, f"parts/u{i:05d}.obj", float(x), float(y)))
 
     with open(out / "truth.csv", "w", newline="") as fh:

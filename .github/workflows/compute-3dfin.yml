@@ -1,0 +1,64 @@
+name: compute-3dfin
+
+# Paper C, Punkt 1: 3DFin auf kompletten SegmentedForests-Plots (Zenodo, MIT) mit
+# kuenstlich reduzierter Abdeckung (scripts/paperC_3dfin_real.py). Je Plot ein Job;
+# die komplette Wolke wird nur im Runner gehalten, eingecheckt werden nur die
+# kleinen Ergebnis-CSVs. Ausloeser: Aenderung an .github/3dfin-request.txt.
+on:
+  push:
+    paths: [".github/3dfin-request.txt"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: compute-3dfin-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    strategy:
+      fail-fast: false
+      matrix:
+        plot: ["01","02","03","04","05","06","07","10","11","12","13","14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install "laspy[lazrs]" numpy scipy 3DFin
+      - name: Wolke holen (Range-Request aus dem ZIP)
+        run: |
+          python - <<'PY'
+          import sys, zipfile, re
+          sys.path.insert(0, "scripts")
+          from zenodo_zip_pick import HttpFile
+          z = zipfile.ZipFile(HttpFile("https://zenodo.org/records/17396681/files/SegmentedForests.zip?download=1"))
+          h = [i for i in z.infolist() if re.search(r"pointclouds/plot_${{ matrix.plot }}\.laz$", i.filename)][0]
+          print(h.filename, round(h.file_size / 1e6), "MB", flush=True)
+          with z.open(h) as s, open("plot.laz", "wb") as f:
+              while (b := s.read(8 << 20)):
+                  f.write(b)
+          PY
+      - run: python scripts/paperC_3dfin_real.py plot.laz extdata/segforests/plot_${{ matrix.plot }}.ini --out out/fin_${{ matrix.plot }}.csv --work work
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: "fin-${{ matrix.plot }}", path: out, retention-days: 3, if-no-files-found: ignore }
+
+  commit:
+    needs: fin
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: dl, merge-multiple: true }
+      - run: |
+          D=Paper_ODT/Forst_Benchmark_Paper/results/fin_real
+          mkdir -p $D && cp dl/*.csv $D/ 2>/dev/null; ls $D | wc -l
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add $D && git commit -m "Paper C: 3DFin auf SegmentedForests mit reduzierter Abdeckung" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep $((i*5)); done
