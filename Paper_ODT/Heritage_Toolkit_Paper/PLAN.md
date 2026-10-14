@@ -58,7 +58,8 @@ Kamerahöhen danach 1,8–9,4).
 
 ## Offene Punkte
 
-- Format der Punktwolke (Endung). Posen liegen mit `--transform` im System der Punktwolke.
+- Punktwolke: `2_PointCloud/1_point_cloud.txt` (0,94 GB), Spalten `X Y Z R G B label Nx Ny Nz`; Koordinaten
+  liegen im Bereich der transformierten Kameras. `--cloud` zieht daraus die Initwolke.
 - Achsenkonvention (photogrammetrisch −Z → OpenCV +Z) **an zwei Fotos bestätigt** (14.10.2026):
   SIFT-Zuordnungen (340 Inlier) → relative Pose aus den Bildern; über alle 166×165 Paare und beide
   Konventionen passt am besten 5_CB_001→002 mit Achsenumkehr (Abw. Rotation 0,7°, Richtung 0,7°).

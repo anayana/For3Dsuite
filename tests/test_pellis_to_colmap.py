@@ -91,3 +91,15 @@ def test_transform_keeps_projection(tmp_path):
     after = proj(p["R"] @ R_t.T, s * R_t @ p["C"] + t_t, s * R_t @ X + t_t)
     assert np.allclose(before, after, atol=1e-6)
     assert 0 < before[0] < cam["W"] and 0 < before[1] < cam["H"]
+
+
+def test_cloud_sample(tmp_path):
+    cloud = tmp_path / "1_point_cloud.txt"
+    rows = ["//X Y Z R G B label Nx Ny Nz"]
+    rows += [f"{100+i*0.01:.8f} 108.7 7.15 {i % 256} 32 27 1.000000 0 0 1" for i in range(50)]
+    cloud.write_text("\n".join(rows) + "\n")
+    xyz, rgb, total = p2c.sample_cloud(cloud, 20, chunk=7)
+    assert total == 50 and len(xyz) == 20 and len(set(xyz[:, 0])) == 20
+    assert rgb.dtype == np.uint8 and np.all(rgb[:, 1] == 32)
+    xyz, _, _ = p2c.sample_cloud(cloud, 100)
+    assert len(xyz) == 50
