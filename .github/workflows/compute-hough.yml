@@ -1,0 +1,91 @@
+name: compute-hough
+
+# Rechnet einzelne DBH-Verfahren (Standard: Hough) fuer Paper C neu, verteilt
+# auf parallele Jobs: Monte Carlo je Szenario, SegmentedForests je Plot
+# (ohne/mit Umgebungspunkten), LAUT je Plot. Gleiche Seeds wie die
+# Originalrechnung -> die Spalte wird lokal zeilengleich zusammengefuehrt.
+# Ausgeloest durch eine Aenderung an .github/compute-request.txt (oder manuell).
+on:
+  push:
+    paths: [".github/compute-request.txt"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: compute-hough-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PIP: numpy scipy scikit-image pandas
+  METHODS: hough
+
+jobs:
+  mc:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        scen: [ideal, unrund, ausr5, ausr15, vers5, vers10, komb]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install $PIP
+      - run: python scripts/arc_error_mc_real.py --methods $METHODS --scenarios ${{ matrix.scen }} --reps 100 --jobs 4 --out out/mc_${{ matrix.scen }}.csv
+      - uses: actions/upload-artifact@v4
+        with: { name: "mc-${{ matrix.scen }}", path: out, retention-days: 3 }
+
+  sf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        plot: ["01","02","03","04","05","06","07","10","11","12","13","14"]
+        mode: [clean, clutter]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install $PIP
+      - run: |
+          X=""; [ "${{ matrix.mode }}" = clutter ] && X="--with-clutter"
+          python scripts/paperC_real.py extdata/segforests/plot_${{ matrix.plot }}_band.npz --reps 5 --methods $METHODS $X \
+            --out out/sf_${{ matrix.mode }}_${{ matrix.plot }}.csv
+      - uses: actions/upload-artifact@v4
+        with: { name: "sf-${{ matrix.mode }}-${{ matrix.plot }}", path: out, retention-days: 3 }
+
+  laut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        plot: [1,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install $PIP
+      - run: python scripts/paperC_laut.py extdata/laut --plots ${{ matrix.plot }} --methods $METHODS --out out/laut_${{ matrix.plot }}.csv
+      - uses: actions/upload-artifact@v4
+        with: { name: "laut-${{ matrix.plot }}", path: out, retention-days: 3 }
+
+  commit:
+    needs: [mc, sf, laut]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: dl, merge-multiple: true }
+      - run: |
+          D=Paper_ODT/Forst_Benchmark_Paper/results/recompute
+          mkdir -p $D && cp dl/*.csv $D/ && ls $D | wc -l
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add $D && git commit -m "Paper C: Neuberechnung ($METHODS) aus compute-hough" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep $((i*5)); done

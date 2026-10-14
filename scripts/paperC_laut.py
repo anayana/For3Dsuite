@@ -40,7 +40,9 @@ def main():
     ap.add_argument("--min-dbh", type=float, default=7.0)
     ap.add_argument("--reps", type=int, default=5); ap.add_argument("--seed", type=int, default=5)
     ap.add_argument("--plots", help="nur diese Plot-Nummern, kommagetrennt")
+    ap.add_argument("--methods", help="nur diese Verfahren rechnen (kommagetrennt)")
     a = ap.parse_args()
+    meth = a.methods.split(",") if a.methods else METHODS
     rng = np.random.default_rng(a.seed)
     import pandas as pd
     ref = pd.read_csv(Path(a.lautdir) / "reference_data.csv")
@@ -77,19 +79,19 @@ def main():
             ang = np.degrees(np.arctan2(S[:, 1] - cy, S[:, 0] - cx))
             sec = np.count_nonzero(np.histogram(ang, bins=16, range=(-180, 180))[0]) * 22.5
             a5 = np.count_nonzero(np.histogram(ang, bins=72, range=(-180, 180))[0]) * 5
-            est = estimate(S)
+            est = estimate(S, meth)
             row = {**base, "kind": "observed", "arc_sec_deg": sec, "arc5_deg": a5,
                    "center_off_m": round(float(np.hypot(cx - t.X, cy - t.Y)), 3)}
-            row.update({f"{m}_cm": ("" if est[m] is None else est[m]) for m in METHODS})
+            row.update({f"{m}_cm": ("" if est[m] is None else est[m]) for m in meth})
             rows.append(row)
             if a5 >= 330:
                 for th in ARCS:
                     for rep in range(a.reps):
                         mid = rng.uniform(-180, 180)
                         keep = np.abs((ang - mid + 180) % 360 - 180) <= th / 2
-                        e = estimate(S[keep])
+                        e = estimate(S[keep], meth)
                         rr = {**base, "kind": "reduced", "arc_sec_deg": th, "arc5_deg": th, "center_off_m": row["center_off_m"], "rep": rep}
-                        rr.update({f"{m}_cm": ("" if e[m] is None else e[m]) for m in METHODS})
+                        rr.update({f"{m}_cm": ("" if e[m] is None else e[m]) for m in meth})
                         rows.append(rr)
         print(f"Plot {pid}: {len(trees)} Baeume", flush=True)
     keys = sorted({k for r in rows for k in r}, key=lambda k: (k not in rows[0], k))

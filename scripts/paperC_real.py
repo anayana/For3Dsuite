@@ -31,13 +31,16 @@ ARCS = [45, 67.5, 90, 112.5, 135, 157.5, 180, 202.5, 225, 270, 315, 360]
 METHODS = ["kreisfit", "geofit", "ransac", "zylinder", "hough", "robust"]
 
 
-def estimate(pts):
+def estimate(pts, methods=None):
+    """BHD je Verfahren; methods = Teilmenge von METHODS (Neuberechnung einzelner Spalten)."""
+    methods = methods or METHODS
     sl = pts[np.abs(pts[:, 2] - 1.3) <= .25]
     if len(sl) < 12:
-        return {m: None for m in METHODS}
-    return {"kreisfit": dm.m_kreisfit(sl)[0], "geofit": dm.m_geofit(sl), "ransac": dm.m_ransac(sl)[0],
-            "zylinder": dm.m_zylinder(pts[(pts[:, 2] >= 1.0) & (pts[:, 2] <= 1.6)])[0],
-            "hough": m_hough(sl), "robust": m_robust(sl)}
+        return {m: None for m in methods}
+    f = {"kreisfit": lambda: dm.m_kreisfit(sl)[0], "geofit": lambda: dm.m_geofit(sl), "ransac": lambda: dm.m_ransac(sl)[0],
+         "zylinder": lambda: dm.m_zylinder(pts[(pts[:, 2] >= 1.0) & (pts[:, 2] <= 1.6)])[0],
+         "hough": lambda: m_hough(sl), "robust": lambda: m_robust(sl)}
+    return {m: f[m]() for m in methods}
 
 
 def main():
@@ -47,7 +50,9 @@ def main():
     ap.add_argument("--reps", type=int, default=10)
     ap.add_argument("--with-clutter", action="store_true")
     ap.add_argument("--seed", type=int, default=11)
+    ap.add_argument("--methods", help="nur diese Verfahren rechnen (kommagetrennt); Referenz bleibt aus allen")
     a = ap.parse_args()
+    meth = a.methods.split(",") if a.methods else METHODS
     rng = np.random.default_rng(a.seed)
     d = np.load(a.band)
     P = np.stack([d["x"], d["y"], d["hag"]], 1).astype(np.float64)
@@ -83,9 +88,9 @@ def main():
                     X = np.vstack([S[keep], near[kn]])
                 else:
                     X = S[keep]
-                est = estimate(X)
+                est = estimate(X, meth)
                 row = {"stem": ci, "ref_dbh_cm": round(ref, 2), "arc_deg": th, "rep": rep, "n_pts": int(keep.sum())}
-                for m in METHODS:
+                for m in meth:
                     row[f"{m}_cm"] = "" if est[m] is None else est[m]
                 rows.append(row)
     out = Path(a.out); out.parent.mkdir(parents=True, exist_ok=True)

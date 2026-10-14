@@ -153,18 +153,19 @@ def m_robust(sl, f_scale=.01):
 
 
 def run_cell(args):
-    scen, theta, n, dbh_cm, reps, seed = args
+    scen, theta, n, dbh_cm, reps, seed, meth = args
     rng = np.random.default_rng(seed)
     r, sigma = dbh_cm / 200.0, SIGMA_MM / 1000.0
-    err = {m: [] for m in METHODS}
-    fail = {m: 0 for m in METHODS}
+    err = {m: [] for m in meth}
+    fail = {m: 0 for m in meth}
     acc = 0
     for _ in range(reps):
         pts, true = sample(rng, scen, r, theta, n, sigma)
         acc += sectors16(pts) >= 9
         sl = pts[np.abs(pts[:, 2] - 1.3) <= .25]
-        est = {"kreisfit": dm.m_kreisfit(sl)[0], "geofit": dm.m_geofit(sl), "ransac": dm.m_ransac(sl)[0],
-               "zylinder": dm.m_zylinder(pts)[0], "hough": m_hough(sl), "robust": m_robust(sl)}
+        f = {"kreisfit": lambda: dm.m_kreisfit(sl)[0], "geofit": lambda: dm.m_geofit(sl), "ransac": lambda: dm.m_ransac(sl)[0],
+             "zylinder": lambda: dm.m_zylinder(pts)[0], "hough": lambda: m_hough(sl), "robust": lambda: m_robust(sl)}
+        est = {m: f[m]() for m in meth}
         for m, v in est.items():
             if v is None:
                 fail[m] += 1
@@ -172,7 +173,7 @@ def run_cell(args):
                 err[m].append(v - true)
     crlb = round(200 * crlb_radius(theta, n, sigma), 3)
     rows = []
-    for m in METHODS:
+    for m in meth:
         e = np.array(err[m])
         rows.append({"scenario": scen, "method": m, "arc_deg": theta, "n_pts": n, "dbh_cm": dbh_cm,
                      "sigma_mm": SIGMA_MM, "reps": reps, "fail_rate": round(fail[m] / reps, 3),
@@ -190,13 +191,18 @@ def main():
     ap.add_argument("--reps", type=int, default=200)
     ap.add_argument("--jobs", type=int, default=4)
     ap.add_argument("--seed", type=int, default=20261014)
+    ap.add_argument("--methods", default=",".join(METHODS), help="Teilmenge (Neuberechnung einzelner Verfahren)")
+    ap.add_argument("--scenarios", help="nur diese Szenarien (Zellen-Seeds bleiben gleich)")
     args = ap.parse_args()
+    meth = args.methods.split(",")
     cells, k = [], 0
     for s in SCENARIOS:
         for th in ARCS:
             for n in NPTS:
                 for d in DBHS_CM:
-                    cells.append((s, th, n, d, args.reps, args.seed + k)); k += 1
+                    if not args.scenarios or s in args.scenarios.split(","):
+                        cells.append((s, th, n, d, args.reps, args.seed + k, meth))
+                    k += 1
     out = Path(args.out); out.parent.mkdir(parents=True, exist_ok=True)
     rows = []
     with ProcessPoolExecutor(args.jobs) as ex:
