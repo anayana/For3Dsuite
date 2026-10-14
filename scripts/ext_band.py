@@ -19,7 +19,9 @@ import numpy as np
 
 def label_dim(f):
     names = [d.name for d in f.header.point_format.dimensions]
-    for c in ("classification", "label", "Label", "scalar_label", "class"):
+    # Zusatzdimensionen zuerst: SegmentedForests fuehrt das Label als "Class",
+    # das Standardfeld classification ist dort leer (alles 0)
+    for c in ("Class", "class", "label", "Label", "semantic", "scalar_label", "classification"):
         if c in names:
             return c
     return None

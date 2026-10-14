@@ -1,9 +1,10 @@
 name: fetch-data
 
 # Holt offene Fremddaten, die aus der Cloud-Umgebung nicht erreichbar sind
-# (Zenodo, PANGAEA), schneidet die benoetigten Teile aus und committet sie
-# nach extdata/ auf denselben Branch. Ausgeloest durch eine Aenderung an
-# .github/fetch-request.txt (oder manuell).
+# (Zenodo, PANGAEA): je Plot ein paralleler Job, der nur seine Datei per
+# HTTP-Range aus dem grossen ZIP zieht und das Brusthoehenband ausschneidet
+# (scripts/ci_fetch_one.py). Ein Sammeljob committet alles nach extdata/.
+# Ausgeloest durch eine Aenderung an .github/fetch-request.txt (oder manuell).
 on:
   push:
     paths: [".github/fetch-request.txt"]
@@ -17,51 +18,62 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  fetch:
+  segforests:
     runs-on: ubuntu-latest
     timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 13
+      matrix:
+        plot: ["01","02","03","04","05","06","07","09","10","11","12","13","14"]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+        with: { python-version: "3.12" }
       - run: pip install "laspy[lazrs]" numpy
-      - name: SegmentedForests plot_06/07 (MIT) -> Brusthoehenband
-        run: |
-          set -e
-          mkdir -p raw/segforests extdata/segforests
-          python scripts/zenodo_zip_pick.py "https://zenodo.org/records/17396681/files/SegmentedForests.zip?download=1" --list > extdata/segforests/zip_listing.txt || true
-          python scripts/zenodo_zip_pick.py "https://zenodo.org/records/17396681/files/SegmentedForests.zip?download=1" \
-            --extract "SegmentedForests/pointclouds/plot_06.laz" "SegmentedForests/pointclouds/plot_07.laz" \
-                      "SegmentedForests/3DFin_settings/plot_06.ini" "SegmentedForests/3DFin_settings/plot_07.ini" --out raw/segforests
-          find raw/segforests -name "*.ini" -exec cp {} extdata/segforests/ \;
-          for p in plot_06 plot_07; do
-            f=$(find raw/segforests -name "$p.laz" | head -1)
-            python scripts/ext_band.py "$f" --out extdata/segforests/${p}_band.npz
-          done
-      - name: LAUT (CC BY 4.0) und Weiser 2022 -- Dateilisten + kleine Referenzdateien
-        run: |
-          set -e
-          mkdir -p extdata/laut extdata/weiser2022
-          curl -sL https://zenodo.org/api/records/3698956 -o extdata/laut/record.json
-          python - <<'PY'
-          import json, urllib.request, os
-          r = json.load(open("extdata/laut/record.json"))
-          print("Lizenz:", r.get("metadata", {}).get("license"))
-          for f in r.get("files", []):
-              name, size, url = f["key"], f["size"], f["links"]["self"]
-              print(f"{size/1e6:10.1f} MB  {name}")
-              if size < 30e6 and not name.lower().endswith((".laz", ".las", ".zip", ".e57", ".ply")):
-                  urllib.request.urlretrieve(url, os.path.join("extdata/laut", name))
-          PY
-          curl -sL "https://doi.pangaea.de/10.1594/PANGAEA.942856?format=metadata_jsonld" -o extdata/weiser2022/metadata.json || true
-          curl -sL "https://doi.pangaea.de/10.1594/PANGAEA.942856?format=textfile" -o extdata/weiser2022/listing.tab || true
-          ls -la extdata/*
-      - name: Commit
-        run: |
+      - run: |
+          python scripts/ci_fetch_one.py "https://zenodo.org/records/17396681/files/SegmentedForests.zip?download=1" \
+            --match "pointclouds/plot_${{ matrix.plot }}\.laz$" --out out/segforests --name plot_${{ matrix.plot }}
+          python scripts/ci_fetch_one.py "https://zenodo.org/records/17396681/files/SegmentedForests.zip?download=1" \
+            --match "3DFin_settings/plot_${{ matrix.plot }}\.ini$" --out out/segforests --name plot_${{ matrix.plot }}
+      - uses: actions/upload-artifact@v4
+        with: { name: "segforests-${{ matrix.plot }}", path: out, retention-days: 3 }
+
+  laut:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      max-parallel: 20
+      matrix:
+        plot: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install "laspy[lazrs]" numpy
+      - run: |
+          python scripts/ci_fetch_one.py "https://zenodo.org/records/3698956/files/TLS_clouds.zip?download=1" \
+            --match "(^|[^0-9])0*${{ matrix.plot }}(?![0-9])[^/]*\.la[sz]$" --out out/laut --name tls_plot_${{ matrix.plot }}
+      - uses: actions/upload-artifact@v4
+        with: { name: "laut-${{ matrix.plot }}", path: out, retention-days: 3 }
+
+  commit:
+    needs: [segforests, laut]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with: { path: art, merge-multiple: true }
+      - run: |
+          mkdir -p extdata
+          cp -r art/* extdata/ 2>/dev/null || true
+          find extdata -type f -size +95M -print -delete   # GitHub-Grenze 100 MB je Datei
+          ls -laR extdata | head -80
+      - run: |
           git config user.name "fetch-data bot"
           git config user.email "actions@users.noreply.github.com"
           git add extdata
-          git commit -m "extdata: offene Fremddaten geholt (CI)" || echo "nichts Neues"
-          # der Branch kann sich waehrend des Laufs bewegt haben
-          for i in 1 2 3; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && break; sleep 5; done
+          git commit -m "extdata: SegmentedForests 13 Plots, LAUT TLS 20 Plots (Brusthoehenband, CI)" || echo "nichts Neues"
+          for i in 1 2 3 4 5; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && break; sleep 10; done
