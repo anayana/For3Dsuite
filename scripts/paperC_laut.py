@@ -39,6 +39,7 @@ def main():
     ap.add_argument("lautdir"); ap.add_argument("--out", required=True)
     ap.add_argument("--min-dbh", type=float, default=7.0)
     ap.add_argument("--reps", type=int, default=5); ap.add_argument("--seed", type=int, default=5)
+    ap.add_argument("--plots", help="nur diese Plot-Nummern, kommagetrennt")
     a = ap.parse_args()
     rng = np.random.default_rng(a.seed)
     import pandas as pd
@@ -46,6 +47,8 @@ def main():
     rows = []
     for f in sorted(glob.glob(str(Path(a.lautdir) / "tls_plot_*_band.npz"))):
         pid = int(re.search(r"tls_plot_(\d+)", f).group(1))
+        if a.plots and pid not in {int(x) for x in a.plots.split(",")}:
+            continue
         d = np.load(f)
         P = np.stack([d["x"], d["y"], d["hag"]], 1).astype(np.float64)
         P = P[(P[:, 2] >= 1.0) & (P[:, 2] <= 1.6)]
