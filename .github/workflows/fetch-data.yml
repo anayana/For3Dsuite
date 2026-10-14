@@ -1,0 +1,62 @@
+name: fetch-data
+
+# Holt offene Fremddaten, die aus der Cloud-Umgebung nicht erreichbar sind
+# (Zenodo, PANGAEA), schneidet die benoetigten Teile aus und committet sie
+# nach extdata/ auf denselben Branch. Ausgeloest durch eine Aenderung an
+# .github/fetch-request.txt (oder manuell).
+on:
+  push:
+    paths: [".github/fetch-request.txt"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install "laspy[lazrs]" numpy
+      - name: SegmentedForests plot_06/07 (MIT) -> Brusthoehenband
+        run: |
+          set -e
+          mkdir -p raw/segforests extdata/segforests
+          python scripts/zenodo_zip_pick.py "https://zenodo.org/records/17396681/files/SegmentedForests.zip?download=1" --list > extdata/segforests/zip_listing.txt || true
+          python scripts/zenodo_zip_pick.py "https://zenodo.org/records/17396681/files/SegmentedForests.zip?download=1" \
+            --extract "SegmentedForests/pointclouds/plot_06.laz" "SegmentedForests/pointclouds/plot_07.laz" \
+                      "SegmentedForests/3DFin_settings/plot_06.ini" "SegmentedForests/3DFin_settings/plot_07.ini" --out raw/segforests
+          find raw/segforests -name "*.ini" -exec cp {} extdata/segforests/ \;
+          for p in plot_06 plot_07; do
+            f=$(find raw/segforests -name "$p.laz" | head -1)
+            python scripts/ext_band.py "$f" --out extdata/segforests/${p}_band.npz
+          done
+      - name: LAUT (CC BY 4.0) und Weiser 2022 -- Dateilisten + kleine Referenzdateien
+        run: |
+          set -e
+          mkdir -p extdata/laut extdata/weiser2022
+          curl -sL https://zenodo.org/api/records/3698956 -o extdata/laut/record.json
+          python - <<'PY'
+          import json, urllib.request, os
+          r = json.load(open("extdata/laut/record.json"))
+          print("Lizenz:", r.get("metadata", {}).get("license"))
+          for f in r.get("files", []):
+              name, size, url = f["key"], f["size"], f["links"]["self"]
+              print(f"{size/1e6:10.1f} MB  {name}")
+              if size < 30e6 and not name.lower().endswith((".laz", ".las", ".zip", ".e57", ".ply")):
+                  urllib.request.urlretrieve(url, os.path.join("extdata/laut", name))
+          PY
+          curl -sL "https://doi.pangaea.de/10.1594/PANGAEA.942856?format=metadata_jsonld" -o extdata/weiser2022/metadata.json || true
+          curl -sL "https://doi.pangaea.de/10.1594/PANGAEA.942856?format=textfile" -o extdata/weiser2022/listing.tab || true
+          ls -la extdata/*
+      - name: Commit
+        run: |
+          git config user.name "fetch-data bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add extdata
+          git commit -m "extdata: offene Fremddaten geholt (CI)" || echo "nichts Neues"
+          git push
