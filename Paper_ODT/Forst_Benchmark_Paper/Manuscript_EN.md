@@ -22,11 +22,12 @@ recombined offline into 216 scan configurations (26 712 stem × configuration ca
 computed geometrically, independent of point density. For circular stems without outliers, 45–135° of
 visible arc suffices for a 2 cm RMSE; non-circularity raises this to about 180–202.5° for 40 cm stems,
 and with 5–15 % outliers only robust estimators reach it (RANSAC from 112.5–135°, Huber 135–270°, Hough
-180–225°), while least-squares fits never do, even at full coverage. In the simulated stands, 82 % of stems are within 2 cm at
+180–247.5°), while least-squares fits never do, even at full coverage. In the simulated stands, 82 % of stems are within 2 cm at
 180–225° visible arc and over 90 % beyond 225° (Kasa and cylinder fits). The 3DFin sector rule corresponds to a median of about
 190° geometric arc and separates stems with 92 % from those with 63 % of estimates within 2 cm. Four
 positions on a grid bring 80–89 % of stems above 180°; four positions clustered near the plot centre
-fall to 56 % at 1200 stems ha⁻¹. On 456 labelled real stems (SegmentedForests) the Kasa fit needs about
+fall to 56 % at 1200 stems ha⁻¹. When branches cross the breast-height band and are not removed, least-squares
+fits fail at any coverage (≤ 22 % within 2 cm), whereas RANSAC is unaffected. On 458 labelled real stems (SegmentedForests) the Kasa fit needs about
 225° for 80 % of stems within 2 cm; with the surrounding points left in, least-squares fits saturate at 55 % even at full coverage,
 whereas RANSAC reaches 84 %, and 62 % against field DBH on 460 well-covered LAUT trees. A coverage threshold is
 therefore defensible, but it must be stated per estimator, per expected stem shape and per
@@ -165,19 +166,33 @@ but barely change thresholds.
 Outliers dominate everything else (Fig. 1c). With 5–15 % outliers, Kasa, geometric and cylinder fits
 never meet the threshold, even at 360° (RMSE 2–7 cm). RANSAC meets it from 112.5–135°, the
 Huber-robust fit only from 135–270° (it fails on short arcs because its Kasa starting value is already
-biased), Hough from 180–225°. In the combined scenario only RANSAC (135–180°), the Huber fit
-(180–225°) and, partly, Hough (225–315°) reach the threshold.
+biased), Hough from 180–247.5°. Hough tolerates outliers but not non-circularity: for DBH 40 cm it
+never meets the threshold on elliptical stems (RMSE 4–7 cm even at full coverage), and below 135° it
+fails in 30–65 % of cases. In the combined scenario only RANSAC (135–180°) and the Huber fit
+(180–225°) reach the threshold for both diameters; Hough only for DBH 20 cm (202.5°).
 
 ### 3.2 HELIOS++: error versus visible arc
 
 Pooled over the three stands (26 712 cases; 56, 130 and 185 core stems), the RMSE of Kasa, cylinder and
-RANSAC falls from 9–17 cm below 90° to 1.6–1.7 cm at 180–225° and 0.5–0.9 cm beyond 315°; Hough remains
-worst throughout (Fig. 2a). The share of stems within 2 cm rises from 45–56 % at 90–135° to 82 % at
+RANSAC falls from 9–17 cm below 90° to 1.6–1.7 cm at 180–225° and 0.5–0.8 cm beyond 315°; Hough remains
+worst throughout (13.7 cm at 180–225°, 2.1 cm beyond 315°; Fig. 2a). The share of stems within 2 cm rises from 45–56 % at 90–135° to 82 % at
 180–225°, 93 % at 225–270° and 98–99 % beyond 270° for the Kasa and cylinder fits; RANSAC stays
 slightly lower beyond 225° (89–94 %) (Fig. 2b). Thicker stems need more coverage:
 at 180–225° RMSE is 2.0 cm in S1a (mean DBH 37 cm) versus 1.5–1.7 cm in S1b and S1c, consistent
 with the non-circularity effect in Section 3.1. A single scan position sees at most 172° of a
 stem (median 164°).
+
+**Branches at breast height (S1b-B).** With the same stems and scan positions as S1b but branches
+crossing the band, the least-squares fits collapse: at 225–270° visible arc only 11 % (Kasa), 10 %
+(geometric), 9 % (cylinder) and 26 % (Huber) of stems are within 2 cm, and at most 19–43 % beyond
+270°; the median error above 180° is +15 to +42 cm because branch points pull the circle outwards.
+RANSAC is practically unaffected (71 %, 79 % and 89 % at 135–180°, 180–225° and 225–270°, versus
+73 %, 80 % and 90 % without branches). Hough degrades (43 % instead of 70 % at 225–270°); Fig. 6).
+
+**Uncertainty of the thresholds.** The cluster bootstrap places the 80 % point of the Kasa, cylinder
+and RANSAC fits in the 180–225° class for the pooled HELIOS stands (95 % CI: 180–225° to 225–270°),
+of the geometric and Huber fits one class higher, and of Hough in the 270–315° class. With branches,
+only RANSAC reaches 80 % (225–270° class; CI 180–225° to 225–270°).
 
 ### 3.3 Sector rule and scan design
 
@@ -195,9 +210,9 @@ density. Random placement performs close to the grid.
 
 **Data.** SegmentedForests (Laino et al., 2026; MIT): 12 of 14 TLS plots with point-wise semantic labels
 (plot 08 omitted for size, plot 09 failed to download); stem points (class 3) at 1.0–1.6 m above ground
-were clustered, and 456 stems with ≥ 330° observed coverage (1° bins) and ≥ 300 points served as
-reference; their reference DBH is the median of the four least-squares/RANSAC estimates on all points
-(no field DBH is available). LAUT (Gollob et al., 2020a, b; CC BY 4.0): 17 Austrian inventory plots
+were clustered, and 458 stems with ≥ 330° observed coverage (1° bins) and ≥ 300 points served as
+reference; their reference DBH is the median of the Kasa, geometric, RANSAC and cylinder estimates on
+all points (at least three valid; no field DBH is available). LAUT (Gollob et al., 2020a, b; CC BY 4.0): 17 Austrian inventory plots
 scanned with a Faro Focus3D X330, 1 908 trees with field DBH (median 15.6 cm) and field positions; stem
 points are all points within DBH/2 + 25 cm of the field position, i.e. without segmentation. Field
 positions and fitted centres agree to 4 cm (median). Coverage was reduced by retaining one contiguous
@@ -205,24 +220,33 @@ arc at random orientation (5 repetitions per stem and arc). Breast-height bands 
 `scripts/ext_band.py` in a GitHub Actions workflow (`.github/workflows/fetch-data.yml`).
 
 **Stem points only** (SegmentedForests, Fig. 5a). The Kasa fit reaches 56 % of stems within 2 cm at
-180°, 73 % at 202.5°, 82 % at 225° and 91 % at 270°; its RMSE falls from 6.1 cm at 135° to 2.9 cm at
+180°, 72 % at 202.5°, 82 % at 225° and 91 % at 270°; its RMSE falls from 6.1 cm at 135° to 2.9 cm at
 202.5° and 1.5 cm at 270°, with a negative bias on short arcs (−4.4 cm at 135°, −1.0 cm at 202.5°)
 as predicted by the Monte Carlo experiment. On these thinner stems (median DBH 16 cm), real bark
 shifts the 80 % point from about 180° (HELIOS) to about 225°. RANSAC with a 12 mm inlier tolerance
-is weaker on clean real stems (88 % at 360°), because rough bark excludes valid points.
+is weaker on clean real stems (87 % at 360°), because rough bark excludes valid points. Hough reaches
+only 58 % even at 360°.
 
 **With surrounding points** (Fig. 5b, c). When branches, understorey and unlabelled points within
 30 cm (SegmentedForests) or 25 cm (LAUT) remain, the least-squares fits saturate: at full coverage only
 55 % (Kasa) and 64 % (geometric) of SegmentedForests stems are within 2 cm, and 35–38 % of LAUT trees
 against field DBH. RANSAC rises with coverage to 84 % (SegmentedForests) and 62 % (LAUT) and is the
 best estimator from about 112° on, reproducing the outlier scenario of Section 3.1 on real data. The
-lower LAUT values include field-measurement error and the absence of any segmentation.
+lower LAUT values include field-measurement error and the absence of any segmentation. Bootstrap 80 % points
+(95 % CI) on SegmentedForests: Kasa 225° (225–270°), cylinder 270° (270°), geometric 270° (270–315°),
+RANSAC and Huber 315° (270–315° for Huber); with surrounding points only RANSAC at 360° (315–360°);
+on LAUT no estimator reaches 80 % at any arc.
 
 ## 4. Discussion
 
 **Relation to Li et al. (2021).** Their 200° CDRC guideline is confirmed for least-squares fits of clean
 stem points (HELIOS: 82 % of stems within 2 cm at 180–225°), but real bark and thin stems shift the 80 %
 point to about 225°, and with surrounding points no CDRC is sufficient for least-squares fits.
+
+**Segmentation decides before coverage does.** The branch scene isolates what the real data suggested:
+once non-stem points enter the band, least-squares fits fail at any coverage, while an arc-constrained
+RANSAC keeps its accuracy. A coverage rule therefore only makes sense together with a statement of how
+stem points were separated from branches and understorey.
 
 **A single threshold does not fit all estimators.** Without outliers, least-squares fits need far
 less than 202.5°; with non-circular stems they need about 180–200°; with outliers they never become
@@ -240,11 +264,12 @@ clustered positions (56 % of stems ≥ 180°) perform like three grid positions 
 stand-specific simulations, is a spread grid of four to six positions per 0.16 ha (25–38 ha⁻¹) at
 400–1200 stems ha⁻¹, which brought 80–98 % of stems above 180° here.
 
-**Limitations.** In HELIOS: perfect segmentation (no detection errors), no branches or crowns at breast
-height, flat terrain, one scanner model, idealised outlier and registration models.
-Range-dependent incidence effects and beam divergence are simulated by HELIOS but not varied systematically. The Hough implementation (normal voting, 5 mm accumulator)
-performed worst throughout and may understate what tuned Hough variants achieve. On SegmentedForests
-the reference DBH is itself a fit to well-covered points, not a field measurement.
+**Limitations.** In HELIOS: perfect segmentation (no detection errors), no crowns, branches only in one
+scene and as simple cylinders, flat terrain, one scanner model, idealised outlier and registration models.
+Range-dependent incidence effects and beam divergence are simulated by HELIOS but not varied systematically.
+Hough was run with scikit-image defaults; other accumulator normalisations or smoothing may behave
+differently, but no parameter was tuned for any estimator. On SegmentedForests the reference DBH is
+itself a fit to well-covered points, not a field measurement.
 
 ## 5. Conclusions
 
@@ -292,9 +317,14 @@ simulations; boxes show quartiles, whiskers 1.5 IQR. Dashed lines: 202.5° secto
 visible arc.](figures/fig4_sector_vs_geometric.png){width=55%}
 
 ![**Figure 5.** Real point clouds, share of stems within ±2 cm versus retained arc. (a) SegmentedForests,
-stem points only (456 stems, reference: fit on full coverage); (b) the same stems with surrounding
+stem points only (458 stems, reference: fit on full coverage); (b) the same stems with surrounding
 points within 30 cm; (c) LAUT, 460 well-covered trees against field DBH, with surrounding points within
 25 cm.](figures/fig5_real_data.png)
+
+![**Figure 6.** Effect of branches at breast height: share of stems within ±2 cm versus geometrically
+visible arc in (a) stand S1b and (b) the same stand with branches crossing the 1.05–1.55 m band
+(S1b-B); stem and branch points are segmented together, as after a real stem segmentation. Dotted
+line: 202.5°.](figures/fig6_branches.png)
 
 ## References
 

@@ -127,7 +127,7 @@ def fig_sector(d):
 def fig_real():
     import glob
     sets = []
-    for key, lab in [("real_clean", "a  SegmentedForests (456 stems)\n    stem points only"), ("real", "b  SegmentedForests (456 stems)\n    with surrounding points")]:
+    for key, lab in [("real_clean", "a  SegmentedForests (458 stems)\n    stem points only"), ("real", "b  SegmentedForests (458 stems)\n    with surrounding points")]:
         fs = glob.glob(str(RES / key / "*.csv"))
         if fs:
             x = pd.concat([pd.read_csv(f) for f in fs]); x["ref"] = x.ref_dbh_cm; sets.append((lab, x))
@@ -148,11 +148,31 @@ def fig_real():
     save(fig, "fig5_real_data")
 
 
+def fig_branches():
+    edges = [1, 90, 135, 180, 225, 270, 315, 361]
+    mids = [45, 112.5, 157.5, 202.5, 247.5, 292.5, 338]
+    fig, axs = plt.subplots(1, 2, figsize=(7.2, 2.9), sharey=True)
+    for ax, (f, t) in zip(axs, [("helios_S1b.csv", "a  S1b, stems without branches"), ("helios_S1b_ast.csv", "b  S1b-B, branches at breast height")]):
+        d = pd.read_csv(RES / f); d["cls"] = pd.cut(d.arc_geo_deg, edges, right=False)
+        for m in METHODS:
+            ok = ((d[m + "_cm"] - d.dbh_true_cm).abs() <= 2)
+            g = ok.groupby(d.cls, observed=True).mean()
+            ax.plot(mids[:len(g)], 100 * g.values, color=COLOR[m], marker=MARK[m], ms=4, lw=1.6, label=LABEL[m])
+        ax.axvline(202.5, color=MUTED, lw=.8, ls=":"); ax.set_ylim(0, 100)
+        ax.set_title(t, loc="left", fontsize=9, color=INK); ax.set_xticks([0, 90, 180, 270, 360]); ax.set_xlabel("Geometrically visible arc (°)")
+    axs[0].set_ylabel("Stems with |error| ≤ 2 cm (%)")
+    h, l = axs[0].get_legend_handles_labels()
+    fig.legend(h, l, ncol=6, fontsize=7, loc="lower center", bbox_to_anchor=(.5, -.1))
+    save(fig, "fig6_branches")
+
+
 def main():
     fig_real()
     fig_mc()
     d = helios()
     fig_helios_error(d.copy()); fig_design(d); fig_sector(d)
+    if (RES / "helios_S1b_ast.csv").exists():
+        fig_branches()
     print("->", FIG)
 
 
