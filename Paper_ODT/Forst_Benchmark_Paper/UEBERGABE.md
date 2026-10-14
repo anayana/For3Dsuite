@@ -15,7 +15,11 @@ Stand 13.10.2026 · Repo `anayana/For3Dsuite` · Autor: Angel Naya, Independent 
 - **Nicht `platform/dev/export_static.py` ohne `--html-only` ausführen** (siehe
   `CLAUDE_CODE_UEBERGABE.md`, Abschn. 0) — würde die Galerie in `docs/` löschen.
 - Aus der Cloud-Umgebung gesperrt: zenodo.org, sciencedirect.com, arxiv.org, huggingface.co,
-  crossref. Bei Bedarf den Nutzer um Inhalte bitten (er schickt Screenshots/Text).
+  crossref. **Umweg für offene Daten:** Workflow `.github/workflows/fetch-data.yml` — läuft auf
+  GitHub Actions (freies Netz), startet automatisch bei Änderung von `.github/fetch-request.txt`,
+  schneidet die benötigten Teile aus und committet nach `extdata/`. Neue Quellen dort ergänzen.
+  Erreichbar aus der Cloud: conda-forge (micromamba unter `/opt/mm`, Env `helios` mit HELIOS++ 2.2.2),
+  PyPI, raw.githubusercontent.com. Für Texte/PDFs weiter den Nutzer fragen.
 
 ## 1. Ziel des Papers
 
