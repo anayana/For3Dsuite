@@ -4,7 +4,8 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/anayana/For3Dsuite/claude/for3dsuite-medien-marker-1ihant/scripts/train_pellis_runpod.sh | bash -s -- 5_CB
 #
-# Ablauf: RAR laden (aria2c, mehrere Verbindungen) + md5 -> entpacken -> pellis_to_colmap.py
+# KEIN Download auf dem Pod (Nutzer-Anweisung): <Gebaeude>.rar muss schon unter
+# /workspace/pellis/ liegen (vom Nutzer hochgeladen). Ablauf: md5 -> entpacken -> pellis_to_colmap.py
 # (Fotos entzerren, Posen ins System der Punktwolke, Initwolke) -> Posenprobe (Abbruch, wenn
 # die Punktwolke nicht zu den Fotos passt) -> gsplat 1.5.3 -> PLY im System der Punktwolke
 # -> eval_splat_geometry.py. Ergebnisse unter /workspace/pellis/<Gebaeude>_*.
@@ -35,7 +36,6 @@ df -h "$W" | tail -1
 
 # ---- Werkzeuge -------------------------------------------------------------
 NEED=""
-command -v aria2c >/dev/null || NEED="$NEED aria2"
 command -v unrar  >/dev/null || NEED="$NEED unrar"
 command -v git    >/dev/null || NEED="$NEED git"
 if [ -n "$NEED" ]; then
@@ -44,19 +44,12 @@ if [ -n "$NEED" ]; then
     || { echo "FEHLER: apt-get install$NEED fehlgeschlagen"; exit 1; }
 fi
 
-# ---- Laden + pruefen -------------------------------------------------------
+# ---- Archiv pruefen (liegt schon da) -----------------------------------------
 RAR="$W/$B.rar"
-URL="https://zenodo.org/records/14626611/files/$B.rar?download=1"
-if [ -f "$RAR" ] && [ "$(md5sum "$RAR" | cut -d' ' -f1)" = "${MD5[$B]}" ]; then
-  echo "$B.rar schon da, md5 ok"
-else
-  echo "== Lade $B.rar (aria2c, 8 Verbindungen) =="
-  aria2c -x 8 -s 8 -k 20M --file-allocation=none --summary-interval=60 \
-         --console-log-level=warn -c -d "$W" -o "$B.rar" "$URL"
-  GOT="$(md5sum "$RAR" | cut -d' ' -f1)"
-  [ "$GOT" = "${MD5[$B]}" ] || { echo "FEHLER: md5 $GOT, erwartet ${MD5[$B]}"; exit 1; }
-  echo "md5 ok"
-fi
+[ -f "$RAR" ] || { echo "FEHLER: $RAR fehlt -- bitte hochladen (kein Download auf dem Pod)"; exit 1; }
+GOT="$(md5sum "$RAR" | cut -d' ' -f1)"
+[ "$GOT" = "${MD5[$B]}" ] || { echo "FEHLER: md5 $GOT, erwartet ${MD5[$B]}"; exit 1; }
+echo "$B.rar md5 ok"
 
 echo "== Entpacke =="
 mkdir -p "$W/raw_$B"

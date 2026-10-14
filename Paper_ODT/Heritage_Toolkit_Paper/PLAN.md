@@ -7,6 +7,7 @@ Stand 13.10.2026 · Grundlage: `UEBERGABE.md`, `Heritage_Toolkit_Konzept.md`
 - Daten: **Pellis et al. (2025)**, Zenodo 14626611, **CC BY 4.0** (vom Nutzer auf Zenodo
   bestätigt am 13.10.2026). Nur dieser Datensatz und die in `UEBERGABE.md` Abschn. 2 genannten
   CC-BY-Alternativen.
+- **Keine Downloads über RunPod** (Nutzer-Anweisung 14.10.2026): Nutzer lädt selbst, Agent nennt die Links.
 - GPU nur RunPod. **Kein Google** (kein Colab, kein Kaggle) — Nutzer-Entscheidung 13.10.2026. Nur FOSS.
 - Kein Oral-History-Teil (keine eigene Erhebung).
 - `platform/dev/export_static.py` nur mit `--html-only`.
@@ -35,7 +36,7 @@ Kamerahöhen danach 1,8–9,4).
 | 0b | `5_CB.rar` per Handy laden und entpacken, Parameterdateien hochladen | Format bekannt | ✅ 14.10.2026 |
 | 1 | Pellis-Eintrag in `DATA_SOURCES.md` (CC BY 4.0, ✅) | Lizenz dokumentiert | ✅ |
 | 2 | Formatwandler: Pellis-Kameraparameter → COLMAP (PINHOLE, Fotos mit OpenCV entzerrt) | `scripts/pellis_to_colmap.py` + `tests/test_pellis_to_colmap.py` | ✅ Posen; offen: Projektionsprobe gegen Punktwolke, Init-Wolke, Bedeutung `Orientation` |
-| 3 | `scripts/train_pellis_runpod.sh`: Laden (aria2c) + md5, Entpacken, `pellis_to_colmap.py` (auch .bin, weil gsplat 1.5.3 Text falsch liest), Posenprobe mit Abbruch, gsplat 1.5.3, PLY im System der Punktwolke, `eval_splat_geometry.py` | ein Befehl | ✅ gebaut, ungetestet auf GPU |
+| 3 | `scripts/train_pellis_runpod.sh`: lokales RAR (kein Download) + md5, Entpacken, `pellis_to_colmap.py` (auch .bin, weil gsplat 1.5.3 Text falsch liest), Posenprobe mit Abbruch, gsplat 1.5.3, PLY im System der Punktwolke, `eval_splat_geometry.py` | ein Befehl | ✅ gebaut, ungetestet auf GPU |
 | 4 | Training: zunächst 1 Gebäude, danach die übrigen 4 | `.ply` je Gebäude | Nutzer (RunPod) |
 | 5 | Geometrie-Prüfung: Splat-Zentren (Deckkraft ≥ 0,5, in Hülle der Referenz) gegen Referenzwolke, Abstand Median/95 %, Vollständigkeit 2/5/10 cm, je Bauteil-Label | `scripts/eval_splat_geometry.py` (+ Test) | ✅ Skript; läuft im Trainingsskript mit |
 | 6 | Demo-Rundgang: ein Gebäude als Splat mit Medien-Markern im Browser-Studio `create.html`, als eine offline lauffähige HTML-Datei | Demo-Datei + Bildschirmfotos | Agent, Nutzer prüft am Handy |

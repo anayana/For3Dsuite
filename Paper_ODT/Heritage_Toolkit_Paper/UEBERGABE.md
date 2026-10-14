@@ -12,6 +12,8 @@ Stand 13.10.2026 · Repo `anayana/For3Dsuite` · Autor: Angel Naya, Independent 
   Entscheidung 13.10.2026; gemietet, ca. 0,20 € je Lauf laut `README_TRAINING.md`; vorhandenes
   Muster `scripts/train_runpod.sh`). **Kein Google** (auch nicht Colab, Kaggle) — Nutzer-
   Entscheidung 13.10.2026. Sonstige kostenpflichtige Dienste (HF-Spaces o. ä.) weiterhin nicht.
+- **Keine Downloads über RunPod oder andere bezahlte Rechner** (Nutzer-Anweisung 14.10.2026, verbindlich).
+  Daten lädt der Nutzer selbst; dafür immer die direkten Download-Links nennen.
 - **Nur offene Fremddaten und FOSS**, keine eigenen Aufnahmen/Interviews (derzeit). Lizenzen prüfen
   (`DATA_SOURCES.md`).
 - **Petra (CULTURE3D), Dr Johnson (Deep Blending), Stump (Mip-NeRF 360): keine Datenlizenz gefunden**
