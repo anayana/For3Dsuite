@@ -229,15 +229,15 @@ renderer.toneMappingExposure = 1.05;
 const BG = 0x080b11;
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(BG);
-scene.fog = new THREE.Fog(BG, 14, 34);
+scene.fog = new THREE.Fog(BG, 16, 44);
 
 const camera = new THREE.PerspectiveCamera(35, 1, 0.02, 90);
-camera.position.set(2.44, 3.55, 6.71);
+camera.position.set(3.02, 4.16, 8.30);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.minDistance = 1.2;
-controls.maxDistance = 22;
+controls.maxDistance = 26;
 controls.maxPolarAngle = Math.PI * 0.62;
 controls.target.set(0, 0.95, 0);
 
@@ -401,7 +401,7 @@ window.addEventListener('resize', resize);
 resize();
 
 /* ===================== Schleife ===================== */
-const DIST = () => (narrow() ? 10.4 : 7.6);
+const DIST = () => (narrow() ? 14.0 : 9.4);
 let clock = 0, hold = 0, az = 20;
 controls.addEventListener('start', () => { hold = Infinity; });
 controls.addEventListener('end', () => { hold = clock + 7; });
