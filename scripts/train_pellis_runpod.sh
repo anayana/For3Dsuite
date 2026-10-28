@@ -19,6 +19,7 @@ B="${1:-5_CB}"
 BRANCH="${BRANCH:-claude/for3dsuite-medien-marker-1ihant}"
 RAW="https://raw.githubusercontent.com/anayana/For3Dsuite/$BRANCH/scripts"
 STEPS="${STEPS:-30000}"
+INIT="${INIT:-sfm}"                 # sfm = Startwolke aus der Referenz, random = ohne (Diagnose)
 ONLY_ORIENT="${ONLY_ORIENT:-}"     # 0/1: nur Fotos dieser Orientation (Diagnose)
 ORIENT_ROLL="${ORIENT_ROLL:-0}"   # Rolle fuer Fotos mit Orientation = 1; 0 = Posen unveraendert (5_CB: richtig)
 FACTOR="${FACTOR:-2}"
@@ -139,7 +140,7 @@ echo "== Training ($STEPS Schritte, Faktor $FACTOR), $(date -u +%H:%M) UTC =="
 GS="$W/${B}_gs"
 python gsplat/examples/simple_trainer.py default \
     --data_dir "$DATA" --data_factor "$FACTOR" --max_steps "$STEPS" \
-    --result_dir "$GS" --disable_viewer
+    --result_dir "$GS" --disable_viewer --init_type "$INIT"
 ls "$GS/stats" 2>/dev/null && cat "$GS"/stats/val_step*.json 2>/dev/null | tail -c 600 || true
 
 # ---- Export im System der Punktwolke ---------------------------------------
