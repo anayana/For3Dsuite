@@ -116,3 +116,11 @@ Vorschaubilder (Foto | Render): Bauteile stehen **an der richtigen Stelle**, abe
 Entzerrung. Hinweis darauf: COLMAP fand eine um 6 % kleinere Brennweite (typisch, wenn eine
 falsche Verzeichnung in die Brennweite gedrückt wird) und registrierte nur 97/166 Fotos.
 Test: Lauf ohne Entzerrung (`UNDIST=0`).
+
+## Diagnose-Lauf: ohne Entzerrung (`UNDIST=0`, 28.10.2026, 18:37–19:05 UTC)
+
+Tesla V100, gelieferte Posen, 7 000 Schritte: **PSNR 14,31 · SSIM 0,573 · LPIPS 0,718**, Verlust 0,133
+(mit Entzerrung 13,75). Renders weiter verschmiert. → Entzerrung **nicht** die Ursache.
+Nächster Verdacht: Brennweite je Foto verschieden (Zoom) — eine gemeinsame Kamera passt dann zu keinem
+Foto richtig; passt zu COLMAP (Brennweite 6 % daneben, nur 97/166 registriert). Test: COLMAP mit eigener
+Brennweite und k1 je Foto (`POSES=colmap CAMS=per UNDIST=0`), dazu Fotometadaten.

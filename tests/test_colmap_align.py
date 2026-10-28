@@ -69,3 +69,14 @@ def test_align_end_to_end(tmp_path):
         assert got[k][2].endswith(".png")
     for f in ("cameras.bin", "images.bin", "points3D.bin", "points3D.txt"):
         assert (out / f).exists()
+
+
+def test_write_model_multi_camera(tmp_path):
+    cams = {1: ("SIMPLE_RADIAL", 100, 80, [90.0, 50.0, 40.0, -0.05]),
+            2: ("SIMPLE_RADIAL", 100, 80, [95.0, 50.0, 40.0, -0.04])}
+    recs = [(1, [1.0, 0, 0, 0], np.zeros(3), 1, "a.png"), (2, [1.0, 0, 0, 0], np.ones(3), 2, "b.png")]
+    ca.write_model(tmp_path, cams, recs, np.zeros((1, 3)), np.zeros((1, 3), np.uint8))
+    assert ca.read_cameras(tmp_path / "cameras.txt") == cams
+    imgs = ca.read_images(tmp_path / "images.txt")
+    assert imgs["a"][3] == 1 and imgs["b"][3] == 2
+    assert (tmp_path / "cameras.bin").stat().st_size == 8 + 2 * (24 + 4 * 8)

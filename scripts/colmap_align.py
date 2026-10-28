@@ -18,6 +18,7 @@ Diagnose: Abstand der Kamerazentren (m) und Winkel der Blickrichtungen (Grad) zw
 """
 import argparse
 import os
+import struct
 import sys
 
 import numpy as np
@@ -33,7 +34,7 @@ def quat_to_R(w, x, y, z):
 
 
 def read_images(path):
-    """images.txt -> {stem: (R_w2c, t, name)}; jede zweite Zeile ist die POINTS2D-Zeile."""
+    """images.txt -> {stem: (R_w2c, t, name, camera_id)}; jede zweite Zeile ist die POINTS2D-Zeile."""
     out = {}
     lines = [l.rstrip("\n") for l in open(path) if not l.startswith("#")]
     for i in range(0, len(lines), 2):
@@ -41,7 +42,7 @@ def read_images(path):
         if len(p) < 10:
             continue
         R = quat_to_R(*map(float, p[1:5]))
-        out[os.path.splitext(p[9])[0]] = (R, np.array(list(map(float, p[5:8]))), p[9])
+        out[os.path.splitext(p[9])[0]] = (R, np.array(list(map(float, p[5:8]))), p[9], int(p[8]))
     return out
 
 
@@ -59,6 +60,52 @@ def read_camera(path):
         else:
             sys.exit(f"FEHLER: Kameramodell {model} nicht unterstuetzt (PINHOLE erwartet)")
         return dict(W=W, H=H, fx=fx, fy=fy, cx=cx, cy=cy)
+
+
+MODEL_IDS = {"SIMPLE_PINHOLE": 0, "PINHOLE": 1, "SIMPLE_RADIAL": 2, "RADIAL": 3, "OPENCV": 4}
+
+
+def read_cameras(path):
+    """cameras.txt -> {id: (model, W, H, [params])}."""
+    cams = {}
+    for l in open(path):
+        if l.startswith("#") or not l.strip():
+            continue
+        p = l.split()
+        if p[1] not in MODEL_IDS:
+            sys.exit(f"FEHLER: Kameramodell {p[1]} nicht unterstuetzt")
+        cams[int(p[0])] = (p[1], int(p[2]), int(p[3]), list(map(float, p[4:])))
+    return cams
+
+
+def write_model(out, cams, recs, xyz, rgb):
+    """COLMAP-Text- und Binaerformat; recs = [(image_id, q, t, camera_id, name)], Spuren leer."""
+    with open(os.path.join(out, "cameras.txt"), "w") as fh:
+        for cid, (m, W, H, par) in sorted(cams.items()):
+            fh.write(f"{cid} {m} {W} {H} " + " ".join(f"{v:.6f}" for v in par) + "\n")
+    with open(os.path.join(out, "cameras.bin"), "wb") as fh:
+        fh.write(struct.pack("<Q", len(cams)))
+        for cid, (m, W, H, par) in sorted(cams.items()):
+            fh.write(struct.pack("<iiQQ", cid, MODEL_IDS[m], W, H))
+            fh.write(struct.pack(f"<{len(par)}d", *par))
+    with open(os.path.join(out, "images.txt"), "w") as fh:
+        for i, q, t, cid, name in recs:
+            fh.write(f"{i} {q[0]:.9f} {q[1]:.9f} {q[2]:.9f} {q[3]:.9f} "
+                     f"{t[0]:.6f} {t[1]:.6f} {t[2]:.6f} {cid} {name}\n\n")
+    with open(os.path.join(out, "images.bin"), "wb") as fh:
+        fh.write(struct.pack("<Q", len(recs)))
+        for i, q, t, cid, name in recs:
+            fh.write(struct.pack("<I4d3dI", i, *q, *t, cid))
+            fh.write(name.encode() + b"\x00")
+            fh.write(struct.pack("<Q", 0))
+    with open(os.path.join(out, "points3D.txt"), "w") as fh:
+        for j in range(len(xyz)):
+            fh.write(f"{j+1} {xyz[j,0]:.4f} {xyz[j,1]:.4f} {xyz[j,2]:.4f} "
+                     f"{rgb[j,0]} {rgb[j,1]} {rgb[j,2]} 1.0\n")
+    with open(os.path.join(out, "points3D.bin"), "wb") as fh:
+        fh.write(struct.pack("<Q", len(xyz)))
+        for j in range(len(xyz)):
+            fh.write(struct.pack("<Q3d3BdQ", j + 1, *xyz[j], *rgb[j], 1.0, 0))
 
 
 def umeyama(src, dst):
@@ -122,33 +169,30 @@ def main():
     worst = np.argsort(-angs)[:8]
     print("Groesste Winkel: " + ", ".join(f"{common[i]} {angs[i]:.1f}" for i in worst))
 
-    cam = read_camera(os.path.join(sfm_dir, "cameras.txt"))
+    cams = read_cameras(os.path.join(sfm_dir, "cameras.txt"))
     rc = read_camera(os.path.join(a.ref, "cameras.txt"))
-    print(f"Brennweite SfM {cam['fx']:.1f}/{cam['fy']:.1f} px vs. geliefert {rc['fx']:.1f}/{rc['fy']:.1f} px "
-          f"({cam['W']}x{cam['H']} vs. {rc['W']}x{rc['H']})")
+    f = np.array([par[0] for _, _, _, par in cams.values()])
+    W = next(iter(cams.values()))[1]
+    print(f"Kameras SfM: {len(cams)}, Brennweite (erster Wert) min {f.min():.1f} Median {np.median(f):.1f} "
+          f"max {f.max():.1f} px bei Breite {W}; geliefert {rc['fx']:.1f} px bei Breite {rc['W']} "
+          f"(= {rc['fx'] * W / rc['W']:.1f} px)")
+    if len(cams) > 1:
+        fs = sorted((cams[sfm[k][3]][3][0], k) for k in sfm)
+        print("Kleinste Brennweiten: " + ", ".join(f"{k} {v:.0f}" for v, k in fs[:5]))
+        print("Groesste Brennweiten: " + ", ".join(f"{k} {v:.0f}" for v, k in fs[-5:]))
+        extra = [par[3] for m, _, _, par in cams.values() if m in ("SIMPLE_RADIAL", "RADIAL")]
+        if extra:
+            print(f"k1 SfM: min {min(extra):.4f} Median {np.median(extra):.4f} max {max(extra):.4f}")
     os.makedirs(a.out, exist_ok=True)
-    recs, lines = [], []
+    recs = []
     for i, k in enumerate(sorted(sfm), 1):
-        R, t, name = sfm[k]
+        R, t, name, cid = sfm[k]
         Rn = R @ Ra.T
         Cn = s * Ra @ centre(R, t) + ta
-        tn = -Rn @ Cn
-        q = p2c.R_to_quat(Rn)
-        recs.append((i, q, tn, name))
-        lines += [f"{i} {q[0]:.9f} {q[1]:.9f} {q[2]:.9f} {q[3]:.9f} "
-                  f"{tn[0]:.6f} {tn[1]:.6f} {tn[2]:.6f} 1 {name}", ""]
-    with open(os.path.join(a.out, "cameras.txt"), "w") as fh:
-        fh.write(f"1 PINHOLE {cam['W']} {cam['H']} {cam['fx']:.6f} {cam['fy']:.6f} "
-                 f"{cam['cx']:.6f} {cam['cy']:.6f}\n")
-    with open(os.path.join(a.out, "images.txt"), "w") as fh:
-        fh.write("\n".join(lines) + "\n")
+        recs.append((i, p2c.R_to_quat(Rn), -Rn @ Cn, cid, name))
     pts = np.loadtxt(os.path.join(a.ref, "points3D.txt"), comments="#", usecols=range(1, 7), ndmin=2)
     xyz, rgb = pts[:, :3], pts[:, 3:6].astype(np.uint8)
-    with open(os.path.join(a.out, "points3D.txt"), "w") as fh:
-        for j in range(len(xyz)):
-            fh.write(f"{j+1} {xyz[j,0]:.4f} {xyz[j,1]:.4f} {xyz[j,2]:.4f} "
-                     f"{rgb[j,0]} {rgb[j,1]} {rgb[j,2]} 1.0\n")
-    p2c.write_binary(a.out, cam, recs, xyz, rgb)
+    write_model(a.out, cams, recs, xyz, rgb)
     print(f"-> {a.out}: {len(recs)} Posen im System der Punktwolke, {len(xyz):,} Initpunkte")
 
 

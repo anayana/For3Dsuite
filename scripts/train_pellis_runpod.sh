@@ -25,6 +25,8 @@ ONLY_ORIENT="${ONLY_ORIENT:-}"     # 0/1: nur Fotos dieser Orientation (Diagnose
 ORIENT_ROLL="${ORIENT_ROLL:-0}"   # Rolle fuer Fotos mit Orientation = 1; 0 = Posen unveraendert (5_CB: richtig)
 FACTOR="${FACTOR:-2}"
 POSES="${POSES:-given}"            # given = gelieferte Posen, colmap = eigene Posen per COLMAP aus den Fotos
+CAMS="${CAMS:-one}"                # COLMAP: one = eine Kamera (PINHOLE), per = je Foto eigene Brennweite/k1 (SIMPLE_RADIAL)
+SIFTN="${SIFTN:-4096}"             # COLMAP: SIFT-Merkmale je Foto
 UNDIST="${UNDIST:-1}"              # 0 = Fotos nicht entzerren (Diagnose)
 UDFLAG=""; [ "$UNDIST" = 0 ] && UDFLAG="--no-undistort"
 W=/workspace/pellis
@@ -139,6 +141,23 @@ print(f"images_{f}: {len(os.listdir(dst))} PNG")
 PY
 fi
 
+# ---- Metadaten der Originalfotos (Brennweite je Foto, falls vorhanden) ----------
+python - "$IMGDIR" <<'PY' || true
+import os, sys
+from PIL import Image, ExifTags
+d = sys.argv[1]
+names = sorted(os.listdir(d))
+for n in names[:2] + names[len(names) // 2:len(names) // 2 + 1] + names[-1:]:
+    im = Image.open(os.path.join(d, n))
+    ex = {ExifTags.TAGS.get(k, k): v for k, v in im.getexif().items()}
+    try:
+        ex.update({ExifTags.TAGS.get(k, k): v for k, v in im.getexif().get_ifd(0x8769).items()})
+    except Exception:
+        pass
+    keys = ("Model", "LensModel", "FocalLength", "FocalLengthIn35mmFilm", "ExposureTime", "FNumber", "DateTimeOriginal")
+    print(f"META {n} {im.size} {im.mode} info={sorted(im.info)[:8]} " + " ".join(f"{k}={ex[k]}" for k in keys if k in ex))
+PY
+
 # ---- Optional: eigene Posen per COLMAP (CPU), ins System der Punktwolke ausgerichtet ----
 if [ "$POSES" = colmap ]; then
   echo "== COLMAP: eigene Posen aus den Fotos, $(date -u +%H:%M) UTC =="
@@ -157,15 +176,20 @@ p = [l.split() for l in open(sys.argv[1]) if l.strip() and not l.startswith("#")
 print(",".join(f"{float(v) / f:.4f}" for v in p[4:8]))
 PY
 )"
-  echo "  Startwerte PINHOLE fx,fy,cx,cy = $PAR (Brennweite wird verfeinert, Hauptpunkt fest)"
-  colmap feature_extractor --database_path "$DC/db.db" --image_path "$DC/images" \
-    --ImageReader.camera_model PINHOLE --ImageReader.single_camera 1 --ImageReader.camera_params "$PAR" \
-    --SiftExtraction.use_gpu 0 --SiftExtraction.max_num_features 4096 >/dev/null
+  if [ "$CAMS" = per ]; then
+    CAMOPT=(--ImageReader.camera_model SIMPLE_RADIAL --ImageReader.single_camera 0
+            --ImageReader.camera_params "$(echo "$PAR" | cut -d, -f1,3,4),0")
+  else
+    CAMOPT=(--ImageReader.camera_model PINHOLE --ImageReader.single_camera 1 --ImageReader.camera_params "$PAR")
+  fi
+  echo "  Kameras: $CAMS, Startwerte ${CAMOPT[*]} (Brennweite wird verfeinert, Hauptpunkt fest)"
+  colmap feature_extractor --database_path "$DC/db.db" --image_path "$DC/images" "${CAMOPT[@]}" \
+    --SiftExtraction.use_gpu 0 --SiftExtraction.max_num_features "$SIFTN" >/dev/null
   echo "  Merkmale fertig $(date -u +%H:%M) UTC"
   colmap exhaustive_matcher --database_path "$DC/db.db" --SiftMatching.use_gpu 0 >/dev/null
   echo "  Zuordnung fertig $(date -u +%H:%M) UTC"
   colmap mapper --database_path "$DC/db.db" --image_path "$DC/images" --output_path "$DC/sparse_raw" \
-    --Mapper.ba_refine_principal_point 0 --Mapper.ba_refine_extra_params 0 >/dev/null
+    --Mapper.ba_refine_principal_point 0 --Mapper.ba_refine_extra_params "$([ "$CAMS" = per ] && echo 1 || echo 0)" >/dev/null
   echo "  Rekonstruktion fertig $(date -u +%H:%M) UTC"
   for m in "$DC"/sparse_raw/*/; do
     n="$(basename "$m")"; mkdir -p "$DC/txt/$n"
