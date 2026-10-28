@@ -124,3 +124,21 @@ Tesla V100, gelieferte Posen, 7 000 Schritte: **PSNR 14,31 · SSIM 0,573 · LPIP
 Nächster Verdacht: Brennweite je Foto verschieden (Zoom) — eine gemeinsame Kamera passt dann zu keinem
 Foto richtig; passt zu COLMAP (Brennweite 6 % daneben, nur 97/166 registriert). Test: COLMAP mit eigener
 Brennweite und k1 je Foto (`POSES=colmap CAMS=per UNDIST=0`), dazu Fotometadaten.
+
+## Diagnose-Lauf: COLMAP mit Kamera je Foto (`POSES=colmap CAMS=per UNDIST=0`, 28.10.2026, 19:30–19:55 UTC)
+
+RTX A4500, Originalfotos **ohne** Entzerrung, SIMPLE_RADIAL je Foto (Brennweite + k1 frei), SIFT 2048.
+- Fotos tragen keine Metadaten (PNG ohne EXIF).
+- 90/166 Fotos registriert.
+- Brennweite je Foto: 1511–1568 px, Median **1526,9 px** = geliefert 1527,2 px → **kein Zoom**.
+- k1 je Foto: Median **0,0000** (−0,04 … +0,04) → **die Fotos sind bereits entzerrt**. Unsere zusätzliche
+  Entzerrung mit den gelieferten k1/k2/p hat sie verzerrt (daher früher Brennweite −6 % bei COLMAP).
+- Abweichung zu den gelieferten Posen jetzt nur noch **2,3 cm** (Median) und **0,12°** → gelieferte
+  Posen und Brennweite **stimmen**.
+- 7 000 Schritte: **PSNR 15,55 · SSIM 0,633 · LPIPS 0,624**; Testbilder 10,8–20,1 dB.
+  Geometrie: Label 4–7, 9 Median 3,6–6,4 cm.
+
+→ Kameraparameter sind jetzt geklärt: **Fotos nicht entzerren** (`UNDIST=0`), gelieferte Posen nutzen.
+PSNR bleibt aber niedrig. Auffällig: Helligkeit Foto/Render weicht je Testbild stark ab (z. B. 0,456 vs.
+0,243) → Belichtung wechselt von Foto zu Foto. Nächster Lauf: gelieferte Posen, `UNDIST=0`,
+Belichtungsausgleich beim Training (`APP=1`), 30 000 Schritte; PSNR zusätzlich belichtungsausgeglichen.
