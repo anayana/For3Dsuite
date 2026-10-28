@@ -23,6 +23,8 @@ Konvention (aus den Daten abgeleitet, Projektion gegen die Punktwolke steht noch
   R ist world->camera in photogrammetrischer Kamerabasis (Blick entlang -Z, y nach oben).
   -> OpenCV/COLMAP:  R_cv = diag(1,-1,-1) @ R,  t = -R_cv @ C.
   Mit --no-flip wird R unveraendert uebernommen (falls die Projektionsprobe das verlangt).
+  Mit --invert-transform wird die Matrix als Punktwolke -> Kamerasystem gelesen und invertiert
+  (welche Richtung stimmt, entscheidet scripts/pellis_posecheck.py an Fotos + Punktwolke).
 
 Die Verzeichnung (k1,k2,k3,p1,p2) kann COLMAP-PINHOLE nicht abbilden. Mit --images
 werden die Fotos mit OpenCV entzerrt (gleiche K) und als PINHOLE geschrieben;
@@ -210,6 +212,8 @@ def main():
     ap.add_argument("--cloud", help="*_point_cloud.txt: Stichprobe als Initwolke (points3D.txt)")
     ap.add_argument("--init-points", type=int, default=300_000)
     ap.add_argument("--images", help="Ordner mit den Originalfotos (<PhotoID>.jpg)")
+    ap.add_argument("--invert-transform", action="store_true",
+                    help="Matrix bildet Punktwolke -> Kamerasystem ab; vor Gebrauch invertieren")
     ap.add_argument("--no-flip", action="store_true",
                     help="R ohne Achsenumkehr uebernehmen (nur falls die Projektionsprobe es zeigt)")
     args = ap.parse_args()
@@ -221,6 +225,8 @@ def main():
     flip = np.eye(3) if args.no_flip else FLIP
     if args.transform:
         s_t, R_t, t_t = parse_transform(args.transform)
+        if args.invert_transform:
+            s_t, R_t, t_t = 1.0 / s_t, R_t.T, -(R_t.T @ t_t) / s_t
         for p in poses:
             p["C"] = s_t * R_t @ p["C"] + t_t
             p["R"] = p["R"] @ R_t.T

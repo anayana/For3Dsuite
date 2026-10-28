@@ -95,50 +95,25 @@ python "$W/pellis_to_colmap.py" "$INT" "$EXT" "$DATA" --transform "$TRF" --cloud
 NIMG=$(ls "$DATA/images" | wc -l)
 [ "$NIMG" -gt 20 ] || { echo "FEHLER: nur $NIMG Fotos im Modell"; exit 1; }
 
-# ---- Posenprobe: Farbe der Initpunkte gegen Fotopixel -----------------------
-echo "== Posenprobe =="
-python - "$DATA" <<'PY'
-import os, sys, struct, numpy as np, cv2
-d = sys.argv[1]; sp = os.path.join(d, "sparse", "0")
-cam = open(os.path.join(sp, "cameras.txt")).read().splitlines()[1].split()
-W, H, fx, fy, cx, cy = int(cam[2]), int(cam[3]), *map(float, cam[4:8])
-pts = np.array([[float(v) for v in l.split()[1:7]] for l in open(os.path.join(sp, "points3D.txt"))
-                if l.strip() and not l.startswith("#")])
-xyz, rgb = pts[:, :3], pts[:, 3:6]
-gray_p = rgb @ [0.299, 0.587, 0.114]
-rows = [l.split() for l in open(os.path.join(sp, "images.txt")) if l.strip() and not l.startswith("#")]
-def q2R(w, x, y, z):
-    return np.array([[1-2*(y*y+z*z), 2*(x*y-z*w), 2*(x*z+y*w)],
-                     [2*(x*y+z*w), 1-2*(x*x+z*z), 2*(y*z-x*w)],
-                     [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y)]])
-cors = []
-for r in rows[:: max(1, len(rows) // 8)][:8]:
-    R = q2R(*map(float, r[1:5])); t = np.array(list(map(float, r[5:8])))
-    Xc = xyz @ R.T + t; z = Xc[:, 2]
-    u = fx * Xc[:, 0] / np.maximum(z, 1e-6) + cx; v = fy * Xc[:, 1] / np.maximum(z, 1e-6) + cy
-    m = (z > 0.1) & (u >= 0) & (u < W - 1) & (v >= 0) & (v < H - 1)
-    img = cv2.imread(os.path.join(d, "images", r[9]), cv2.IMREAD_GRAYSCALE)
-    if m.sum() < 200 or img is None:
-        print(f"  {r[9]}: {m.sum()} Punkte im Bild -- uebersprungen"); continue
-    g_img = img[v[m].astype(int), u[m].astype(int)].astype(float)
-    c = np.corrcoef(g_img, gray_p[m])[0, 1]
-    # Gegenprobe: Bild um 200 px verschoben -> Korrelation muss deutlich fallen
-    us = np.clip(u[m] + 200, 0, W - 1).astype(int)
-    c0 = np.corrcoef(img[v[m].astype(int), us].astype(float), gray_p[m])[0, 1]
-    cors.append(c)
-    print(f"  {r[9]}: {m.sum():>7} Punkte im Bild, Korrelation {c:.2f} (verschoben {c0:.2f})")
-med = float(np.median(cors)) if cors else 0.0
-print(f"  Median-Korrelation {med:.2f}")
-open("/tmp/posenprobe", "w").write(f"{med:.3f}")
-PY
-MED="$(cat /tmp/posenprobe)"
-if python -c "import sys; sys.exit(0 if float('$MED') >= 0.3 else 1)"; then
-  echo "Posenprobe ok ($MED)"
+# ---- Posenprobe: welche Konvention passt zu Fotos + Punktwolke? ------------------
+echo "== Posenprobe (4 Varianten, Tiefenpuffer) =="
+curl -fsSL "$RAW/pellis_posecheck.py" -o "$W/pellis_posecheck.py"
+if python "$W/pellis_posecheck.py" "$INT" "$EXT" "$TRF" "$DATA/sparse/0/points3D.txt" \
+          "$DATA/images" --out /tmp/posenflags; then
+  echo "Posenprobe ok"
 elif [ "${FORCE:-0}" = "1" ]; then
-  echo "WARNUNG: Posenprobe schwach ($MED), FORCE=1 -> weiter"
+  echo "WARNUNG: Posenprobe nicht eindeutig, FORCE=1 -> weiter"
 else
-  echo "FEHLER: Posenprobe schwach ($MED) -- Punktwolke passt nicht zu den Fotos. Abbruch vor dem Training."
+  echo "FEHLER: Posenprobe nicht eindeutig -- Abbruch vor dem Training."
   exit 1
+fi
+FLAGS="$(cat /tmp/posenflags)"
+if [ -n "$FLAGS" ]; then
+  echo "== pellis_to_colmap erneut mit $FLAGS =="
+  rm -rf "$DATA"
+  # shellcheck disable=SC2086
+  python "$W/pellis_to_colmap.py" "$INT" "$EXT" "$DATA" --transform "$TRF" --cloud "$PCL" \
+         --images "$IMGDIR" $FLAGS
 fi
 
 # gsplat erwartet images_<FACTOR>; als PNG anlegen (dann wird nichts erneut verkleinert)
