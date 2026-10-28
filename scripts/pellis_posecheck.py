@@ -97,8 +97,12 @@ def main():
                 if r:
                     cs.append(r[0])
                     c0s.append(r[1])
-            med = float(np.median(cs)) if cs else 0.0
-            med0 = float(np.median(c0s)) if c0s else 0.0
+            cs = [c for c in cs if np.isfinite(c)]
+            c0s = [c for c in c0s if np.isfinite(c)]
+            # Variante zaehlt nur, wenn mindestens die Haelfte der Testfotos die Wolke sieht
+            ok_n = len(cs) >= max(1, len(pick) // 2)
+            med = float(np.median(cs)) if cs and ok_n else 0.0
+            med0 = float(np.median(c0s)) if c0s and ok_n else 0.0
             flags = " ".join(f for f, on in (("--invert-transform", inv), ("--no-flip", not flip)) if on)
             variants.append((med, med0, len(cs), flags))
             print(f"  Variante [{flags or 'Standard'}]: Median-Korrelation {med:.2f} "
