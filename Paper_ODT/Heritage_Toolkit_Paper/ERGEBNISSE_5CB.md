@@ -52,3 +52,13 @@ aber KAPPA ±90°: am Übergang 039 → 040 (Blickwinkeländerung nur 40°) spri
 **Zurückgenommen (28.10.2026):** Die vom Nutzer gezeigten Fotos mit Orientation = 1 sind hochkant
 gehaltene Aufnahmen, quer gespeichert (Szene liegt seitlich). Die KAPPA-±90°-Posen passen also zu den
 Dateien; `--orientation-roll` bleibt 0. Die Ursache für PSNR 13 ist damit weiter offen.
+
+## Diagnose-Lauf: nur die 77 quer aufgenommenen Fotos (28.10.2026)
+
+Pod Tesla V100 (0,23 $/h), sonst wie Lauf 1, `ONLY_ORIENT=0`. Bei Schritt 7 000:
+**PSNR 13,57 · SSIM 0,529 · LPIPS 0,754** (Lauf 1 mit allen 166 Fotos: 13,63 · 0,549 · 0,807).
+Abgebrochen nach 7 000 Schritten (Lauf 1 wurde bis 30 000 nicht besser), Pod gelöscht.
+
+→ Die hochkant aufgenommenen Fotos sind **nicht** die Ursache. Auch die quer aufgenommenen
+Fotos allein trainieren schlecht. Ursache weiter offen; ausgeschlossen: Orientation-Flag,
+Achsenkonvention (001/002 relativ 0,7°), Transformationsrichtung (Posenprobe).
