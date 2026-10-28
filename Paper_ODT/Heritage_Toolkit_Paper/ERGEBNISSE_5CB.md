@@ -70,3 +70,15 @@ bevor die PSNR-Zeile aus dem Log gelesen war (Fehler des Agenten; Logs eines gel
 nicht mehr abrufbar). Erhalten ist nur die Geometrie: 160 902 Gaussians, Zentren weit außerhalb der
 Szene verteilt, Median 41,6 cm, Vollständigkeit 10 cm 0,06 — bei Zufallsstart nach 7 000 Schritten
 erwartbar und für die Ursachenfrage nicht aussagekräftig. Test damit **ohne Ergebnis**.
+
+## Diagnose-Lauf 2: ohne Startwolke, Wiederholung (28.10.2026, 13:31–13:50 UTC)
+
+Tesla V100, `INIT=random`, 7 000 Schritte, alle 166 Fotos: **PSNR 13,92 · SSIM 0,553 · LPIPS 0,801**
+(147 487 Gaussians). Pod gelöscht.
+
+→ Auch die Startwolke ist **nicht** die Ursache (mit Wolke 13,6 dB, ohne 13,9 dB).
+Ausgeschlossen damit: Orientation-Flag, Startwolke/Transformation, Achsenkonvention.
+Übrig: Fotos passen nicht zu den gelieferten Kameraparametern (Posen und/oder Brennweite/
+Verzeichnung je Foto). Prüfung: eigene Posen per COLMAP aus den Fotos rechnen, damit trainieren;
+liefert das deutlich höhere PSNR, sind die gelieferten Parameter die Ursache. Die COLMAP-Posen
+lassen sich anschließend über die gelieferten Kamerazentren ins System der Punktwolke bringen.
