@@ -82,3 +82,26 @@ Ausgeschlossen damit: Orientation-Flag, Startwolke/Transformation, Achsenkonvent
 Verzeichnung je Foto). Prüfung: eigene Posen per COLMAP aus den Fotos rechnen, damit trainieren;
 liefert das deutlich höhere PSNR, sind die gelieferten Parameter die Ursache. Die COLMAP-Posen
 lassen sich anschließend über die gelieferten Kamerazentren ins System der Punktwolke bringen.
+
+## Diagnose-Lauf: eigene Posen per COLMAP (`POSES=colmap`, 28.10.2026, 16:00–17:28 UTC)
+
+Tesla V100 (0,23 $/h, ca. 0,34 $), Skript-Stand d8ecd95. COLMAP 3.7 (CPU) auf den entzerrten Fotos in
+halber Auflösung: SIFT 4096 Merkmale, alle Paare, PINHOLE mit Startwerten aus den gelieferten
+Parametern, Brennweite frei, Hauptpunkt fest. Dauer: Merkmale 10 min, Zuordnung 56 min (CPU), Mapper 2 min.
+
+- **Nur 97 von 166 Fotos** registriert (ein Modell).
+- Ausrichtung auf die gelieferten Kamerazentren (`colmap_align.py`), 96/97 genutzt.
+  Abweichung SfM vs. geliefert: Zentren Median **0,32 m** (95 % 0,63 m, max 1,08 m),
+  Blickrichtung Median **2,0°** (95 % 4,8°, max 6,4°; größte: 017, 019, 109, 122, 059).
+- Brennweite SfM **1432 / 1417 px** gegenüber geliefert 3054,5 / 2 = **1527 px** (−6 %, fx ≠ fy um 1 %).
+- Training 7 000 Schritte auf den 97 Fotos: **PSNR 14,02 · SSIM 0,566 · LPIPS 0,728** (391 743 Gaussians).
+- Geometrie (gegen Referenz, Posen ins System der Punktwolke ausgerichtet): Median 11,8 cm, 95 % 299,5 cm,
+  Vollständigkeit 2/5/10 cm 0,01 / 0,13 / 0,47.
+
+→ Mit **eigenen, in sich stimmigen Posen** ist die Bildqualität praktisch gleich (14,0 statt 13,6–13,9 dB).
+Die gelieferten Posen sind also **nicht** die Hauptursache für PSNR ~14. Sie weichen zwar messbar ab
+(0,3 m / 2°, Brennweite 6 %), das erklärt aber das schlechte Ergebnis nicht.
+Ausgeschlossen damit: Orientation-Flag, Startwolke, Achsenkonvention, gelieferte Posen.
+Offen: Ursache liegt in den Bildern bzw. der Szene oder im Ablauf (Entzerrung/Umwandlung der Fotos,
+Testaufteilung, Belichtungsunterschiede). Nächster Schritt ohne GPU: entzerrte Fotos stichprobenartig
+ansehen und Trainings- gegen Test-PSNR vergleichen.
