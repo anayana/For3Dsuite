@@ -129,17 +129,34 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offse
 }
 .fallback{position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted);font-size:15px;z-index:1}
 
+@media (max-width:1020px){
+  .photos{width:224px}
+  .stats{width:min(380px,calc(100vw - 40px))}
+}
 @media (max-width:880px){
   .lede,.hint{display:none}
-  .head{max-width:calc(100vw - 40px)}
+  .head{max-width:min(340px,calc(100vw - 40px))}
   .stats{
     left:max(12px,calc(env(safe-area-inset-left,0px) + 12px));
-    right:max(12px,calc(env(safe-area-inset-right,0px) + 12px));
-    width:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
-    padding:13px 15px;gap:11px;max-height:62vh;overflow:auto;
+    right:auto;width:min(420px,calc(100vw - 24px));
+    bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
+    padding:12px 14px;gap:9px;max-height:44vh;overflow:auto;
   }
-  .figs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .figs{gap:9px 8px}
+  .figs dd{font-size:17px}
+  .how{padding-top:9px}
+  .note{font-size:10px;line-height:1.5}
+}
+/* Ab hier ist neben der Kennzahlenkarte kein Platz mehr fuer die Bildliste */
+@media (max-width:800px){
   .photos{display:none}
+  .head{max-width:calc(100vw - 40px)}
+  .stats{right:max(12px,calc(env(safe-area-inset-right,0px) + 12px));width:auto}
+}
+/* Die Quellenangabe bleibt auch auf dem Handy stehen, nur kleiner */
+@media (max-width:560px){
+  .figs{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .note{font-size:9.5px;line-height:1.45}
 }
 </style>
 
