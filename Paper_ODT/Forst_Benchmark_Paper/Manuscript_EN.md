@@ -5,8 +5,6 @@
 **Author:** Angel Naya, Independent Researcher, Berlin, Germany\
 **Corresponding author:** Angel Naya, angel.naya@posteo.de
 
-> DRAFT — 14 Oct 2026. References checked against Crossref/Zenodo (`lit/refs_check.md`).
-> Open: Zenodo archive of the code release at submission.
 
 ## Abstract
 
@@ -196,7 +194,7 @@ crossing the band, the least-squares fits collapse: at 225–270° visible arc o
 (geometric), 9 % (cylinder) and 26 % (Huber) of stems are within 2 cm, and at most 19–43 % beyond
 270°; the median error above 180° is +15 to +42 cm because branch points pull the circle outwards.
 RANSAC is practically unaffected (71 %, 79 % and 89 % at 135–180°, 180–225° and 225–270°, versus
-73 %, 80 % and 90 % without branches). Hough degrades (43 % instead of 70 % at 225–270°); Fig. 6).
+73 %, 80 % and 90 % without branches). Hough degrades (43 % instead of 70 % at 225–270°; Fig. 6).
 
 **Uncertainty of the thresholds.** The cluster bootstrap places the 80 % point of the Kasa, cylinder
 and RANSAC fits in the 180–225° class for the pooled HELIOS stands (95 % CI: 180–225° to 225–270°),
@@ -313,11 +311,14 @@ but leave many stems without a DBH; the share of rejected stems belongs in every
 
 ## Code availability
 
-- Software: For3Dsuite, https://github.com/anayana/For3Dsuite (GPL-3.0-or-later). Scripts:
-  `arc_error_mc.py`, `arc_error_mc_real.py`, `paperC_scene.py`, `paperC_run.py`, `paperC_pack.py`,
-  `paperC_eval.py`, `paperC_figures.py`, `dbh_methods.py`.
-- HELIOS++ 2.2.2 (conda-forge).
-- [TODO] Archive release on Zenodo.
+- Software: For3Dsuite, https://github.com/anayana/For3Dsuite (GPL-3.0-or-later), release v1.1,
+  archived on Zenodo (doi: ZENODO_DOI). Scripts in `scripts/`: `arc_error_mc.py`,
+  `arc_error_mc_real.py` (Monte Carlo), `paperC_scene.py`, `paperC_run.py`, `paperC_pack.py`,
+  `paperC_eval.py` (HELIOS++), `paperC_real.py`, `paperC_laut.py` (real data), `paperC_3dfin_real.py`
+  (3DFin with reduced coverage), `paperC_bootstrap.py`, `paperC_figures.py`, `dbh_methods.py`;
+  GitHub Actions workflows in `.github/workflows/` (data extraction and the cloud computations).
+- Third-party software: HELIOS++ 2.2.2 (conda-forge), 3DFin 0.6.0 with dendromatics 0.7.0,
+  scikit-image 0.26, NumPy, SciPy, pandas.
 
 ## Data availability
 
@@ -329,6 +330,23 @@ CC BY 4.0). Derived breast-height bands of SegmentedForests and LAUT are in `ext
 ## Declaration of competing interest
 
 The author declares no competing interests.
+
+## Funding
+
+This research received no specific grant from any funding agency in the public, commercial or
+not-for-profit sectors.
+
+## Author contributions (CRediT)
+
+Angel Naya: Conceptualization, Methodology, Software, Formal analysis, Investigation, Data curation,
+Visualization, Writing – original draft, Writing – review & editing.
+
+## Acknowledgements
+
+The author thanks the creators of the open datasets SegmentedForests, LAUT and the ICOS IT-Ren
+multi-platform LiDAR dataset for publishing their data under open licences, and the developers of
+HELIOS++, 3DFin and scikit-image. GitHub Actions provided the computing resources for the real-data
+experiments.
 
 ## Figures
 
