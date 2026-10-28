@@ -27,6 +27,7 @@ FACTOR="${FACTOR:-2}"
 POSES="${POSES:-given}"            # given = gelieferte Posen, colmap = eigene Posen per COLMAP aus den Fotos
 CAMS="${CAMS:-one}"                # COLMAP: one = eine Kamera (PINHOLE), per = je Foto eigene Brennweite/k1 (SIMPLE_RADIAL)
 SIFTN="${SIFTN:-4096}"             # COLMAP: SIFT-Merkmale je Foto
+TEST_EVERY="${TEST_EVERY:-8}"      # jedes n-te Foto als Testbild; gross = (fast) alle Fotos fuers Training
 APP="${APP:-0}"                    # 1 = Belichtungsausgleich je Foto beim Training (gsplat --app_opt)
 UNDIST="${UNDIST:-1}"              # 0 = Fotos nicht entzerren (Diagnose)
 UDFLAG=""; [ "$UNDIST" = 0 ] && UDFLAG="--no-undistort"
@@ -205,7 +206,7 @@ echo "== Training ($STEPS Schritte, Faktor $FACTOR), $(date -u +%H:%M) UTC =="
 GS="$W/${B}_gs"
 python gsplat/examples/simple_trainer.py default \
     --data_dir "$DATA" --data_factor "$FACTOR" --max_steps "$STEPS" \
-    --result_dir "$GS" --disable_viewer --init_type "$INIT" $([ "$APP" = 1 ] && echo --app_opt)
+    --result_dir "$GS" --disable_viewer --init_type "$INIT" --test_every "$TEST_EVERY" $([ "$APP" = 1 ] && echo --app_opt)
 ls "$GS/stats" 2>/dev/null && cat "$GS"/stats/val_step*.json 2>/dev/null | tail -c 600 || true
 
 # ---- Export im System der Punktwolke ---------------------------------------

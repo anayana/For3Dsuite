@@ -142,3 +142,19 @@ RTX A4500, Originalfotos **ohne** Entzerrung, SIMPLE_RADIAL je Foto (Brennweite 
 PSNR bleibt aber niedrig. Auffällig: Helligkeit Foto/Render weicht je Testbild stark ab (z. B. 0,456 vs.
 0,243) → Belichtung wechselt von Foto zu Foto. Nächster Lauf: gelieferte Posen, `UNDIST=0`,
 Belichtungsausgleich beim Training (`APP=1`), 30 000 Schritte; PSNR zusätzlich belichtungsausgeglichen.
+
+## Lauf: Belichtungsausgleich (`APP=1 UNDIST=0`, 30 000 Schritte, 28.10.2026, 20:04–20:36 UTC)
+
+RTX A4500, gelieferte Posen, Fotos nicht entzerrt. Trainingsverlust **0,038** (gut angepasst).
+Test: **PSNR 14,42 · SSIM 0,558 · LPIPS 0,627**; belichtungsausgeglichen im Mittel **16,2 dB**
+(Testbilder 12,1–21,8). Export brach ab (`KeyError: 'sh0'` — mit `--app_opt` speichert gsplat Farben anders),
+deshalb keine Geometrie. Pod gelöscht.
+
+Vorschau (Foto | Render): Gewölbe und Säulen scharf und an der richtigen Stelle; Boden und Bäume am
+Bildrand voller Fehlstellen und bunter Schlieren.
+
+**Befund:** Die Trainingsfotos werden gut nachgebildet, die Testansichten nicht. Die Testansichten zeigen
+Bereiche (Boden, Vegetation), die kaum ein anderes Foto aus ähnlicher Richtung sieht — die Aufnahme ist
+für Photogrammetrie des Bauwerks gemacht, nicht für Ansichtssynthese. Belichtung erklärt nur ~1,8 dB.
+→ Niedriger Test-PSNR ist eine Eigenschaft des Datensatzes (Abdeckung), kein Fehler im Ablauf.
+Für das Paper: Geometrie mit allen 166 Fotos trainieren (`TEST_EVERY=1000`), Test-PSNR als Grenze nennen.
