@@ -62,3 +62,11 @@ Abgebrochen nach 7 000 Schritten (Lauf 1 wurde bis 30 000 nicht besser), Pod gel
 → Die hochkant aufgenommenen Fotos sind **nicht** die Ursache. Auch die quer aufgenommenen
 Fotos allein trainieren schlecht. Ursache weiter offen; ausgeschlossen: Orientation-Flag,
 Achsenkonvention (001/002 relativ 0,7°), Transformationsrichtung (Posenprobe).
+
+## Diagnose-Lauf: ohne Startwolke (`INIT=random`, 7 000 Schritte, 28.10.2026)
+
+Pod Tesla V100, 12:55–13:14 UTC. Lauf fertig; **PSNR nicht abgelesen** — der Pod wurde gelöscht,
+bevor die PSNR-Zeile aus dem Log gelesen war (Fehler des Agenten; Logs eines gelöschten Pods sind
+nicht mehr abrufbar). Erhalten ist nur die Geometrie: 160 902 Gaussians, Zentren weit außerhalb der
+Szene verteilt, Median 41,6 cm, Vollständigkeit 10 cm 0,06 — bei Zufallsstart nach 7 000 Schritten
+erwartbar und für die Ursachenfrage nicht aussagekräftig. Test damit **ohne Ergebnis**.
