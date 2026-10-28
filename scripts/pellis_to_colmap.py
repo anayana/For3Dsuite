@@ -215,6 +215,8 @@ def main():
     ap.add_argument("--cloud", help="*_point_cloud.txt: Stichprobe als Initwolke (points3D.txt)")
     ap.add_argument("--init-points", type=int, default=300_000)
     ap.add_argument("--images", help="Ordner mit den Originalfotos (<PhotoID>.jpg)")
+    ap.add_argument("--no-undistort", action="store_true",
+                    help="Fotos nicht entzerren (Diagnose: sind sie schon entzerrt?)")
     ap.add_argument("--only-orientation", choices=["0", "1"],
                     help="nur Fotos mit dieser Orientation schreiben (Diagnose)")
     ap.add_argument("--orientation-roll", type=float, default=0.0,
@@ -273,7 +275,8 @@ def main():
             if (w, h) != (cam["W"], cam["H"]):
                 odd_size.append(f"{p['name']} {w}x{h} (Orientation={p['orientation']})")
                 continue
-            cv2.imwrite(os.path.join(img_out, fname), cv2.undistort(img, Kcv, cam["dist"]),
+            cv2.imwrite(os.path.join(img_out, fname),
+                        img if args.no_undistort else cv2.undistort(img, Kcv, cam["dist"]),
                         [cv2.IMWRITE_JPEG_QUALITY, 95])
         records.append((i, q, t, fname))
         lines.append(f"{i} {q[0]:.9f} {q[1]:.9f} {q[2]:.9f} {q[3]:.9f} "

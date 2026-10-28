@@ -105,3 +105,14 @@ Ausgeschlossen damit: Orientation-Flag, Startwolke, Achsenkonvention, gelieferte
 Offen: Ursache liegt in den Bildern bzw. der Szene oder im Ablauf (Entzerrung/Umwandlung der Fotos,
 Testaufteilung, Belichtungsunterschiede). Nächster Schritt ohne GPU: entzerrte Fotos stichprobenartig
 ansehen und Trainings- gegen Test-PSNR vergleichen.
+
+## Diagnose-Lauf: Testbilder angesehen (`splat_diag.py`, 28.10.2026, 17:30–17:40 UTC)
+
+RTX A4500, gelieferte Posen, 7 000 Schritte: PSNR 13,75 (Trainingsverlust am Ende 0,140 — hoch).
+21 Testbilder, PSNR 9,0–16,9; **keine Löcher** (0,3 %), Helligkeit Foto/Render ähnlich.
+Vorschaubilder (Foto | Render): Bauteile stehen **an der richtigen Stelle**, aber der Render ist überall
+**stark verschmiert**, Fenstergitter und Bank nur als Schlieren.
+→ Posen grob richtig, aber kein einziges Kameramodell passt sauber zu allen Fotos. Verdacht: die
+Entzerrung. Hinweis darauf: COLMAP fand eine um 6 % kleinere Brennweite (typisch, wenn eine
+falsche Verzeichnung in die Brennweite gedrückt wird) und registrierte nur 97/166 Fotos.
+Test: Lauf ohne Entzerrung (`UNDIST=0`).

@@ -25,6 +25,8 @@ ONLY_ORIENT="${ONLY_ORIENT:-}"     # 0/1: nur Fotos dieser Orientation (Diagnose
 ORIENT_ROLL="${ORIENT_ROLL:-0}"   # Rolle fuer Fotos mit Orientation = 1; 0 = Posen unveraendert (5_CB: richtig)
 FACTOR="${FACTOR:-2}"
 POSES="${POSES:-given}"            # given = gelieferte Posen, colmap = eigene Posen per COLMAP aus den Fotos
+UNDIST="${UNDIST:-1}"              # 0 = Fotos nicht entzerren (Diagnose)
+UDFLAG=""; [ "$UNDIST" = 0 ] && UDFLAG="--no-undistort"
 W=/workspace/pellis
 mkdir -p "$W" && cd "$W"
 
@@ -96,7 +98,7 @@ curl -fsSL "$RAW/eval_splat_geometry.py" -o "$W/eval_splat_geometry.py"
 DATA="$W/${B}_colmap"
 rm -rf "$DATA"
 python "$W/pellis_to_colmap.py" "$INT" "$EXT" "$DATA" --transform "$TRF" --cloud "$PCL" \
-       --images "$IMGDIR" --orientation-roll "$ORIENT_ROLL" ${ONLY_ORIENT:+--only-orientation "$ONLY_ORIENT"}
+       --images "$IMGDIR" --orientation-roll "$ORIENT_ROLL" ${ONLY_ORIENT:+--only-orientation "$ONLY_ORIENT"} $UDFLAG
 NIMG=$(ls "$DATA/images" | wc -l)
 [ "$NIMG" -gt 20 ] || { echo "FEHLER: nur $NIMG Fotos im Modell"; exit 1; }
 
@@ -118,7 +120,7 @@ if [ -n "$FLAGS" ]; then
   rm -rf "$DATA"
   # shellcheck disable=SC2086
   python "$W/pellis_to_colmap.py" "$INT" "$EXT" "$DATA" --transform "$TRF" --cloud "$PCL" \
-         --images "$IMGDIR" --orientation-roll "$ORIENT_ROLL" ${ONLY_ORIENT:+--only-orientation "$ONLY_ORIENT"} $FLAGS
+         --images "$IMGDIR" --orientation-roll "$ORIENT_ROLL" ${ONLY_ORIENT:+--only-orientation "$ONLY_ORIENT"} $UDFLAG $FLAGS
 fi
 
 # gsplat erwartet images_<FACTOR>; als PNG anlegen (dann wird nichts erneut verkleinert)
