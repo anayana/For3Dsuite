@@ -1,0 +1,8 @@
+# Forestry (OUP): Autorenrichtlinien
+https://academic.oup.com/forestry/pages/general-instructions
+https://academic.oup.com/forestry/pages/General_Instructions
+https://academic.oup.com/forestry/pages/author-guidelines
+https://academic.oup.com/forestry/pages/Open_Access
+# Zenodo: GitHub-Integration
+https://help.zenodo.org/docs/github/enable-repository/
+https://help.zenodo.org/docs/github/describe-software/zenodo-json/
