@@ -10,31 +10,22 @@
 
 ## Abstract
 
-Terrestrial laser scanning (TLS) inventories estimate diameter at breast height (DBH) by fitting
-circles or cylinders to stem points, but occlusion means that each stem is seen only on part of its
-circumference. Software therefore applies coverage rules — 3DFin, for example, accepts a diameter only
-when at least 9 of 16 angular sectors (202.5°) contain points — yet how much coverage is actually
-needed, and whether one threshold suits all estimators, has not been quantified. We combine a
-Monte Carlo experiment (13 arcs, six estimators, seven perturbation scenarios including non-circular
-cross-sections, outliers from branches and understorey, and inter-scan registration offsets) with
-HELIOS++ simulations of three stands (400, 800 and 1200 stems ha⁻¹) scanned from 40 candidate positions,
-recombined offline into 216 scan configurations (26 712 stem × configuration cases). The visible arc is
-computed geometrically, independent of point density. For circular stems without outliers, 45–135° of
-visible arc suffices for a 2 cm RMSE; non-circularity raises this to about 180–202.5° for 40 cm stems,
-and with 5–15 % outliers only robust estimators reach it (RANSAC from 112.5–135°, Huber 135–270°, Hough
-180–247.5°), while least-squares fits never do, even at full coverage. In the simulated stands, 82 % of stems are within 2 cm at
-180–225° visible arc and over 90 % beyond 225° (Kasa and cylinder fits). The 3DFin sector rule corresponds to a median of about
-190° geometric arc and separates stems with 92 % from those with 63 % of estimates within 2 cm. Four
-positions on a grid bring 80–89 % of stems above 180°; four positions clustered near the plot centre
-fall to 56 % at 1200 stems ha⁻¹. When branches cross the breast-height band and are not removed, least-squares
-fits fail at any coverage (≤ 22 % within 2 cm), whereas RANSAC is unaffected. On 458 labelled real stems (SegmentedForests) the Kasa fit needs about
-225° for 80 % of stems within 2 cm; with the surrounding points left in, least-squares fits saturate at 55 % even at full coverage,
-whereas RANSAC reaches 84 %, and 62 % against field DBH on 460 well-covered LAUT trees. Running 3DFin
-itself on twelve real plots with simulated reduced coverage, 88 % of the accepted diameters were within
-2 cm of the full-coverage value, but only 49–54 % of the stems received a DBH with four to six spread
-positions. A coverage threshold is
-therefore defensible, but it must be stated per estimator, per expected stem shape and per
-segmentation quality, and scan positions must be spread rather than added.
+Terrestrial laser scanning (TLS) inventories fit circles or cylinders to stem points, but occlusion
+leaves each stem only partly visible. Software applies coverage rules — 3DFin accepts a
+diameter only if at least 9 of 16 angular sectors (202.5°) contain points — yet the required coverage
+has not been quantified. We combined a Monte Carlo experiment (six estimators, seven
+perturbations), HELIOS++ simulations of three stands (400–1200 stems ha⁻¹; 26 712 stem ×
+scan-configuration cases) with geometrically computed visible arc, a stand with branches at breast
+height, and two open real datasets. For round stems without outliers, 45–135° of visible arc gave a
+DBH RMSE ≤ 2 cm; non-circularity raised this to 180–202.5° for 40 cm stems; with outliers, only
+robust estimators reached it. In simulated stands 82 % of stems were within 2 cm at 180–225° and
+over 90 % beyond 225°; the 3DFin rule corresponds to a median of 190°. Branches in the breast-height
+band made least-squares fits fail at any coverage, whereas RANSAC was unaffected. On 458 real stems
+Kasa fitting needed about 225° for 80 % within 2 cm; with surrounding points left in, only RANSAC
+approached this. Running 3DFin on twelve real plots with simulated partial coverage, 88 % of accepted
+diameters were within 2 cm, but about half of the stems received a diameter with four to six
+spread scan positions. Coverage thresholds must be stated per estimator and segmentation
+quality, rejected stems must be reported, and scan positions should be spread rather than added.
 
 **Keywords:** terrestrial laser scanning; diameter at breast height; occlusion; circle fitting;
 scan design; HELIOS++; forest inventory
