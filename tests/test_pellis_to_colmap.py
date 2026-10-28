@@ -140,3 +140,24 @@ def test_binary_matches_pycolmap_layout(tmp_path):
         pts = [ds.unpack(f.read(ds.size)) for _ in range(n)]
         assert n == 5 and f.read() == b""
         assert sorted(p[4] for p in pts) == [0, 1, 2, 3, 4]
+
+
+def test_orientation_roll_only_flag1(tmp_path):
+    """--orientation-roll dreht nur Fotos mit Orientation = 1, Zentren bleiben gleich."""
+    i, e = write_inputs(tmp_path)
+    def run(extra):
+        out = tmp_path / ("o" + "_".join(extra))
+        subprocess.run([sys.executable, str(REPO / "scripts" / "pellis_to_colmap.py"),
+                        str(i), str(e), str(out)] + extra, check=True, capture_output=True)
+        return [l.split() for l in (out / "sparse/0/images.txt").read_text().splitlines()
+                if l.strip() and not l.startswith("#")]
+    a, b = run([]), run(["--orientation-roll", "-90"])
+    assert a[0][1:8] == b[0][1:8]                       # 5_CB_001: Orientation 0
+    assert a[1][1:5] != b[1][1:5]                       # 5_CB_040: Orientation 1
+    def center(row):
+        w, x, y, z = map(float, row[1:5])
+        R = np.array([[1-2*(y*y+z*z), 2*(x*y-z*w), 2*(x*z+y*w)],
+                      [2*(x*y+z*w), 1-2*(x*x+z*z), 2*(y*z-x*w)],
+                      [2*(x*z-y*w), 2*(y*z+x*w), 1-2*(x*x+y*y)]])
+        return -R.T @ np.array(list(map(float, row[5:8])))
+    assert np.allclose(center(a[1]), center(b[1]), atol=1e-4)

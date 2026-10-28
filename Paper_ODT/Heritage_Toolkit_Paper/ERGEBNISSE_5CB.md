@@ -41,3 +41,10 @@ Posenprobe (Tiefenpuffer): Standard-Konvention 0,16 vs. Gegenprobe 0,05 — schw
 Bilddateien sind gegenüber den Posen um 90° gedreht gespeichert (oder umgekehrt). Prüfung ohne GPU:
 SIFT-Relativpose an zwei Fotos mit `Orientation = 1` (wie bei 001/002), einmal wie gespeichert,
 einmal um ±90° gedreht. Kosten 0 $.
+
+## Korrektur (28.10.2026)
+
+Nutzer: 040/041 (Orientation = 1) sind wie 001/002 aufrecht quer. Die Posen dieser Fotos enthalten
+aber KAPPA ±90°: am Übergang 039 → 040 (Blickwinkeländerung nur 40°) springt die Rolle um +89,6°,
+049 → 050 um −98,6°, 056 → 057 um −96,4°. → Fotos mit Orientation = 1 bekommen eine Rolle von −90°
+(`pellis_to_colmap.py --orientation-roll -90`, im Trainingsskript Standard). Zweiter Lauf folgt.

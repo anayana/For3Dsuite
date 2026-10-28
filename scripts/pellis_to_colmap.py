@@ -23,6 +23,9 @@ Konvention (aus den Daten abgeleitet, Projektion gegen die Punktwolke steht noch
   R ist world->camera in photogrammetrischer Kamerabasis (Blick entlang -Z, y nach oben).
   -> OpenCV/COLMAP:  R_cv = diag(1,-1,-1) @ R,  t = -R_cv @ C.
   Mit --no-flip wird R unveraendert uebernommen (falls die Projektionsprobe das verlangt).
+  Mit --orientation-roll DEG werden Fotos mit Orientation = 1 um DEG Grad um die optische Achse
+  korrigiert (5_CB: Bilddateien sind aufrecht quer, die Posen enthalten aber KAPPA +-90; am
+  Uebergang 039 -> 040 springt die Rolle um +89,6 Grad, Korrektur -90 macht ihn ~0).
   Mit --invert-transform wird die Matrix als Punktwolke -> Kamerasystem gelesen und invertiert
   (welche Richtung stimmt, entscheidet scripts/pellis_posecheck.py an Fotos + Punktwolke).
 
@@ -212,6 +215,8 @@ def main():
     ap.add_argument("--cloud", help="*_point_cloud.txt: Stichprobe als Initwolke (points3D.txt)")
     ap.add_argument("--init-points", type=int, default=300_000)
     ap.add_argument("--images", help="Ordner mit den Originalfotos (<PhotoID>.jpg)")
+    ap.add_argument("--orientation-roll", type=float, default=0.0,
+                    help="Rolle [Grad] fuer Fotos mit Orientation = 1 (5_CB: -90)")
     ap.add_argument("--invert-transform", action="store_true",
                     help="Matrix bildet Punktwolke -> Kamerasystem ab; vor Gebrauch invertieren")
     ap.add_argument("--no-flip", action="store_true",
@@ -247,6 +252,10 @@ def main():
         os.makedirs(img_out, exist_ok=True)
     for i, p in enumerate(poses, 1):
         Rcv = flip @ p["R"]
+        if args.orientation_roll and p["orientation"] == "1":
+            a = np.radians(args.orientation_roll)
+            Rz = np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
+            Rcv = Rz @ Rcv
         t = -Rcv @ p["C"]
         q = R_to_quat(Rcv)
         fname = p["name"] + ".jpg"
