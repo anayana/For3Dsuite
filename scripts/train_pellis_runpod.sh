@@ -19,7 +19,7 @@ B="${1:-5_CB}"
 BRANCH="${BRANCH:-claude/for3dsuite-medien-marker-1ihant}"
 RAW="https://raw.githubusercontent.com/anayana/For3Dsuite/$BRANCH/scripts"
 STEPS="${STEPS:-30000}"
-ORIENT_ROLL="${ORIENT_ROLL:--90}"   # Rolle fuer Fotos mit Orientation = 1 (s. pellis_to_colmap.py)
+ORIENT_ROLL="${ORIENT_ROLL:-0}"   # Rolle fuer Fotos mit Orientation = 1; 0 = Posen unveraendert (5_CB: richtig)
 FACTOR="${FACTOR:-2}"
 W=/workspace/pellis
 mkdir -p "$W" && cd "$W"

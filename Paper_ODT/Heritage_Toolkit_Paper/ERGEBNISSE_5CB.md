@@ -48,3 +48,7 @@ Nutzer: 040/041 (Orientation = 1) sind wie 001/002 aufrecht quer. Die Posen dies
 aber KAPPA ±90°: am Übergang 039 → 040 (Blickwinkeländerung nur 40°) springt die Rolle um +89,6°,
 049 → 050 um −98,6°, 056 → 057 um −96,4°. → Fotos mit Orientation = 1 bekommen eine Rolle von −90°
 (`pellis_to_colmap.py --orientation-roll -90`, im Trainingsskript Standard). Zweiter Lauf folgt.
+
+**Zurückgenommen (28.10.2026):** Die vom Nutzer gezeigten Fotos mit Orientation = 1 sind hochkant
+gehaltene Aufnahmen, quer gespeichert (Szene liegt seitlich). Die KAPPA-±90°-Posen passen also zu den
+Dateien; `--orientation-roll` bleibt 0. Die Ursache für PSNR 13 ist damit weiter offen.
