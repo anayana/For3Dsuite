@@ -215,6 +215,8 @@ def main():
     ap.add_argument("--cloud", help="*_point_cloud.txt: Stichprobe als Initwolke (points3D.txt)")
     ap.add_argument("--init-points", type=int, default=300_000)
     ap.add_argument("--images", help="Ordner mit den Originalfotos (<PhotoID>.jpg)")
+    ap.add_argument("--only-orientation", choices=["0", "1"],
+                    help="nur Fotos mit dieser Orientation schreiben (Diagnose)")
     ap.add_argument("--orientation-roll", type=float, default=0.0,
                     help="Rolle [Grad] fuer Fotos mit Orientation = 1 (5_CB: 0)")
     ap.add_argument("--invert-transform", action="store_true",
@@ -227,6 +229,8 @@ def main():
 
     cam = parse_interior(args.interior)
     poses = parse_exterior(args.exterior)
+    if args.only_orientation:
+        poses = [p for p in poses if p["orientation"] == args.only_orientation]
     flip = np.eye(3) if args.no_flip else FLIP
     if args.transform:
         s_t, R_t, t_t = parse_transform(args.transform)

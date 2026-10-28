@@ -19,6 +19,7 @@ B="${1:-5_CB}"
 BRANCH="${BRANCH:-claude/for3dsuite-medien-marker-1ihant}"
 RAW="https://raw.githubusercontent.com/anayana/For3Dsuite/$BRANCH/scripts"
 STEPS="${STEPS:-30000}"
+ONLY_ORIENT="${ONLY_ORIENT:-}"     # 0/1: nur Fotos dieser Orientation (Diagnose)
 ORIENT_ROLL="${ORIENT_ROLL:-0}"   # Rolle fuer Fotos mit Orientation = 1; 0 = Posen unveraendert (5_CB: richtig)
 FACTOR="${FACTOR:-2}"
 W=/workspace/pellis
@@ -92,7 +93,7 @@ curl -fsSL "$RAW/eval_splat_geometry.py" -o "$W/eval_splat_geometry.py"
 DATA="$W/${B}_colmap"
 rm -rf "$DATA"
 python "$W/pellis_to_colmap.py" "$INT" "$EXT" "$DATA" --transform "$TRF" --cloud "$PCL" \
-       --images "$IMGDIR" --orientation-roll "$ORIENT_ROLL"
+       --images "$IMGDIR" --orientation-roll "$ORIENT_ROLL" ${ONLY_ORIENT:+--only-orientation "$ONLY_ORIENT"}
 NIMG=$(ls "$DATA/images" | wc -l)
 [ "$NIMG" -gt 20 ] || { echo "FEHLER: nur $NIMG Fotos im Modell"; exit 1; }
 
@@ -114,7 +115,7 @@ if [ -n "$FLAGS" ]; then
   rm -rf "$DATA"
   # shellcheck disable=SC2086
   python "$W/pellis_to_colmap.py" "$INT" "$EXT" "$DATA" --transform "$TRF" --cloud "$PCL" \
-         --images "$IMGDIR" --orientation-roll "$ORIENT_ROLL" $FLAGS
+         --images "$IMGDIR" --orientation-roll "$ORIENT_ROLL" ${ONLY_ORIENT:+--only-orientation "$ONLY_ORIENT"} $FLAGS
 fi
 
 # gsplat erwartet images_<FACTOR>; als PNG anlegen (dann wird nichts erneut verkleinert)
