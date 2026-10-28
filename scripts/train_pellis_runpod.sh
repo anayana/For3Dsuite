@@ -12,6 +12,7 @@
 #
 # Umgebung: Template mit CUDA-devel (nvcc), z. B. RunPod "PyTorch 2.x"; Disk >= 50 GB.
 # Variablen: STEPS (30000), FACTOR (2 = halbe Aufloesung), FORCE=1 (Posenprobe ignorieren),
+#            POSES=colmap (eigene Posen aus den Fotos, an gelieferte Kamerazentren ausgerichtet),
 #            SRC=<ordner> (lose hochgeladene Dateien statt RAR).
 set -euo pipefail
 
@@ -23,6 +24,7 @@ INIT="${INIT:-sfm}"                 # sfm = Startwolke aus der Referenz, random 
 ONLY_ORIENT="${ONLY_ORIENT:-}"     # 0/1: nur Fotos dieser Orientation (Diagnose)
 ORIENT_ROLL="${ORIENT_ROLL:-0}"   # Rolle fuer Fotos mit Orientation = 1; 0 = Posen unveraendert (5_CB: richtig)
 FACTOR="${FACTOR:-2}"
+POSES="${POSES:-given}"            # given = gelieferte Posen, colmap = eigene Posen per COLMAP aus den Fotos
 W=/workspace/pellis
 mkdir -p "$W" && cd "$W"
 
@@ -133,6 +135,42 @@ for n in sorted(os.listdir(src)):
                 cv2.resize(im, (round(w / f), round(h / f)), interpolation=cv2.INTER_AREA))
 print(f"images_{f}: {len(os.listdir(dst))} PNG")
 PY
+fi
+
+# ---- Optional: eigene Posen per COLMAP (CPU), ins System der Punktwolke ausgerichtet ----
+if [ "$POSES" = colmap ]; then
+  echo "== COLMAP: eigene Posen aus den Fotos, $(date -u +%H:%M) UTC =="
+  command -v colmap >/dev/null || (apt-get update -qq && DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y -qq colmap >/dev/null) || { echo "FEHLER: apt-get install colmap"; exit 1; }
+  export QT_QPA_PLATFORM=offscreen
+  curl -fsSL "$RAW/colmap_align.py" -o "$W/colmap_align.py"
+  SRCIMG="$DATA/images"; [ "$FACTOR" -gt 1 ] && SRCIMG="$DATA/images_$FACTOR"
+  DC="$W/${B}_sfm"
+  rm -rf "$DC"; mkdir -p "$DC/images" "$DC/sparse_raw" "$DC/txt"
+  cp "$SRCIMG"/* "$DC/images/"
+  PAR="$(python - "$DATA/sparse/0/cameras.txt" "$FACTOR" <<'PY'
+import sys
+f = float(sys.argv[2])
+p = [l.split() for l in open(sys.argv[1]) if l.strip() and not l.startswith("#")][0]
+print(",".join(f"{float(v) / f:.4f}" for v in p[4:8]))
+PY
+)"
+  echo "  Startwerte PINHOLE fx,fy,cx,cy = $PAR (Brennweite wird verfeinert, Hauptpunkt fest)"
+  colmap feature_extractor --database_path "$DC/db.db" --image_path "$DC/images" \
+    --ImageReader.camera_model PINHOLE --ImageReader.single_camera 1 --ImageReader.camera_params "$PAR" \
+    --SiftExtraction.use_gpu 0 --SiftExtraction.max_num_features 4096 >/dev/null
+  echo "  Merkmale fertig $(date -u +%H:%M) UTC"
+  colmap exhaustive_matcher --database_path "$DC/db.db" --SiftMatching.use_gpu 0 >/dev/null
+  echo "  Zuordnung fertig $(date -u +%H:%M) UTC"
+  colmap mapper --database_path "$DC/db.db" --image_path "$DC/images" --output_path "$DC/sparse_raw" \
+    --Mapper.ba_refine_principal_point 0 --Mapper.ba_refine_extra_params 0 >/dev/null
+  echo "  Rekonstruktion fertig $(date -u +%H:%M) UTC"
+  for m in "$DC"/sparse_raw/*/; do
+    n="$(basename "$m")"; mkdir -p "$DC/txt/$n"
+    colmap model_converter --input_path "$m" --output_path "$DC/txt/$n" --output_type TXT >/dev/null
+  done
+  python "$W/colmap_align.py" "$DC"/txt/* --ref "$DATA/sparse/0" --out "$DC/sparse/0"
+  DATA="$DC"; FACTOR=1
 fi
 
 # ---- Training --------------------------------------------------------------
