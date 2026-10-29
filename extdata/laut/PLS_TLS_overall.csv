@@ -1,0 +1,3 @@
+"scanner","dr","c","acc","RMSE_d_circ","RMSE_d_circ2","RMSE_d_ell","RMSE_d_gam","RMSE_d_tegam","RMSErel_d_circ","RMSErel_d_circ2","RMSErel_d_ell","RMSErel_d_gam","RMSErel_d_tegam","bias_d_circ","bias_d_circ2","bias_d_ell","bias_d_gam","bias_d_tegam","biasrel_d_circ","biasrel_d_circ2","biasrel_d_ell","biasrel_d_gam","biasrel_d_tegam"
+"PLS",93.3,0.7,92.6,3.01,2.93,2.95,2.86,3.32,15.55,15.15,15.25,14.8,17.17,-0.13,-0.24,0.03,-0.48,-0.16,-0.68,-1.27,0.15,-2.47,-0.82
+"TLS",68.4,1.6,67.2,3.04,2.8,2.57,3.33,3.77,13.93,12.79,11.75,15.26,17.23,-0.46,0.86,-0.75,0.64,0.46,-2.09,3.93,-3.42,2.94,2.09
