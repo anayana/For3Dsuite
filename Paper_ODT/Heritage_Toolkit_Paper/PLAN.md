@@ -37,7 +37,7 @@ Kamerahöhen danach 1,8–9,4).
 | 1 | Pellis-Eintrag in `DATA_SOURCES.md` (CC BY 4.0, ✅) | Lizenz dokumentiert | ✅ |
 | 2 | Formatwandler: Pellis-Kameraparameter → COLMAP (PINHOLE, Fotos mit OpenCV entzerrt) | `scripts/pellis_to_colmap.py` + `tests/test_pellis_to_colmap.py` | ✅ Posen; offen: Projektionsprobe gegen Punktwolke, Init-Wolke, Bedeutung `Orientation` |
 | 3 | `scripts/train_pellis_runpod.sh`: lokales RAR (kein Download) + md5, Entpacken, `pellis_to_colmap.py` (auch .bin, weil gsplat 1.5.3 Text falsch liest), Posenprobe mit Abbruch, gsplat 1.5.3, PLY im System der Punktwolke, `eval_splat_geometry.py` | ein Befehl | ✅ gebaut, ungetestet auf GPU |
-| 4 | Training: zunächst 1 Gebäude (5_CB), dann 3_SS; weitere optional | `.ply` je Gebäude | 5_CB 28.10.2026 gelaufen, PSNR 13 → Posen prüfen (`ERGEBNISSE_5CB.md`) |
+| 4 | Training: zunächst 1 Gebäude (5_CB), dann 3_SS; weitere optional | `.ply` je Gebäude | 5_CB ✅ 28.10.2026: Geometrie Median 12,0 cm, Vollst. 10 cm 0,59 (`ERGEBNISSE_5CB.md`); 3_SS offen |
 | 5 | Geometrie-Prüfung: Splat-Zentren (Deckkraft ≥ 0,5, in Hülle der Referenz) gegen Referenzwolke, Abstand Median/95 %, Vollständigkeit 2/5/10 cm, je Bauteil-Label | `scripts/eval_splat_geometry.py` (+ Test) | ✅ Skript; läuft im Trainingsskript mit |
 | 6 | Demo-Rundgang: ein Gebäude als Splat mit Medien-Markern im Browser-Studio `create.html`, als eine offline lauffähige HTML-Datei | Demo-Datei + Bildschirmfotos | Agent, Nutzer prüft am Handy |
 | 7 | Journal: **1. J. Cultural Heritage**, 2. *PFG* — beide Hybrid, Abo-Weg ohne Gebühr (geprüft 13.10.2026, s. u.) | Zieljournal | erledigt; vor Einreichung erneut prüfen |
@@ -59,6 +59,14 @@ Kamerahöhen danach 1,8–9,4).
   ein Upload läuft (bricht ihn ab). Netzwerk-Volume erst ab 5 $ Guthaben möglich.
 - RunPod-Preise (13.10.2026, Katalog): CPU `cpu3c` 2 vCPU 0,06 $/h; RTX 4000 Ada 0,20 $/h,
   RTX 4090 0,34 $/h (Community). Guthaben ca. 4 $. Jeden Pod sofort nach dem Lauf löschen.
+
+## Erkenntnisse 5_CB (28.10.2026)
+
+- **Pellis-Fotos sind bereits entzerrt** (COLMAP je Foto: k1 ≈ 0, Brennweite = geliefert). Nicht noch einmal
+  entzerren: `UNDIST=0`. Die gelieferten Posen stimmen (2,3 cm / 0,12° gegenüber COLMAP).
+- Test-PSNR bleibt ~14–16 dB: Aufnahme für Photogrammetrie, Testansichten schlecht abgedeckt. Fürs Paper
+  Geometrie mit allen Fotos (`TEST_EVERY=1000`), PSNR als Grenze.
+- Pod-Ergebnisse vor dem Löschen lesen; Selbstlöschung nur als Notbremse (60 min).
 
 ## Offene Punkte
 

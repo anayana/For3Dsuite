@@ -158,3 +158,37 @@ Bereiche (Boden, Vegetation), die kaum ein anderes Foto aus ähnlicher Richtung 
 für Photogrammetrie des Bauwerks gemacht, nicht für Ansichtssynthese. Belichtung erklärt nur ~1,8 dB.
 → Niedriger Test-PSNR ist eine Eigenschaft des Datensatzes (Abdeckung), kein Fehler im Ablauf.
 Für das Paper: Geometrie mit allen 166 Fotos trainieren (`TEST_EVERY=1000`), Test-PSNR als Grenze nennen.
+
+## Panne: Ergebnis verloren (28.10.2026, 20:38–21:06 UTC)
+
+Lauf „final“ (A4500) war schneller fertig als geschätzt; die eingebaute Selbstlöschung 15 min nach Ende
+griff, bevor das Log gelesen war → Ergebnis verloren (~0,10 $). Seitdem: Selbstlöschung erst 60 min nach
+Ende als Notbremse, Ablesen und Löschen durch den Agenten sofort nach Laufende.
+
+## **Ergebnis 5_CB (Paper-Stand)**: alle 166 Fotos, nicht entzerrt, 30 000 Schritte (28.10.2026, 21:22–21:54 UTC)
+
+Tesla V100, gelieferte Posen, `UNDIST=0 TEST_EVERY=1000` (nur 1 Testbild, PSNR 10,8 daher nicht
+aussagekräftig), 541 477 Gaussians, PLY 129 MB (nicht gesichert). Geometrie der Splat-Zentren (Deckkraft ≥ 0,5,
+in der Hülle: 340 994) gegen 11,37 Mio. Referenzpunkte:
+
+| Label | Splats | Median | 95 % | Vollst. 2/5/10 cm |
+|---|---|---|---|---|
+| alle | 340 994 | 12,0 cm | 254,3 cm | 0,03 / 0,24 / 0,59 |
+| 0 | 8 902 | 4,4 cm | 49,7 cm | 0,08 / 0,52 / 0,92 |
+| 1 | 34 388 | 5,7 cm | 111,5 cm | 0,11 / 0,66 / 0,98 |
+| 2 | 8 030 | 6,6 cm | 39,9 cm | 0,03 / 0,31 / 0,75 |
+| 3 | 30 557 | 25,6 cm | 86,5 cm | 0,01 / 0,09 / 0,33 |
+| 4 | 6 408 | 10,2 cm | 46,3 cm | 0,03 / 0,32 / 0,81 |
+| 5 | 81 730 | 8,4 cm | 54,3 cm | 0,03 / 0,31 / 0,75 |
+| 6 | 26 995 | 10,3 cm | 118,2 cm | 0,01 / 0,12 / 0,45 |
+| 7 | 27 152 | 11,4 cm | 39,9 cm | 0,03 / 0,29 / 0,74 |
+| 8 | 81 154 | 13,3 cm | 472,8 cm | 0,02 / 0,19 / 0,59 |
+| 9 | 7 785 | 4,7 cm | 99,5 cm | 0,08 / 0,48 / 0,86 |
+| 10 | 27 893 | 59,7 cm | 483,5 cm | 0,00 / 0,01 / 0,03 |
+
+Gegenüber Lauf 1 (falsch entzerrt): Median 14,9 → 12,0 cm, Vollständigkeit 5 cm 0,20 → 0,24; Labels 0, 1, 9
+jetzt 4–6 cm mit Vollständigkeit 10 cm 0,86–0,98. Label 3 und 10 bleiben schlecht (Bedeutung der Labels
+noch offen). 95-%-Werte über 1 m = Schwebeteilchen (floaters) im Raum.
+
+**Bildqualität (aus Testlauf mit `TEST_EVERY=8`, 30 000 Schritte):** PSNR 14,4 / belichtungsausgeglichen
+16,2 dB — durch die Abdeckung des Datensatzes begrenzt (s. o.), im Paper als Grenze nennen.
