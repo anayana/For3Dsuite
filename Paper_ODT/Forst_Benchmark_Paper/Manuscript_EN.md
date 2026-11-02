@@ -8,12 +8,11 @@
 
 ## Abstract
 
-Terrestrial laser scanning (TLS) inventories fit circles or cylinders to stem points, but occlusion
-leaves each stem only partly visible. Software applies coverage rules — 3DFin accepts a
+Stem diameters are derived from terrestrial laser scanning (TLS) data by fitting circles or cylinders
+to stem points, but occlusion leaves each stem partly hidden. Processing algorithms apply coverage rules — 3DFin accepts a
 diameter only if at least 9 of 16 angular sectors (202.5°) contain points — yet the required coverage
 has not been quantified. We combined a Monte Carlo experiment (six estimators, seven
-perturbations), HELIOS++ simulations of three stands (400–1200 stems ha⁻¹; 26 712 stem ×
-scan-configuration cases) with geometrically computed visible arc, a stand with branches at breast
+perturbations), HELIOS++ simulations of three stands (400–1200 stems ha⁻¹) with geometrically computed visible arc, a stand with branches at breast
 height, and two open real datasets. For round stems without outliers, 45–180° of visible arc gave a
 DBH RMSE ≤ 2 cm; non-circularity raised this to 157.5–202.5° for 40 cm stems; with outliers, only
 robust estimators reached it. In simulated stands 82 % of stems were within 2 cm at 180–225° and
@@ -33,8 +32,8 @@ scan design; HELIOS++; forest inventory
 TLS has become a standard instrument for plot-level forest inventory, yet occlusion remains its main
 limitation: stems hide one another, and the share of a stem's circumference that reaches the scanner
 depends on stand density, diameter distribution and the placement of scan positions
-(Abegg et al., 2017; Liang et al., 2018). Single-scan inventories detect markedly fewer stems than
-multi-scan inventories, especially in dense, multi-layered stands (Liang et al., 2018).
+(Abegg et al., 2017; Liang et al., 2018). Detection algorithms find markedly fewer stems in single-scan than in
+multi-scan data, especially in dense, multi-layered stands (Liang et al., 2018).
 
 Detection is only half of the problem. A stem that is detected may still be seen on a short arc, and
 the diameter fitted to a short arc is poorly constrained: algebraic circle fits are known to be biased
