@@ -85,8 +85,7 @@ All estimators operate on the points of one stem in the band 1.05–1.55 m (cyli
   radius); the strongest accumulator cell is taken. No parameter was tuned.
 - **Huber-robust**: geometric fit with Huber loss (scale 1 cm), Kasa start.
 
-Implementations: `scripts/dbh_methods.py`, `scripts/arc_error_mc_real.py` (repository, Section *Code
-availability*). The 3DFin acceptance rule is evaluated as the number of occupied 22.5° sectors around
+Implementations: `dbh_methods.py`, `arc_error_mc_real.py` (Section *Code availability*). The 3DFin acceptance rule is evaluated as the number of occupied 22.5° sectors around
 the stem centre in a 10 cm slice at 1.3 m.
 
 ### 2.2 Monte Carlo experiment
@@ -144,7 +143,7 @@ TLS benchmark found achievable (Liang et al., 2018).
 
 To test the complete pipeline rather than isolated circle fits, 3DFin 0.6.0 (Laino et al., 2024) was run
 on the complete SegmentedForests plot clouds (12 plots, 2 cm voxel thinning) with the dataset authors'
-3DFin settings (`scripts/paperC_3dfin_real.py`, GitHub Actions workflow `compute-3dfin.yml`). The run
+3DFin settings (`paperC_3dfin_real.py`, run in GitHub Actions). The run
 on the full multi-scan cloud defines the reference: stems with an accepted DBH. Reduced coverage was
 then produced by virtual scan positions (1, 2, 3, 4 and 6 positions spread on a grid by greedy max–min,
 and 4 clustered near the plot centre) and a stem-occlusion model: a point is kept if it lies on the
@@ -225,7 +224,7 @@ scanned with a Faro Focus3D X330, 1 908 trees with field DBH (median 15.6 cm) an
 points are all points within DBH/2 + 25 cm of the field position, i.e. without segmentation. Field
 positions and fitted centres agree to 6 cm (median). Coverage was reduced by retaining one contiguous
 arc at random orientation (5 repetitions per stem and arc). Breast-height bands were extracted with
-`scripts/ext_band.py` in a GitHub Actions workflow (`.github/workflows/fetch-data.yml`).
+`ext_band.py` in GitHub Actions.
 
 **Stem points only** (SegmentedForests, Fig. 5a). The Kasa fit reaches 56 % of stems within 2 cm at
 180°, 72 % at 202.5°, 82 % at 225° and 91 % at 270°; its RMSE falls from 6.1 cm at 135° to 2.9 cm at
@@ -312,21 +311,18 @@ but leave many stems without a DBH; the share of rejected stems belongs in every
 
 ## Code availability
 
-- Software: For3Dsuite, https://github.com/anayana/For3Dsuite (GPL-3.0-or-later), release v1.1,
-  archived on Zenodo (doi: ZENODO_DOI). Scripts in `scripts/`: `arc_error_mc.py`,
-  `arc_error_mc_real.py` (Monte Carlo), `paperC_scene.py`, `paperC_run.py`, `paperC_pack.py`,
-  `paperC_eval.py` (HELIOS++), `paperC_real.py`, `paperC_laut.py` (real data), `paperC_3dfin_real.py`
-  (3DFin with reduced coverage), `paperC_bootstrap.py`, `paperC_figures.py`, `dbh_methods.py`;
-  GitHub Actions workflows in `.github/workflows/` (data extraction and the cloud computations).
-- Third-party software: HELIOS++ 2.2.2 (conda-forge), 3DFin 0.6.0 with dendromatics 0.7.0,
-  scikit-image 0.26, NumPy, SciPy, pandas.
+All scripts used for this study (Monte Carlo, HELIOS++ scenes and evaluation, real-data analyses,
+3DFin experiment, bootstrap and figures) and the GitHub Actions workflow definitions used for the
+real-data computations are archived on Zenodo (doi: ZENODO_DOI; GPL-3.0-or-later).
+Third-party software: HELIOS++ 2.2.2 (conda-forge), 3DFin 0.6.0 with dendromatics 0.7.0,
+scikit-image 0.26, NumPy, SciPy, pandas.
 
 ## Data availability
 
-Result tables (`Paper_ODT/Forst_Benchmark_Paper/results/`) and figure sources are in the repository;
-simulated scenes are reproducible from the scripts and seeds. Third-party data: Renon/ICOS IT-Ren
-(Chang et al., 2025; CC BY 4.0); SegmentedForests (Laino et al., 2026; MIT); LAUT (Gollob et al., 2020b;
-CC BY 4.0). Derived breast-height bands of SegmentedForests and LAUT are in `extdata/`.
+All result tables underlying the figures and numbers are included in the Zenodo archive
+(doi: ZENODO_DOI); simulated scenes are reproducible from the scripts and seeds. The real point clouds
+are third-party open data and are not redistributed: Renon/ICOS IT-Ren (Chang et al., 2025; CC BY 4.0),
+SegmentedForests (Laino et al., 2026; MIT), LAUT (Gollob et al., 2020b; CC BY 4.0).
 
 ## Declaration of competing interest
 
