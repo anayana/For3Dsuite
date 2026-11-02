@@ -14,8 +14,8 @@ diameter only if at least 9 of 16 angular sectors (202.5°) contain points — y
 has not been quantified. We combined a Monte Carlo experiment (six estimators, seven
 perturbations), HELIOS++ simulations of three stands (400–1200 stems ha⁻¹; 26 712 stem ×
 scan-configuration cases) with geometrically computed visible arc, a stand with branches at breast
-height, and two open real datasets. For round stems without outliers, 45–135° of visible arc gave a
-DBH RMSE ≤ 2 cm; non-circularity raised this to 180–202.5° for 40 cm stems; with outliers, only
+height, and two open real datasets. For round stems without outliers, 45–180° of visible arc gave a
+DBH RMSE ≤ 2 cm; non-circularity raised this to 157.5–202.5° for 40 cm stems; with outliers, only
 robust estimators reached it. In simulated stands 82 % of stems were within 2 cm at 180–225° and
 over 90 % beyond 225°; the 3DFin rule corresponds to a median of 190°. Branches in the breast-height
 band made least-squares fits fail at any coverage, whereas RANSAC was unaffected. On 458 real stems
@@ -105,7 +105,7 @@ reference for the best achievable precision. Code: `scripts/arc_error_mc.py`, `s
 ### 2.3 HELIOS++ simulation
 
 Three 40 × 40 m core plots with a 10 m buffer were generated (`scripts/paperC_scene.py`): S1a
-400 stems ha⁻¹ (DBH 38 ± 11 cm), S1b 800 ha⁻¹ (30 ± 9 cm), S1c 1200 ha⁻¹ (24 ± 7 cm); random positions
+400 stems ha⁻¹ (DBH drawn from 38 ± 11 cm), S1b 800 ha⁻¹ (30 ± 9 cm), S1c 1200 ha⁻¹ (24 ± 7 cm); random positions
 with a minimum gap of 10 cm. Stems are 4 m elliptical cylinders (axis ratio U(0.85, 1), 32 segments,
 rings every 0.25 m with ±3 mm bark roughness); crowns were omitted because only the breast-height
 cross-section is analysed. Scans were simulated with HELIOS++ 2.2.2 (Winiwarter et al., 2022)
@@ -163,26 +163,27 @@ full-coverage 3DFin value.
 Under the ideal model all least-squares estimators approach the Cramér–Rao bound for arcs ≥ 135°.
 On short arcs the Kasa, RANSAC and cylinder fits are biased low (DBH 40 cm, N = 200: −2.4 cm at 90°,
 −7.1 cm at 67.5°), whereas the geometric fit stays unbiased (RMSE 0.8 cm at 90°); coverage thresholds
-are 45–135° depending on estimator, noise and N (Fig. 1a).
+of the least-squares and RANSAC fits are 45–135° at σ ≤ 5 mm and up to 180° at σ = 10 mm, depending on
+estimator and N (Fig. 1a); Hough needs 180–225°.
 
-Non-circularity shifts the thresholds of all estimators to about 180–202.5° for DBH 40 cm and to
-90–135° for DBH 20 cm: a partial view of an ellipse yields a systematically wrong circle, an error
-that grows with diameter (Fig. 1b). Registration offsets of 5–10 mm set an RMSE floor of 0.5–0.9 cm
-but barely change thresholds.
+Non-circularity shifts the thresholds of the least-squares, RANSAC and Huber fits to 157.5–202.5° for
+DBH 40 cm and to 90–135° for DBH 20 cm: a partial view of an ellipse yields a systematically wrong circle, an error
+that grows with diameter (Fig. 1b). Registration offsets of 5–10 mm set an RMSE floor of 0.2–0.5 cm
+at full coverage but barely change thresholds.
 
 Outliers dominate everything else (Fig. 1c). With 5–15 % outliers, Kasa, geometric and cylinder fits
-never meet the threshold, even at 360° (RMSE 2–7 cm). RANSAC meets it from 112.5–135°, the
+never meet the threshold, even at 360° (RMSE 1.6–8.6 cm). RANSAC meets it from 112.5–135°, the
 Huber-robust fit only from 135–270° (it fails on short arcs because its Kasa starting value is already
 biased), Hough from 180–247.5°. Hough tolerates outliers but not non-circularity: for DBH 40 cm it
-never meets the threshold on elliptical stems (RMSE 4–7 cm even at full coverage), and below 135° it
-fails in 30–65 % of cases. In the combined scenario only RANSAC (135–180°) and the Huber fit
+never meets the threshold on elliptical stems (RMSE at full coverage 4.7 cm with 200 points, 2.0 cm with
+1000), and below 135° it fails in 29–100 % of cases. In the combined scenario only RANSAC (135–180°) and the Huber fit
 (180–225°) reach the threshold for both diameters; Hough only for DBH 20 cm (202.5°).
 
 ### 3.2 HELIOS++: error versus visible arc
 
 Pooled over the three stands (26 712 cases; 56, 130 and 185 core stems), the RMSE of Kasa, cylinder and
 RANSAC falls from 9–17 cm below 90° to 1.6–1.7 cm at 180–225° and 0.5–0.8 cm beyond 315°; Hough remains
-worst throughout (13.7 cm at 180–225°, 2.1 cm beyond 315°; Fig. 2a). The share of stems within 2 cm rises from 45–56 % at 90–135° to 82 % at
+worst throughout (13.7 cm at 180–225°, 2.1 cm beyond 315°; Fig. 2a). The share of stems within 2 cm rises from 45–46 % at 90–135° (RANSAC 56 %) to 82 % at
 180–225°, 93 % at 225–270° and 98–99 % beyond 270° for the Kasa and cylinder fits; RANSAC stays
 slightly lower beyond 225° (89–94 %) (Fig. 2b). Thicker stems need more coverage:
 at 180–225° RMSE is 2.0 cm in S1a (mean DBH 37 cm) versus 1.5–1.7 cm in S1b and S1c, consistent
@@ -199,13 +200,14 @@ RANSAC is practically unaffected (71 %, 79 % and 89 % at 135–180°, 180–225�
 **Uncertainty of the thresholds.** The cluster bootstrap places the 80 % point of the Kasa, cylinder
 and RANSAC fits in the 180–225° class for the pooled HELIOS stands (95 % CI: 180–225° to 225–270°),
 of the geometric and Huber fits one class higher, and of Hough in the 270–315° class. With branches,
-only RANSAC reaches 80 % (225–270° class; CI 180–225° to 225–270°).
+RANSAC reaches 80 % in the 225–270° class (CI 180–225° to 225–270°), Hough only beyond 315°, and the
+least-squares and Huber fits never.
 
 ### 3.3 Sector rule and scan design
 
 The 3DFin rule of ≥ 9/16 sectors corresponds to a median geometric arc of 190° at exactly nine sectors
 (Fig. 4); 7.2 % of accepted stems have less than 180° visible. Used as an acceptance filter, the rule
-separates stems with 92 % (Kasa) of estimates within 2 cm from those with 63 % — it sits close to the
+separates stems with 92 % (Kasa) of estimates within 2 cm from those with 53 % — it sits close to the
 arc at which errors become small in these simulations.
 
 Coverage depends more on the spread than on the number of positions (Fig. 3). Four grid positions
@@ -222,7 +224,7 @@ reference; their reference DBH is the median of the Kasa, geometric, RANSAC and 
 all points (at least three valid; no field DBH is available). LAUT (Gollob et al., 2020a, b; CC BY 4.0): 17 Austrian inventory plots
 scanned with a Faro Focus3D X330, 1 908 trees with field DBH (median 15.6 cm) and field positions; stem
 points are all points within DBH/2 + 25 cm of the field position, i.e. without segmentation. Field
-positions and fitted centres agree to 4 cm (median). Coverage was reduced by retaining one contiguous
+positions and fitted centres agree to 6 cm (median). Coverage was reduced by retaining one contiguous
 arc at random orientation (5 repetitions per stem and arc). Breast-height bands were extracted with
 `scripts/ext_band.py` in a GitHub Actions workflow (`.github/workflows/fetch-data.yml`).
 
@@ -275,7 +277,7 @@ quarter of the stems visible beyond 315°. Inventories that rely on the rule sho
 share of stems without DBH, and scan designs should aim at more coverage than the rule's 202.5°.
 
 **A single threshold does not fit all estimators.** Without outliers, least-squares fits need far
-less than 202.5°; with non-circular stems they need about 180–200°; with outliers they never become
+less than 202.5°; with non-circular stems they need about 160–200°; with outliers they never become
 reliable. The threshold is therefore a property of the estimator and of the expected cross-section,
 not of the data alone. The 3DFin rule is well placed for least-squares fitting of moderately
 non-circular stems after good segmentation, and conservative for a robust estimator on round stems.
