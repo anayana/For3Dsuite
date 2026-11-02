@@ -41,7 +41,13 @@ Kamerahöhen danach 1,8–9,4).
 | 5 | Geometrie-Prüfung: Splat-Zentren (Deckkraft ≥ 0,5, in Hülle der Referenz) gegen Referenzwolke, Abstand Median/95 %, Vollständigkeit 2/5/10 cm, je Bauteil-Label | `scripts/eval_splat_geometry.py` (+ Test) | ✅ Skript; läuft im Trainingsskript mit |
 | 6 | Demo-Rundgang: ein Gebäude als Splat mit Medien-Markern im Browser-Studio `create.html`, als eine offline lauffähige HTML-Datei | Demo-Datei + Bildschirmfotos | Agent, Nutzer prüft am Handy |
 | 7 | Journal: **1. J. Cultural Heritage**, 2. *PFG* — beide Hybrid, Abo-Weg ohne Gebühr (geprüft 13.10.2026, s. u.) | Zieljournal | erledigt; vor Einreichung erneut prüfen |
-| 8 | Manuskript (Gliederung → Methoden/Ergebnisse → Rest) unter `Paper_ODT/Heritage_Toolkit_Paper/` | Entwurf | Agent |
+| 8 | Manuskript (Gliederung → Methoden/Ergebnisse → Rest) unter `Paper_ODT/Heritage_Toolkit_Paper/` | `Manuskript_Entwurf.md` (02.11.2026: Methoden + Ergebnisse 5_CB; offen: 3_SS, Demo, Literatur) | Agent |
+
+## Journal (erneut geprüft 02.11.2026, Drittseiten, nicht JCR)
+
+- J. Cultural Heritage: IF 2025 3,7 (journalmetrics.org), JCR Q1; hybrid, APC laut OpenAlex 2780 USD (Stand unklar).
+- PFG: IF 2025 3,3–3,8 je nach Quelle, Q2 (journalmetrics.org); hybrid, APC ~3090 USD.
+- Beide weiter ohne Gebühr über den Abo-Weg. Vor Einreichung Verlagsseite selbst prüfen.
 
 ## Journal (geprüft 13.10.2026)
 
@@ -67,6 +73,12 @@ Kamerahöhen danach 1,8–9,4).
 - Test-PSNR bleibt ~14–16 dB: Aufnahme für Photogrammetrie, Testansichten schlecht abgedeckt. Fürs Paper
   Geometrie mit allen Fotos (`TEST_EVERY=1000`), PSNR als Grenze.
 - Pod-Ergebnisse vor dem Löschen lesen; Selbstlöschung nur als Notbremse (60 min).
+
+## Label-Nummern (02.11.2026, aus Websuche; Artikel selbst nicht abrufbar — doi.org/zenodo/PMC in dieser Sitzung gesperrt)
+
+ArCH-Klassen; bestätigt 0 = arch, 1 = column. Vermutlich in Listenreihenfolge: 2 moulding, 3 floor,
+4 door/window, 5 wall, 6 stair, 7 vault, 8 roof, 9 other. **10 ungeklärt** (Artikel lesen:
+https://pmc.ncbi.nlm.nih.gov/articles/PMC12159912/).
 
 ## Offene Punkte
 
