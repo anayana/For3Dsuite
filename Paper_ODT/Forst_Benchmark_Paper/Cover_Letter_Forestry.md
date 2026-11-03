@@ -10,8 +10,8 @@ please consider the enclosed manuscript, "How much of the stem must a terrestria
 Diameter error as a function of circumferential coverage, and what it means for scan design", for
 publication as an Original Article in *Forestry*.
 
-Terrestrial laser scanning (TLS) inventories accept or reject a stem diameter depending on how much of
-the stem circumference was scanned. 3DFin, published in *Forestry* in 2024, accepts a diameter only if
+When stem diameters are derived from terrestrial laser scanning (TLS) point clouds, the processing
+algorithms accept or reject a diameter depending on how much of the stem circumference was scanned. 3DFin, published in *Forestry* in 2024, accepts a diameter only if
 at least 9 of 16 angular sectors (202.5°) contain points. How much coverage is actually needed, and
 whether one threshold suits all fitting methods, has not been quantified. The manuscript does this
 with three complementary approaches:
@@ -31,7 +31,7 @@ accepted diameters accurate (88 % within 2 cm) but leaves about half of the stem
 even with four to six spread scan positions; and spreading scan positions matters more than adding
 them.
 
-All code, result tables and derived data are openly available (GitHub, archived on Zenodo); all
+All code and result tables are archived on Zenodo (https://doi.org/10.5281/zenodo.23911186); all
 third-party data are openly licensed.
 
 The manuscript is original, has not been published and is not under consideration elsewhere. The
