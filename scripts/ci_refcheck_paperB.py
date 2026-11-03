@@ -58,5 +58,7 @@ try:
                f"doi:{m.get('doi','')} — Lizenz: {m.get('license',{}).get('id','')}\n\n### Beschreibung\n\n{desc}\n")
 except Exception as e:
     out.append(f"## Zenodo 14626611\nFehler: {e}\n")
+import os
+os.makedirs("Paper_ODT/Heritage_Toolkit_Paper/lit", exist_ok=True)
 open("Paper_ODT/Heritage_Toolkit_Paper/lit/refs_check.md", "w").write("\n".join(out))
 print("\n".join(out))
