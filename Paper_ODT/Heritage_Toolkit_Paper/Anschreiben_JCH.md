@@ -1,15 +1,14 @@
 # Cover letter — Journal of Cultural Heritage (Entwurf, Stand 03.11.2026)
 
-Hinweise: Einreichung über den Abo-Weg (kein Open Access, **keine Gebühr**). Platzhalter in [eckigen
-Klammern] vor dem Absenden füllen; 
+Hinweise: Einreichung über den Abo-Weg (kein Open Access, **keine Gebühr**). 
 
 ---
 
-[Name]
-[Institution, Adresse]
-[E-Mail]
+Angel Naya
+Independent Researcher, Berlin, Germany
+angel.naya@posteo.de
 
-[Datum]
+3 November 2026
 
 To the Editors
 Journal of Cultural Heritage
@@ -46,13 +45,10 @@ versus metric documentation — and provides a reproducible baseline. All data a
 (CC BY 4.0) and all code is released as free software, so the comparison can be repeated at no cost.
 
 The manuscript is original, has not been published previously and is not under consideration elsewhere.
-All authors have approved the submission. There are no conflicts of interest to declare. The work
-received no specific funding. [prüfen]
-
-Possible reviewers: [optional — nur Personen ohne Interessenkonflikt].
+The author declares no conflicts of interest. The work received no specific funding.
 
 Thank you for considering our manuscript.
 
 Yours sincerely,
 
-[Name]
+Angel Naya
