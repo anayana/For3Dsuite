@@ -31,7 +31,7 @@ accepted diameters accurate (88 % within 2 cm) but leaves about half of the stem
 even with four to six spread scan positions; and spreading scan positions matters more than adding
 them.
 
-All code and result tables are archived on Zenodo; all
+All code and result tables are archived on Zenodo (https://doi.org/10.5281/zenodo.23911186); all
 third-party data are openly licensed.
 
 The manuscript is original, has not been published and is not under consideration elsewhere. The

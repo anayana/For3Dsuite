@@ -312,14 +312,14 @@ but leave many stems without a DBH; the share of rejected stems belongs in every
 ## Code availability
 
 All scripts used for this study (Monte Carlo, HELIOS++ scenes and evaluation, real-data analyses,
-3DFin experiment, bootstrap and figures) are archived on Zenodo (doi: ZENODO_DOI; GPL-3.0-or-later).
+3DFin experiment, bootstrap and figures) are archived on Zenodo (https://doi.org/10.5281/zenodo.23911186; GPL-3.0-or-later).
 Third-party software: HELIOS++ 2.2.2 (conda-forge), 3DFin 0.6.0 with dendromatics 0.7.0,
 scikit-image 0.26, NumPy, SciPy, pandas.
 
 ## Data availability
 
 All result tables underlying the figures and numbers are included in the Zenodo archive
-(doi: ZENODO_DOI); simulated scenes are reproducible from the scripts and seeds. The real point clouds
+(https://doi.org/10.5281/zenodo.23911186); simulated scenes are reproducible from the scripts and seeds. The real point clouds
 are third-party open data and are not redistributed: Renon/ICOS IT-Ren (Chang et al., 2025; CC BY 4.0),
 SegmentedForests (Laino et al., 2026; MIT), LAUT (Gollob et al., 2020b; CC BY 4.0).
 
