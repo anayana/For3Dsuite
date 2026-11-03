@@ -1,8 +1,5 @@
-# Forestry (OUP): Autorenrichtlinien
-https://academic.oup.com/forestry/pages/general-instructions
-https://academic.oup.com/forestry/pages/General_Instructions
-https://academic.oup.com/forestry/pages/author-guidelines
-https://academic.oup.com/forestry/pages/Open_Access
-# Zenodo: GitHub-Integration
-https://help.zenodo.org/docs/github/enable-repository/
-https://help.zenodo.org/docs/github/describe-software/zenodo-json/
+# ScholarOne Forestry: Login, Konto anlegen, Instructions & Forms
+https://mc.manuscriptcentral.com/forestry
+https://mc.manuscriptcentral.com/forestry?PARAMS=xik_
+https://mc.manuscriptcentral.com/forestry?NEXT_PAGE=INSTRUCTIONS_AND_FORMS
+https://mc.manuscriptcentral.com/forestry?NEXT_PAGE=CREATE_ACCOUNT
