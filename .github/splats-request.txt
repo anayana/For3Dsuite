@@ -1,0 +1,2 @@
+# Basis-URL des Pods (Port 8000)
+https://6c6kw91jeynz20-8000.proxy.runpod.net
