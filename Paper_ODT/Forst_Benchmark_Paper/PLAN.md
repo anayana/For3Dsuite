@@ -178,3 +178,9 @@ Prüft, ob die Schwellen aus S1/S2 auf echte Rinde/Äste übertragbar sind.
 - **Äste in Brusthöhe** (S1b-B, `results/helios_S1b_ast.csv`): Kleinste-Quadrate-Fits ≤ 43 % ≤ 2 cm bei jeder Abdeckung, RANSAC unverändert (79 % bei 180–225°).
 - **3DFin auf 12 echten Plots** mit simulierter Teilabdeckung (`results/fin_real/`): 296 Referenzstämme; BHD akzeptiert 10/24/36/49/54 % bei 1/2/3/4/6 Rasterpunkten; akzeptierte BHD zu 88 % ≤ 2 cm am Vollwert.
 - SegmentedForests-Referenz jetzt unabhängig von Hough (≥ 3 von 4 KQ-Fits): 458 Stämme.
+
+### Einreichung
+- Eingereicht bei *Forestry* (OUP) am 03.11.2026, Manuskript-ID **Forestry-2026-331**.
+- Portal: https://mc.manuscriptcentral.com/forest
+- Code/Ergebnisse: Zenodo, doi:10.5281/zenodo.23911186.
+- Vorgeschlagene Gutachter: C. Gollob (BOKU), M. Abegg (WSL), C. Cabo (Univ. Oviedo), J. A. Molina-Valero.
