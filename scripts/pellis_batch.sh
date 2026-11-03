@@ -7,7 +7,8 @@
 #
 # Gebaeude per BUILDINGS="5_CB 3_SS 2_OSA" waehlen (Standard: 3_SS 2_OSA).
 # Ergebnisse: /workspace/ERGEBNISSE.txt (auch im Pod-Log). Fertig, wenn dort PELLIS-RUN-ENDE steht.
-# Danach Pod loeschen.
+# Danach stellt der Pod /workspace/web auf Port 8000 bereit (Szenen fuer die Suite, ganze .ply);
+# Workflow fetch-splats holt sie ins Repo. Erst danach Pod loeschen.
 S="${S:?S (Commit) fehlt}"
 BUILDINGS="${BUILDINGS:-3_SS 2_OSA}"
 nohup bash -c '
@@ -24,8 +25,18 @@ nohup bash -c '
     grep -E "Fotos:|PSNR|FEHLER|Error|Label|Referenz|Gaussians" "/workspace/run_$B.log" | sed "s/^/ERGEBNIS $B /" | out
     tail -3 "/workspace/run_$B.log" | sed "s/^/LOGENDE $B /" | out
     date -u +"FERTIG $B %H:%M" | out
+    # Szene fuer die Suite sichern: schlanke .ply (SH0, max. 600k) + scene.json + thumb.jpg
+    b=$(echo "$B" | tr "A-Z_" "a-z-"); WD="/workspace/web/pellis-$b"; mkdir -p "$WD"
+    if [ -f "/workspace/pellis/${B}_gaussians.ply" ]; then
+      for f in clean_splat.py pellis_scene.py; do
+        curl -fsSL "https://raw.githubusercontent.com/anayana/For3Dsuite/'"$S"'/scripts/$f" -o "/workspace/$f"; done
+      python /workspace/clean_splat.py "/workspace/pellis/${B}_gaussians.ply" "$WD/$b.ply" --sh0 --max 600000 --keep 98 --max-scale 2 2>&1 | out
+      cp "/workspace/pellis/${B}_gaussians.ply" "/workspace/web/${B}_gaussians_full.ply"
+      python /workspace/pellis_scene.py "$WD/$b.ply" "$B" "$WD" 2>&1 | out
+    fi
     rm -rf "/workspace/pellis/$B.rar" "/workspace/pellis/raw_$B" /workspace/pellis/${B}_*
   done
   echo PELLIS-RUN-ENDE | out
+  cd /workspace/web && echo "WEB-BEREIT (Port 8000)" | out && python -m http.server 8000
 ' > /workspace/batch.log 2>&1 &
 echo "Laeuft im Hintergrund (Gebaeude: $BUILDINGS). Fortschritt: tail -f /workspace/batch.log ; Ergebnisse: cat /workspace/ERGEBNISSE.txt"
