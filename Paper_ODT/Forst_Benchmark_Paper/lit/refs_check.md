@@ -37,8 +37,8 @@
 
 ## Liang 2018
 - **Terrestrial laser scanning for forest monitoring** — Calders, K. (None). ** ()  — doi:10.18174/327787
-- **Comparison and Combination of Mobile and Terrestrial Laser Scanning for Natural Forest Inventories** — Bienert, Anne; Georgi, Louis; Kunz, Matthias; Maas, Hans-Gerd; Von Oheimb, Goddert (2018). *Forests* 9(7) 395 — doi:10.3390/f9070395
 - **Terrestrial Laser Scanning for Forest Inventories—Tree Diameter Distribution and Scanner Location Impact on Occlusion** — Abegg, Meinrad; Kükenbrink, Daniel; Zell, Jürgen; Schaepman, Michael; Morsdorf, Felix (2017). *Forests* 8(6) 184 — doi:10.3390/f8060184
+- **Comparison and Combination of Mobile and Terrestrial Laser Scanning for Natural Forest Inventories** — Bienert, Anne; Georgi, Louis; Kunz, Matthias; Maas, Hans-Gerd; Von Oheimb, Goddert (2018). *Forests* 9(7) 395 — doi:10.3390/f9070395
 
 ## FORTLS
 - **FORTLS: An R Package for Processing TLS Data and Estimating Stand Variables in Forest Inventories** — Molina-Valero, Juan Alberto; Villamayor, Maria José Ginzo; Pérez, Manuel Antonio Novo; Álvarez-González, Juan Gabriel; Montes, Fernando; Martínez-Calvo, Adela; Pérez-Cruzado, César (2020). *The 1st International Electronic Conference on Forests&amp;mdash;Forests for a Better Future: Sustainability, Innovation, Interdisciplinarity* () 38 — doi:10.3390/iecf2020-08066
