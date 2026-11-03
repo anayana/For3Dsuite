@@ -198,12 +198,12 @@ undistortion, per-image focal length and exposure were each tested in a separate
 ### 4.3 Online models
 
 The three models are published in the open For3Dsuite web viewer (Naya, 2026) as walkable scenes
-(Fig. 3). For display, the Gaussians are reduced to the base colour (spherical-harmonics degree 0) and to
+(Fig. 3; screenshots from the software renderer used for testing, which is blurrier than a GPU display). For display, the Gaussians are reduced to the base colour (spherical-harmonics degree 0) and to
 at most 600 000 per building (28–41 MB), and their coordinates are shifted towards the origin, because the
 WebGL viewer does not display scenes more than about 100 m from the origin; the shift is stored with each
 scene so that the reference frame can be restored.
 
-![The three models in the browser viewer (from left: 5_CB, 3_SS, 2_OSA).](figures/fig3_scenes.png)
+![Models of 5_CB (left) and 2_OSA (right) in the browser viewer. Arches, columns and the doorway are recognisable; the roof and the ground show smeared, floating Gaussians.](figures/fig3_scenes.png)
 
 ## 5. Discussion
 
