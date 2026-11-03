@@ -148,6 +148,9 @@ Separate runs with every 8th image held out: PSNR, SSIM, LPIPS (gsplat), plus ex
 Befund: Gut beobachtete, kontrastreiche Bauteile 4–7 cm; Boden und Dach schlechter (flache Blickwinkel,
 wenig Textur bzw. kaum Sicht von unten); 95-%-Werte > 1 m = Schwebeteilchen (floaters).
 
+Figures: Fig. 1 `figures/fig1_completeness_10cm.png` (completeness at 10 cm per class and building),
+Fig. 2 `figures/fig2_median.png` (median distance, log scale; * = floater-dominated).
+
 ### 4.2 Pitfalls
 
 1. **Double undistortion.** Applying the published distortion coefficients to the already undistorted
@@ -192,7 +195,7 @@ inside the hull and have a floor point as nearest neighbour (median 15 m); in 2_
 covered (0.92) but surrounded by floaters (median 85 cm). Completeness is unaffected by floaters and is
 therefore the more robust indicator; accuracy needs floater removal before it describes the surface.
 
-## 5. Browser tool [TODO]
+## 5. Browser tool [TODO — braucht eine gesicherte .ply; sonst Abschnitt streichen]
 
 Splat + Medien-Marker im Browser-Studio (`create.html`), Export als eine offline lauffähige HTML-Datei
 (`export_static.py --html-only`). Abbildung + Bedienablauf.
@@ -224,8 +227,8 @@ comparison can be repeated and extended at no cost.
 
 ## Data and code availability
 
-Daten: Zenodo 14626611 (CC BY 4.0). Code: `scripts/pellis_to_colmap.py`, `train_pellis_runpod.sh`,
-`eval_splat_geometry.py`, `colmap_align.py`, `splat_diag.py` (FOSS). [TODO Zenodo-Release des Codes]
+Data: Pellis et al. (2025), Zenodo 14626611 (CC BY 4.0). Code, unit tests and all result tables:
+Zenodo, doi:[DOI nach Freigabe des Zenodo-Release] (GPL-3.0-or-later; tables CC BY 4.0).
 
 ## References
 

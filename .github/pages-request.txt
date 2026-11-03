@@ -7,3 +7,5 @@ https://www.wsl.ch/de/mitarbeitende/abegg/
 https://uni-heidelberg.de/gis/hoefle.html
 https://research.ugent.be/web/person/kim-calders-0/en
 https://q-forestlab.ugent.be/people
+# Paper B: Pellis-Datensatzartikel (Klassen-Nummern)
+https://pmc.ncbi.nlm.nih.gov/articles/PMC12159912/

@@ -5,6 +5,7 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/anayana/For3Dsuite/<SHA>/scripts/pellis_batch.sh | S=<SHA> bash
 #
+# Gebaeude per BUILDINGS="5_CB 3_SS 2_OSA" waehlen (Standard: 3_SS 2_OSA).
 # Ergebnisse: /workspace/ERGEBNISSE.txt (auch im Pod-Log). Fertig, wenn dort PELLIS-RUN-ENDE steht.
 # Danach Pod loeschen.
 S="${S:?S (Commit) fehlt}"
