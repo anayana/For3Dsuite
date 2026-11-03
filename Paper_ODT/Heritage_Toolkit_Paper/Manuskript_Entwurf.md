@@ -234,26 +234,30 @@ Zenodo, doi:[DOI nach Freigabe des Zenodo-Release] (GPL-3.0-or-later; tables CC 
 
 ## References
 
-(DOIs vor Einreichung prüfen — doi.org war in der Arbeitssitzung gesperrt.)
+(Gegen Crossref geprüft 03.11.2026, `lit/refs_check.md`; offen nur Ye et al. 2025 und Virtanen et al. 2020 — dort DOI aus eigener Kenntnis.)
 
 - Barron, J.T., Mildenhall, B., Verbin, D., Srinivasan, P.P., Hedman, P., 2022. Mip-NeRF 360: Unbounded
-  anti-aliased neural radiance fields. In: Proc. IEEE/CVF CVPR, pp. 5470–5479.
+  anti-aliased neural radiance fields. In: Proc. IEEE/CVF CVPR, pp. 5460–5469.
+  doi:10.1109/CVPR52688.2022.00539.
 - Guédon, A., Lepetit, V., 2024. SuGaR: Surface-aligned Gaussian splatting for efficient 3D mesh
   reconstruction and high-quality mesh rendering. In: Proc. IEEE/CVF CVPR, pp. 5354–5363.
+  doi:10.1109/CVPR52733.2024.00512.
 - Huang, B., Yu, Z., Chen, A., Geiger, A., Gao, S., 2024. 2D Gaussian splatting for geometrically accurate
-  radiance fields. In: ACM SIGGRAPH 2024 Conference Papers. doi:10.1145/3641519.3657428.
+  radiance fields. In: ACM SIGGRAPH 2024 Conference Papers, pp. 1–11. doi:10.1145/3641519.3657428.
 - Kerbl, B., Kopanas, G., Leimkühler, T., Drettakis, G., 2023. 3D Gaussian splatting for real-time radiance
   field rendering. ACM Trans. Graph. 42 (4), 139. doi:10.1145/3592433.
 - Martin-Brualla, R., Radwan, N., Sajjadi, M.S.M., Barron, J.T., Dosovitskiy, A., Duckworth, D., 2021. NeRF
   in the wild: Neural radiance fields for unconstrained photo collections. In: Proc. IEEE/CVF CVPR,
-  pp. 7210–7219.
+  pp. 7206–7215. doi:10.1109/CVPR46437.2021.00713.
 - Matrone, F., Lingua, A., Pierdicca, R., Malinverni, E.S., Paolanti, M., Grilli, E., Remondino, F.,
   Murtiyoso, A., Landes, T., 2020. A benchmark for large-scale heritage point cloud semantic segmentation.
   Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci. XLIII-B2-2020, 1419–1426.
+  doi:10.5194/isprs-archives-XLIII-B2-2020-1419-2020.
 - Mildenhall, B., Srinivasan, P.P., Tancik, M., Barron, J.T., Ramamoorthi, R., Ng, R., 2020. NeRF:
-  Representing scenes as neural radiance fields for view synthesis. In: Proc. ECCV, pp. 405–421.
+  Representing scenes as neural radiance fields for view synthesis. In: Computer Vision – ECCV 2020,
+  Lecture Notes in Computer Science, pp. 405–421. doi:10.1007/978-3-030-58452-8_24.
 - Pellis, E., Masiero, A., Tucci, G., Betti, M., Grussenmeyer, P., 2021. Assembling an image and point
-  cloud dataset for heritage buildings semantic segmentation. Int. Arch. Photogramm. Remote Sens. Spatial
+  cloud dataset for heritage building semantic segmentation. Int. Arch. Photogramm. Remote Sens. Spatial
   Inf. Sci. XLVI-M-1-2021, 539–546. doi:10.5194/isprs-archives-XLVI-M-1-2021-539-2021.
 - Pellis, E., Masiero, A., Betti, M., Tucci, G., Grussenmeyer, P., 2025. A photogrammetric image-point
   dataset for the semantic segmentation of heritage buildings. Data in Brief 60, 111661.
@@ -263,18 +267,19 @@ Zenodo, doi:[DOI nach Freigabe des Zenodo-Release] (GPL-3.0-or-later; tables CC 
 - Remondino, F., Karami, A., Yan, Z., Mazzacca, G., Rigon, S., Qin, R., 2023. A critical analysis of
   NeRF-based 3D reconstruction. Remote Sensing 15 (14), 3585. doi:10.3390/rs15143585.
 - Schönberger, J.L., Frahm, J.-M., 2016. Structure-from-motion revisited. In: Proc. IEEE CVPR,
-  pp. 4104–4113.
+  pp. 4104–4113. doi:10.1109/CVPR.2016.445.
 - Umeyama, S., 1991. Least-squares estimation of transformation parameters between two point patterns.
-  IEEE Trans. Pattern Anal. Mach. Intell. 13 (4), 376–380.
+  IEEE Trans. Pattern Anal. Mach. Intell. 13 (4), 376–380. doi:10.1109/34.88573.
 - Virtanen, P., et al., 2020. SciPy 1.0: Fundamental algorithms for scientific computing in Python.
-  Nature Methods 17, 261–272.
+  Nature Methods 17, 261–272. doi:10.1038/s41592-019-0686-2.
 - Wang, Z., Bovik, A.C., Sheikh, H.R., Simoncelli, E.P., 2004. Image quality assessment: From error
   visibility to structural similarity. IEEE Trans. Image Process. 13 (4), 600–612.
+  doi:10.1109/TIP.2003.819861.
 - Ye, V., Li, R., Kerr, J., Turkulainen, M., Yi, B., Pan, Z., Seiskari, O., Ye, J., Hu, J., Tancik, M.,
   Kanazawa, A., 2025. gsplat: An open-source library for Gaussian splatting. J. Mach. Learn. Res. 26 (34),
-  1–17.
+  1–17. [nicht bei Crossref (JMLR) — auf jmlr.org prüfen]
 - Zhang, R., Isola, P., Efros, A.A., Shechtman, E., Wang, O., 2018. The unreasonable effectiveness of deep
-  features as a perceptual metric. In: Proc. IEEE CVPR, pp. 586–595.
+  features as a perceptual metric. In: Proc. IEEE/CVF CVPR, pp. 586–595. doi:10.1109/CVPR.2018.00068.
 
 ## Costs
 
