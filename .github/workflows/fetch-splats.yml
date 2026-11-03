@@ -24,11 +24,13 @@ jobs:
           echo "Basis: $BASE"
           for b in pellis-5-cb pellis-3-ss pellis-2-osa; do
             n=${b#pellis-}; n=${n//-/_}
+            T=/tmp/dl/$b; mkdir -p $T
+            # erst alles in einen Zwischenordner; vorhandene Szenen nur bei vollstaendigem Download ersetzen
+            curl -sfL "$BASE/$b/$n.ply" -o $T/$n.ply && curl -sfL "$BASE/$b/thumb.jpg" -o $T/thumb.jpg \
+              && curl -sfL "$BASE/$b/scene.json" -o $T/scene.json && curl -sfL "$BASE/$b/entry.json" -o $T/entry.json \
+              || { echo "nicht erreichbar: $b (vorhandene Szene bleibt)"; continue; }
             D=docs/media/scenes/$b; mkdir -p $D
-            curl -sfL "$BASE/$b/$n.ply" -o $D/$n.ply || { echo "fehlt: $b"; rm -rf $D; continue; }
-            curl -sfL "$BASE/$b/thumb.jpg" -o $D/thumb.jpg
-            curl -sfL "$BASE/$b/scene.json" -o docs/data/scene-$b.json
-            curl -sfL "$BASE/$b/entry.json" -o /tmp/entry-$b.json
+            mv $T/$n.ply $T/thumb.jpg $D/; mv $T/scene.json docs/data/scene-$b.json; mv $T/entry.json /tmp/entry-$b.json
             ls -la $D
           done
           python3 - <<'PY'
