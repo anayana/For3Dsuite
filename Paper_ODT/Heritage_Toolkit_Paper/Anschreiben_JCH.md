@@ -1,7 +1,7 @@
 # Cover letter — Journal of Cultural Heritage (Entwurf, Stand 03.11.2026)
 
 Hinweise: Einreichung über den Abo-Weg (kein Open Access, **keine Gebühr**). Platzhalter in [eckigen
-Klammern] vor dem Absenden füllen; 3_SS/2_OSA-Zahlen nachtragen.
+Klammern] vor dem Absenden füllen; 
 
 ---
 
@@ -32,9 +32,9 @@ architectural class.
 
 The main findings are:
 
-- Across building 5_CB the median deviation of the Gaussian centres from the reference is 12.0 cm, with
-  59 % of the reference covered within 10 cm; arches and columns reach 4–6 cm, while floors and roofs
-  remain markedly worse. [TODO: zweites/drittes Gebäude]
+- Across three historic buildings the median deviation of the Gaussian centres from the reference is
+  12.0–14.2 cm, with 55–72 % of the reference covered within 10 cm; arches reach 4–6 cm in all three,
+  while floors remain the weakest class.
 - Held-out image quality on survey imagery mainly reflects capture coverage, not reconstruction fidelity,
   and is a misleading quality indicator for heritage use.
 - Re-applying distortion models to already undistorted survey images degrades both reconstruction and

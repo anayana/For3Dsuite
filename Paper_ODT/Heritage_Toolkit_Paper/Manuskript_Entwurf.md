@@ -1,8 +1,8 @@
 # Manuskript Paper B — Entwurf (Stand 03.11.2026)
 
 Zieljournal: *Journal of Cultural Heritage* (Elsevier, hybrid, Abo-Weg ohne Gebühr); Ausweich: *PFG*.
-Sprache: Englisch. Platzhalter `[TODO …]` = fehlt noch (3_SS-Lauf, Demo, Abbildungen).
-Alle Zahlen aus `ERGEBNISSE_5CB.md`; nichts geschätzt.
+Sprache: Englisch. Platzhalter `[TODO …]` = fehlt noch (Demo, Abbildungen).
+Alle Zahlen aus `ERGEBNISSE_5CB.md` und `ERGEBNISSE_3SS_2OSA.md`; nichts geschätzt.
 
 ---
 
@@ -18,13 +18,13 @@ and is increasingly proposed for heritage documentation. Its geometric reliabili
 measured against an independent survey. We train 3DGS (gsplat 1.5.3, 30 000 iterations) on the open
 Pellis et al. (2025) heritage dataset, using the published camera orientations, and compare the splat
 centres with the labelled photogrammetric reference point cloud (11.4 million points) per architectural
-class. For building 5_CB the median distance of splat centres to the reference is 12.0 cm; 59 % of the
-reference points have a splat within 10 cm. Arches and columns reach 4–6 cm with 92–98 % completeness at 10 cm, while floors, roofs and one
-undocumented class remain at 13–60 cm. Hold-out image quality is limited (PSNR 14–16 dB) because the photogrammetric capture covers
+class, for three buildings (166–755 images, 7–11 million reference points). The median distance of
+splat centres to the reference is 12.0–14.2 cm, and 55–72 % of the reference points have a splat within
+10 cm. Arches reach 4–6 cm in all three buildings, while floors are consistently the worst class and
+floating Gaussians push the 95th percentile to metres. Hold-out image quality is limited (PSNR 14–16 dB) because the photogrammetric capture covers
 novel viewpoints poorly — a property of survey-oriented image sets rather than of the pipeline. We report
 two practical pitfalls (re-undistorting already undistorted images; trusting hold-out PSNR on survey data)
 and release the full pipeline and an offline browser tool for annotated splat walkthroughs as FOSS.
-[TODO: 3_SS-Zahlen ergänzen]
 
 **Keywords:** 3D Gaussian Splatting; heritage documentation; photogrammetry; point cloud comparison;
 accuracy assessment; open-source software
@@ -79,8 +79,16 @@ point clouds, manually labelled with ten ArCH classes. Per building: RGB images,
 (K, k1–k3, p1–p2), exterior orientation per image (centre, ω φ κ, R), a similarity transform (s, R, t) from
 the camera frame to the point-cloud frame, and the labelled point cloud (X Y Z R G B label Nx Ny Nz).
 
-Building **5_CB**: 166 images, 3872 × 2592 px, f = 3054.46 px; 11 372 937 reference points; transform
-scale s = 1.3441. [TODO 3_SS]
+Three of the five buildings are used:
+
+| Building | Images | Reference points | Transform scale s |
+|---|---|---|---|
+| 5_CB | 166 | 11 372 937 | 1.3441 |
+| 3_SS | 473 | 11 039 781 | 0.978 |
+| 2_OSA | 755 | 7 123 548 | 0.605 |
+
+5_CB images: 3872 × 2592 px, f = 3054.46 px. The transforms of 3_SS and 2_OSA are stored with rounded
+coefficients (orthogonality deviation ≈ 1e-3); the rotation part is re-orthonormalised by SVD.
 
 Labels (ArCH order, confirmed for 0 = arch, 1 = column; 2–9 in list order, **10 not documented —
 check article**): 0 arch, 1 column, 2 moulding, 3 floor, 4 door/window, 5 wall, 6 stair, 7 vault,
@@ -153,7 +161,36 @@ wenig Textur bzw. kaum Sicht von unten); 95-%-Werte > 1 m = Schwebeteilchen (flo
 Diagnostic chain (Tabelle im Anhang): orientation flag, initial cloud, axis convention, published poses,
 undistortion, focal length per image, exposure — each tested in a separate run (`ERGEBNISSE_5CB.md`).
 
-### 4.3 Second building [TODO 3_SS]
+### 4.3 Buildings 3_SS and 2_OSA
+
+Same settings as 5_CB (all images, 30 000 iterations, images not re-undistorted).
+
+| Building | Splats kept | Median | 95 % | Compl. 2 / 5 / 10 cm |
+|---|---|---|---|---|
+| 5_CB | 340 994 | 12.0 cm | 254.3 cm | 0.03 / 0.24 / 0.59 |
+| 3_SS | 589 814 | 14.2 cm | 2103.4 cm | 0.02 / 0.20 / 0.55 |
+| 2_OSA | 371 196 | 13.0 cm | 178.8 cm | 0.03 / 0.25 / 0.72 |
+
+Per class (median / completeness at 10 cm):
+
+| Class | 5_CB | 3_SS | 2_OSA |
+|---|---|---|---|
+| 0 arch | 4.4 cm / 0.92 | 5.2 cm / 0.64 | 6.3 cm / 0.85 |
+| 1 column | 5.7 cm / 0.98 | 4.2 cm / 0.76 | 85.2 cm / 0.92 |
+| 2 moulding | 6.6 cm / 0.75 | 4.7 cm / 0.74 | 9.2 cm / 0.85 |
+| 3 floor | 25.6 cm / 0.33 | 1505.9 cm / 0.37 | 19.7 cm / 0.62 |
+| 4 door/window | 10.2 cm / 0.81 | 9.7 cm / 0.59 | 12.0 cm / 0.76 |
+| 5 wall | 8.4 cm / 0.75 | 10.7 cm / 0.46 | 10.8 cm / 0.71 |
+| 6 stair | 10.3 cm / 0.45 | 18.2 cm / 0.36 | — |
+| 7 vault | 11.4 cm / 0.74 | 14.2 cm / 0.36 | 7.6 cm / 0.75 |
+| 8 roof | 13.3 cm / 0.59 | — | 11.0 cm / 0.80 |
+| 9 other | 4.7 cm / 0.86 | 3.9 cm / 0.59 | 38.6 cm / 0.74 |
+
+(— = class not present among the kept splats.) Two medians are dominated by floaters rather than surface
+error: in 3_SS, 217 562 Gaussians in front of or above the building (background, vegetation, sky) fall
+inside the hull and have a floor point as nearest neighbour (median 15 m); in 2_OSA the columns are well
+covered (0.92) but surrounded by floaters (median 85 cm). Completeness is unaffected by floaters and is
+therefore the more robust indicator; accuracy needs floater removal before it describes the surface.
 
 ## 5. Browser tool [TODO]
 
@@ -165,7 +202,7 @@ Splat + Medien-Marker im Browser-Studio (`create.html`), Export als eine offline
 - Für Denkmalpflege: 3DGS liefert **Darstellung**, keine **Messung** — Zentimeter-Genauigkeit nur an gut
   beobachteten Bauteilen; Referenzvermessung bleibt nötig.
 - Klassenabhängigkeit erklärt durch Sichtbarkeit/Textur (Boden, Dach).
-- Grenzen: ein (zwei) Gebäude; Splat-Zentren statt gerenderter Tiefe; Standard-Trainer ohne
+- Grenzen: drei Gebäude eines Datensatzes; Median ohne Floater-Filter; Splat-Zentren statt gerenderter Tiefe; Standard-Trainer ohne
   Geometrie-Regularisierung (2DGS/SuGaR wären Vergleich).
 
 ## 7. Conclusion
@@ -174,7 +211,8 @@ Standard 3D Gaussian Splatting, trained on the published orientations of a photo
 places its Gaussians within a few centimetres of the reference surface on well-observed architectural
 elements, but not on floors, roofs and sparsely seen parts, and it adds floaters that a measurement
 workflow must remove. For building 5_CB the median deviation is 12.0 cm with 59 % completeness at
-10 cm; arches and columns reach 4–6 cm. [TODO: 3_SS/2_OSA ergänzen.] 3DGS is therefore a strong medium
+10 cm, and the two further buildings confirm the picture (median 13.0–14.2 cm, completeness at 10 cm
+0.55–0.72): arches stay at 4–6 cm in all three, floors are the weakest class throughout. 3DGS is therefore a strong medium
 for presenting and sharing heritage — walkthroughs, annotation, dissemination — while metric statements
 should still rest on the photogrammetric or laser-scanning survey. Two practical lessons transfer to other
 projects: check whether published images are already undistorted before applying distortion models, and
@@ -235,4 +273,4 @@ Daten: Zenodo 14626611 (CC BY 4.0). Code: `scripts/pellis_to_colmap.py`, `train_
 
 ## Costs
 
-Alle GPU-Läufe auf RunPod (Community, 0,17–0,23 $/h); 5_CB-Endlauf ≈ 0,12 $.
+Alle GPU-Läufe auf RunPod (Community, 0,17–0,23 $/h); 5_CB-Endlauf ≈ 0,12 $; 3_SS + 2_OSA ≈ 0,31 $.
