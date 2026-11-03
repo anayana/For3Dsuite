@@ -24,8 +24,7 @@ parallax degrades stitching.
 
 The work fits the scope of the journal as open software for processing
 geospatial sensor data (terrestrial laser scanning and panoramic imagery). It is
-fully reproducible: the source code is in a public, documented GitHub repository
-and archived on Zenodo (details in the section "Code availability"), and all data
+fully reproducible: the source code is archived on Zenodo (details in the section "Code availability"), and all data
 used are third-party open data.
 
 The manuscript has not been published and is not under consideration elsewhere.

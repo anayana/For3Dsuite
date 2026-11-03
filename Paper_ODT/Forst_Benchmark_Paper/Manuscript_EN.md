@@ -143,7 +143,7 @@ TLS benchmark found achievable (Liang et al., 2018).
 
 To test the complete pipeline rather than isolated circle fits, 3DFin 0.6.0 (Laino et al., 2024) was run
 on the complete SegmentedForests plot clouds (12 plots, 2 cm voxel thinning) with the dataset authors'
-3DFin settings (`paperC_3dfin_real.py`, run in GitHub Actions). The run
+3DFin settings (`paperC_3dfin_real.py`). The run
 on the full multi-scan cloud defines the reference: stems with an accepted DBH. Reduced coverage was
 then produced by virtual scan positions (1, 2, 3, 4 and 6 positions spread on a grid by greedy max–min,
 and 4 clustered near the plot centre) and a stem-occlusion model: a point is kept if it lies on the
@@ -224,7 +224,7 @@ scanned with a Faro Focus3D X330, 1 908 trees with field DBH (median 15.6 cm) an
 points are all points within DBH/2 + 25 cm of the field position, i.e. without segmentation. Field
 positions and fitted centres agree to 6 cm (median). Coverage was reduced by retaining one contiguous
 arc at random orientation (5 repetitions per stem and arc). Breast-height bands were extracted with
-`ext_band.py` in GitHub Actions.
+`ext_band.py`.
 
 **Stem points only** (SegmentedForests, Fig. 5a). The Kasa fit reaches 56 % of stems within 2 cm at
 180°, 72 % at 202.5°, 82 % at 225° and 91 % at 270°; its RMSE falls from 6.1 cm at 135° to 2.9 cm at
@@ -312,8 +312,7 @@ but leave many stems without a DBH; the share of rejected stems belongs in every
 ## Code availability
 
 All scripts used for this study (Monte Carlo, HELIOS++ scenes and evaluation, real-data analyses,
-3DFin experiment, bootstrap and figures) and the GitHub Actions workflow definitions used for the
-real-data computations are archived on Zenodo (doi: ZENODO_DOI; GPL-3.0-or-later).
+3DFin experiment, bootstrap and figures) are archived on Zenodo (doi: ZENODO_DOI; GPL-3.0-or-later).
 Third-party software: HELIOS++ 2.2.2 (conda-forge), 3DFin 0.6.0 with dendromatics 0.7.0,
 scikit-image 0.26, NumPy, SciPy, pandas.
 
@@ -342,8 +341,7 @@ Visualization, Writing – original draft, Writing – review & editing.
 
 The author thanks the creators of the open datasets SegmentedForests, LAUT and the ICOS IT-Ren
 multi-platform LiDAR dataset for publishing their data under open licences, and the developers of
-HELIOS++, 3DFin and scikit-image. GitHub Actions provided the computing resources for the real-data
-experiments.
+HELIOS++, 3DFin and scikit-image.
 
 ## Figures
 
