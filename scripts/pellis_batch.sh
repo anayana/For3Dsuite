@@ -26,13 +26,13 @@ nohup bash -c '
     tail -3 "/workspace/run_$B.log" | sed "s/^/LOGENDE $B /" | out
     date -u +"FERTIG $B %H:%M" | out
     # Szene fuer die Suite sichern: schlanke .ply (SH0, max. 600k) + scene.json + thumb.jpg
-    b=$(echo "$B" | tr "A-Z_" "a-z-"); WD="/workspace/web/pellis-$b"; mkdir -p "$WD"
+    l=$(echo "$B" | tr "A-Z" "a-z"); WD="/workspace/web/pellis-$(echo "$l" | tr "_" "-")"; mkdir -p "$WD"
     if [ -f "/workspace/pellis/${B}_gaussians.ply" ]; then
       for f in clean_splat.py pellis_scene.py; do
         curl -fsSL "https://raw.githubusercontent.com/anayana/For3Dsuite/'"$S"'/scripts/$f" -o "/workspace/$f"; done
-      python /workspace/clean_splat.py "/workspace/pellis/${B}_gaussians.ply" "$WD/$b.ply" --sh0 --max 600000 --keep 98 --max-scale 2 2>&1 | out
+      python /workspace/clean_splat.py "/workspace/pellis/${B}_gaussians.ply" "$WD/$l.ply" --sh0 --max 600000 --keep 98 --max-scale 2 2>&1 | out
       cp "/workspace/pellis/${B}_gaussians.ply" "/workspace/web/${B}_gaussians_full.ply"
-      python /workspace/pellis_scene.py "$WD/$b.ply" "$B" "$WD" 2>&1 | out
+      python /workspace/pellis_scene.py "$WD/$l.ply" "$B" "$WD" 2>&1 | out
     fi
     rm -rf "/workspace/pellis/$B.rar" "/workspace/pellis/raw_$B" /workspace/pellis/${B}_*
   done
