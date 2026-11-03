@@ -28,8 +28,11 @@ nohup bash -c '
     # Szene fuer die Suite sichern: schlanke .ply (SH0, max. 600k) + scene.json + thumb.jpg
     l=$(echo "$B" | tr "A-Z" "a-z"); WD="/workspace/web/pellis-$(echo "$l" | tr "_" "-")"; mkdir -p "$WD"
     if [ -f "/workspace/pellis/${B}_gaussians.ply" ]; then
-      for f in clean_splat.py pellis_scene.py; do
+      for f in clean_splat.py pellis_scene.py render_views.py; do
         curl -fsSL "https://raw.githubusercontent.com/anayana/For3Dsuite/'"$S"'/scripts/$f" -o "/workspace/$f"; done
+      cp /workspace/render_views.py /workspace/pellis/gsplat/examples/ && (cd /workspace/pellis/gsplat/examples && \
+        python render_views.py "/workspace/pellis/${B}_colmap" 2 "/workspace/pellis/${B}_gs" "$WD" 2>&1 | grep -v Warn | out)
+      mkdir -p "$WD/views" && mv "$WD"/view_*.jpg "$WD/views/" 2>/dev/null
       python /workspace/clean_splat.py "/workspace/pellis/${B}_gaussians.ply" "$WD/$l.ply" --sh0 --max 600000 --keep 98 --max-scale 2 2>&1 | out
       cp "/workspace/pellis/${B}_gaussians.ply" "/workspace/web/${B}_gaussians_full.ply"
       pip install -q matplotlib >/dev/null 2>&1; python /workspace/pellis_scene.py "$WD/$l.ply" "$B" "$WD" 2>&1 | out

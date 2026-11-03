@@ -36,6 +36,15 @@ def main():
     lo, hi = np.percentile(core, 2, 0), np.percentile(core, 98, 0)
     focus = np.median(core, 0)
     sid = f"pellis-{b.lower().replace('_', '-')}"
+    # Startansicht an einem echten Fotostandpunkt (render_views.py -> views.json): dort ist 3DGS scharf
+    start = (focus + np.array([0, -0.6, 0.2]) * np.linalg.norm(hi - lo) / 2).round(2).tolist()
+    look = focus.round(2).tolist()
+    vf = out / "views.json"
+    views = json.load(open(vf)) if vf.exists() else []
+    if views:
+        v = max(views, key=lambda x: x["psnr"])
+        c = np.array(v["center"]) - off
+        start, look = c.round(3).tolist(), (c + 5 * np.array(v["forward"])).round(3).tolist()
     title = f"Pellis {b} — 3D Gaussian Splatting (Kulturerbe)"
     desc = (f"3D-Gaussian-Splatting-Modell des historischen Gebaeudes {b} aus dem Pellis-Datensatz, trainiert "
             f"mit gsplat 1.5.3 auf den veroeffentlichten Kameraparametern ({len(arr):,} Gaussians, SH-Grad 0). "
@@ -49,13 +58,13 @@ def main():
              "source": {"type": "gaussian-splatting", "dataset": "Pellis et al. 2025, Zenodo 14626611",
                         "license": "CC-BY-4.0"},
              "splat": {"file": ply.name, "camera_up": [0, 0, 1], "focus": focus.tolist(), "offset": off.tolist(),
-                       "start": (focus + np.array([0, -0.6, 0.2]) * np.linalg.norm(hi - lo) / 2).round(2).tolist(),
-                       "look": focus.round(2).tolist(),
+                       "start": start, "look": look,
                        "bbox": {"bbox_min": lo.tolist(), "bbox_max": hi.tolist()},
                        "note": f"{b}: 3DGS gegen photogrammetrische Referenz (Paper B). Daten CC BY 4.0, "
                                f"Pellis et al. 2025.",
                        "url": base + ply.name},
-             "markers": [], "pano_url": None, "thumb_url": base + "thumb.jpg"}
+             "markers": [], "pano_url": None, "thumb_url": base + "thumb.jpg",
+             "views": [dict(v, url=base + "views/" + v["file"]) for v in views]}
     entry = {"id": sid, "title": title, "description": desc, "created": created,
              "thumb_url": base + "thumb.jpg", "markers": 0, "source_type": "gaussian-splatting",
              "has_3d": False, "kind": "splat", "datasets": ["Gaussian Splatting", "Pellis 2025"]}
