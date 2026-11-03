@@ -14,15 +14,23 @@ from pathlib import Path
 import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from clean_splat import read_ply  # noqa: E402
+from clean_splat import read_ply, write_ply  # noqa: E402
 
 NAMES = {"1_SC": "SC", "2_OSA": "OSA", "3_SS": "SS", "4_CG": "CG", "5_CB": "CB"}
 
 
 def main():
     ply, b, out = Path(sys.argv[1]), sys.argv[2], Path(sys.argv[3])
-    arr, _ = read_ply(ply)
+    arr, names = read_ply(ply)
+    arr = arr.copy()
     xyz = np.stack([arr["x"], arr["y"], arr["z"]], 1).astype(float)
+    # Viewer (GaussianSplats3D) zeigt bei Koordinaten > ~100 m nichts an -> um den Kern verschieben
+    op0 = 1 / (1 + np.exp(-arr["opacity"].astype(float)))
+    off = np.round(np.median(xyz[op0 > 0.5] if (op0 > 0.5).sum() > 1000 else xyz, 0), 1)
+    for i, k in enumerate("xyz"):
+        arr[k] = arr[k] - off[i]
+    write_ply(ply, arr, names)
+    xyz = xyz - off
     op = 1 / (1 + np.exp(-arr["opacity"].astype(float)))
     core = xyz[op > 0.5] if (op > 0.5).sum() > 1000 else xyz
     lo, hi = np.percentile(core, 2, 0), np.percentile(core, 98, 0)
@@ -40,7 +48,9 @@ def main():
              "thumb": f"scenes/{sid}/thumb.jpg", "width": None, "height": None, "variants": [],
              "source": {"type": "gaussian-splatting", "dataset": "Pellis et al. 2025, Zenodo 14626611",
                         "license": "CC-BY-4.0"},
-             "splat": {"file": ply.name, "camera_up": [0, 0, 1], "focus": focus.tolist(),
+             "splat": {"file": ply.name, "camera_up": [0, 0, 1], "focus": focus.tolist(), "offset": off.tolist(),
+                       "start": (focus + np.array([0, -0.6, 0.2]) * np.linalg.norm(hi - lo) / 2).round(2).tolist(),
+                       "look": focus.round(2).tolist(),
                        "bbox": {"bbox_min": lo.tolist(), "bbox_max": hi.tolist()},
                        "note": f"{b}: 3DGS gegen photogrammetrische Referenz (Paper B). Daten CC BY 4.0, "
                                f"Pellis et al. 2025.",
