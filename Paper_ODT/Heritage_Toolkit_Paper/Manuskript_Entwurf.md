@@ -1,4 +1,4 @@
-# Manuskript Paper B — Entwurf (Stand 02.11.2026)
+# Manuskript Paper B — Entwurf (Stand 03.11.2026)
 
 Zieljournal: *Journal of Cultural Heritage* (Elsevier, hybrid, Abo-Weg ohne Gebühr); Ausweich: *PFG*.
 Sprache: Englisch. Platzhalter `[TODO …]` = fehlt noch (3_SS-Lauf, Demo, Abbildungen).
@@ -42,8 +42,32 @@ accuracy assessment; open-source software
 
 ## 2. Related work
 
-[TODO: Literatur — 3DGS (Kerbl 2023), gsplat (Ye et al. 2024), 3DGS-Geometrie (SuGaR, 2DGS),
-Heritage-3DGS-Studien, ArCH-Klassen (Matrone et al. 2020), Pellis et al. 2021/2022/2025.]
+**Image-based heritage recording.** Photogrammetry and terrestrial laser scanning are the established
+techniques for metric heritage documentation, delivering dense point clouds and meshes with known
+accuracy (Remondino, 2011). Structure-from-Motion pipelines such as COLMAP (Schönberger and Frahm, 2016)
+have made the image-based route accessible, and the resulting point clouds are increasingly annotated
+with architectural classes for semantic analysis (Matrone et al., 2020). The dataset used here follows
+this line: images from photogrammetric surveys together with georeferenced, manually labelled point
+clouds of five historic buildings (Pellis et al., 2021, 2025).
+
+**Radiance fields.** Neural Radiance Fields (NeRF) represent a scene as a continuous volumetric function
+optimised from posed images (Mildenhall et al., 2020), and extensions handle unbounded scenes
+(Barron et al., 2022) and photometric variation between images (Martin-Brualla et al., 2021). For
+heritage, critical assessments have shown that NeRF geometry lags behind photogrammetry in accuracy and
+completeness (Remondino et al., 2023).
+
+**3D Gaussian Splatting.** 3DGS replaces the implicit field with millions of explicit anisotropic
+Gaussians that are rasterised in real time (Kerbl et al., 2023). Open implementations such as gsplat
+(Ye et al., 2025) make the method usable outside research labs. Because the standard objective optimises
+only image appearance, Gaussian centres are not constrained to lie on surfaces; variants regularise the
+geometry by aligning Gaussians with surfaces (Guédon and Lepetit, 2024) or collapsing them to 2D discs
+(Huang et al., 2024). Evaluations nevertheless report mostly image metrics — PSNR, SSIM (Wang et al.,
+2004) and LPIPS (Zhang et al., 2018) — on held-out views, which says little about the metric quality a
+heritage practitioner needs.
+
+**Gap.** We are not aware of an evaluation that compares standard 3DGS against a labelled photogrammetric
+reference *per architectural class* on openly licensed data, with a fully reproducible pipeline. This
+paper provides such a baseline and documents how survey-oriented image sets behave when used for 3DGS.
 
 ## 3. Data and methods
 
@@ -144,12 +168,70 @@ Splat + Medien-Marker im Browser-Studio (`create.html`), Export als eine offline
 - Grenzen: ein (zwei) Gebäude; Splat-Zentren statt gerenderter Tiefe; Standard-Trainer ohne
   Geometrie-Regularisierung (2DGS/SuGaR wären Vergleich).
 
-## 7. Conclusion [TODO]
+## 7. Conclusion
+
+Standard 3D Gaussian Splatting, trained on the published orientations of a photogrammetric survey,
+places its Gaussians within a few centimetres of the reference surface on well-observed architectural
+elements, but not on floors, roofs and sparsely seen parts, and it adds floaters that a measurement
+workflow must remove. For building 5_CB the median deviation is 12.0 cm with 59 % completeness at
+10 cm; arches and columns reach 4–6 cm. [TODO: 3_SS/2_OSA ergänzen.] 3DGS is therefore a strong medium
+for presenting and sharing heritage — walkthroughs, annotation, dissemination — while metric statements
+should still rest on the photogrammetric or laser-scanning survey. Two practical lessons transfer to other
+projects: check whether published images are already undistorted before applying distortion models, and
+do not read held-out PSNR on survey imagery as reconstruction quality. Future work should test
+geometry-regularised variants (2DGS, SuGaR) on the same benchmark and evaluate rendered depth instead of
+Gaussian centres. All code is released as free software, and the data are openly licensed, so the
+comparison can be repeated and extended at no cost.
+
 
 ## Data and code availability
 
 Daten: Zenodo 14626611 (CC BY 4.0). Code: `scripts/pellis_to_colmap.py`, `train_pellis_runpod.sh`,
 `eval_splat_geometry.py`, `colmap_align.py`, `splat_diag.py` (FOSS). [TODO Zenodo-Release des Codes]
+
+## References
+
+(DOIs vor Einreichung prüfen — doi.org war in der Arbeitssitzung gesperrt.)
+
+- Barron, J.T., Mildenhall, B., Verbin, D., Srinivasan, P.P., Hedman, P., 2022. Mip-NeRF 360: Unbounded
+  anti-aliased neural radiance fields. In: Proc. IEEE/CVF CVPR, pp. 5470–5479.
+- Guédon, A., Lepetit, V., 2024. SuGaR: Surface-aligned Gaussian splatting for efficient 3D mesh
+  reconstruction and high-quality mesh rendering. In: Proc. IEEE/CVF CVPR, pp. 5354–5363.
+- Huang, B., Yu, Z., Chen, A., Geiger, A., Gao, S., 2024. 2D Gaussian splatting for geometrically accurate
+  radiance fields. In: ACM SIGGRAPH 2024 Conference Papers. doi:10.1145/3641519.3657428.
+- Kerbl, B., Kopanas, G., Leimkühler, T., Drettakis, G., 2023. 3D Gaussian splatting for real-time radiance
+  field rendering. ACM Trans. Graph. 42 (4), 139. doi:10.1145/3592433.
+- Martin-Brualla, R., Radwan, N., Sajjadi, M.S.M., Barron, J.T., Dosovitskiy, A., Duckworth, D., 2021. NeRF
+  in the wild: Neural radiance fields for unconstrained photo collections. In: Proc. IEEE/CVF CVPR,
+  pp. 7210–7219.
+- Matrone, F., Lingua, A., Pierdicca, R., Malinverni, E.S., Paolanti, M., Grilli, E., Remondino, F.,
+  Murtiyoso, A., Landes, T., 2020. A benchmark for large-scale heritage point cloud semantic segmentation.
+  Int. Arch. Photogramm. Remote Sens. Spatial Inf. Sci. XLIII-B2-2020, 1419–1426.
+- Mildenhall, B., Srinivasan, P.P., Tancik, M., Barron, J.T., Ramamoorthi, R., Ng, R., 2020. NeRF:
+  Representing scenes as neural radiance fields for view synthesis. In: Proc. ECCV, pp. 405–421.
+- Pellis, E., Masiero, A., Tucci, G., Betti, M., Grussenmeyer, P., 2021. Assembling an image and point
+  cloud dataset for heritage building semantic segmentation. Int. Arch. Photogramm. Remote Sens. Spatial
+  Inf. Sci. XLVI-M-1-2021, 539–546.
+- Pellis, E., Masiero, A., Betti, M., Tucci, G., Grussenmeyer, P., 2025. A photogrammetric image-point
+  dataset for the semantic segmentation of heritage buildings. Data in Brief 60, 111661.
+  doi:10.1016/j.dib.2025.111661. Data: Zenodo 14626611 (CC BY 4.0).
+- Remondino, F., 2011. Heritage recording and 3D modeling with photogrammetry and 3D scanning. Remote
+  Sensing 3 (6), 1104–1138. doi:10.3390/rs3061104.
+- Remondino, F., Karami, A., Yan, Z., Mazzacca, G., Rigon, S., Qin, R., 2023. A critical analysis of
+  NeRF-based 3D reconstruction. Remote Sensing 15 (14), 3585. doi:10.3390/rs15143585.
+- Schönberger, J.L., Frahm, J.-M., 2016. Structure-from-motion revisited. In: Proc. IEEE CVPR,
+  pp. 4104–4113.
+- Umeyama, S., 1991. Least-squares estimation of transformation parameters between two point patterns.
+  IEEE Trans. Pattern Anal. Mach. Intell. 13 (4), 376–380.
+- Virtanen, P., et al., 2020. SciPy 1.0: Fundamental algorithms for scientific computing in Python.
+  Nature Methods 17, 261–272.
+- Wang, Z., Bovik, A.C., Sheikh, H.R., Simoncelli, E.P., 2004. Image quality assessment: From error
+  visibility to structural similarity. IEEE Trans. Image Process. 13 (4), 600–612.
+- Ye, V., Li, R., Kerr, J., Turkulainen, M., Yi, B., Pan, Z., Seiskari, O., Ye, J., Hu, J., Tancik, M.,
+  Kanazawa, A., 2025. gsplat: An open-source library for Gaussian splatting. J. Mach. Learn. Res. 26 (34),
+  1–17.
+- Zhang, R., Isola, P., Efros, A.A., Shechtman, E., Wang, O., 2018. The unreasonable effectiveness of deep
+  features as a perceptual metric. In: Proc. IEEE CVPR, pp. 586–595.
 
 ## Costs
 
