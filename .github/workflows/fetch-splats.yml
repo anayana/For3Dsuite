@@ -1,0 +1,47 @@
+name: fetch-splats
+
+# Holt die Pellis-Szenen (schlanke .ply, scene.json, thumb.jpg) von einem laufenden RunPod-Pod
+# (Port 8000, /workspace/web) ins Repo: docs/media/scenes/pellis-*/, docs/data/scene-pellis-*.json,
+# Eintraege in docs/data/scenes.json. Ausloeser: .github/splats-request.txt
+# (erste nicht kommentierte Zeile = Basis-URL, z. B. https://<podid>-8000.proxy.runpod.net).
+on:
+  push:
+    paths: [".github/splats-request.txt"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.ref_name }}" }
+      - run: |
+          BASE=$(grep -v '^#' .github/splats-request.txt | grep -E '^https?://' | head -1 | sed 's#/*$##')
+          echo "Basis: $BASE"
+          for b in pellis-5-cb pellis-3-ss pellis-2-osa; do
+            n=${b#pellis-}; n=${n//-/_}
+            D=docs/media/scenes/$b; mkdir -p $D
+            curl -sfL "$BASE/$b/$n.ply" -o $D/$n.ply || { echo "fehlt: $b"; rm -rf $D; continue; }
+            curl -sfL "$BASE/$b/thumb.jpg" -o $D/thumb.jpg
+            curl -sfL "$BASE/$b/scene.json" -o docs/data/scene-$b.json
+            curl -sfL "$BASE/$b/entry.json" -o /tmp/entry-$b.json
+            ls -la $D
+          done
+          python3 - <<'PY'
+          import glob, json
+          p = "docs/data/scenes.json"
+          scenes = json.load(open(p))
+          for f in sorted(glob.glob("/tmp/entry-*.json")):
+              e = json.load(open(f))
+              scenes = [s for s in scenes if s["id"] != e["id"]] + [e]
+              print("Eintrag", e["id"])
+          json.dump(scenes, open(p, "w"), ensure_ascii=False)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add docs && git commit -m "Pellis-Szenen fuer die Suite (fetch-splats)" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && exit 0; sleep $((i*5)); done; exit 1

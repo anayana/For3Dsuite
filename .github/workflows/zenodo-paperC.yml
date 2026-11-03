@@ -1,0 +1,76 @@
+name: zenodo-paperC
+
+# Laedt das schlanke Archiv fuer Paper C (scripts/paperC_zenodo_zip.py) auf Zenodo hoch,
+# setzt die Metadaten, veroeffentlicht und schreibt die DOI nach
+# Paper_ODT/Forst_Benchmark_Paper/zenodo/doi.txt. Braucht das Repo-Secret ZENODO_TOKEN
+# (Zenodo -> Applications -> Personal access token, Rechte deposit:write + deposit:actions).
+# Ausloeser: Aenderung an .github/zenodo-request.txt (oder manuell).
+on:
+  push:
+    paths: [".github/zenodo-request.txt"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: zenodo-paperC
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.ref_name }}" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install requests
+      - run: python scripts/paperC_zenodo_zip.py out/paperC_code_results.zip
+      - name: Hochladen und veroeffentlichen
+        env:
+          ZENODO_TOKEN: ${{ secrets.ZENODO_TOKEN }}
+        run: |
+          python - <<'PY'
+          import os, sys, requests
+          tok = os.environ.get("ZENODO_TOKEN")
+          if not tok:
+              sys.exit("Secret ZENODO_TOKEN fehlt")
+          api = "https://zenodo.org/api/deposit/depositions"
+          h = {"Authorization": f"Bearer {tok}"}
+          r = requests.post(api, json={}, headers=h, timeout=60); print("create", r.status_code); r.raise_for_status()
+          dep = r.json(); did = dep["id"]; bucket = dep["links"]["bucket"]
+          try:
+              with open("out/paperC_code_results.zip", "rb") as f:
+                  r = requests.put(f"{bucket}/paperC_code_results.zip", data=f, headers=h, timeout=600)
+              print("upload", r.status_code); r.raise_for_status()
+              meta = {"metadata": {
+                  "upload_type": "software",
+                  "title": "Code and results for: How much of the stem must a terrestrial laser scanner see? "
+                           "Diameter error as a function of circumferential coverage",
+                  "creators": [{"name": "Naya, Angel", "affiliation": "Independent Researcher, Berlin, Germany"}],
+                  "description": "Scripts (Monte Carlo, HELIOS++ simulation and evaluation, real-data analyses of "
+                                 "SegmentedForests and LAUT, 3DFin with reduced coverage, bootstrap, figures) and all "
+                                 "result tables of the study. Third-party point clouds are not included; see README.",
+                  "license": "gpl-3.0-or-later",
+                  "access_right": "open",
+                  "keywords": ["terrestrial laser scanning", "diameter at breast height", "occlusion",
+                               "circle fitting", "HELIOS++", "3DFin"],
+              }}
+              r = requests.put(f"{api}/{did}", json=meta, headers=h, timeout=60)
+              print("metadata", r.status_code, r.text[:500]); r.raise_for_status()
+              r = requests.post(f"{api}/{did}/actions/publish", headers=h, timeout=120)
+              print("publish", r.status_code, r.text[:300]); r.raise_for_status()
+          except Exception:
+              requests.delete(f"{api}/{did}", headers=h, timeout=60)   # Entwurf nicht liegen lassen
+              raise
+          pub = r.json(); doi = pub.get("doi") or pub["metadata"]["doi"]
+          print("DOI", doi, pub["links"].get("html"))
+          os.makedirs("Paper_ODT/Forst_Benchmark_Paper/zenodo", exist_ok=True)
+          open("Paper_ODT/Forst_Benchmark_Paper/zenodo/doi.txt", "w").write(f"{doi}\n{pub['links'].get('html', '')}\n")
+          PY
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add Paper_ODT/Forst_Benchmark_Paper/zenodo/doi.txt && git commit -m "Paper C: Zenodo-DOI" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && exit 0; sleep $((i*5)); done; exit 1

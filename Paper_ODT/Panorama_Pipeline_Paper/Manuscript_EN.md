@@ -25,7 +25,7 @@ Software, container recipe, and evaluation code are openly available; all exampl
 data are third-party open data.
 
 **Keywords:** panorama stitching; 360° imaging; terrestrial laser scanning; E57;
-open-source; self-hosting; Docker; web visualization
+open-source software; web visualization
 
 ## 1. Introduction
 
@@ -229,16 +229,14 @@ Scale; Brooke, 1996; Sauro and Lewis, 2016).
 - Program languages: Python, JavaScript
 - Program size: about 2 MB of source code
 - License: GNU General Public License v3.0 or later (GPL-3.0-or-later)
-- Source code: https://github.com/anayana/For3Dsuite
-- Archived version (v1.0): https://doi.org/10.5281/zenodo.23323560
+- Source code (archived version v1.0): https://doi.org/10.5281/zenodo.23323560
 
 ## Data availability
 
 All data used in this work are third-party open data. Terrestrial laser scans:
 Renon / ICOS IT-Ren (Leica BLK360, E57; CC BY 4.0; Chang et al., 2025) and SegmentedForests (MIT; Laino et al., 2026). Reference panoramas: eleven Poly Haven HDRIs (CC0,
-https://polyhaven.com). Real multi-image capture: PASSTA LunchRoom (CC BY 4.0; Meneghetti et al., 2015). Source code, container recipe, and evaluation scripts:
-https://github.com/anayana/For3Dsuite (GPL-3.0-or-later), archived at
-https://doi.org/10.5281/zenodo.23323560.
+https://polyhaven.com). Real multi-image capture: PASSTA LunchRoom (CC BY 4.0; Meneghetti et al., 2015). Source code, container recipe, and evaluation scripts
+(GPL-3.0-or-later) are archived at https://doi.org/10.5281/zenodo.23323560.
 
 ## Declaration of competing interest
 

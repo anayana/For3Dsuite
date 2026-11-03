@@ -1,0 +1,45 @@
+/* DATA DESCRIPTION:
+Citation:	Weiser, Hannah; Schäfer, Jannika; Winiwarter, Lukas; Krašovec, Nina; Seitz, Christian; Schimka, Marian; Anders, Katharina; Baete, Daria; Braz, Andressa Soarez; Brand, Johannes; Debroize, Denis; Kuss, Paula; Martin, Lioba Lucia; Mayer, Angelo; Schrempp, Torben; Schwarz, Lisa-Maricia; Ulrich, Veit; Fassnacht, Fabian E; Höfle, Bernhard (2022): Terrestrial, UAV-borne, and airborne laser scanning point clouds of central European forest plots, Germany, with extracted individual trees and manual forest inventory measurements [dataset]. PANGAEA, https://doi.org/10.1594/PANGAEA.942856
+Abstract:	Laser scanning point clouds of forest stands were acquired in southwest Germany in 2019 and 2020 from different platforms: an aircraft, an uncrewed aerial vehicle (UAV) and a ground-based tripod. The UAV-borne and airborne laser scanning campaigns cover twelve forest plots of approximately 1 ha. The plots are located in mixed central European forests close to Bretten and Karlsruhe, in the federal state of Baden-Württemberg, Germany. Terrestrial laser scanning was performed in selected locations within the twelve forest plots. Airborne and terrestrial laser scanning point clouds were acquired under leaf-on conditions, UAV-borne laser scans were acquired both under leaf-on and later under leaf-off conditions. In addition to the laser scanning campaigns, forest inventory tree properties (species, height, diameter at breast height, crown base height, crown diameter) were measured in-situ during summer 2019 in six of the twelve 1-ha plots. Single tree point clouds were extracted from the different laser scanning datasets and matched to the field measurements. For each tree entry, point clouds, tree species, position, and field-measured and point cloud-derived tree metrics are provided. For 249 trees, point clouds from all three platforms are available. The tree models form the basis of a single tree database covering a range of species typical for central European forests which is currently being established in the framework of the SYSSIFOSS project.
+Keyword(s):	3D point clouds; Central Europe; ecology; Forest; forest inventory; Germany; Lidar; tree; vegetation
+Further details:	Data Sheet RIEGL miniVUX-1UAV, 2020-10-06 (URI: https://download.pangaea.de/reference/109169/attachments/RIEGL_miniVUX-1UAV_Datasheet_2020-10-06.pdf)
+	Data Sheet RIEGL VQ-780i, 2019-09-02 (URI: https://download.pangaea.de/reference/109170/attachments/RIEGL_VQ-780i_Datasheet_2019-09-02.pdf)
+	Data Sheet VZ-400, 2017-06-14 (URI: https://download.pangaea.de/reference/109168/attachments/10_DataSheet_VZ-400_2017-06-14.pdf)
+	Weiser, Hannah; Schäfer, Jannika; Winiwarter, Lukas; Krašovec, Nina; Seitz, Christian; Schimka, Marian; Anders, Katharina; Baete, Daria; Braz, Andressa Soarez; Brand, Johannes; Debroize, Denis; Kuss, Paula; Martin, Lioba Lucia; Mayer, Angelo; Schrempp, Torben; Schwarz, Lisa-Maricia; Ulrich, Veit; Fassnacht, Fabian E; Höfle, Bernhard (2022): Terrestrial, UAV-borne, and airborne laser scanning point clouds of central European forest plots with extracted individual trees and manual forest inventory measurements. https://download.pangaea.de/reference/109167/attachments/SYSSIFOSS_2019-2020_meta_4.pdf
+Project(s):	Synthetic structural remote sensing data for improved forest inventory models (SYSSIFOSS) (URI: https://www.geog.uni-heidelberg.de/en/3dgeo/projects-of-the-3dgeo-research-group/syssifoss)
+Funding:	German Research Foundation (DFG) (URI: http://www.dfg.de/en/), grant/award no. 411263134: Synthetic structural remote sensing data for improved forest inventory models
+Coverage:	MEDIAN LATITUDE: 49.015441 * MEDIAN LONGITUDE: 8.628137 * SOUTH-BOUND LATITUDE: 48.995898 * WEST-BOUND LONGITUDE: 8.416157 * NORTH-BOUND LATITUDE: 49.041270 * EAST-BOUND LONGITUDE: 8.716962
+Event(s):	BR01 * LATITUDE: 49.013876 * LONGITUDE: 8.682414 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	BR02 * LATITUDE: 49.012695 * LONGITUDE: 8.701507 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	BR03 * LATITUDE: 49.014794 * LONGITUDE: 8.700568 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	BR04 * LATITUDE: 49.015236 * LONGITUDE: 8.684674 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	BR05 * LATITUDE: 48.995898 * LONGITUDE: 8.709638 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	BR06 * LATITUDE: 48.997443 * LONGITUDE: 8.716962 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	BR07 * LATITUDE: 48.997229 * LONGITUDE: 8.708598 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	BR08 * LATITUDE: 49.013902 * LONGITUDE: 8.698501 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	KA09 * LATITUDE: 49.041270 * LONGITUDE: 8.434703 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	KA10 * LATITUDE: 49.028562 * LONGITUDE: 8.416157 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	KA11 * LATITUDE: 49.034856 * LONGITUDE: 8.427502 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+	SP02 * LATITUDE: 49.019526 * LONGITUDE: 8.656420 * LOCATION: Germany, Baden-Wuerttemberg * METHOD/DEVICE: Multiple investigations (MULT)
+Comment:	Version 2, 2022-03-31: Previous version doi:10.1594/PANGAEA.933426 contains errors due to data processing.
+Parameter(s):	Event label (Event) * PI: Weiser, Hannah (https://orcid.org/0000-0003-3256-7311, h.weiser@stud.uni-heidelberg.de)
+	Binary Object (File Size) [Bytes] (Binary (Size)) * PI: Weiser, Hannah (https://orcid.org/0000-0003-3256-7311, h.weiser@stud.uni-heidelberg.de)
+	Binary Object (Binary) * PI: Weiser, Hannah (https://orcid.org/0000-0003-3256-7311, h.weiser@stud.uni-heidelberg.de)
+License:	Creative Commons Attribution-ShareAlike 4.0 International (CC-BY-SA-4.0) (URI: https://creativecommons.org/licenses/by-sa/4.0/)
+Status:	Curation Level: Basic curation (URI: https://wiki.pangaea.de/wiki/Curation_levels)
+Size:	12 data points
+Files:	All files referred to in data matrix can be downloaded in one go as ZIP <https://download.pangaea.de/dataset/942856/allfiles.zip> or TAR <https://download.pangaea.de/dataset/942856/allfiles.tar> (PANGAEA user account required). To download single files, use the filename from data matrix appended to "https://download.pangaea.de/dataset/942856/files/".
+*/
+Event	Binary (Size) [Bytes]	Binary
+BR01	14.9 GBytes	BR01.zip
+BR02	18.4 GBytes	BR02.zip
+BR03	12.6 GBytes	BR03.zip
+BR04	5.2 GBytes	BR04.zip
+BR05	16.1 GBytes	BR05.zip
+BR06	8.7 GBytes	BR06.zip
+BR07	9 GBytes	BR07.zip
+BR08	12 GBytes	BR08.zip
+KA09	8.5 GBytes	KA09.zip
+KA10	7 GBytes	KA10.zip
+KA11	8.1 GBytes	KA11.zip
+SP02	9.8 GBytes	SP02.zip

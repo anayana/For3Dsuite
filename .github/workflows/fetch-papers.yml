@@ -1,0 +1,60 @@
+name: fetch-papers
+
+# Holt frei zugaengliche Volltexte verwandter Arbeiten (aus der Cloud-Umgebung
+# gesperrt) und committet NUR kurze Auszuege (Abstract + Saetze mit Schluessel-
+# woertern) als Lesenotizen nach Paper_ODT/Forst_Benchmark_Paper/lit/.
+# Keine Volltexte im Repo (Urheberrecht). Ausloeser: .github/papers-request.txt
+on:
+  push:
+    paths: [".github/papers-request.txt"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install pypdf
+      - run: |
+          mkdir -p raw Paper_ODT/Forst_Benchmark_Paper/lit
+          UA="Mozilla/5.0 (X11; Linux x86_64) research-bot"
+          UA2="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+          for u in "https://www.mdpi.com/1999-4907/8/6/184/pdf?version=1496385432" "https://www.mdpi.com/1999-4907/8/6/184/pdf" "https://mdpi-res.com/d_attachment/forests/forests-08-00184/article_deploy/forests-08-00184.pdf"; do
+            curl -sL -A "$UA2" -H "Accept: application/pdf" "$u" -o raw/abegg2017.pdf || true
+            head -c 4 raw/abegg2017.pdf | grep -q "%PDF" && break
+          done
+          head -c 300 raw/abegg2017.pdf; echo
+          curl -sL -A "$UA" "https://srs.bnu.edu.cn/docs/20210830175202006108.pdf" -o raw/li_scandesign.pdf || true
+          for f in raw/*.pdf; do
+            b=$(basename $f .pdf)
+            file $f
+            python3 -c "import sys,pypdf; r=pypdf.PdfReader(sys.argv[1]); open(sys.argv[2],'w').write('\n'.join((p.extract_text() or '') for p in r.pages))" $f raw/$b.txt || continue
+            python3 - "$b" <<'PY'
+          import re, sys
+          b = sys.argv[1]
+          t = open(f"raw/{b}.txt", errors="ignore").read()
+          t1 = re.sub(r"\s+", " ", t)
+          head = t1[:3500]
+          sents = re.split(r"(?<=[.!?])\s+", t1)
+          keys = re.compile(r"\b(DBH|diameter|arc|circumference|coverage|visib|occlu|circle|cylinder|fitting|RMSE|bias|scan position|HELIOS|completeness|ring)\b", re.I)
+          hits = [s for s in sents if keys.search(s) and 40 < len(s) < 600]
+          out = [f"# Lesenotiz {b} (automatische Auszuege, kein Volltext)\n", "## Anfang (Titel, Autoren, Abstract)\n", head, "\n\n## Saetze mit Schluesselwoertern\n"]
+          out += [f"- {s}" for s in hits[:120]]
+          open(f"Paper_ODT/Forst_Benchmark_Paper/lit/{b}.md", "w").write("\n".join(out))
+          print(b, len(t), "Zeichen,", len(hits), "Treffer")
+          PY
+          done
+          ls -la raw Paper_ODT/Forst_Benchmark_Paper/lit
+      - run: python3 scripts/ci_refcheck.py
+      - run: |
+          git config user.name "fetch-papers bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add Paper_ODT/Forst_Benchmark_Paper/lit
+          git commit -m "Lesenotizen: Abegg 2017, Li (Scan-Design) – Auszuege (CI)" || echo "nichts Neues"
+          for i in 1 2 3 4 5; do git pull --rebase origin "${GITHUB_REF_NAME}" && git push && break; sleep 10; done

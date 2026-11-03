@@ -33,6 +33,7 @@ def main():
     b.setLasOutput(False)          # schlichtes ASCII-XYZ je Leg
     b.setZipOutput(False)
     b.setExportToFile(True)
+    b.setFinalOutput(False)        # nichts im Speicher sammeln (sonst bad_alloc bei vielen Legs)
     b.setRebuildScene(True)
     b.setNumThreads(0)             # alle Kerne
     b.setCallbackFrequency(0)
@@ -43,7 +44,10 @@ def main():
     while sim.isStarted() and not sim.isFinished():
         time.sleep(2)
         print(f"  ... laeuft ({time.time()-t0:.0f}s)", flush=True)
-    sim.join()
+    try:
+        sim.join()
+    except AttributeError:         # ohne FinalOutput liefert pyhelios kein Ausgabeobjekt
+        pass
     print(f"fertig nach {time.time()-t0:.0f}s -> {args.outdir}", flush=True)
 
 

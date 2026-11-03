@@ -196,6 +196,31 @@ Konzept: [BAUSTEINE_4_5_1.md](BAUSTEINE_4_5_1.md).
   (GPLv3) läuft als isolierter Java-Dienst; die Suite spricht ihn nur über
   HTTP/JSON an.
 
+## 3D Gaussian Splatting gegen Vermessung (Kulturerbe, Paper B)
+
+Prüft, wie genau ein 3DGS-Modell gegen eine photogrammetrische Referenzpunktwolke ist — je Bauteilklasse,
+auf dem offenen Pellis-Datensatz (Zenodo 14626611, CC BY 4.0). Ein Befehl auf einer gemieteten GPU
+(z. B. RunPod, Template „PyTorch 2.4“), Terminal im Pod:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/anayana/For3Dsuite/<COMMIT>/scripts/pellis_batch.sh \
+  | S=<COMMIT> BUILDINGS="5_CB 3_SS 2_OSA" bash
+cat /workspace/ERGEBNISSE.txt      # fertig, wenn PELLIS-RUN-ENDE dasteht; danach Pod löschen
+```
+
+| Baustein | Zweck |
+|---|---|
+| [pellis_to_colmap.py](scripts/pellis_to_colmap.py) | gelieferte Kameraparameter → COLMAP, Posen im System der Punktwolke, Startwolke |
+| [train_pellis_runpod.sh](scripts/train_pellis_runpod.sh) | Entpacken, Umwandeln, gsplat 1.5.3, PLY im Referenzsystem, Geometrieprüfung |
+| [eval_splat_geometry.py](scripts/eval_splat_geometry.py) | Splat-Zentren gegen Referenz: Median/95 %, Vollständigkeit 2/5/10 cm je Klasse |
+| [colmap_align.py](scripts/colmap_align.py), [splat_diag.py](scripts/splat_diag.py) | Diagnose: eigene Posen, Testbilder |
+| [clean_splat.py](scripts/clean_splat.py) | Schwebeteilchen (Floater) aus einer .ply entfernen |
+| [paperB_figures.py](scripts/paperB_figures.py) | Abbildungen aus den Ergebnistabellen |
+
+Ergebnisse (drei Gebäude): Median 12–14 cm, Vollständigkeit bei 10 cm 0,55–0,72, Bögen 4–6 cm —
+[Paper_ODT/Heritage_Toolkit_Paper/](Paper_ODT/Heritage_Toolkit_Paper/). Wichtig: Die Pellis-Fotos sind
+bereits entzerrt (`UNDIST=0`, Standard in `pellis_batch.sh`).
+
 ## Nächste Schritte / Ausbaustufen
 
 - **Nachbearbeitung**: GIMP oder darktable für Farbkorrektur, Retusche des Stativ-Nadirs.

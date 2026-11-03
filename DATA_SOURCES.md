@@ -55,6 +55,7 @@ Reynolds (Johnson-Porträt), Titelseite des Dictionary (1755), Northcote zugesch
 | Datensatz | Verwendung | Lizenz | Quelle | Status |
 |---|---|---|---|---|
 | PASSTA LunchRoom (Meneghetti, Danelljan, Felsberg 2015) | Paper A: realer Aufnahmesatz (72 Fotos) | CC BY 4.0 | [10.5281/zenodo.19663081](https://doi.org/10.5281/zenodo.19663081) | ✅ |
+| Images&PointClouds Cultural Heritage Dataset (Pellis, Masiero, Betti, Tucci, Grussenmeyer 2025, Data in Brief 60, [10.1016/j.dib.2025.111661](https://doi.org/10.1016/j.dib.2025.111661)) | Paper B: 3DGS gegen Referenzwolke (`pellis_to_colmap.py`) | CC BY 4.0 (Zenodo-Seite, vom Nutzer bestätigt 13.10.2026) | [zenodo.org/records/14626611](https://zenodo.org/records/14626611) | ✅ |
 | Wytham Woods (Calders et al.) | QSM-Benchmark (`bench_qsm_wytham.py`) | CC BY 4.0 | [10.5281/zenodo.7307956](https://doi.org/10.5281/zenodo.7307956) | 🔎 |
 | TreeScope v1.0 ([arXiv 2310.02162](https://arxiv.org/abs/2310.02162)) | Detektions-/BHD-Benchmark (`validate_treescope.py`) | **keine Lizenz gefunden** ([GitHub](https://github.com/KumarRobotics/treescope)) | tnl.treescope.org | ⚠️ als Benchmark zitieren ok, nicht weitergeben |
 | `hechingen-site3` | eigene Aufnahme, nur lokal | nicht freigegeben | — | bewusst zurückgehalten |

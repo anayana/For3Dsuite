@@ -1,0 +1,39 @@
+Quelle: https://help.zenodo.org/docs/github/enable-repository/
+
+Enable a repository | Zenodo
+Help
+FAQ
+Docs
+Guides
+GitHub and Software
+Enable a repository
+Describe software
+Archive software
+Docs
+GitHub and Software
+Enable a repository
+Enable a repository
+This guide will walk you through the steps to enable a GitHub repository for integration, ensuring it is properly linked. Once connected, new releases from the repository will be automatically ingested and archived.
+As a prerequisite, make sure you have a connected GitHub account. Learn here how to connect your account here:
+Linking your GitHub/ORCID/OpenAIRE account
+Enable a repository
+1
+Click the profile menu in the header and click
+GitHub
+2
+Click
+Sync now
+in the header
+3
+Find a repository you wish to enable, then toggle the slider to connect it to Zenodo
+4
+The repository is now connected to Zenodo:
+5
+Refresh the page to update the list of enabled repositories
+Couldn't find the answer to your question?
+Contact us
+.
+This site uses cookies. Find out more on
+how we use cookies
+Accept all cookies
+Accept only essential cookies
