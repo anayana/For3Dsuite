@@ -90,9 +90,12 @@ Three of the five buildings are used:
 5_CB images: 3872 × 2592 px, f = 3054.46 px. The transforms of 3_SS and 2_OSA are stored with rounded
 coefficients (orthogonality deviation ≈ 1e-3); the rotation part is re-orthonormalised by SVD.
 
-Labels (ArCH order, confirmed for 0 = arch, 1 = column; 2–9 in list order, **10 not documented —
-check article**): 0 arch, 1 column, 2 moulding, 3 floor, 4 door/window, 5 wall, 6 stair, 7 vault,
-8 roof, 9 other, 10 [TODO].
+Classes (Pellis et al., 2025, following ArCH): 0 arch, 1 column, 2 moulding, 3 floor, 4 door/window,
+5 wall, 6 stair, 7 vault, 8 roof, 9 other; 10 background (introduced for the images; in the point cloud of
+5_CB it marks points not assigned to a building element). The reference cloud was produced
+photogrammetrically (Agisoft Metashape), scaled and placed in a local metric system by alignment with a TLS
+point cloud (manual pre-alignment + ICP), cleaned and subsampled to a minimum point spacing of 0.01 m
+(Pellis et al., 2025). It is therefore a photogrammetric reference in TLS scale, not an independent TLS survey.
 
 ### 3.2 Camera model
 
@@ -141,9 +144,8 @@ Separate runs with every 8th image held out: PSNR, SSIM, LPIPS (gsplat), plus ex
 | 7 vault | 27 152 | 11.4 cm | 39.9 cm | 0.03 / 0.29 / 0.74 |
 | 8 roof | 81 154 | 13.3 cm | 472.8 cm | 0.02 / 0.19 / 0.59 |
 | 9 other | 7 785 | 4.7 cm | 99.5 cm | 0.08 / 0.48 / 0.86 |
-| 10 [TODO] | 27 893 | 59.7 cm | 483.5 cm | 0.00 / 0.01 / 0.03 |
+| 10 background | 27 893 | 59.7 cm | 483.5 cm | 0.00 / 0.01 / 0.03 |
 
-(Klassennamen 2–10 noch gegen den Artikel prüfen.)
 
 Befund: Gut beobachtete, kontrastreiche Bauteile 4–7 cm; Boden und Dach schlechter (flache Blickwinkel,
 wenig Textur bzw. kaum Sicht von unten); 95-%-Werte > 1 m = Schwebeteilchen (floaters).
@@ -251,8 +253,8 @@ Zenodo, doi:[DOI nach Freigabe des Zenodo-Release] (GPL-3.0-or-later; tables CC 
 - Mildenhall, B., Srinivasan, P.P., Tancik, M., Barron, J.T., Ramamoorthi, R., Ng, R., 2020. NeRF:
   Representing scenes as neural radiance fields for view synthesis. In: Proc. ECCV, pp. 405–421.
 - Pellis, E., Masiero, A., Tucci, G., Betti, M., Grussenmeyer, P., 2021. Assembling an image and point
-  cloud dataset for heritage building semantic segmentation. Int. Arch. Photogramm. Remote Sens. Spatial
-  Inf. Sci. XLVI-M-1-2021, 539–546.
+  cloud dataset for heritage buildings semantic segmentation. Int. Arch. Photogramm. Remote Sens. Spatial
+  Inf. Sci. XLVI-M-1-2021, 539–546. doi:10.5194/isprs-archives-XLVI-M-1-2021-539-2021.
 - Pellis, E., Masiero, A., Betti, M., Tucci, G., Grussenmeyer, P., 2025. A photogrammetric image-point
   dataset for the semantic segmentation of heritage buildings. Data in Brief 60, 111661.
   doi:10.1016/j.dib.2025.111661. Data: Zenodo 14626611 (CC BY 4.0).

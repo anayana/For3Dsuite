@@ -77,8 +77,7 @@ Kamerahöhen danach 1,8–9,4).
 ## Label-Nummern (02.11.2026, aus Websuche; Artikel selbst nicht abrufbar — doi.org/zenodo/PMC in dieser Sitzung gesperrt)
 
 ArCH-Klassen; bestätigt 0 = arch, 1 = column. Vermutlich in Listenreihenfolge: 2 moulding, 3 floor,
-4 door/window, 5 wall, 6 stair, 7 vault, 8 roof, 9 other. **10 ungeklärt** (Artikel lesen:
-https://pmc.ncbi.nlm.nih.gov/articles/PMC12159912/).
+4 door/window, 5 wall, 6 stair, 7 vault, 8 roof, 9 other. **Bestätigt (Artikel, PMC12159912, 03.11.2026): 0 arch … 9 other wie vermutet; 10 = background.**
 
 ## Offene Punkte
 
