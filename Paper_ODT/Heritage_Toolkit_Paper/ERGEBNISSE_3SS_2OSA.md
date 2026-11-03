@@ -57,3 +57,16 @@ sind gut abgedeckt, zusätzlich hängen viele Schwebeteilchen in ihrer Nähe.
 
 Befund über alle drei: Median 12–14 cm, Vollständigkeit bei 10 cm 0,55–0,72; Bögen (0) überall 4–6 cm;
 Boden (3) überall am schlechtesten; Schwebeteilchen treiben die 95-%-Werte auf Meter.
+
+## Wiederholung mit Szenen-Sicherung (03.11.2026, 14:47–17:12 UTC)
+
+RTX A4000 (0,17 $/h, ≈ 0,41 $), gleiche Einstellungen, alle drei Gebäude auf einem Pod; Splats diesmal
+gesichert (schlanke .ply SH0 in `docs/media/scenes/pellis-*/`, über Workflow `fetch-splats`).
+
+| Gebäude | Median | 95 % | Vollst. 2/5/10 cm | Szene |
+|---|---|---|---|---|
+| 5_CB | 11,4 cm (vorher 12,0) | 204,7 cm | 0,03 / 0,24 / 0,59 | 415 667 Gaussians, 28 MB |
+| 3_SS | 12,8 cm (vorher 14,2) | 2000,7 cm | 0,02 / 0,20 / 0,55 | 600 000 Gaussians, 41 MB |
+| 2_OSA | 12,6 cm (vorher 13,0) | 177,8 cm | 0,03 / 0,25 / 0,72 | 486 584 Gaussians, 33 MB |
+
+Vollständigkeit identisch, Median ±1,4 cm → Ergebnisse reproduzierbar (Zufall im Training).
