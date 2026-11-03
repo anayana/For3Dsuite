@@ -126,8 +126,11 @@ def parse_transform(path):
     s = np.cbrt(np.linalg.det(A))
     R = A / s
     dev = np.abs(R @ R.T - np.eye(3)).max()
-    if s <= 0 or dev > 1e-4:
+    # Matrizen sind gerundet abgelegt (3_SS, 2_OSA: Abw. ~1e-3) -> bis 1e-2 zulassen, R orthonormieren
+    if s <= 0 or dev > 1e-2:
         sys.exit(f"FEHLER: {path}: keine Aehnlichkeitstransformation (s={s:.4f}, Abw. {dev:.1e})")
+    U, _, Vt = np.linalg.svd(R)
+    R = U @ Vt
     return s, R, t
 
 
