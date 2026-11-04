@@ -3,7 +3,7 @@
 %
 
 **Author:** Angel Naya, Independent Researcher, Berlin, Germany\
-**Corresponding author:** Angel Naya, angel.naya@posteo.de
+**Corresponding author:** Angel Naya, angel.nayaposteo.de
 
 
 ## Abstract
@@ -193,7 +193,7 @@ crossing the band, the least-squares fits collapse: at 225–270° visible arc o
 (geometric), 9 % (cylinder) and 26 % (Huber) of stems are within 2 cm, and at most 19–43 % beyond
 270°; the median error above 180° is +15 to +42 cm because branch points pull the circle outwards.
 RANSAC is practically unaffected (71 %, 79 % and 89 % at 135–180°, 180–225° and 225–270°, versus
-73 %, 80 % and 90 % without branches). Hough degrades (43 % instead of 70 % at 225–270°; Fig. 6).
+73 %, 80 % and 90 % without branches). Hough degrades (43 % instead of 70 % at 225–270°; Fig. 3).
 
 **Uncertainty of the thresholds.** The cluster bootstrap places the 80 % point of the Kasa, cylinder
 and RANSAC fits in the 180–225° class for the pooled HELIOS stands (95 % CI: 180–225° to 225–270°),
@@ -208,7 +208,7 @@ The 3DFin rule of ≥ 9/16 sectors corresponds to a median geometric arc of 190�
 separates stems with 92 % (Kasa) of estimates within 2 cm from those with 53 % — it sits close to the
 arc at which errors become small in these simulations.
 
-Coverage depends more on the spread than on the number of positions (Fig. 3). Four grid positions
+Coverage depends more on the spread than on the number of positions (Fig. 5). Four grid positions
 bring 89 %, 82 % and 80 % of stems above 180° in the three stands; six bring 96–98 %. Four positions
 clustered near the centre reach 89 %, 71 % and 56 %, i.e. the penalty of clustering grows with stand
 density. Random placement performs close to the grid.
@@ -226,7 +226,7 @@ positions and fitted centres agree to 6 cm (median). Coverage was reduced by ret
 arc at random orientation (5 repetitions per stem and arc). Breast-height bands were extracted with
 `ext_band.py`.
 
-**Stem points only** (SegmentedForests, Fig. 5a). The Kasa fit reaches 56 % of stems within 2 cm at
+**Stem points only** (SegmentedForests, Fig. 6a). The Kasa fit reaches 56 % of stems within 2 cm at
 180°, 72 % at 202.5°, 82 % at 225° and 91 % at 270°; its RMSE falls from 6.1 cm at 135° to 2.9 cm at
 202.5° and 1.5 cm at 270°, with a negative bias on short arcs (−4.4 cm at 135°, −1.0 cm at 202.5°)
 as predicted by the Monte Carlo experiment. On these thinner stems (median DBH 16 cm), real bark
@@ -234,7 +234,7 @@ shifts the 80 % point from about 180° (HELIOS) to about 225°. RANSAC with a 12
 is weaker on clean real stems (87 % at 360°), because rough bark excludes valid points. Hough reaches
 only 58 % even at 360°.
 
-**With surrounding points** (Fig. 5b, c). When branches, understorey and unlabelled points within
+**With surrounding points** (Fig. 6b, c). When branches, understorey and unlabelled points within
 30 cm (SegmentedForests) or 25 cm (LAUT) remain, the least-squares fits saturate: at full coverage only
 55 % (Kasa) and 64 % (geometric) of SegmentedForests stems are within 2 cm, and 35–38 % of LAUT trees
 against field DBH. RANSAC rises with coverage to 84 % (SegmentedForests) and 62 % (LAUT) and is the
@@ -353,22 +353,22 @@ outliers, (d) combined perturbations. Dashed line: 2 cm; dotted line: 202.5° (3
 DBH and (b) share of stems within ±2 cm (failures counted as outside) versus geometrically visible
 arc.](figures/fig2_helios_error_vs_arc.png)
 
-![**Figure 3.** Share of stems with ≥ 180° visible arc versus number of scan positions for grid, random
-(mean of 10 draws) and clustered placement in stands of 400, 800 and 1200 stems ha⁻¹.](figures/fig3_design_coverage.png)
+![**Figure 3.** Effect of branches at breast height: share of stems within ±2 cm versus geometrically
+visible arc in (a) stand S1b and (b) the same stand with branches crossing the 1.05–1.55 m band
+(S1b-B); stem and branch points are segmented together, as after a real stem segmentation. Dotted
+line: 202.5°.](figures/fig3_branches.png)
 
 ![**Figure 4.** Occupied 22.5° sectors (3DFin rule) versus geometrically visible arc in the HELIOS++
 simulations; boxes show quartiles, whiskers 1.5 IQR. Dashed lines: 202.5° sector rule and 180°
 visible arc.](figures/fig4_sector_vs_geometric.png){width=55%}
 
-![**Figure 5.** Real point clouds, share of stems within ±2 cm versus retained arc. (a) SegmentedForests,
+![**Figure 5.** Share of stems with ≥ 180° visible arc versus number of scan positions for grid, random
+(mean of 10 draws) and clustered placement in stands of 400, 800 and 1200 stems ha⁻¹.](figures/fig5_design_coverage.png)
+
+![**Figure 6.** Real point clouds, share of stems within ±2 cm versus retained arc. (a) SegmentedForests,
 stem points only (458 stems, reference: fit on full coverage); (b) the same stems with surrounding
 points within 30 cm; (c) LAUT, 460 well-covered trees against field DBH, with surrounding points within
-25 cm.](figures/fig5_real_data.png)
-
-![**Figure 6.** Effect of branches at breast height: share of stems within ±2 cm versus geometrically
-visible arc in (a) stand S1b and (b) the same stand with branches crossing the 1.05–1.55 m band
-(S1b-B); stem and branch points are segmented together, as after a real stem segmentation. Dotted
-line: 202.5°.](figures/fig6_branches.png)
+25 cm.](figures/fig6_real_data.png)
 
 ![**Figure 7.** 3DFin on twelve SegmentedForests plots with simulated reduced coverage (1–6 virtual scan
 positions): share of the 296 reference stems detected and with an accepted DBH, and share of accepted
