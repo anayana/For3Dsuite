@@ -16,6 +16,12 @@ MAXG="${MAXG:-600000}"             # max. Gaussians in der Web-Szene (SH0, ~68 B
 nohup bash -c '
   out() { tee -a /workspace/ERGEBNISSE.txt > /proc/1/fd/1 2>/dev/null || tee -a /workspace/ERGEBNISSE.txt; }
   mkdir -p /workspace/pellis
+  # GPU-Test zuerst: defekter Host (torch sieht keine CUDA) -> sofort melden statt Download/Training
+  if ! python -c "import torch,sys; sys.exit(0 if torch.cuda.is_available() else 1)" 2>/dev/null; then
+    nvidia-smi 2>&1 | head -5 | sed "s/^/GPU-FEHLER /" | out; echo "GPU-FEHLER: torch.cuda nicht verfuegbar" | out
+    exit 1
+  fi
+  python -c "import torch; print(\"GPU-OK\", torch.cuda.get_device_name(0), round(torch.cuda.get_device_properties(0).total_memory/2**30), \"GB\")" | out
   (apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq aria2 >/dev/null)
   for B in '"$BUILDINGS"'; do
     date -u +"START $B %H:%M" | out
