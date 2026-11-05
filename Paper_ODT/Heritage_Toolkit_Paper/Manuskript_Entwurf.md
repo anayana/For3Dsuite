@@ -230,7 +230,7 @@ comparison can be repeated and extended at no cost.
 ## Data and code availability
 
 Data: Pellis et al. (2025), Zenodo 14626611 (CC BY 4.0). Code, unit tests and all result tables:
-Zenodo, doi:10.5281/zenodo.23926783 (GPL-3.0-or-later; tables CC BY 4.0).
+Zenodo, doi:10.5281/zenodo.23976342 (GPL-3.0-or-later; tables CC BY 4.0).
 
 ## References
 
