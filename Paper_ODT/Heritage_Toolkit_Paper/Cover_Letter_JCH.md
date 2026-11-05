@@ -26,8 +26,9 @@ architectural class.
 The main findings are:
 
 - Across three historic buildings the median deviation of the Gaussian centres from the reference is
-  12.0–14.2 cm, with 55–72 % of the reference covered within 10 cm; arches reach 4–6 cm in all three,
-  while floors remain the weakest class.
+  12.3–13.7 cm at full image resolution, with 52–67 % of the reference covered within 10 cm; arches reach
+  5–6 cm in all three, while floors remain among the weakest classes. Half-resolution runs give the same
+  result, so higher resolution sharpens the renderings but not the geometry.
 - Held-out image quality on survey imagery mainly reflects capture coverage, not reconstruction fidelity,
   and is a misleading quality indicator for heritage use.
 - Re-applying distortion models to already undistorted survey images degrades both reconstruction and

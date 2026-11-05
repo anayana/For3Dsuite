@@ -11,9 +11,17 @@
 # Workflow fetch-splats holt sie ins Repo. Erst danach Pod loeschen.
 S="${S:?S (Commit) fehlt}"
 BUILDINGS="${BUILDINGS:-3_SS 2_OSA}"
+FACTOR="${FACTOR:-2}"              # 1 = volle Fotoaufloesung
+MAXG="${MAXG:-600000}"             # max. Gaussians in der Web-Szene (SH0, ~68 Byte je Gaussian)
 nohup bash -c '
   out() { tee -a /workspace/ERGEBNISSE.txt > /proc/1/fd/1 2>/dev/null || tee -a /workspace/ERGEBNISSE.txt; }
   mkdir -p /workspace/pellis
+  # GPU-Test zuerst: defekter Host (torch sieht keine CUDA) -> sofort melden statt Download/Training
+  if ! python -c "import torch,sys; sys.exit(0 if torch.cuda.is_available() else 1)" 2>/dev/null; then
+    nvidia-smi 2>&1 | head -5 | sed "s/^/GPU-FEHLER /" | out; echo "GPU-FEHLER: torch.cuda nicht verfuegbar" | out
+    exit 1
+  fi
+  python -c "import torch; print(\"GPU-OK\", torch.cuda.get_device_name(0), round(torch.cuda.get_device_properties(0).total_memory/2**30), \"GB\")" | out
   (apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq aria2 >/dev/null)
   for B in '"$BUILDINGS"'; do
     date -u +"START $B %H:%M" | out
@@ -21,18 +29,23 @@ nohup bash -c '
       --show-console-readout=false -c -d /workspace/pellis -o "$B.rar" \
       "https://zenodo.org/records/14626611/files/$B.rar?download=1"
     curl -fsSL "https://raw.githubusercontent.com/anayana/For3Dsuite/'"$S"'/scripts/train_pellis_runpod.sh" \
-      | BRANCH='"$S"' FORCE=1 STEPS=30000 UNDIST=0 TEST_EVERY=1000 bash -s -- "$B" > "/workspace/run_$B.log" 2>&1
+      | BRANCH='"$S"' FORCE=1 STEPS=30000 UNDIST=0 TEST_EVERY=1000 FACTOR='"$FACTOR"' bash -s -- "$B" > "/workspace/run_$B.log" 2>&1
     grep -E "Fotos:|PSNR|FEHLER|Error|Label|Referenz|Gaussians" "/workspace/run_$B.log" | sed "s/^/ERGEBNIS $B /" | out
     tail -3 "/workspace/run_$B.log" | sed "s/^/LOGENDE $B /" | out
     date -u +"FERTIG $B %H:%M" | out
     # Szene fuer die Suite sichern: schlanke .ply (SH0, max. 600k) + scene.json + thumb.jpg
     l=$(echo "$B" | tr "A-Z" "a-z"); WD="/workspace/web/pellis-$(echo "$l" | tr "_" "-")"; mkdir -p "$WD"
     if [ -f "/workspace/pellis/${B}_gaussians.ply" ]; then
-      for f in clean_splat.py pellis_scene.py; do
+      for f in clean_splat.py pellis_scene.py render_views.py; do
         curl -fsSL "https://raw.githubusercontent.com/anayana/For3Dsuite/'"$S"'/scripts/$f" -o "/workspace/$f"; done
-      python /workspace/clean_splat.py "/workspace/pellis/${B}_gaussians.ply" "$WD/$l.ply" --sh0 --max 600000 --keep 98 --max-scale 2 2>&1 | out
+      cp /workspace/render_views.py /workspace/pellis/gsplat/examples/ && (cd /workspace/pellis/gsplat/examples && \
+        python render_views.py "/workspace/pellis/${B}_colmap" '"$FACTOR"' "/workspace/pellis/${B}_gs" "$WD" 2>&1 | grep -v Warn | out)
+      mkdir -p "$WD/views" && mv "$WD"/view_*.jpg "$WD/views/" 2>/dev/null
+      python /workspace/clean_splat.py "/workspace/pellis/${B}_gaussians.ply" "$WD/$l.ply" --sh0 --max '"$MAXG"' --keep 98 --max-scale 2 2>&1 | out
       cp "/workspace/pellis/${B}_gaussians.ply" "/workspace/web/${B}_gaussians_full.ply"
       pip install -q matplotlib >/dev/null 2>&1; python /workspace/pellis_scene.py "$WD/$l.ply" "$B" "$WD" 2>&1 | out
+      curl -fsSL "https://raw.githubusercontent.com/anayana/For3Dsuite/'"$S"'/scripts/crop_scene.py" -o /workspace/crop_scene.py && \
+        python /workspace/crop_scene.py "$WD/scene.json" "$WD/$l.ply" 2>&1 | out
     fi
     rm -rf "/workspace/pellis/$B.rar" "/workspace/pellis/raw_$B" /workspace/pellis/${B}_*
   done

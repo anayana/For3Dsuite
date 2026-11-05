@@ -29,7 +29,8 @@ jobs:
             curl -sfL "$BASE/$b/$n.ply" -o $T/$n.ply && curl -sfL "$BASE/$b/thumb.jpg" -o $T/thumb.jpg \
               && curl -sfL "$BASE/$b/scene.json" -o $T/scene.json && curl -sfL "$BASE/$b/entry.json" -o $T/entry.json \
               || { echo "nicht erreichbar: $b (vorhandene Szene bleibt)"; continue; }
-            D=docs/media/scenes/$b; mkdir -p $D
+            D=docs/media/scenes/$b; mkdir -p $D/views
+            for k in 0 1 2 3 4 5 6 7; do curl -sfL "$BASE/$b/views/view_$k.jpg" -o $D/views/view_$k.jpg || rm -f $D/views/view_$k.jpg; done
             mv $T/$n.ply $T/thumb.jpg $D/; mv $T/scene.json docs/data/scene-$b.json; mv $T/entry.json /tmp/entry-$b.json
             ls -la $D
           done

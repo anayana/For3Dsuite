@@ -109,7 +109,7 @@ def fig_design(d):
         ax.set_title(sc, loc="left", fontsize=9, color=INK); ax.set_xlabel("Scan positions"); ax.set_xticks([1, 2, 3, 4, 6, 9]); ax.set_ylim(0, 102)
     np.atleast_1d(axs)[0].set_ylabel("Stems with ≥ 180° visible (%)")
     np.atleast_1d(axs)[0].legend(fontsize=7, loc="lower right")
-    save(fig, "fig3_design_coverage")
+    save(fig, "fig5_design_coverage")
 
 
 def fig_sector(d):
@@ -145,7 +145,7 @@ def fig_real():
     np.atleast_1d(axs)[0].set_ylabel("Stems with |error| ≤ 2 cm (%)")
     h, l = np.atleast_1d(axs)[0].get_legend_handles_labels()
     fig.legend(h, l, ncol=4, fontsize=7, loc="lower center", bbox_to_anchor=(.5, -.1))
-    save(fig, "fig5_real_data")
+    save(fig, "fig6_real_data")
 
 
 def fig_branches():
@@ -163,7 +163,7 @@ def fig_branches():
     axs[0].set_ylabel("Stems with |error| ≤ 2 cm (%)")
     h, l = axs[0].get_legend_handles_labels()
     fig.legend(h, l, ncol=6, fontsize=7, loc="lower center", bbox_to_anchor=(.5, -.1))
-    save(fig, "fig6_branches")
+    save(fig, "fig3_branches")
 
 
 def fig_fin_real():
