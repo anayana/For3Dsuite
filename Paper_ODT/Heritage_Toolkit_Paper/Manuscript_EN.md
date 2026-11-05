@@ -8,8 +8,8 @@
 ## Highlights
 
 - Standard 3D Gaussian Splatting compared with labelled survey clouds of 3 buildings
-- Median deviation of splat centres 12–14 cm; 55–72 % of the survey within 10 cm
-- Arches reach 4–6 cm in all buildings; floors are consistently the weakest class
+- Median deviation of splat centres 12–14 cm; 52–67 % of the survey within 10 cm
+- Arches reach 5–6 cm in all buildings; floors are among the weakest classes
 - Hold-out image quality on survey imagery measures coverage, not reconstruction
 - Open data, free software and an online viewer make the comparison repeatable
 
@@ -20,11 +20,11 @@ and is increasingly proposed for heritage documentation, yet its geometric relia
 against an independent survey. We trained standard 3DGS (gsplat 1.5.3, 30 000 iterations) on the open
 heritage dataset of Pellis et al. (2025), using the published camera orientations, and compared the splat
 centres with the labelled photogrammetric reference point clouds (7–11 million points) of three historic
-buildings per architectural class. The median distance of splat centres to the reference was
-12.0–14.2 cm, and 55–72 % of the reference points had a splat within 10 cm. Arches reached 4–6 cm in all
-three buildings, whereas floors were consistently the weakest class and floating Gaussians pushed the 95th
-percentile to metres. A repeated run reproduced the results within 1.4 cm (median) and with identical
-completeness. Held-out image quality was low (PSNR 14–16 dB) because survey-oriented image sets cover novel
+buildings per architectural class. At full image resolution, the median distance of splat centres to
+the reference was 12.3–13.7 cm, and 52–67 % of the reference points had a splat within 10 cm. Arches
+reached 5–6 cm in all three buildings, whereas floors were among the weakest classes and floating Gaussians
+pushed the 95th percentile to metres. Runs at half resolution, repeated twice, gave the same picture
+(medians within 2 cm), so resolution sharpened the renderings but not the geometry. Held-out image quality was low (PSNR 14–16 dB) because survey-oriented image sets cover novel
 viewpoints poorly, so hold-out PSNR reflects capture coverage rather than reconstruction fidelity. We also
 show that the published images are already undistorted and must not be undistorted again. 3DGS is
 therefore a strong medium for presenting heritage, while metric statements should rest on the survey.
@@ -118,11 +118,12 @@ already undistorted, and the published orientation is consistent with them.
 
 ### 3.3 3DGS training
 
-We used gsplat 1.5.3 (Ye et al., 2025) with its default densification strategy, 30 000 iterations, half
-image resolution (1936 × 1296 px) and 300 000 initial points sampled from the reference cloud. All images
+We used gsplat 1.5.3 (Ye et al., 2025) with its default densification strategy, 30 000 iterations, full
+image resolution (3872 × 2592 px) and 300 000 initial points sampled from the reference cloud. All images
 were used for training. The trainer's scene normalisation was inverted on export so that the Gaussians are
-expressed in the reference frame. Training ran on single rented GPUs (NVIDIA Tesla V100, RTX A4500 or
-RTX A4000) in 20–40 min per building.
+expressed in the reference frame. Training ran on a single rented NVIDIA RTX A4500 (20 GB) in 1–1.5 h per
+building, including the download of the data. For comparison, all three buildings were also trained twice
+at half resolution (1936 × 1296 px) on NVIDIA Tesla V100, RTX A4500 or RTX A4000 GPUs (20–40 min each).
 
 ### 3.4 Geometric comparison
 
@@ -134,8 +135,10 @@ KD-trees (SciPy; Virtanen et al., 2020).
 
 ### 3.5 Image quality (diagnostic)
 
-For 5_CB, additional runs held out every eighth image and reported PSNR, SSIM and LPIPS, plus an
-exposure-compensated PSNR in which a per-channel gain and offset is fitted from render to photograph.
+For 5_CB, additional runs at half resolution held out every eighth image and reported PSNR, SSIM and
+LPIPS, plus an exposure-compensated PSNR in which a per-channel gain and offset is fitted from render to
+photograph. For the full-resolution models, eight evenly spaced training views per building were rendered
+and compared with the photographs.
 
 ## 4. Results
 
@@ -147,51 +150,57 @@ Table 2. Geometric agreement of splat centres with the reference.
 
 | Building | Splats kept | Median | 95th pct. | Completeness 2 / 5 / 10 cm |
 |---|---|---|---|---|
-| 5_CB | 340 994 | 12.0 cm | 254.3 cm | 0.03 / 0.24 / 0.59 |
-| 3_SS | 589 814 | 14.2 cm | 2103.4 cm | 0.02 / 0.20 / 0.55 |
-| 2_OSA | 371 196 | 13.0 cm | 178.8 cm | 0.03 / 0.25 / 0.72 |
+| 5_CB | 293 042 | 13.5 cm | 208.6 cm | 0.02 / 0.21 / 0.56 |
+| 3_SS | 456 279 | 12.3 cm | 1943.5 cm | 0.02 / 0.18 / 0.52 |
+| 2_OSA | 315 514 | 13.7 cm | 177.7 cm | 0.02 / 0.22 / 0.67 |
 
 Table 3. Median distance / completeness at 10 cm per class (— = class not present among the kept splats).
 
 | Class | 5_CB | 3_SS | 2_OSA |
 |---|---|---|---|
-| 0 arch | 4.4 cm / 0.92 | 5.2 cm / 0.64 | 6.3 cm / 0.85 |
-| 1 column | 5.7 cm / 0.98 | 4.2 cm / 0.76 | 85.2 cm / 0.92 |
-| 2 moulding | 6.6 cm / 0.75 | 4.7 cm / 0.74 | 9.2 cm / 0.85 |
-| 3 floor | 25.6 cm / 0.33 | 1505.9 cm / 0.37 | 19.7 cm / 0.62 |
-| 4 door/window | 10.2 cm / 0.81 | 9.7 cm / 0.59 | 12.0 cm / 0.76 |
-| 5 wall | 8.4 cm / 0.75 | 10.7 cm / 0.46 | 10.8 cm / 0.71 |
-| 6 stair | 10.3 cm / 0.45 | 18.2 cm / 0.36 | — |
-| 7 vault | 11.4 cm / 0.74 | 14.2 cm / 0.36 | 7.6 cm / 0.75 |
-| 8 roof | 13.3 cm / 0.59 | — | 11.0 cm / 0.80 |
-| 9 other | 4.7 cm / 0.86 | 3.9 cm / 0.59 | 38.6 cm / 0.74 |
-| 10 background | 59.7 cm / 0.03 | — | — |
+| 0 arch | 4.8 cm / 0.88 | 5.1 cm / 0.61 | 6.4 cm / 0.79 |
+| 1 column | 9.4 cm / 0.98 | 3.7 cm / 0.74 | 94.2 cm / 0.86 |
+| 2 moulding | 7.6 cm / 0.72 | 4.3 cm / 0.71 | 9.0 cm / 0.81 |
+| 3 floor | 26.8 cm / 0.32 | 876.9 cm / 0.34 | 20.3 cm / 0.53 |
+| 4 door/window | 11.5 cm / 0.79 | 11.4 cm / 0.48 | 12.4 cm / 0.73 |
+| 5 wall | 9.8 cm / 0.72 | 11.9 cm / 0.43 | 11.2 cm / 0.71 |
+| 6 stair | 12.3 cm / 0.40 | 14.7 cm / 0.37 | — |
+| 7 vault | 11.4 cm / 0.72 | 16.7 cm / 0.31 | 8.3 cm / 0.69 |
+| 8 roof | 13.2 cm / 0.56 | — | 12.2 cm / 0.77 |
+| 9 other | 5.9 cm / 0.84 | 5.0 cm / 0.57 | 39.9 cm / 0.73 |
+| 10 background | 55.3 cm / 0.03 | — | — |
 
 ![Completeness at 10 cm per class and building.](figures/fig1_completeness_10cm.png)
 
 ![Median distance of splat centres to the reference per class (log scale; * = dominated by floating Gaussians).](figures/fig2_median.png)
 
-Well-observed, textured elements — arches, columns and mouldings — reached 4–7 cm with high completeness.
-Floors were the weakest class in all three buildings, consistent with grazing viewing angles and little
-texture. Two medians are dominated by floating Gaussians rather than by surface error: in 3_SS,
-217 562 Gaussians in front of or above the building (background, vegetation, sky) fall inside the hull
-and have a floor point as nearest neighbour (median 15 m); in 2_OSA the columns are well covered (0.92)
-but surrounded by floaters (median 85 cm). Completeness is unaffected by floaters and is therefore the
-more robust indicator.
+Well-observed, textured elements — arches, columns and mouldings — reached 4–10 cm with high
+completeness. Floors were among the weakest classes in all three buildings (completeness 0.32–0.53),
+consistent with grazing viewing angles and little texture. Two medians are dominated by floating Gaussians
+rather than by surface error: in 3_SS, 150 344 Gaussians in front of or above the building (background,
+vegetation, sky) fall inside the hull and have a floor point as nearest neighbour (median 8.8 m); in 2_OSA
+the columns are well covered (0.86) but surrounded by floaters (median 94 cm). Completeness is unaffected
+by floaters and is therefore the more robust indicator.
 
-A second, independent run of all three buildings with identical settings reproduced the medians within
-1.4 cm (5_CB 11.4 cm, 3_SS 12.8 cm, 2_OSA 12.6 cm) and gave identical completeness at 10 cm.
+**Resolution and repeatability.** At half resolution, the medians were 12.0 cm (5_CB), 14.2 cm (3_SS) and
+13.0 cm (2_OSA), with completeness at 10 cm of 0.59, 0.55 and 0.72; a second half-resolution run reproduced
+the medians within 1.4 cm and gave identical completeness. Full resolution produced sharper renderings,
+but did not improve the geometry: the medians changed by −1.9 to
++1.5 cm and completeness at 10 cm dropped slightly (by 0.03–0.05).
 
 ### 4.2 Two pitfalls
 
 **Double undistortion.** Applying the published distortion coefficients to the already undistorted images
-distorted them. Geometry degraded (5_CB median 14.9 cm instead of 12.0 cm), and COLMAP with one shared
+distorted them. Geometry degraded (5_CB at half resolution: median 14.9 cm instead of 12.0 cm), and COLMAP with one shared
 pinhole camera found a focal length 6 % too short and registered only 97 of 166 images.
 
 **Hold-out PSNR on survey imagery.** With correct inputs, the training loss reached 0.038, but held-out
 PSNR stayed at 14.4 dB (16.2 dB exposure-compensated; per image 12.1–21.8 dB). Renders of held-out views
 were sharp on well-covered parts (vault, columns) and broke down on ground and vegetation seen from few
-directions. Held-out PSNR therefore measured capture coverage rather than reconstruction fidelity. Before
+directions. Held-out PSNR therefore measured capture coverage rather than reconstruction fidelity. The same pattern
+held for the full-resolution models at training viewpoints: 16–28 dB for views inside the image block, but
+9–11 dB for the first and last images of a sequence, which see the building from its sparsely covered
+edges. Before
 these causes were identified, the orientation flag, initial point cloud, axis convention, published poses,
 undistortion, per-image focal length and exposure were each tested in a separate run.
 
@@ -226,8 +235,9 @@ were not tested and are the obvious next comparison on the same benchmark.
 
 Standard 3D Gaussian Splatting, trained on the published orientations of photogrammetric surveys, placed
 its Gaussians within 12–14 cm (median) of the reference surface of three historic buildings and covered
-55–72 % of the reference within 10 cm; arches reached 4–6 cm, floors remained the weakest class, and
-floating Gaussians produced metre-scale outliers. The results were reproducible. 3DGS is therefore a strong
+52–67 % of the reference within 10 cm; arches reached 5–6 cm, floors remained among the weakest classes,
+and floating Gaussians produced metre-scale outliers. The results were reproducible and did not improve
+with full image resolution. 3DGS is therefore a strong
 medium for presenting and sharing heritage — walkthroughs, annotation, dissemination — while metric
 statements should still rest on the photogrammetric or laser-scanning survey. Two lessons transfer to other
 projects: check whether published images are already undistorted before applying distortion models, and do
