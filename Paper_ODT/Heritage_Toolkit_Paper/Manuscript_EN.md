@@ -21,7 +21,7 @@ buildings per architectural class. At full image resolution, the median distance
 the reference was 12.3–13.7 cm, and 52–67 % of the reference points had a splat within 10 cm. Arches
 reached 5–6 cm in all three buildings, whereas floors were among the weakest classes and floating Gaussians
 pushed the 95th percentile to metres. Runs at half resolution, repeated twice, gave the same picture
-(medians within 2 cm), so resolution sharpened the renderings but not the geometry. Held-out image quality was low (PSNR 14–16 dB) because survey-oriented image sets cover novel
+(medians within 2 cm), so resolution sharpened the renderings but not the geometry. Held-out image quality was low (5_CB: PSNR 14–16 dB) because survey-oriented image sets cover novel
 viewpoints poorly, so hold-out PSNR reflects capture coverage rather than reconstruction fidelity. We also
 show that the published images are already undistorted and must not be undistorted again. 3DGS is
 therefore a strong medium for presenting heritage, while metric statements should rest on the survey.
@@ -194,8 +194,7 @@ by floaters and is therefore the more robust indicator.
 **Resolution and repeatability.** At half resolution, the medians were 12.0 cm (5_CB), 14.2 cm (3_SS) and
 13.0 cm (2_OSA), with completeness at 10 cm of 0.59, 0.55 and 0.72; a second half-resolution run reproduced
 the medians within 1.4 cm and gave identical completeness. Full resolution produced sharper renderings,
-but did not improve the geometry: the medians changed by −1.9 to
-+1.5 cm and completeness at 10 cm dropped slightly (by 0.03–0.05).
+but did not improve the geometry: the medians changed by −1.9 to +1.5 cm and completeness at 10 cm dropped slightly (by 0.03–0.05).
 
 ### 4.2 Two pitfalls
 
@@ -207,10 +206,9 @@ pinhole camera found a focal length 6 % too short and registered only 97 of 166 
 PSNR stayed at 14.4 dB (16.2 dB exposure-compensated; per image 12.1–21.8 dB). Renders of held-out views
 were sharp on well-covered parts (vault, columns) and broke down on ground and vegetation seen from few
 directions. Held-out PSNR therefore measured capture coverage rather than reconstruction fidelity. The same pattern
-held for the full-resolution models at training viewpoints: 16–28 dB for views inside the image block, but
-9–11 dB for the first and last images of a sequence, which see the building from its sparsely covered
-edges. Before
-these causes were identified, the orientation flag, initial point cloud, axis convention, published poses,
+held for the full-resolution models at training viewpoints: 21 of the 24 rendered views reached 16–28 dB,
+whereas three views of sparsely covered parts (the first images of 5_CB and 2_OSA and one view of the
+2_OSA street) reached only 9–11 dB. Before these causes were identified, the orientation flag, initial point cloud, axis convention, published poses,
 undistortion, per-image focal length and exposure were each tested in a separate run.
 
 ### 4.3 Online models
@@ -218,7 +216,7 @@ undistortion, per-image focal length and exposure were each tested in a separate
 The three models are published in the open For3Dsuite web viewer (Naya, 2026) as walkable scenes. Each
 scene opens at the photograph position with the best render (Fig. 3) and links eight photo/render pairs.
 For display, the Gaussians are reduced to the base colour (spherical-harmonics degree 0), large and
-outlying Gaussians are removed (24–50 MB per building, 0.36–0.73 million Gaussians), and the coordinates
+outlying Gaussians are removed (23–47 MB per building, 0.34–0.69 million Gaussians), and the coordinates
 are shifted towards the origin, because the WebGL viewer does not display scenes more than about 100 m
 from the origin; the shift is stored with each scene so that the reference frame can be restored.
 
