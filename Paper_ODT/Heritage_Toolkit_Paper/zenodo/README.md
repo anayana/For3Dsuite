@@ -16,8 +16,12 @@ Author: Angel Naya. Licence of the code: GPL-3.0-or-later (LICENSE). Result tabl
   - `colmap_align.py` – own COLMAP reconstruction aligned to the published camera centres (diagnostics)
   - `splat_diag.py` – per-image PSNR incl. exposure-compensated PSNR on held-out views
   - `paperB_figures.py` – figures from `results/geometry_per_class.csv`
+  - `render_views.py` – renders training viewpoints (photo | render, PSNR, camera pose in the reference frame)
+  - `clean_splat.py`, `crop_scene.py`, `pellis_scene.py` – web versions of the models for the online viewer
 - `tests/` – unit tests (pytest)
-- `results/geometry_per_class.csv` – all geometry numbers of the paper (buildings 5_CB, 3_SS, 2_OSA)
+- `results/geometry_per_class.csv` – geometry numbers of the paper, full image resolution (3872 × 2592)
+  (buildings 5_CB, 3_SS, 2_OSA)
+- `results/geometry_per_class_v1_halbe_aufloesung.csv` – the same at half resolution (comparison run)
 
 ## Third-party data (not included)
 Pellis, E., Masiero, A., Betti, M., Tucci, G., Grussenmeyer, P. (2025): Images&PointClouds Cultural Heritage
