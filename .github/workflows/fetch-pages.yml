@@ -28,6 +28,10 @@ jobs:
           grep -v '^#' .github/pages-request.txt | grep -E '^https?://' | while read -r u; do
             n=$(echo "$u" | sed -E 's#https?://##; s#[^A-Za-z0-9]+#_#g' | cut -c1-80)
             curl -sL -A "$UA" -H "Accept-Language: en" "$u" -o raw/$n.html || true
+            if head -c 5 raw/$n.html | grep -q '%PDF'; then   # PDF -> Text
+              (command -v pdftotext >/dev/null || sudo apt-get install -y -qq poppler-utils >/dev/null)
+              { echo "Quelle: $u"; echo; pdftotext -layout raw/$n.html -; } > $D/$n.txt; echo "$u PDF"; continue
+            fi
             python3 - raw/$n.html $D/$n.txt "$u" <<'PY'
           import sys
           from bs4 import BeautifulSoup

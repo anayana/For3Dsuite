@@ -1,11 +1,4 @@
-# Gutachter: offizielle Personenseiten (E-Mail, Institution)
-https://forschung.boku.ac.at/en/researcher/5021C9AED95F70CD
-https://forschung.boku.ac.at/en/researcher/Tim-Ritter-07F71B16DD887BAD
-https://forschung.boku.ac.at/en/researcher/51B39C8A57153E77
-https://www.wsl.ch/fr/personnel/abegg/
-https://www.wsl.ch/de/mitarbeitende/abegg/
-https://uni-heidelberg.de/gis/hoefle.html
-https://research.ugent.be/web/person/kim-calders-0/en
-https://q-forestlab.ugent.be/people
-# Paper B: Pellis-Datensatzartikel (Klassen-Nummern)
-https://pmc.ncbi.nlm.nih.gov/articles/PMC12159912/
+# eine URL je Zeile
+https://em-consulte.com/getInfoProduit/CULHER/instructionsAuteurs/CULHER.pdf
+https://www.sciencedirect.com/journal/journal-of-cultural-heritage/publish/guide-for-authors
+https://www.elsevier.com/journals/journal-of-cultural-heritage/1296-2074/guide-for-authors

@@ -1,0 +1,269 @@
+Quelle: https://em-consulte.com/getInfoProduit/CULHER/instructionsAuteurs/CULHER.pdf
+
+                 JOURNAL OF CULTURAL HERITAGE
+                    INSTRUCTIONS TO AUTHORS
+
+The journal publishes original papers which comprise previously unpublished data
+and present innovative methods concerning all aspects of science and technology of
+cultural heritage as well as interpretation and theoretical issues related to preservation.
+A very limited number of case studies is accepted.
+The manuscript must not have been published before, nor simultaneously submitted
+for publication elsewhere.
+All papers are reviewed by at least two referees. Articles which are refused for
+publication are returned to the authors.
+
+MANUSCRIPT SUBMISSION
+The entire submission and review process for Journal of Cultural Heritage is handled
+electronically. All papers must be submitted through http://ees.elsevier.com/culher
+An e-mail address is essential in order to use the online submission system.(see
+Technical requirements)
+
+Before submitting your paper, please read carefully and follow our instructions.
+
+Brief overview of the EES system
+       • New users must access the home page of the site of Journal of Cultural
+          Heritage at the following address http://ees.elsevier.com/culher
+          Click on “register” at the top of the screen, and fill in the required
+          information: “first name”, “last name” and “e-mail address”. Then fill in
+          the required fields: title, preferred contact mode, country, other address,
+          preferred user name. You will receive rapid confirmation of your
+          registration together with your “username” and “password” by e-mail.
+       • Registration is required once only. On subsequent visits, you only need to
+          click on “login”, then on “author login” to access the system directly.
+       • Once you have been identified and have entered the system, if you wish to
+          submit a manuscript, follow the instructions on the screen: enter the details
+          required for submission and then upload your files.
+       • Important: Separate files are required for
+          - The title page: the title, names of the authors and affiliation/addresses.
+              This separate file for the title page maintains the anonymity of the
+              author by excluding it from the transmission of the manuscript in a
+              PDF file for review.
+          - The manuscript: abstract, keywords, text, tables with captions, figure
+              captions. On no account should information regarding the author(s) be
+              present in the manuscript file.
+          - The figures:( diagrams, drawings and colour or black and white
+              photos) should always be submitted in individual files i.e. only one
+              figure per file. Authors should refer to the artwork quality instructions
+              at the following link: http://www.elsevier.com/artworkinstructions
+          - In case of technical problems please contact our help service for
+              authors: support@elsevier.com
+
+Please follow the instructions below for guidance on the style of the journal.
+PRESENTATION OF PAPERS
+Papers must be written in English and not exceed 5000 words, references included,
+for original articles. (see instructions for manuscript)
+They should be organised in the following manner:
+a. Title: this must be brief but explicit
+
+b. Name(s), affiliations(s) of author(s), the address and e-mail for each author and an
+asterisk to indicate the corresponding author : please indicate the ‘forename’ (in full)
+and ‘surname’ of each author, the ‘authors’ affiliations (complete address, phone and
+fax numbers, e-mail) with their ‘positions’, and the name of the corresponding author.
+
+c. Abstract (max. 500 words)
+
+d. Keywords: Five to ten ‘keywords’ should be provided (in lower case and bold type,
+separated by slashes).
+
+d. Research aims (max. 200 words):this section should describe the object and the
+aim of the research in such a way that it may be understood and appreciated by
+experts from other research disciplines related to Cultural Heritage
+
+e. Experimental section :this should contain the usual subsections:
+                          • introduction,
+                          • materials,
+                          • methodologies,
+                          • experimental data,
+                          • results and discussion
+
+f. Conclusions (as with the « Research aims » this section should be written with the
+aim of being read and fully appreciated by experts from other areas of research)
+
+g. References (see instructions for references )
+
+h. Tables with titles(see instructions for tables)
+
+i. Captions for figures
+
+j. Figures(max. 10, see instructions for figures)
+
+CASE STUDIES
+The aim of Journal of Cultural Heritage is to publish theoretical or methodological
+papers, demonstrating novelty. If a paper deals with a case study, only manuscripts of
+not more than 2000 words (references included) and not more than 4 figures can be
+accepted.
+The case studies will be reviewed in the usual fashion.
+
+ONLINE SUPPLEMENTARY MATERIAL
+Electronic supplementary material (databases, tables, videos, etc.) can be enclosed
+and published online free. We invite you to take this opportunity in order to
+improve the presentation of your research.
+REFEREES
+Please suggest 3 names of possible reviewers of your manuscript.
+
+AFTER ACCEPTANCE
+Proofs will be sent by e-mail to the corresponding author (we remind you to keep
+your information updated on our website). The corrected proofs must be returned
+to the publisher within two days after receipt (only minor corrections or typographical
+errors will be accepted at this stage).
+
+SPECIAL ISSUE
+The procedure for Special Issues is the following :
+- Guest Editor will be responsible for the reviewing process and for the final scientific
+content of the published articles;
+- Each paper must be reviewed by at least 2 referees;
+- When the reviewing process is finished, authors will be asked to upload the articles
+through our website system http://ees.elsevier.com/culher/
+- After our final approval it will be sent to the Production department.
+Financial matters should be directed to the Publisher.
+
+REPRINTS
+Authors will receive free of charge an electronic offprint of their article (in PDF
+format) and will be given the opportunity to order paper copies at their expense (send
+the order form with the proof corrections)
+
+Journal of cultural heritage
+A Multidisciplinary Journal of Sciences and Technology for Conservation and
+Awareness
+Editor in chief:
+prof. P.A. Vigato
+Scientific Editorial Effice:
+dr. E.M. Stella, dr. P. Tomasin, dr. P. Guerriero
+e-mail: journalch@icis.cnr.it
+
+
+
+TECHNICAL REQUIREMENTS
+    • For PC Windows
+         o NTA,2000, XP and later
+         o Internet Explorer 5.5 and later
+         o Netscape 7 and later
+         o Firefox 0.9 and later
+         o Opera 7.51 and later
+         o Adobe Acrobat Reader 6.0 or later (download free at:
+            http://www.adobe.fr/products/acrobat/readstep2.html
+    • For Macintosh
+         o Macintosh:9.x OS X
+         o Internet Explorer 5.x and later
+         o Netscape 7 and later
+         o Firefox 1.0 and later
+               o Safari 1.0 and later
+               o Opera 7 and later
+               o Adobe Acrobat Reader 6.0 or later (download free at:
+                 http://www.adobe.fr/products/acrobat/readstep2.html
+
+
+MANUSCRIPT PREPARATION
+MS Word or Word Perfect should be used for text files. Latex is also accepted
+when formulas/symbols are needed.
+The manuscript should be double spaced and on one side only, with 3.5 cm wide
+margins. All the pages must be numbered. Section headings should be numbered
+according to the international numbering system (1.; 1.1.; 1.1.1.; etc.).
+‘Tables’ with titles and ‘figures’ with captions should be on ‘separate sheets’ at the
+end of the manuscript (see below for further details). They should not be placed in the
+text, but must be referenced in the text at the appropriate place.
+English punctuation should be used (semi-colons, colons, question marks and
+exclamation marks are never preceded by a space in English). Abbreviations are
+punctuated. There is no space between opening and closing brackets and the
+following and preceding words. Small capitals should not be used.
+Most formatting codes are removed or replaced when the article is type-set for
+publication, so there is no need for excessive layout styling. Options such as
+automatic word breaking, justified layout, double columns or automatic paragraph
+numbering – especially for numbered references – should not be used.
+Use bold face, italic, subscripts, superscripts, etc. as appropriate.
+If table grids are included, only one grid for each separate table, and not a grid for
+each row, must be used. If no grids are included, use tabs to align column instead of
+spaces.
+(see also Nomenclature and Equations and numbers)
+
+NOMENCLATURE
+All the ‘parameters’ cited in the text should be defined, with units.
+‘Greek symbols’, ‘subscripts’ and ‘superscripts’ should be separately identified. Only
+‘ISO symbols’ may be used, always written in italics. ‘SI units’ should be used
+throughout; they are always separated from the numerical value by a space and
+written in Roman font: thus ‘g’ or ‘m’ is always in Roman. The symbol for litre is
+preferably L, minute is min and so on. Use °C or K for temperatures. As the
+Ångstrôm (1Å=10-10 m) does not belong to the SI system, it should be replaced by the
+nanometer (1 nm = 10-9 m) or by the picometer (1 pm = 10-12 m) : 1 Å = 0.1 nm = 100
+pm. Multiple units must be written with negative superscripts (for example: g-1 °C-1).
+
+EQUATIONS AND NUMBERS
+Equations should be carefully typed. Those that are referred to in the text [equation
+(1), for instance] should be numbered with Arabic numerals enclosed in parentheses
+on the right margin. There should not be punctuation at the end of the equations. Care
+should be taken to distinguish between zero (0) and the letter O, or between the
+number one (1) and the letter l (l)), the Roman letter v and the Greek letter nu (ν).
+‘Vectors’ and ‘matrices’ should be written in bold. The decimal logarithm should be
+written, log, and the natural logarithm, ln. The abbreviation of exp (exponential) is the
+Roman ‘e’. In expressions such as dx/dt, the letter d (derivative function) is always
+written in Roman, whereas the physical parameter (x or t) is always written in italics.
+Numbers are written as numerals when they are followed by units, these being
+represented by their SI symbols (i.e. 10 %, but, a few percent). In numerals, each
+group of three numbers should be separated by a space (except for dates and postal
+codes). In English, a decimal point is used instead of a comma.
+
+FIGURES
+All illustrations (graphs, diagrams and photographs) should be numbered in the text,
+in italics, using Arabic numerals in order of appearance. Example: (Fig. 1).
+Please reduce figures to the bare necessities: no more than 10 figures may be
+submitted.
+Preferred formats are TIFF (.tif), EPS (.eps), JPEG (.jpg) or PDF (.pdf). Word ,
+Powerpoint and Excel formats are also accepted. High resolution is compulsory for
+printing: 300 DPI for photos (black and white/colour) and 500-1000 DPI for graphics,
+diagrams, drawings.
+Previously published figures are not accepted.
+The same symbols and units must be used in figures, tables and text.
+All composite figures (i.e. different graphs, images, etc. under one figure heading)
+should be mounted together and the parts labelled (a), (b), (c), etc. Composite figures
+are only accepted if they invite comparison or are strictly linked to each other.
+Composite images that do not invite direct comparison must not be included
+under one figure heading.
+All maps, field sketches and photographs should include a metric bare scale.
+Illustrations will be published in the form of one column 80 mm wide (170 mm wide
+for complicated figures). Hence, ‘lettering’ of the original illustrations (one figure per
+A4 page) should be large enough to be clearly readable when the illustrations are
+reduced to a one-column format.
+Each figure should be briefly and clearly described. These ‘Figure captions’ should be
+presented together on a separate sheet, at the end of the paper. Remarks like “For
+explanation see text “ must be avoided.
+COLOUR FIGURES: Colour illustrations are maintained online but there is a limit
+to the number of colour pages when the paper edition is issued. Please verify that
+colour illustrations are scientifically readable also in grey scale.
+
+TABLES
+Each table should be on a separate page included at the end of the text file. Captions
+must be integrated into the heading and must be horizontal. They should be numbered
+consecutively with Arabic numerals (for example, Table 1), and must be cited in the
+text.
+Tables with illustrations included are considered as figures, not tables.
+
+REFERENCES
+References should be limited to the minimum number necessary for the citation of
+pertinent material. References to internal reports, etc. are to be avoided: the statement
+‘personal communication’ with publication date in the text is generally preferable.
+References should be numbered with Arabic numerals enclosed in square brackets in
+the order they are cited in the text. All entries in the reference list must correspond to
+references in the text and vice versa, from [1] to [n]. The titles of journals should be
+abbreviated according to the standardized rules (cf ‘ISI’,‘Current Contents’, for
+example). Titles for which no abbreviation is given should be written in full. The style
+and punctuation of the references should follow the format illustrated in the following
+examples (please note that the titles of journals are in Roman).
+• Article from a journal (all authors must be mentioned)
+[1] J. Eighmy, J. Hathaway, Contemporary archaeomagnetics
+results and the accuracy of archaeomagnetic dates,
+Geoarchaeology 2 (1987) 49–61.
+• Unpublished thesis.
+[2] J.M. Van Der Molen, Growth control of algae and
+cyanobacteria on historical monuments by UV mobile
+units, Ph.D. thesis, University of Chicago, USA, 1980.
+• Book or published thesis
+[3] J.S. Mills, R. White, The organic chemistry of museum
+objects, Batterworths, London, 1987.
+• Article published in conference proceedings.
+[4] N.H. Tennet, K.M. Antonio, Bronze disease: synthesis
+and characterization of Botallackite, Paratacamite
+and Atacamite by infrared spectroscopy, in: D. Smith,
+R. Reagan (Eds.), Proceedings of ICOM, 6th Triennial
+Meeting, Ottawa, September 21–25, Elsevier, New York,
+1995, pp. 3–16.
+
