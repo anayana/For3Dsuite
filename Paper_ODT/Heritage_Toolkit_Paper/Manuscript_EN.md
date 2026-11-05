@@ -206,13 +206,14 @@ undistortion, per-image focal length and exposure were each tested in a separate
 
 ### 4.3 Online models
 
-The three models are published in the open For3Dsuite web viewer (Naya, 2026) as walkable scenes
-(Fig. 3; screenshots from the software renderer used for testing, which is blurrier than a GPU display). For display, the Gaussians are reduced to the base colour (spherical-harmonics degree 0) and to
-at most 600 000 per building (28–41 MB), and their coordinates are shifted towards the origin, because the
-WebGL viewer does not display scenes more than about 100 m from the origin; the shift is stored with each
-scene so that the reference frame can be restored.
+The three models are published in the open For3Dsuite web viewer (Naya, 2026) as walkable scenes. Each
+scene opens at the photograph position with the best render (Fig. 3) and links eight photo/render pairs.
+For display, the Gaussians are reduced to the base colour (spherical-harmonics degree 0), large and
+outlying Gaussians are removed (24–50 MB per building, 0.36–0.73 million Gaussians), and the coordinates
+are shifted towards the origin, because the WebGL viewer does not display scenes more than about 100 m
+from the origin; the shift is stored with each scene so that the reference frame can be restored.
 
-![Models of 5_CB (left) and 2_OSA (right) in the browser viewer. Arches, columns and the doorway are recognisable; the roof and the ground show smeared, floating Gaussians.](figures/fig3_scenes.png)
+![Photograph (left) and full-resolution 3DGS render (right) at the best-rendered training viewpoint of each building: (a) vault of 5_CB, (b) loggia of 3_SS, (c) portico of 2_OSA. Well-covered surfaces are reproduced sharply; vegetation, sky and the ground near the image border, seen from few directions, are smeared into floating Gaussians.](figures/fig3_scenes.png)
 
 ## 5. Discussion
 

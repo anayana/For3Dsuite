@@ -44,6 +44,8 @@ nohup bash -c '
       python /workspace/clean_splat.py "/workspace/pellis/${B}_gaussians.ply" "$WD/$l.ply" --sh0 --max '"$MAXG"' --keep 98 --max-scale 2 2>&1 | out
       cp "/workspace/pellis/${B}_gaussians.ply" "/workspace/web/${B}_gaussians_full.ply"
       pip install -q matplotlib >/dev/null 2>&1; python /workspace/pellis_scene.py "$WD/$l.ply" "$B" "$WD" 2>&1 | out
+      curl -fsSL "https://raw.githubusercontent.com/anayana/For3Dsuite/'"$S"'/scripts/crop_scene.py" -o /workspace/crop_scene.py && \
+        python /workspace/crop_scene.py "$WD/scene.json" "$WD/$l.ply" 2>&1 | out
     fi
     rm -rf "/workspace/pellis/$B.rar" "/workspace/pellis/raw_$B" /workspace/pellis/${B}_*
   done
