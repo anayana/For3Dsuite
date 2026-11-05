@@ -11,7 +11,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 P = REPO / "Paper_ODT" / "Heritage_Toolkit_Paper"
 SCRIPTS = ["pellis_to_colmap.py", "pellis_posecheck.py", "train_pellis_runpod.sh", "pellis_batch.sh",
-           "pellis_pod.sh", "eval_splat_geometry.py", "colmap_align.py", "splat_diag.py", "paperB_figures.py"]
+           "pellis_pod.sh", "eval_splat_geometry.py", "colmap_align.py", "splat_diag.py", "paperB_figures.py",
+           "render_views.py", "clean_splat.py", "pellis_scene.py", "crop_scene.py"]
 TESTS = ["test_pellis_to_colmap.py", "test_eval_splat_geometry.py", "test_colmap_align.py"]
 
 

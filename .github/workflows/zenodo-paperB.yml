@@ -38,8 +38,14 @@ jobs:
               sys.exit("Secret ZENODO_TOKEN fehlt")
           api = "https://zenodo.org/api/deposit/depositions"
           h = {"Authorization": f"Bearer {tok}"}
-          r = requests.post(api, json={}, headers=h, timeout=60); print("create", r.status_code); r.raise_for_status()
+          # neue VERSION des ersten Eintrags (gleiche Konzept-DOI), kein weiterer Einzeleintrag
+          BASE_ID = 23926783
+          r = requests.post(f"{api}/{BASE_ID}/actions/newversion", headers=h, timeout=60)
+          print("newversion", r.status_code, r.text[:300]); r.raise_for_status()
+          r = requests.get(r.json()["links"]["latest_draft"], headers=h, timeout=60); r.raise_for_status()
           dep = r.json(); did = dep["id"]; bucket = dep["links"]["bucket"]
+          for f in dep.get("files", []):                       # alte Datei aus dem Entwurf entfernen
+              requests.delete(f"{api}/{did}/files/{f['id']}", headers=h, timeout=60).raise_for_status()
           try:
               with open("out/paperB_code_results.zip", "rb") as f:
                   r = requests.put(f"{bucket}/paperB_code_results.zip", data=f, headers=h, timeout=600)
@@ -54,6 +60,8 @@ jobs:
                                  "labelled photogrammetric reference cloud per architectural class, diagnostics, figures), "
                                  "unit tests and all result tables of the study. Third-party data are not included; see README.",
                   "license": "gpl-3.0-or-later",
+                  "version": "2.0 (full image resolution)",
+                  "publication_date": __import__("datetime").date.today().isoformat(),
                   "access_right": "open",
                   "keywords": ["3D Gaussian Splatting", "cultural heritage", "photogrammetry", "point cloud comparison", "accuracy assessment", "gsplat"],
               }}
@@ -65,9 +73,10 @@ jobs:
               requests.delete(f"{api}/{did}", headers=h, timeout=60)   # Entwurf nicht liegen lassen
               raise
           pub = r.json(); doi = pub.get("doi") or pub["metadata"]["doi"]
-          print("DOI", doi, pub["links"].get("html"))
+          cdoi = pub.get("conceptdoi", "")
+          print("DOI", doi, "Konzept-DOI", cdoi, pub["links"].get("html"))
           os.makedirs("Paper_ODT/Heritage_Toolkit_Paper/zenodo", exist_ok=True)
-          open("Paper_ODT/Heritage_Toolkit_Paper/zenodo/doi.txt", "w").write(f"{doi}\n{pub['links'].get('html', '')}\n")
+          open("Paper_ODT/Heritage_Toolkit_Paper/zenodo/doi.txt", "w").write(f"{doi}\n{pub['links'].get('html', '')}\nconcept: {cdoi}\n")
           PY
       - run: |
           git config user.name "github-actions[bot]"
