@@ -2,9 +2,6 @@
 %
 %
 
-**Author:** Angel Naya, Independent Researcher, Berlin, Germany\
-**Corresponding author:** Angel Naya, angel.naya@posteo.de
-
 ## Highlights
 
 - Standard 3D Gaussian Splatting compared with labelled survey clouds of 3 buildings
@@ -30,8 +27,20 @@ show that the published images are already undistorted and must not be undistort
 therefore a strong medium for presenting heritage, while metric statements should rest on the survey.
 All code is free software, the data are openly licensed, and the three models can be explored online.
 
-**Keywords:** 3D Gaussian Splatting; heritage documentation; photogrammetry; point cloud comparison;
-accuracy assessment; open-source software
+**Keywords:** **3d gaussian splatting / heritage documentation / photogrammetry / point cloud comparison /
+accuracy assessment / open-source software**
+
+## Research aims
+
+Photorealistic 3D models made with 3D Gaussian Splatting are spreading quickly in museums, heritage sites
+and online exhibitions, because they can be produced from ordinary photographs and explored in a web
+browser. Conservators, architects and archaeologists then need to know whether such a model may also be
+used to measure the building, or only to show it. This study answers that question for three historic
+buildings by comparing standard Gaussian Splatting models with an independent photogrammetric survey,
+separately for arches, columns, walls, floors and other architectural elements. It identifies which
+elements are reproduced to within a few centimetres and which are not, shows why the usual image-quality
+scores are misleading for survey photographs, and provides open data, free software and online models so
+that the comparison can be repeated by others.
 
 ## 1. Introduction
 
