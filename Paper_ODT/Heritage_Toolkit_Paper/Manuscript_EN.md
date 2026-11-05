@@ -247,7 +247,7 @@ not read held-out PSNR on survey imagery as reconstruction quality.
 ## Data and code availability
 
 Data: Pellis et al. (2025), Zenodo, https://doi.org/10.5281/zenodo.14626611 (CC BY 4.0). Code, unit
-tests and all result tables of this study: Zenodo, https://doi.org/10.5281/zenodo.23926783
+tests and all result tables of this study: Zenodo, https://doi.org/10.5281/zenodo.23976342
 (GPL-3.0-or-later; tables CC BY 4.0). Viewer: For3Dsuite, https://doi.org/10.5281/zenodo.23323560.
 
 ## Funding
