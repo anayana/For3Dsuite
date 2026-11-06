@@ -96,5 +96,5 @@ ArCH-Klassen; bestätigt 0 = arch, 1 = column. Vermutlich in Listenreihenfolge: 
 
 ## Einreichung
 
-- 06.11.2026: eingereicht bei Journal of Cultural Heritage (Elsevier, Abo-Weg, keine Gebühr), Manuskript-Nr. **CULHER-D-26-02461**, Status "Submissions Being Processed". Preprint (SSRN) gewählt wie im Formular angegeben.
+- 06.11.2026: eingereicht bei Journal of Cultural Heritage (Elsevier, Abo-Weg, keine Gebühr), Manuskript-Nr. **CULHER-D-26-02461**, Status "Submissions Being Processed".
 - Code und Tabellen: Zenodo 10.5281/zenodo.23976342 (Version 2.0, Konzept-DOI 10.5281/zenodo.23926782).
