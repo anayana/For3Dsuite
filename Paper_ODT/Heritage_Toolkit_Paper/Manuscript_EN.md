@@ -2,14 +2,6 @@
 %
 %
 
-## Highlights
-
-- Standard 3D Gaussian Splatting compared with labelled survey clouds of 3 buildings
-- Median deviation of splat centres 12–14 cm; 52–67 % of the survey within 10 cm
-- Arches reach 5–6 cm in all buildings; floors are among the weakest classes
-- Hold-out image quality on survey imagery measures coverage, not reconstruction
-- Open data, free software and an online viewer make the comparison repeatable
-
 ## Abstract
 
 3D Gaussian Splatting (3DGS) produces photorealistic, real-time walkthroughs from ordinary photographs
@@ -30,18 +22,6 @@ All code is free software, the data are openly licensed, and the three models ca
 **Keywords:** **3d gaussian splatting / heritage documentation / photogrammetry / point cloud comparison /
 accuracy assessment / open-source software**
 
-## Research aims
-
-Photorealistic 3D models made with 3D Gaussian Splatting are spreading quickly in museums, heritage sites
-and online exhibitions, because they can be produced from ordinary photographs and explored in a web
-browser. Conservators, architects and archaeologists then need to know whether such a model may also be
-used to measure the building, or only to show it. This study answers that question for three historic
-buildings by comparing standard Gaussian Splatting models with an independent photogrammetric survey,
-separately for arches, columns, walls, floors and other architectural elements. It identifies which
-elements are reproduced to within a few centimetres and which are not, shows why the usual image-quality
-scores are misleading for survey photographs, and provides open data, free software and online models so
-that the comparison can be repeated by others.
-
 ## 1. Introduction
 
 Photogrammetry and terrestrial laser scanning (TLS) are the established techniques for recording historic
@@ -57,13 +37,6 @@ optimised for image similarity, and evaluations accordingly report PSNR, SSIM an
 views. These metrics say little about whether walls, arches or floors are where the survey says they are.
 A geometric comparison with an independent, labelled reference is needed to separate a convincing
 picture from a reliable record.
-
-This paper provides such a comparison on openly licensed data and with a fully reproducible pipeline.
-Its contributions are: (1) a per-class comparison of standard 3DGS with a labelled photogrammetric
-reference for three historic buildings; (2) two practical pitfalls when survey imagery is reused for 3DGS,
-with a diagnostic path; and (3) openly available models in a browser viewer, together with all code.
-
-## 2. Related work
 
 **Image-based heritage recording.** Structure-from-Motion pipelines such as COLMAP (Schönberger and Frahm,
 2016) have made the image-based route widely accessible, and the resulting point clouds are increasingly
@@ -87,7 +60,24 @@ report mostly image metrics — PSNR, SSIM (Wang et al., 2004) and LPIPS (Zhang 
 **Gap.** We are not aware of an evaluation that compares standard 3DGS with a labelled photogrammetric
 reference per architectural class on openly licensed data, with a fully reproducible pipeline.
 
-## 3. Data and methods
+This paper provides such a comparison on openly licensed data and with a fully reproducible pipeline.
+Its contributions are: (1) a per-class comparison of standard 3DGS with a labelled photogrammetric
+reference for three historic buildings; (2) two practical pitfalls when survey imagery is reused for 3DGS,
+with a diagnostic path; and (3) openly available models in a browser viewer, together with all code.
+
+## 2. Research aim
+
+Photorealistic 3D models made with 3D Gaussian Splatting are spreading quickly in museums, heritage sites
+and online exhibitions, because they can be produced from ordinary photographs and explored in a web
+browser. Conservators, architects and archaeologists then need to know whether such a model may also be
+used to measure the building, or only to show it. This study answers that question for three historic
+buildings by comparing standard Gaussian Splatting models with an independent photogrammetric survey,
+separately for arches, columns, walls, floors and other architectural elements. It identifies which
+elements are reproduced to within a few centimetres and which are not, shows why the usual image-quality
+scores are misleading for survey photographs, and provides open data, free software and online models so
+that the comparison can be repeated by others.
+
+## 3. Materials and methods
 
 ### 3.1 Dataset
 
@@ -251,20 +241,11 @@ statements should still rest on the photogrammetric or laser-scanning survey. Tw
 projects: check whether published images are already undistorted before applying distortion models, and do
 not read held-out PSNR on survey imagery as reconstruction quality.
 
-## Data and code availability
+## Data availability
 
 Data: Pellis et al. (2025), Zenodo, https://doi.org/10.5281/zenodo.14626611 (CC BY 4.0). Code, unit
 tests and all result tables of this study: Zenodo, https://doi.org/10.5281/zenodo.23976342
 (GPL-3.0-or-later; tables CC BY 4.0). Viewer: For3Dsuite, https://doi.org/10.5281/zenodo.23323560.
-
-## Funding
-
-This research did not receive any specific grant from funding agencies in the public, commercial, or
-not-for-profit sectors.
-
-## Declaration of competing interest
-
-The author declares no competing interests.
 
 ## References
 
