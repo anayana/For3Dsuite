@@ -1,6 +1,6 @@
 # Versuchsplan Paper D — Hedge Vertical Index aus offenem ALS
 
-Stand 07.11.2026 · Entwurf zur Bestätigung · noch nichts gerechnet ·
+Stand 07.11.2026 (Lizenzen geprüft) · Entwurf zur Bestätigung · noch nichts gerechnet ·
 Blocker: `shrub_div` noch nicht auf GitHub (siehe UEBERGABE.md §1)
 
 ## 1. Forschungsfrage
@@ -21,25 +21,33 @@ Teilfragen:
 Beitrag: offene, reproduzierbare Kette (R/lidR, CPU) + ehrliche Fehlerbilanz eines Heckenindex —
 nicht nur ein weiterer Index.
 
-## 2. Daten (Lizenzstand)
+## 2. Daten (Lizenz geprüft 07.11.2026)
 
-| Daten | Rolle | Lizenz | Status |
+| Daten | Rolle | Lizenz | Befund |
 |---|---|---|---|
-| Belgische Hecken-TLS, Zenodo 4487116 (RIEGL VZ-1000, Erle/Birke, Standorte M und T) | Referenz F1 | CC BY 4.0 (laut `seed_hedgerow.py`) | **Erneut prüfen**: zenodo.org ist in der Cloud gesperrt. Lage der Standorte (Koordinaten/CRS) muss für den ALS-Abgleich geklärt sein. |
-| DHMV II, flämisches ALS (LAZ, 500-m-Kacheln, Portal EODaS OpenLidar) | ALS am TLS-Standort F1 | **Unklar.** Abgeleitete DHMV-Produkte stehen unter der „Modellicentie Gratis Hergebruik“. Für die Roh-Punktwolke heißt es im Metadatensatz, man solle den Eigentümer kontaktieren. | **Prüfen**, bevor gerechnet wird. Ist die Lizenz nicht offen, Abschnitt 3.1 umbauen (siehe Plan B). |
-| AHN (NL), Kachel `C_28FN2.LAZ` | Anwendung F3, Sensitivität F2 | AHN1–4: CC0. AHN5/6: CC BY 4.0. | Prüfen, aus welcher AHN-Version die Kachel stammt, und im Paper richtig zitieren. Im README steht bisher pauschal CC-BY-4.0. |
-| PDOK CIR-Luftbild | Pseudo-NDVI (Zusatz) | PDOK-Luftbilder offen (CC BY 4.0 / CC0 je Dienst) | Lizenz des genutzten Dienstes notieren. |
+| Belgische Hecken-TLS, Zenodo 4487116 (Van Den Berge et al. 2021, RIEGL VZ-1000, laubfrei) | Referenz Baumschicht | **CC BY 4.0** (geprüft) | 69 Bäume (39 Eiche, 19 Erle, 11 Birke), Plots M1–M19 in **Meerhout**, T1–T19 in **Turnhout**, Typ Hecke (H) oder Baumreihe (T). **Nur freigestellte Bäume, keine Sträucher.** **Koordinaten nur lokal** (Stammlage relativ zum Plot), keine Lage der Plots. |
+| DHMV II, flämisches ALS (LAZ, Portal EODaS OpenLidar) | ALS Flandern | **Offen zur Weiterverwendung.** So steht es im Handbuch des Portals (v3, 06.11.2023), mit Verweis auf die Bedingungen für flämische Open Data. Der ältere Metadatensatz erlaubt die Nutzung dagegen nur für Aufgaben im öffentlichen Interesse nach Registrierung → im Paper das Handbuch zitieren. Rohdaten nicht weitergeben, nur Quelle angeben. | Befliegung 2013–2015, also Jahre vor der TLS-Aufnahme. |
+| AHN (NL), Kachel `C_28FN2.LAZ` | Anwendung F3, Sensitivität F2 | AHN1–4: CC0. AHN5/6: CC BY 4.0. | AHN-Version der Kachel prüfen; im README steht bisher pauschal CC-BY-4.0. |
+| PDOK CIR-Luftbild | Pseudo-NDVI (Zusatz) | je Dienst CC BY 4.0 oder CC0 | Lizenz des genutzten Dienstes notieren. |
 
-**Plan B, falls DHMV II nicht offen ist:** TLS künstlich zu ALS ausdünnen (Punktdichte und
-Einfallswinkel wie bei AHN, ~20 Pkt/m², nur von oben sichtbare Treffer) → F1 wird zur Frage
-„Was verliert der Index durch die ALS-Geometrie?“. Das ist schwächer, braucht aber keine weiteren
-Daten.
+**Folge für F1:** Ohne Plot-Koordinaten lässt sich ALS nicht Segment für Segment mit TLS
+vergleichen. Zwei Wege:
+- **(a) Hauptweg, ohne weitere Daten:** ALS aus TLS simulieren. Die TLS-Hecke wird ausgedünnt,
+  sodass nur Treffer von oben bleiben, wie bei ALS (AHN/DHMV-Dichte ~16–20 Pkt/m²). Dann werden
+  die Kennwerte aus der vollen und der ausgedünnten Wolke verglichen. F1 heißt damit: Was verliert
+  der Index durch die ALS-Geometrie?
+- **(b) Zusatz:** die Autoren (Univ. Gent, Forest & Nature Lab) per E-Mail um die Plot-Koordinaten
+  bitten. Mit ihnen ist ein echter Abgleich mit DHMV II möglich, mit Zeitversatz als Vorbehalt.
+
+Grenze in beiden Fällen: Die TLS-Referenz deckt nur die Baumschicht ab. Für die Strauchschicht
+(Schichtzahl, Lücken unten) gibt es keine offene Referenz, und das gehört ins Paper.
 
 ## 3. Versuchsaufbau
 
 ### 3.1 Validierung ALS gegen TLS (F1)
-- TLS-Bäume je Standort zur Heckenreihe zusammensetzen (Koordinaten sind ko-registriert).
-- ALS-Kachel ausschneiden: Puffer um die Reihe, gleiche 20-m-Segmente wie bei TLS.
+- TLS-Bäume je Plot zusammensetzen (innerhalb des Plots ko-registriert).
+- Weg (a): simuliertes ALS (Ausdünnung, Sicht von oben, Dichtestufen 5/10/20 Pkt/m²).
+  Weg (b), sobald Koordinaten da sind: DHMV-II-Ausschnitt, Puffer um die Reihe.
 - Für beide dieselben Kennwerte mit **demselben Code** (`hvi_metrics.R`) berechnen: h_p95,
   h_mean, Schichtzahl, FHD, Breite, Lückenanteil.
 - Auswerten: Bias, RMSE, Spearman je Kennwert. Anschließend HVI aus ALS gegen HVI aus TLS.
@@ -83,6 +91,6 @@ Journalseite nachprüfen.
 
 ## 6. Reihenfolge
 1. `shrub_div` auf GitHub → in die Sitzung holen.
-2. Lizenz DHMV II und Lage der TLS-Standorte klären → entscheidet zwischen 3.1 und Plan B.
+2. E-Mail an die Autoren wegen der Plot-Koordinaten (optional, Weg b). Weg (a) läuft ohne.
 3. Sensitivität (3.2) auf AHN. Läuft schon mit vorhandenen Daten.
 4. Validierung (3.1), Abbildungen, Manuskript nach dem Vorbild von Paper B/C.
