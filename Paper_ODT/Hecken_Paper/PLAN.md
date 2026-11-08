@@ -162,3 +162,21 @@ Ein festes Raster (egal ob 5 m oder 20 m) liefert Flecken, die zur Hälfte von d
 abhängen. **Gleitendes Fenster** (Eignung je 1-m-Zelle gemittelt über 4 verschobene
 5-m-Raster, danach Schwelle 0,5) hebt die Übereinstimmung auf 0,6–0,75. → Hauptverfahren.
 Goldammer streng bleibt instabil (0,28), weil fast nichts geeignet ist (53 m²).
+
+## 10. Zeigerarten — Entscheidung 08.11.2026 (Nutzer)
+
+- **Wildbienen gestrichen.** Sie hängen an Blüten und offenem Boden, das sieht ALS kaum.
+- **Fledermaus kein Art-Eignungswert mehr**, sondern Netz-Kennwert „Leitstruktur“:
+  Lückenlängen, zusammenhängende Netzlänge, Anteil hoher Bäume. Begründung: Die Hecke ist für
+  Fledermäuse eine Flugroute (Verboom & Huitema 1997, Landscape Ecology; Boughey et al. 2011,
+  Biological Conservation — im Volltext prüfen). Entscheidend ist die Durchgängigkeit, nicht die
+  Struktur je 5 m. Pro Stück war der Wert gesättigt (92–100 %).
+- **Neu:** Haselmaus (dicht, vernetzt, mehrschichtig), Heckenbraunelle (dichter Unterwuchs
+  0,5–2 m), Bluthänfling (jung, niedrig, lückig), Steinkauz (alt, Überhälter/Kopfbäume).
+  Damit deckt die Auswahl den Bereich von jung und niedrig bis alt und baumreich ab.
+- **Bleiben:** Neuntöter, Goldammer, Dorngrasmücke.
+- **Alle Eignungskurven mit Literaturquelle** (Schwellenwerte aus Studien, nicht geschätzt).
+  Neue Spalte `quelle` in `species_requirements.csv`.
+- Mehrskaliger Ansatz: Nistplatz (~1 m, Dichte-Hotspot je Schicht, Mean Shift/Kerndichte mit
+  mehreren Radien; Dichte als Trefferanteil, nicht als Punktzahl, wegen Flugstreifen-Überlappung)
+  und Revier (gleitendes Fenster, Zehner-Meter).
