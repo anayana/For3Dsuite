@@ -27,21 +27,21 @@ KACHELN <- c("30HZ2_08", "30HZ2_09", "30HZ2_10", "30HZ2_13", "30HZ2_14", "30HZ2_
              "31CZ1_06", "31CZ1_07", "31CZ1_08", "31CZ1_11", "31CZ1_12", "31CZ1_13")
 OFF <- list(c(0, 0), c(2.5, 0), c(0, 2.5), c(2.5, 2.5))
 
-eignung_kachel <- function(k) {
-  tif <- file.path(work, paste0("eignung_", k, ".tif"))
-  if (file.exists(tif)) return(invisible(tif))
-  laz <- file.path(work, paste0(k, ".LAZ"))
-  if (!file.exists(laz))
-    download.file(sprintf("https://geotiles.citg.tudelft.nl/AHN4_T/%s.LAZ", k), laz,
-                  mode = "wb", quiet = TRUE)
-  las <- readLAS(laz, select = "xyzc", filter = "-drop_z_below -10 -drop_z_above 200")
+# Eine Rotterdamer AHN4-Teilkachel (1 x 1,25 km) sprengt mit ~14 GB den RAM.
+# Daher je Kachel 4 Viertel, gelesen mit 20 m Rand (TIN, Fenster), Ergebnis
+# auf das Viertel ohne Rand zugeschnitten.
+eignung_teil <- function(laz, core, tif, rand = 20) {
+  las <- readLAS(laz, select = "xyzc", filter = sprintf(
+    "-keep_xy %f %f %f %f -drop_z_below -10 -drop_z_above 200",
+    core[1] - rand, core[2] - rand, core[3] + rand, core[4] + rand))
+  if (is.empty(las)) return(invisible(NULL))
   st_crs(las) <- 28992
   las <- normalize_height(las, tin())
   las <- filter_poi(las, Z >= -0.5, Z < 40, !(Classification %in% c(6L, 9L, 26L)))
   chm <- hvi_chm(las, res = 0.5)
   netz <- hedge_net(chm)
+  if (nrow(netz) == 0) return(invisible(NULL))
   grid1 <- terra::rast(terra::ext(chm), res = 1, crs = "EPSG:28992")
-  if (nrow(netz) == 0) { unlink(laz); return(invisible(NULL)) }
   ras <- lapply(OFF, function(sh) {
     s <- cut_segments(netz, 5, shift = sh)
     M <- segment_metrics(las, s, chm)
@@ -55,10 +55,29 @@ eignung_kachel <- function(k) {
   r <- terra::rast(lapply(names(ras[[1]]), function(n)
     terra::app(terra::rast(lapply(ras, `[[`, n)), mean, na.rm = TRUE)))
   names(r) <- names(ras[[1]])
+  r <- terra::crop(r, terra::ext(core[1], core[3], core[2], core[4]))
   terra::writeRaster(r, tif, overwrite = TRUE)
-  cat(sprintf("%s: %d Netzteile, %.0f m2 Hecke\n", k, nrow(netz), sum(as.numeric(st_area(netz)))))
-  unlink(laz)
+  cat(sprintf("%s: %d Netzteile, %.0f m2 Hecke\n", basename(tif), nrow(netz),
+              sum(as.numeric(st_area(netz)))))
+  rm(las, chm); gc(verbose = FALSE)
   invisible(tif)
+}
+eignung_kachel <- function(k) {
+  fertig <- file.path(work, paste0("fertig_", k))
+  if (file.exists(fertig)) return(invisible(NULL))
+  laz <- file.path(work, paste0(k, ".LAZ"))
+  if (!file.exists(laz))
+    download.file(sprintf("https://geotiles.citg.tudelft.nl/AHN4_T/%s.LAZ", k), laz,
+                  mode = "wb", quiet = TRUE)
+  h <- readLASheader(laz)
+  # Kachelgrenzen auf volle Meter (GeoTiles-Kacheln haben 20 m Rand)
+  x0 <- round(h$`Min X` + 20); y0 <- round(h$`Min Y` + 20)
+  xs <- c(x0, x0 + 500, x0 + 1000); ys <- c(y0, y0 + 625, y0 + 1250)
+  for (i in 1:2) for (j in 1:2)
+    eignung_teil(laz, c(xs[i], ys[j], xs[i + 1], ys[j + 1]),
+                 file.path(work, sprintf("eignung_%s_%d%d.tif", k, i, j)))
+  file.create(fertig)
+  unlink(laz)
 }
 for (k in KACHELN) try(eignung_kachel(k))
 
