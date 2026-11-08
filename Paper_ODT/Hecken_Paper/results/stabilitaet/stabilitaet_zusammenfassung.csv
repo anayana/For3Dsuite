@@ -1,0 +1,10 @@
+"art","modus","jaccard_gleitend5","jaccard_5","jaccard_20"
+"Dorngrasmuecke","streng",0.66,0.47,0.34
+"Fledermaus-Leitstruktur","streng",0.98,0.96,0.98
+"Goldammer","streng",0.28,0.15,NA
+"Neuntoeter","streng",0.75,0.63,0.68
+"Dorngrasmuecke","tolerant",0.69,0.51,0.45
+"Fledermaus-Leitstruktur","tolerant",0.99,0.98,1
+"Goldammer","tolerant",0.7,0.51,0.58
+"Neuntoeter","tolerant",0.75,0.61,0.67
+"Wildbienen/Bestaeuber","tolerant",0.59,0.39,0.42

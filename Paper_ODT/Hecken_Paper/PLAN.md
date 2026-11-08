@@ -144,3 +144,21 @@ Vorbehalte:
 
 Nächster Schritt: Mindestlänge je Art aus der Literatur (Revier bzw. Nistplatz), Flecken
 darunter verwerfen. Stabilität der 5-m-Zellen prüfen (Zellen um 2,5 m verschieben und vergleichen).
+
+## 9. Stabilität der eignungsbasierten Flecken (gerechnet 08.11.2026)
+
+`R/hvi_stabilitaet.R`. Gemessen wird die Übereinstimmung der geeigneten Fläche (Jaccard,
+1-m-Zellen), wenn das Raster verschoben wird:
+
+| Art (tolerant) | festes 5-m-Raster | festes 20-m-Raster | gleitendes 5-m-Fenster |
+|---|---|---|---|
+| Neuntöter | 0,61 | 0,67 | **0,75** |
+| Dorngrasmücke | 0,51 | 0,45 | **0,69** |
+| Goldammer | 0,51 | 0,58 | **0,70** |
+| Wildbienen | 0,39 | 0,42 | **0,59** |
+| Fledermaus | 0,98 | 1,00 | 0,99 |
+
+Ein festes Raster (egal ob 5 m oder 20 m) liefert Flecken, die zur Hälfte von der Rasterlage
+abhängen. **Gleitendes Fenster** (Eignung je 1-m-Zelle gemittelt über 4 verschobene
+5-m-Raster, danach Schwelle 0,5) hebt die Übereinstimmung auf 0,6–0,75. → Hauptverfahren.
+Goldammer streng bleibt instabil (0,28), weil fast nichts geeignet ist (53 m²).

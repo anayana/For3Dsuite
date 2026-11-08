@@ -13,9 +13,11 @@ hedge_net <- function(chm, h_min = 1, h_max = 8, max_halbbreite = 4, min_area = 
   um <- as.numeric(st_length(st_cast(st_geometry(polys), "MULTILINESTRING")))
   polys[fl >= min_area & fl / pmax(um, 1e-6) <= max_halbbreite, ]
 }
-cut_segments <- function(netz, seg_len, min_area = 60) {
+cut_segments <- function(netz, seg_len, min_area = 60, shift = c(0, 0)) {
   bb <- st_bbox(netz)
-  gitter <- st_make_grid(netz, cellsize = seg_len, offset = c(bb["xmin"], bb["ymin"]))
+  # shift verschiebt das Raster (Stabilitaetstest); Ursprung liegt dann vor bbox
+  gitter <- st_make_grid(netz, cellsize = seg_len,
+                         offset = c(bb["xmin"] - shift[1], bb["ymin"] - shift[2]))
   segs <- suppressWarnings(st_intersection(st_union(st_geometry(netz)), gitter))
   segs <- st_collection_extract(st_sf(geometry = segs), "POLYGON", warn = FALSE)
   segs <- st_cast(segs, "POLYGON", warn = FALSE)

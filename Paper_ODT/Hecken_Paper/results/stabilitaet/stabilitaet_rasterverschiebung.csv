@@ -1,0 +1,71 @@
+"raster_m","verschiebung","art","modus","geeignet_m2","jaccard"
+5,"2.5/0","Neuntoeter","streng",2363,0.661707126076742
+5,"2.5/0","Neuntoeter","tolerant",5126,0.629154624277457
+5,"2.5/0","Dorngrasmuecke","streng",974,0.494408945686901
+5,"2.5/0","Dorngrasmuecke","tolerant",1558,0.514069264069264
+5,"2.5/0","Goldammer","streng",107,0.251700680272109
+5,"2.5/0","Goldammer","tolerant",3611,0.526121979286536
+5,"2.5/0","Fledermaus-Leitstruktur","streng",17914,0.961728763040238
+5,"2.5/0","Fledermaus-Leitstruktur","tolerant",18806,0.98071641107805
+5,"2.5/0","Wildbienen/Bestaeuber","streng",0,NA
+5,"2.5/0","Wildbienen/Bestaeuber","tolerant",790,0.407869481765835
+5,"0/2.5","Neuntoeter","streng",2363,0.66431489045674
+5,"0/2.5","Neuntoeter","tolerant",5126,0.633344984271234
+5,"0/2.5","Dorngrasmuecke","streng",974,0.522550544323484
+5,"0/2.5","Dorngrasmuecke","tolerant",1558,0.55945521215296
+5,"0/2.5","Goldammer","streng",107,0.102272727272727
+5,"0/2.5","Goldammer","tolerant",3611,0.554585152838428
+5,"0/2.5","Fledermaus-Leitstruktur","streng",17914,0.961444663802114
+5,"0/2.5","Fledermaus-Leitstruktur","tolerant",18806,0.986781192481455
+5,"0/2.5","Wildbienen/Bestaeuber","streng",0,NA
+5,"0/2.5","Wildbienen/Bestaeuber","tolerant",790,0.40771349862259
+5,"2.5/2.5","Neuntoeter","streng",2363,0.571590052750565
+5,"2.5/2.5","Neuntoeter","tolerant",5126,0.55476726077176
+5,"2.5/2.5","Dorngrasmuecke","streng",974,0.388544891640867
+5,"2.5/2.5","Dorngrasmuecke","tolerant",1558,0.444724886420999
+5,"2.5/2.5","Goldammer","streng",107,0.0952380952380952
+5,"2.5/2.5","Goldammer","tolerant",3611,0.45143845987454
+5,"2.5/2.5","Fledermaus-Leitstruktur","streng",17914,0.953251423434222
+5,"2.5/2.5","Fledermaus-Leitstruktur","tolerant",18806,0.977472273567468
+5,"2.5/2.5","Wildbienen/Bestaeuber","streng",0,NA
+5,"2.5/2.5","Wildbienen/Bestaeuber","tolerant",790,0.340887629839471
+20,"10/0","Neuntoeter","streng",1432,0.742363877822045
+20,"10/0","Neuntoeter","tolerant",3542,0.738019169329074
+20,"10/0","Dorngrasmuecke","streng",483,0.2328125
+20,"10/0","Dorngrasmuecke","tolerant",906,0.387241689128482
+20,"10/0","Goldammer","streng",0,NA
+20,"10/0","Goldammer","tolerant",1591,0.649270482603816
+20,"10/0","Fledermaus-Leitstruktur","streng",17983,0.974986695050559
+20,"10/0","Fledermaus-Leitstruktur","tolerant",18593,1
+20,"10/0","Wildbienen/Bestaeuber","streng",0,NA
+20,"10/0","Wildbienen/Bestaeuber","tolerant",216,0.473895582329317
+20,"0/10","Neuntoeter","streng",1432,0.705489614243323
+20,"0/10","Neuntoeter","tolerant",3542,0.707891332470893
+20,"0/10","Dorngrasmuecke","streng",483,0.514218009478673
+20,"0/10","Dorngrasmuecke","tolerant",906,0.510783200908059
+20,"0/10","Goldammer","streng",0,NA
+20,"0/10","Goldammer","tolerant",1591,0.630890052356021
+20,"0/10","Fledermaus-Leitstruktur","streng",17983,0.984848484848485
+20,"0/10","Fledermaus-Leitstruktur","tolerant",18593,0.997193146599614
+20,"0/10","Wildbienen/Bestaeuber","streng",0,NA
+20,"0/10","Wildbienen/Bestaeuber","tolerant",216,0.33206106870229
+20,"10/10","Neuntoeter","streng",1432,0.578595317725752
+20,"10/10","Neuntoeter","tolerant",3542,0.576865671641791
+20,"10/10","Dorngrasmuecke","streng",483,0.269902912621359
+20,"10/10","Dorngrasmuecke","tolerant",906,0.440745672436751
+20,"10/10","Goldammer","streng",0,NA
+20,"10/10","Goldammer","tolerant",1591,0.4720885466795
+20,"10/10","Fledermaus-Leitstruktur","streng",17983,0.981909609370209
+20,"10/10","Fledermaus-Leitstruktur","tolerant",18593,0.997346680335283
+20,"10/10","Wildbienen/Bestaeuber","streng",0,NA
+20,"10/10","Wildbienen/Bestaeuber","tolerant",216,0.462745098039216
+0,"Ensemble 1.25","Neuntoeter","streng",2191,0.748987854251012
+0,"Ensemble 1.25","Neuntoeter","tolerant",5737,0.750764993880049
+0,"Ensemble 1.25","Dorngrasmuecke","streng",1022,0.663374485596708
+0,"Ensemble 1.25","Dorngrasmuecke","tolerant",1956,0.690178571428571
+0,"Ensemble 1.25","Goldammer","streng",53,0.283582089552239
+0,"Ensemble 1.25","Goldammer","tolerant",4028,0.70376786487657
+0,"Ensemble 1.25","Fledermaus-Leitstruktur","streng",20240,0.9769881724155
+0,"Ensemble 1.25","Fledermaus-Leitstruktur","tolerant",21384,0.990003300796907
+0,"Ensemble 1.25","Wildbienen/Bestaeuber","streng",0,NA
+0,"Ensemble 1.25","Wildbienen/Bestaeuber","tolerant",743,0.59047619047619
