@@ -180,3 +180,24 @@ Goldammer streng bleibt instabil (0,28), weil fast nichts geeignet ist (53 m²).
 - Mehrskaliger Ansatz: Nistplatz (~1 m, Dichte-Hotspot je Schicht, Mean Shift/Kerndichte mit
   mehreren Radien; Dichte als Trefferanteil, nicht als Punktzahl, wegen Flugstreifen-Überlappung)
   und Revier (gleitendes Fenster, Zehner-Meter).
+
+## 11. Externe Validierung, Dorngrasmücke Rotterdam (gerechnet 08.11.2026)
+
+`R/hvi_validierung.R`. Das Verfahren lief unverändert auf 12 AHN4-Teilkacheln (je ca. 1,25 km²)
+am Nordostrand von Rotterdam. Unabhängige Funde: NHM Rotterdam Observations 2 (GBIF, CC BY 4.0,
+Fachökologen, ±5 m), Dorngrasmücke, Mai–Juli 2018–2024. Vergleich: Eignung am Fundpunkt
+(Maximum im 5-m-Umkreis) gegen 5000 Zufallspunkte auf Heckenzellen. Kennzahl AUC
+(0,5 = Zufall, 1 = perfekt).
+
+- 329 Funde im Gebiet, davon nur **126 (38 %) an einer Hecke** laut unserer Maske. Die übrigen
+  liegen in Schilf, Brachen oder breitem Gebüsch, das die Schmalheitsmaske nicht als Hecke zählt.
+- **Dorngrasmücke-Kurve: AUC 0,58–0,59** (p < 0,003). Signifikant, aber schwach.
+- Die Neuntöter-Kurve trennt die Dorngrasmücken-Funde **besser** (AUC 0,60–0,63) als die eigene
+  Kurve → Die Dorngrasmücken-Kurve ist falsch eingestellt. Die Funde liegen an niedrigeren
+  Hecken: Fledermaus-Leitstruktur (hohe Hecken) AUC 0,35, d. h. Funde meiden hohe Hecken. Das
+  passt zur Literatur (Stoate & Szczur 2001: Heckenhöhe wirkt negativ).
+- Folgerung: Struktur aus ALS trägt messbar Information über das Vorkommen, aber die von Hand
+  gesetzten Kurven sind nicht artspezifisch genug. → Kurven aus Literatur belegen und mit
+  Funddaten kalibrieren (Kalibrier- und Testgebiet getrennt halten, sonst Überanpassung).
+- Vorbehalte: Beobachterfehler (Funde häufen sich an Wegen), Hintergrund nur Heckenzellen,
+  Dorngrasmücke ist keine reine Heckenart.
