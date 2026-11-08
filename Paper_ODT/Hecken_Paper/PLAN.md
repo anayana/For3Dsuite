@@ -113,3 +113,34 @@ Tabellen in `results/sensitivitaet/`.
   auf das Mittel, sondern auf die Rangfolge.
 - Arteignung: Streng gegen tolerant ändert stärker als die Segmentlänge (Goldammer 0 % → 7–14 %,
   Neuntöter 4–12 % → 20–26 %). Fledermaus bleibt bei 92–100 %.
+
+## 8. Adaptive Segmente statt festem Raster (gerechnet 08.11.2026)
+
+Idee des Nutzers: Ein 40-m-Stück nicht mitteln, sondern weiter teilen, z. B. 5 m geeignet und
+Rest. Umsetzung `R/hvi_adaptiv.R`: Grundeinheit sind 5-m-Zellen (Median 432 Punkte je Zelle,
+5 %-Quantil 164). Benachbarte geeignete Zellen werden je Art zu Flecken zusammengefasst
+(Ergebnisse in `results/adaptiv/`, Flecken als GeoPackage).
+
+**Feste Segmente verlieren den größten Teil der kleinen geeigneten Abschnitte.** Bezug ist die
+geeignete Fläche laut 5-m-Zellen, Aggregation tolerant:
+
+| Art | verpasst mit 20 m | verpasst mit 40 m |
+|---|---|---|
+| Neuntöter | 43 % | 57 % |
+| Dorngrasmücke | 56 % | 91 % |
+| Goldammer | 65 % | 81 % |
+| Wildbienen | 82 % | 84 % |
+| Fledermaus | 0 % | 0 % |
+
+Ursache: Die geeigneten Flecken für Hecken-Vögel sind kurz. Der Median liegt bei 5 m, der größte
+Fleck misst 60–80 m. Nach dem Mitteln in 20/40 m kippen sie unter 0,5. Die Fledermaus-Leitstruktur
+dagegen ist durchgehend (Flecken bis über 500 m) und deshalb unempfindlich.
+
+Vorbehalte:
+- 5-m-Zellen sind verrauschter, ein Teil der kleinen Flecken kann Messrauschen sein.
+- Die Länge ist über die Zahl der Zellen geschätzt; diagonal verlaufende Hecken überschätzen sie.
+- Strukturbezogenes Verschmelzen (Region-Merging) ergibt 503–1060 Einheiten mit Median 5 m.
+  Die geringe Streuung innen ist durch das Verfahren vorgegeben und kein unabhängiger Beleg.
+
+Nächster Schritt: Mindestlänge je Art aus der Literatur (Revier bzw. Nistplatz), Flecken
+darunter verwerfen. Stabilität der 5-m-Zellen prüfen (Zellen um 2,5 m verschieben und vergleichen).
