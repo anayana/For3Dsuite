@@ -1,7 +1,7 @@
 # Versuchsplan Paper D — Hedge Vertical Index aus offenem ALS
 
 Stand 07.11.2026 (Lizenzen geprüft) · Entwurf zur Bestätigung · noch nichts gerechnet ·
-Blocker: `shrub_div` noch nicht auf GitHub (siehe UEBERGABE.md §1)
+`shrub_div` ist öffentlich auf GitHub (GPL-3.0, Stand 08.11.2026), Demo läuft. Analyse nur in R.
 
 ## 1. Forschungsfrage
 
