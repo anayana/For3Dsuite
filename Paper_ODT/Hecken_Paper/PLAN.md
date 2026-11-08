@@ -94,3 +94,22 @@ Journalseite nachprüfen.
 2. E-Mail an die Autoren wegen der Plot-Koordinaten (optional, Weg b). Weg (a) läuft ohne.
 3. Sensitivität (3.2) auf AHN. Läuft schon mit vorhandenen Daten.
 4. Validierung (3.1), Abbildungen, Manuskript nach dem Vorbild von Paper B/C.
+
+## 7. Ergebnisse F2 (Sensitivität, gerechnet 08.11.2026)
+
+Daten: AHN4 (CC0), GeoTiles 28FN2_16 + 28FN2_21, Ausschnitt 1 km², 25,9 Mio. Punkte
+nach Gebäude-/Wasserfilter. Heckennetz 64 Teile, 19 210 m². Skript `R/hvi_sensitivity.R`,
+Tabellen in `results/sensitivitaet/`.
+
+- Segmente: 10 m → 500, 20 m → 173, 40 m → 44.
+- **Segmentlänge ist der größte Hebel:** Rangkorrelation (Spearman, 1-m-Zellen) gegen die Basis
+  (20 m, lokal, arithmetisch) nur 0,55–0,58 bei 10 m und 0,65–0,66 bei 40 m. Überlappung der
+  Top-25 % nur 38–41 % (10 m) bzw. 57–63 % (40 m).
+- **Normierung und Aggregation verschieben die Rangfolge kaum** (Spearman 0,96–0,97 bei 20 m),
+  senken aber das Niveau: Das geometrische Mittel drückt den Median um 0,04–0,05. Die feste
+  Normierung staucht die Spannweite (p05–p95 0,54–0,69 statt 0,48–0,73).
+- Varianzanteile (Zellwerte): Lage der Zelle 54 %, Aggregation 9 %, Normierung 1 %,
+  Segmentlänge 0,4 % als Haupteffekt, Wechselwirkungen 35 %. Die Segmentlänge wirkt also nicht
+  auf das Mittel, sondern auf die Rangfolge.
+- Arteignung: Streng gegen tolerant ändert stärker als die Segmentlänge (Goldammer 0 % → 7–14 %,
+  Neuntöter 4–12 % → 20–26 %). Fledermaus bleibt bei 92–100 %.
