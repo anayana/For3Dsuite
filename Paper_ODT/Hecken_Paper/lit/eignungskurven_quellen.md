@@ -19,15 +19,15 @@ Volltext in `species_requirements.csv` übernehmen. PDFs liegen lokal in `lit/pd
 Bisher steckt die Breite nur indirekt im Schmalheitstest.
 
 ## Fehlt noch — Volltext nötig (nicht frei zugänglich)
-1. **Graham, Gaulton, Gerard & Staley 2018**, Biological Conservation 220: 122–131,
+1. **Graham, Gaulton, Gerard & Staley 2018**: „The influence of hedgerow structural condition on wildlife habitat provision in farmed landscapes“, Biological Conservation 220: 122–131,
    doi:10.1016/j.biocon.2018.02.017 — systematische Übersicht: Höhe, Breite, Holzmasse, Lücken je
    Tiergruppe. **Wichtigste Quelle.**
-2. **Hinsley & Bellamy 2000**, J. Environ. Manage. 60: 33–49, doi:10.1006/jema.2000.0360 —
+2. **Hinsley & Bellamy 2000**: „The influence of hedge structure, management and landscape context on the value of hedgerows to birds: a review“, J. Environ. Manage. 60: 33–49, doi:10.1006/jema.2000.0360 —
    Heckenstruktur und Vögel, Übersicht.
-3. **Green, Osborne & Sears 1994**, J. Appl. Ecol. 31: 677–692 — Heckenhöhe/-breite je Art.
-4. Stoate & Szczur 2001 (Dorngrasmücke, Goldammer).
-5. Verboom & Huitema 1997, Landscape Ecology 12: 117–125 (Fledermäuse).
-6. Boughey et al. 2011, Biological Conservation (Fledermäuse an Hecken).
+3. **Green, Osborne & Sears 1994**: „The distribution of passerine birds in hedgerows during the breeding season in relation to characteristics of the hedgerow and adjacent farmland“ (Titel aus dem Gedächtnis), J. Appl. Ecol. 31: 677–692 — Heckenhöhe/-breite je Art.
+4. **Stoate & Szczur 2001**: „Whitethroat Sylvia communis and Yellowhammer Emberiza citrinella nesting success and breeding distribution in relation to field boundary vegetation“ (Titel aus dem Gedächtnis).
+5. **Verboom & Huitema 1997**: „The importance of linear landscape elements for the pipistrelle Pipistrellus pipistrellus and the serotine bat Eptesicus serotinus“ (Titel aus dem Gedächtnis), Landscape Ecology 12: 117–125 (Fledermäuse).
+6. **Boughey, Lake, Haysom & Dolman 2011**: „Improving the biodiversity benefits of hedgerows: How physical characteristics and the proximity of foraging habitat affect the use of linear features by bats“ (Titel aus dem Gedächtnis).
 7. Steinkauz: Génot & Van Nieuwenhuyse 2002 (Brutplatzwahl) bzw. Van Nieuwenhuyse et al. 2008,
    „The Little Owl“ (Buch).
 
