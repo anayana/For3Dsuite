@@ -88,3 +88,83 @@ suitability_two <- function(M, req) {
   as.data.frame(out, check.names = FALSE)
 }
 
+
+# ---- Zusatzkennwerte aus der Literatur (Paper D, 09.11.2026) ---------------
+# Je 5-m-Zelle (oder Segment). Quellen in lit/eignungskurven_quellen.md.
+#   breite         Flaeche / Zelllaenge (m)                    Defra 2007; Graham 2018
+#   dichte_02_2m   Anteil Treffer 0,2-2 m an allen Treffern < 2 m (dichteunabhaengig
+#                  gegen Flugstreifen-Ueberlappung)            Hinsley & Bellamy 2000
+#   baum_anteil    Anteil CHM > 8 m im Umkreis 2 m             Green 1994
+#   saum_breite    Krautsaum: Flaeche mit Treffern 0,2-1 m im Ring 0-3 m ausserhalb der
+#                  Gehoelzmaske, geteilt durch Zelllaenge (beide Seiten) Stoate 2001
+#   graben_tiefe   Median Gelaende in der Zelle minus Minimum im Ring 0-5 m   Stoate 2001
+#   wald_abstand   Abstand zur naechsten Gehoelzflaeche >= 1 ha und > 30 m breit
+#                  (m, gekappt 1000)                           Batary 2012
+#   im_wald        Zelle liegt im Wald -> keine Hecke (Unterholz/Waldrand 1-8 m wurde
+#                  sonst als Hecke erkannt; Twente: ~50 % der 5-m-Zellen!)
+#   verbund_laenge Laenge des Heckenverbunds, Teile mit Luecken <= 3 m zusammengefasst
+#                  (Flaeche / Breite)                          Gelling 2007
+gehoelz_masken <- function(chm, h_min = 1, wald_halbbreite = 15, wald_min = 10000) {
+  veg <- terra::classify(chm, rbind(c(-Inf, h_min, NA), c(h_min, Inf, 1)))
+  p <- st_as_sf(terra::as.polygons(veg, dissolve = TRUE))
+  p <- st_make_valid(st_cast(p, "POLYGON", warn = FALSE))
+  vu <- st_union(st_geometry(p))
+  # Wald = Gehoelz, das nach 15 m Einzug noch besteht (> 30 m breit), mind. 1 ha
+  # (Twente-Test: 10/15/20 m Einzug -> 17,0/14,3/10,6 ha, robust).
+  # Flaeche/Umfang taugt hier nicht: Waldraender im 0,5-m-CHM sind stark zerfranst.
+  # AHN ist laubfrei -> Kronendach loechrig; erst Luecken bis 3 m schliessen
+  # (1,5 m raus, 1,5 m rein), sonst bleibt nach dem Einzug fast nichts (Test Twente:
+  # ohne Schliessen 27 m2, mit 99 347 m2).
+  zu <- st_buffer(st_buffer(vu, 1.5), -1.5)
+  kern <- st_buffer(st_buffer(zu, -wald_halbbreite), wald_halbbreite)
+  kern <- st_cast(st_make_valid(kern), "POLYGON", warn = FALSE)
+  kern <- kern[as.numeric(st_area(kern)) >= wald_min]
+  list(veg = vu, wald = if (length(kern)) st_union(kern) else st_sfc(st_polygon(), crs = st_crs(vu)))
+}
+
+extra_metrics <- function(las, segs, chm, netz, masken, dtm = NULL, L = 5) {
+  n <- nrow(segs); g <- st_geometry(segs)
+  out <- data.frame(hedge_id = segs$hedge_id,
+                    breite = as.numeric(st_area(g)) / L)
+  # Dichte 0,2-2 m als Trefferanteil, ueber 1-m-Raster und Zellmittel
+  r1 <- terra::rast(terra::ext(chm), res = 1, crs = terra::crs(chm))
+  lo <- las$Z < 2
+  nall <- terra::rasterize(cbind(las$X[lo], las$Y[lo]), r1, fun = "count")
+  nveg <- terra::rasterize(cbind(las$X[lo & las$Z >= 0.2], las$Y[lo & las$Z >= 0.2]), r1, fun = "count")
+  nveg[is.na(nveg)] <- 0
+  v <- terra::vect(g)
+  a <- terra::extract(nall, v, fun = sum, na.rm = TRUE, ID = FALSE)[, 1]
+  b <- terra::extract(nveg, v, fun = sum, na.rm = TRUE, ID = FALSE)[, 1]
+  out$dichte_02_2m <- ifelse(a > 0, b / a, NA)
+  # Baumanteil im Umkreis 2 m
+  hoch <- terra::classify(chm, rbind(c(-Inf, 8, 0), c(8, Inf, 1)))
+  out$baum_anteil <- terra::extract(hoch, terra::vect(st_buffer(g, 2)), fun = mean,
+                                    na.rm = TRUE, ID = FALSE)[, 1]
+  # Krautsaum
+  krt <- las$Z >= 0.2 & las$Z < 1
+  saum <- terra::rasterize(cbind(las$X[krt], las$Y[krt]), r1, fun = "count")
+  saum <- terra::classify(saum, rbind(c(-Inf, 0.5, NA), c(0.5, Inf, 1)))
+  ausser <- terra::mask(saum, terra::vect(masken$veg), inverse = TRUE)
+  # Raster ist schon ausserhalb der Gehoelzmaske -> Puffer genuegt (kein st_difference,
+  # das verwirft Zellen, die ganz in der Maske liegen)
+  sv <- terra::extract(ausser, terra::vect(st_buffer(g, 3)), fun = sum, na.rm = TRUE, ID = FALSE)[, 1]
+  out$saum_breite <- ifelse(is.na(sv), 0, sv) / L
+  # Graben
+  if (!is.null(dtm)) {
+    med <- terra::extract(dtm, v, fun = median, na.rm = TRUE, ID = FALSE)[, 1]
+    mn <- terra::extract(dtm, terra::vect(st_buffer(g, 5)), fun = min, na.rm = TRUE, ID = FALSE)[, 1]
+    out$graben_tiefe <- pmax(0, med - mn)
+  } else out$graben_tiefe <- NA_real_
+  # Abstand zum Wald
+  ctr <- st_point_on_surface(g)
+  out$wald_abstand <- if (!all(st_is_empty(masken$wald)))
+    pmin(1000, as.numeric(st_distance(ctr, masken$wald))) else 1000
+  out$im_wald <- out$wald_abstand == 0
+  # Verbund: Heckenteile, die sich mit 1,5 m Puffer beruehren (Luecke <= 3 m)
+  verb <- st_cast(st_union(st_buffer(st_geometry(netz), 1.5)), "POLYGON")
+  vid <- vapply(st_intersects(ctr, verb), function(i) if (length(i)) i[1] else NA_integer_, integer(1))
+  netz_fl <- as.numeric(st_area(st_intersection(verb, st_union(st_geometry(netz)))))
+  br <- median(out$breite, na.rm = TRUE)
+  out$verbund_laenge <- netz_fl[vid] / br
+  out
+}

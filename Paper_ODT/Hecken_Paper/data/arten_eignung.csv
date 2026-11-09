@@ -14,4 +14,4 @@ Heckenbraunelle (Prunella modularis),dichte_02_2m,mono_inc,0.2,0.6,NA,NA,1.0,Ric
 Heckenbraunelle (Prunella modularis),baum_anteil,mono_dec,0.1,0.4,NA,NA,0.5,Richtung,Green et al. 1994 nach Graham et al. 2018,wenige Baeume; Anteil CHM > 8 m (Annahme)
 Haselmaus (Muscardinus avellanarius),breite,mono_inc,1.5,3.0,NA,NA,1.0,Mindestmass + Richtung,Defra 2007 nach Graham et al. 2018; Ehlers 2012,grosse dichte Hecken; Mindestbreite 1.5 m
 Haselmaus (Muscardinus avellanarius),dichte_02_2m,mono_inc,0.2,0.6,NA,NA,1.0,Richtung,Dondina et al. 2016 nach Graham et al. 2018,dichte Strauchschicht
-Haselmaus (Muscardinus avellanarius),luecke_max,mono_dec,1,3,NA,NA,1.0,Zahl,Gelling et al. 2007 nach Graham et al. 2018,Kleinsaeuger meiden Luecken > 3 m
+Haselmaus (Muscardinus avellanarius),verbund_laenge,mono_inc,30,150,NA,NA,1.0,Zahl (Luecke 3 m) + Annahme (Laenge),Gelling et al. 2007 nach Graham et al. 2018,Kleinsaeuger meiden Luecken > 3 m; Verbund = Heckenlaenge ohne Luecke > 3 m; Laengenschwellen Annahme

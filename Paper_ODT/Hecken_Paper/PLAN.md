@@ -201,3 +201,22 @@ Fachökologen, ±5 m), Dorngrasmücke, Mai–Juli 2018–2024. Vergleich: Eignun
   Funddaten kalibrieren (Kalibrier- und Testgebiet getrennt halten, sonst Überanpassung).
 - Vorbehalte: Beobachterfehler (Funde häufen sich an Wegen), Hintergrund nur Heckenzellen,
   Dorngrasmücke ist keine reine Heckenart.
+
+## 12. Literaturkurven und neue Kennwerte (09.11.2026)
+
+- Neue Eignungstabelle `data/arten_eignung.csv` mit Beleg und Quelle je Kurve (siehe
+  `lit/eignungskurven_quellen.md`). Arten: Dorngrasmücke, Goldammer, Neuntöter, Bluthänfling,
+  Heckenbraunelle, Haselmaus. Wildbienen gestrichen, Fledermaus als Netz-Kennwert.
+- Neue Kennwerte in `R/hecken_funs.R` (`extra_metrics`): Breite, Dichte 0,2–2 m (Trefferanteil),
+  Baumanteil, Krautsaum-Breite, Grabentiefe (aus DTM), Abstand zum Wald, Verbundlänge
+  (Lücken ≤ 3 m).
+- **Fehler gefunden: Die Heckenmaske (CHM 1–8 m) erfasst auch Unterholz und Ränder im Wald.**
+  Im Twente-Ausschnitt lagen 356 von 1206 5-m-Zellen (30 %) im Wald. Wald = Gehölz > 30 m breit
+  und ≥ 1 ha, nachdem Lücken bis 3 m im laubfreien Kronendach geschlossen sind. Waldzellen werden
+  jetzt ausgeschlossen. → Sensitivität (§ 7), adaptive Segmente (§ 8) und Stabilität (§ 9)
+  müssen mit Waldausschluss neu gerechnet werden.
+- **Krautsaum in AHN kaum sichtbar:** In der Hälfte der Zellen ist er 0 (laubfreie Befliegung).
+  Das schwächt genau den Kennwert, der für Dorngrasmücke und Goldammer am stärksten belegt ist
+  (Stoate & Szczur 2001). Im Paper als Grenze nennen; Alternative prüfen: Sommerbefliegung
+  oder Sentinel-2.
+- Validierung Rotterdam läuft neu mit Literaturkurven (`valid2`).

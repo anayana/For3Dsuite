@@ -9,7 +9,9 @@
 # Test: Ist die Eignung an Fundpunkten hoeher als an zufaelligen Heckenstellen
 # derselben Kacheln? (Praesenz vs. Hintergrund, AUC; 0,5 = Zufall)
 #
-#   Rscript hvi_validierung.R <shrub_div> <workdir> <gbif.json>
+#   Rscript hvi_validierung.R <shrub_div> <workdir> <gbif.json> [arten.csv]
+# Ohne arten.csv: alte Startkurven aus shrub_div. Mit data/arten_eignung.csv:
+# Literaturkurven + Zusatzkennwerte (Saum, Graben, Wald, Dichte, Verbund), Waldzellen raus.
 # Je Kachel: Download (GeoTiles TU Delft, AHN4 = CC0), Rechnung, LAZ wieder
 # loeschen (Platz), Eignungsraster 1 m als GeoTIFF behalten. Nur R, nur CPU.
 
@@ -20,7 +22,9 @@ dir.create(work, recursive = TRUE, showWarnings = FALSE)
 here <- dirname(normalizePath(sub("^--file=", "", grep("^--file=", commandArgs(FALSE), value = TRUE))))
 for (f in c("hvi_metrics.R", "hvi_index.R", "hvi_pipeline.R")) source(file.path(shrub, "R", f))
 source(file.path(here, "hecken_funs.R"))
-req <- read.csv(file.path(shrub, "data", "species_requirements.csv"), stringsAsFactors = FALSE)
+req_pfad <- if (length(args) >= 4) args[4] else file.path(shrub, "data", "species_requirements.csv")
+req <- read.csv(req_pfad, stringsAsFactors = FALSE)
+NEU <- length(args) >= 4
 options(timeout = 1800)
 
 KACHELN <- c("30HZ2_08", "30HZ2_09", "30HZ2_10", "30HZ2_13", "30HZ2_14", "30HZ2_15",
@@ -30,22 +34,29 @@ OFF <- list(c(0, 0), c(2.5, 0), c(0, 2.5), c(2.5, 2.5))
 # Eine Rotterdamer AHN4-Teilkachel (1 x 1,25 km) sprengt mit ~14 GB den RAM.
 # Daher je Kachel 4 Viertel, gelesen mit 20 m Rand (TIN, Fenster), Ergebnis
 # auf das Viertel ohne Rand zugeschnitten.
-eignung_teil <- function(laz, core, tif, rand = 20) {
+eignung_teil <- function(laz, core, tif, rand = if (NEU) 50 else 20) {
   las <- readLAS(laz, select = "xyzc", filter = sprintf(
     "-keep_xy %f %f %f %f -drop_z_below -10 -drop_z_above 200",
     core[1] - rand, core[2] - rand, core[3] + rand, core[4] + rand))
   if (is.empty(las)) return(invisible(NULL))
   st_crs(las) <- 28992
+  dtm <- if (NEU) rasterize_terrain(las, res = 1, algorithm = tin()) else NULL
   las <- normalize_height(las, tin())
   las <- filter_poi(las, Z >= -0.5, Z < 40, !(Classification %in% c(6L, 9L, 26L)))
   chm <- hvi_chm(las, res = 0.5)
   netz <- hedge_net(chm)
   if (nrow(netz) == 0) return(invisible(NULL))
+  mk <- if (NEU) gehoelz_masken(chm) else NULL
   grid1 <- terra::rast(terra::ext(chm), res = 1, crs = "EPSG:28992")
   ras <- lapply(OFF, function(sh) {
     s <- cut_segments(netz, 5, shift = sh)
     M <- segment_metrics(las, s, chm)
     s <- s[match(M$hedge_id, s$hedge_id), ]
+    if (NEU) {
+      X <- extra_metrics(las, s, chm, netz, mk, dtm = dtm)
+      M <- cbind(M, X[, setdiff(names(X), "hedge_id")])
+      keep <- !M$im_wald; M <- M[keep, ]; s <- s[keep, ]
+    }
     S <- suitability_two(M, req)
     r <- terra::rast(lapply(names(S), function(n)
       terra::rasterize(terra::vect(cbind(s, v = S[[n]])), grid1, field = "v")))
