@@ -127,6 +127,35 @@ Folgen für unser Verfahren:
 4. Vorbehalt: AHN wird überwiegend ohne Laub geflogen; ein niedriger Krautsaum ist dann schwer
    von Boden zu trennen. Prüfen, wie gut 0,2–1 m in AHN4 erkannt wird.
 
+
+## Verboom & Huitema 1997 ✔ (Volltext gelesen 09.11.2026)
+„The importance of linear landscape elements for the pipistrelle Pipistrellus pipistrellus and
+the serotine bat Eptesicus serotinus“, Landscape Ecology 12: 117–125. Agrarlandschaft in den
+Niederlanden, 15 Quadrate à 1 × 1 km, 87 Punkte an Linienelementen, 13 im Offenland.
+
+- **Zwergfledermaus fast nur an Linienelementen:** anwesend an 68 % der Punkte an Hecken/
+  Baumreihen, nur 9 % im Offenland (P < 0,001).
+- **Höhe zählt:** Aktivität steigt mit der Höhe des Elements (R² = 12,5 %, P = 0,005).
+  **An Elementen unter 6 m Höhe keine Zwergfledermaus** (nur n = 6 solcher Punkte). Untersuchte
+  Elemente 3–25 m hoch.
+- **Lücken sind kein starkes Hindernis:** Zwergfledermäuse auch an isolierten Fragmenten mit
+  110–150 m Abstand; Querungen bis 200 m beobachtet. Kein Isolationseffekt.
+- **Breitflügelfledermaus:** gleich oft im Offenland wie an Elementen, aber Aktivität sinkt mit dem
+  Abstand zum Element (25–265 m; R² = 26 %, P = 0,01) und steigt überproportional mit der
+  Dichte der Linienelemente in der Landschaft (Quadrat + 8 Nachbarn: R² = 61,5 %).
+
+**Korrektur meiner früheren Annahme:** Ich hatte gesagt, schon wenige Meter Lücke könnten eine
+Flugroute unterbrechen. Für Zwerg- und Breitflügelfledermaus stimmt das laut dieser Studie
+nicht (Lücken bis 110–150 m überbrückt). Lücken > 3 m zählen für Kleinsäuger (Gelling et al. 2007,
+nach Graham et al. 2018); für Langohr/Myotis noch offen.
+
+Folgen für unser Verfahren:
+1. **Fledermaus-Kennwert muss Baumreihen einschließen.** Unsere Heckenmaske (1–8 m) schneidet
+   hohe Elemente ab; Zwergfledermäuse nutzen Elemente ab etwa 6 m. → Eigene Maske für
+   Linienelemente bis 25 m.
+2. Kennwerte: Höhe des Elements, Dichte der Linienelemente je km² (Umkreis ~1,5 km, also
+   Quadrat + Nachbarn), Abstand zum nächsten Element. Lückenlänge für Fledermäuse nachrangig.
+
 ## Fehlt noch — Volltext nötig (nicht frei zugänglich)
 1. ~~Graham et al. 2018~~ ✔ erledigt (siehe oben), Biological Conservation 220: 122–131,
    doi:10.1016/j.biocon.2018.02.017 — systematische Übersicht: Höhe, Breite, Holzmasse, Lücken je
@@ -135,7 +164,7 @@ Folgen für unser Verfahren:
    Heckenstruktur und Vögel, Übersicht.
 3. **Green, Osborne & Sears 1994**: „The distribution of passerine birds in hedgerows during the breeding season in relation to characteristics of the hedgerow and adjacent farmland“ (Titel aus dem Gedächtnis), J. Appl. Ecol. 31: 677–692 — Heckenhöhe/-breite je Art.
 4. ~~Stoate & Szczur 2001~~ ✔ erledigt (siehe oben).
-5. **Verboom & Huitema 1997**: „The importance of linear landscape elements for the pipistrelle Pipistrellus pipistrellus and the serotine bat Eptesicus serotinus“ (Titel aus dem Gedächtnis), Landscape Ecology 12: 117–125 (Fledermäuse).
+5. ~~Verboom & Huitema 1997~~ ✔ erledigt (siehe oben), Landscape Ecology 12: 117–125 (Fledermäuse).
 6. **Boughey, Lake, Haysom & Dolman 2011**: „Improving the biodiversity benefits of hedgerows: How physical characteristics and the proximity of foraging habitat affect the use of linear features by bats“ (Titel aus dem Gedächtnis).
 7. Steinkauz: Génot & Van Nieuwenhuyse 2002 (Brutplatzwahl) bzw. Van Nieuwenhuyse et al. 2008,
    „The Little Owl“ (Buch).
