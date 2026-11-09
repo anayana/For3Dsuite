@@ -281,3 +281,26 @@ NHM sind Gelegenheitsfunde (Beobachter-Bias, keine Abwesenheiten); RLP-ALS deutl
 viele Funde.
 Skripte: `R/hvi_metrik_jobs.R` (Kennwerte je Ausschnitt, neustartfest), `R/hvi_kalib_arten.R`
 (Validierung/Kalibrierung je Art), `R/hvi_fledermaus.R`.
+
+## 16. Ergebnisse Rheinland-Pfalz und Leiden (09.11.2026)
+
+**RLP** (ArtenFinder CC0, LPO/LPG 2026; 12 km², Teilraum A = Cluster bei 49,48° N/8,24° O,
+B = Rest). `results/rlp/`.
+- Literaturkurven: Neuntöter AUC 0,58 (A, n = 127 an Hecke) / 0,86 (B, n = 15);
+  Dorngrasmücke 0,54 / 0,77 (n = 22); Goldammer 0,53 / 0,51; Bluthänfling 0,54 / 0,64.
+- **Stabilster Einzelbefund (beide Teilräume, gleiche Richtung):** Funde liegen an **kurzen,
+  wenig verbundenen und schmalen** Heckenstücken: Verbundlänge AUC 0,09–0,38 (umgekehrt also
+  0,62–0,91) für Neuntöter, Dorngrasmücke, Goldammer, Bluthänfling; Breite 0,27–0,41.
+  Passt zu Einzelbüschen/Dornsträuchern (Neuntöter, Jakober & Stauber 1983) und isolierten
+  Hecken (Goldammer, Batáry et al. 2012).
+- Kalibrierung A→B stark (Neuntöter 0,89, Goldammer 0,95, Dorngrasmücke 0,74), B→A schwach
+  (0,53–0,58). Asymmetrie: B klein und heterogen. Kein belastbarer Nachweis der Übertragbarkeit.
+- Vorbehalt: Gelegenheitsfunde (Beobachterwege), keine Abwesenheiten; Heckenbraunelle zu selten.
+
+**Leiden** (NHM Rotterdam, Zwergfledermaus, 8518 Funde; AHN4). `results/leiden/`.
+- Gebiet ist städtisch/parkartig: 84 % der Zufallspunkte liegen ≤ 10 m von Gehölz → wenig
+  Kontrast, kein Heckenraum.
+- Funde näher an Gehölz (AUC 0,39–0,41, 96 % ≤ 10 m vs. 84 %) und an Gehölzlinien
+  (0,35–0,41) als Zufallspunkte; Richtung wie Verboom & Huitema 1997, Effekt klein.
+- Höhe/Dichte im Umkreis uneinheitlich zwischen West und Ost (West: viele Funde an einem Ort mit
+  hohen Bäumen, 0,89; Ost 0,49) → Klumpung einzelner Erhebungen, nicht verallgemeinerbar.

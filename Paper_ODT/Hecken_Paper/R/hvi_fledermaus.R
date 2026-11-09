@@ -48,8 +48,13 @@ for (k in kacheln) {
   laz <- file.path(work, paste0(k, ".LAZ"))
   fertig <- file.path(work, paste0("fertig_", k))
   if (file.exists(fertig)) next
-  if (!file.exists(laz))
-    download.file(sprintf("https://geotiles.citg.tudelft.nl/AHN4_T/%s.LAZ", k), laz, mode = "wb", quiet = TRUE)
+  if (!file.exists(laz)) for (versuch in 1:4) {
+    tmp <- paste0(laz, ".part")
+    ok <- try(download.file(sprintf("https://geotiles.citg.tudelft.nl/AHN4_T/%s.LAZ", k), tmp,
+                            mode = "wb", quiet = TRUE), silent = TRUE)
+    if (!inherits(ok, "try-error") && ok == 0) { file.rename(tmp, laz); break }
+    unlink(tmp); Sys.sleep(2^versuch)
+  }
   h <- readLASheader(laz); x0 <- round(h$`Min X` + 20); y0 <- round(h$`Min Y` + 20)
   for (i in 0:1) for (j in 0:1)
     viertel(laz, c(x0 + 500 * i, y0 + 625 * j, x0 + 500 * (i + 1), y0 + 625 * (j + 1)),
@@ -67,10 +72,15 @@ gp <- st_buffer(st_buffer(st_union(gp), 1), -1)
 breit <- st_buffer(st_buffer(gp, -10), 10)
 linie <- st_difference(gp, breit)
 lr <- terra::rasterize(terra::vect(linie), h, field = 1)
+# Anteile im 300-m-Umkreis auf 10 m vergroebert (1-m-Fenster mit 600 x 600 Zellen
+# ist zu langsam), danach zurueck auf 1 m
+lin01 <- terra::ifel(is.na(lr), 0, 1); geh01 <- terra::ifel(is.na(g3), 0, 1)
+fm <- terra::focalMat(terra::aggregate(h, 10), 300, "circle")
+anteil300 <- function(r01) terra::resample(terra::focal(terra::aggregate(r01, 10, mean),
+                                           w = fm, fun = sum, na.rm = TRUE), h, method = "near")
 K <- c(terra::distance(g3), terra::distance(g6), terra::distance(lr),
        terra::focal(h, w = 21, fun = max, na.rm = TRUE),
-       terra::focal(terra::ifel(is.na(lr), 0, 1), w = terra::focalMat(h, 300, "circle"), fun = sum),
-       terra::focal(terra::ifel(is.na(g3), 0, 1), w = terra::focalMat(h, 300, "circle"), fun = sum))
+       anteil300(lin01), anteil300(geh01))
 names(K) <- c("abst_gehoelz", "abst_hoch", "abst_linie", "hoehe_umkreis", "linien_300", "gehoelz_300")
 terra::writeRaster(K, file.path(work, "fledermaus_kennwerte.tif"), overwrite = TRUE)
 

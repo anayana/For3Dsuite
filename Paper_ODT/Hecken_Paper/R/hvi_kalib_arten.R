@@ -32,24 +32,42 @@ gruppen <- sort(unique(F$gruppe)); stopifnot(length(gruppen) == 2)
 
 tifs <- list.files(mdir, "^metrik_.*\\.tif$", full.names = TRUE)
 cat(length(tifs), "Kennwertraster\n")
-R <- terra::merge(terra::sprc(lapply(tifs, terra::rast)))
-names(R) <- names(terra::rast(tifs[1]))
-KW <- names(R)
-
+# 5-m-Umkreismittel je Kachel vorab (Fokalmittel 11 x 11 Zellen, nur Heckenzellen);
+# ein Gesamtmosaik waere bei weit verstreuten Kacheln riesig und fast leer.
+fdir <- file.path(outdir, "fokal"); dir.create(fdir, showWarnings = FALSE)
+ftifs <- vapply(tifs, function(t) {
+  z <- file.path(fdir, basename(t))
+  if (!file.exists(z)) {
+    r <- terra::rast(t)
+    terra::writeRaster(terra::focal(r, w = matrix(1, 11, 11), fun = mean, na.rm = TRUE,
+                                    na.policy = "all"), z, overwrite = TRUE)
+  }
+  z }, character(1))
+V <- terra::vrt(ftifs)
+names(V) <- names(terra::rast(tifs[1]))
+KW <- names(V)
 werte <- function(pts) {
-  e <- terra::extract(R, terra::vect(st_buffer(pts, 5)), fun = mean, na.rm = TRUE, ID = FALSE)
+  e <- terra::extract(V, terra::vect(pts), ID = FALSE)
   e[!apply(e, 1, function(z) any(is.finite(z))), ] <- NA
   e
 }
 pf <- st_as_sf(F, coords = c("x", "y"), crs = epsg)
 FW <- cbind(F, werte(pf))
-# Hintergrund je Teilraum: Teilraum = konvexe Huelle der Funde + 500 m
+# Hintergrund je Teilraum: zufaellige HECKENzellen (Originalraster, nicht fokal) aus den
+# Kacheln, die die Huelle der Funde (+500 m) schneiden
 BG <- do.call(rbind, lapply(gruppen, function(g) {
   hull <- st_buffer(st_convex_hull(st_union(pf[F$gruppe == g, ])), 500)
-  m <- terra::mask(R[["h_p95"]], terra::vect(hull))
-  b <- terra::spatSample(m, 3000, method = "random", na.rm = TRUE, as.points = TRUE)
-  cbind(data.frame(gruppe = g), werte(st_as_sf(b)))
+  hv <- terra::vect(hull)
+  xy <- do.call(rbind, lapply(tifs, function(t) {
+    r <- terra::rast(t, lyrs = 1)
+    if (!terra::relate(terra::as.polygons(terra::ext(r), crs = terra::crs(r)), hv, "intersects")[1, 1]) return(NULL)
+    r <- terra::mask(r, hv); i <- which(!is.na(terra::values(r)))
+    if (length(i)) terra::xyFromCell(r, i) }))
+  xy <- xy[sample(nrow(xy), min(3000, nrow(xy))), , drop = FALSE]
+  cbind(data.frame(gruppe = g), werte(st_as_sf(data.frame(x = xy[, 1], y = xy[, 2]),
+                                               coords = c("x", "y"), crs = epsg)))
 }))
+cat("Hintergrund je Teilraum:", paste(table(BG$gruppe), collapse = " / "), "\n")
 
 auc <- function(s, y) { ok <- is.finite(s) & !is.na(y); s <- s[ok]; y <- y[ok]
   n1 <- sum(y == 1); n0 <- sum(y == 0); if (n1 < 5 || n0 < 5) return(NA_real_)
