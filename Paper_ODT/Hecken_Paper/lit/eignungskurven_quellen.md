@@ -78,6 +78,21 @@ Folgen für unser Verfahren:
 2. Breite/Höhe allein erklären die Artenzahl nicht zwingend → Lage im Netz gehört dazu.
    Spricht für den mehrskaligen Ansatz (Heckenstück + Umgebung).
 
+
+## Chamberlain, Wilson & Fuller 1999 ✔ (Volltext gelesen 09.11.2026)
+„A comparison of bird populations on organic and conventional farm systems in southern
+Britain“, Biological Conservation 88: 307–320, doi:10.1016/S0006-3207(98)00124-4.
+22 Hofpaare (ökologisch/konventionell), England und Wales, drei Brutzeiten.
+
+- Thema ist die Bewirtschaftung, nicht die Heckenstruktur. Für uns nur zweierlei brauchbar:
+- **Klassengrenze 2 m für Höhe und Breite** (Heckendichte > 2 m hoch und breit, ≤ 2 m usw.) —
+  dieselbe Grenze wie bei Duvergé & Jones (Hufeisennase). → Als Klassengrenze in den Kennwerten
+  übernehmen, damit Ergebnisse vergleichbar sind.
+- Ökohöfe hatten mehr Hecken über 2 m Höhe und Breite (p < 0,05 in einzelnen Jahren) und mehr
+  Vögel. Bluthänfling, Singdrossel, Goldammer mit Ökobewirtschaftung verbunden; Gimpel mit hohen,
+  schmalen Hecken. Ursache (Struktur oder Nahrung) nicht trennbar.
+- Keine artbezogenen Schwellenwerte für die Eignungskurven.
+
 ## Fehlt noch — Volltext nötig (nicht frei zugänglich)
 1. ~~Graham et al. 2018~~ ✔ erledigt (siehe oben), Biological Conservation 220: 122–131,
    doi:10.1016/j.biocon.2018.02.017 — systematische Übersicht: Höhe, Breite, Holzmasse, Lücken je
