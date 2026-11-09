@@ -220,3 +220,22 @@ Fachökologen, ±5 m), Dorngrasmücke, Mai–Juli 2018–2024. Vergleich: Eignun
   (Stoate & Szczur 2001). Im Paper als Grenze nennen; Alternative prüfen: Sommerbefliegung
   oder Sentinel-2.
 - Validierung Rotterdam läuft neu mit Literaturkurven (`valid2`).
+
+## 13. Validierung mit Literaturkurven (gerechnet 09.11.2026)
+
+Gleiche Rotterdamer Funde und Kacheln wie in § 11, jetzt mit `data/arten_eignung.csv`,
+Zusatzkennwerten und Waldausschluss. 112 Funde an Hecken (34 %).
+
+- **Dorngrasmücke: AUC 0,48–0,49 → Zufall.** Schlechter als die alten Startkurven (0,58).
+  Median der Eignung an Fund- und Hintergrundpunkten jeweils 0.
+- Ursachen:
+  1. Krautsaum (stärkster Literaturbeleg, Gewicht 1,5) ist in der laubfreien AHN-Befliegung fast
+     überall 0.
+  2. Die Höhenschwelle stammt aus englischen Hecken (Revier bei 1,8 m, keins bei 2,8 m). Die
+     Rotterdamer Hecken sind meist höher → Kurve überall am Boden, keine Rangfolge mehr.
+- Das Signal ist trotzdem da: Hohe, dichte Hecken (Haselmaus tolerant AUC 0,41, p = 0,002;
+  Heckenbraunelle 0,45) liegen seltener an Fundpunkten. Die Funde meiden hohe Hecken.
+- **Folgerung:** Harte Literaturschwellen lassen sich nicht ohne Weiteres auf eine andere Region
+  und einen anderen Sensor übertragen. Die Richtung aus der Literatur stimmt, die Schwellen nicht.
+  → Nächster Schritt: Kurven mit Literaturrichtung, aber Schwellen aus Funddaten schätzen —
+  räumlich getrennt (Kalibrierung auf einer Hälfte der Kacheln, Test auf der anderen).
