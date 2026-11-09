@@ -93,6 +93,40 @@ Britain“, Biological Conservation 88: 307–320, doi:10.1016/S0006-3207(98)001
   schmalen Hecken. Ursache (Struktur oder Nahrung) nicht trennbar.
 - Keine artbezogenen Schwellenwerte für die Eignungskurven.
 
+
+## Stoate & Szczur 2001 ✔ (Volltext gelesen 09.11.2026)
+„Whitethroat Sylvia communis and Yellowhammer Emberiza citrinella nesting success and breeding
+distribution in relation to field boundary vegetation“, Bird Study 48: 229–235,
+doi:10.1080/00063650109461222. Leicestershire (UK), 93 Hecken à 100 m (Reviere 1998),
+Nester 1995–98 (151 Dorngrasmücke, 276 Goldammer).
+
+Mittelwerte (± SE) an Hecken mit/ohne Revier (Tab. 1), logistische Regression (Tab. 2):
+
+| | Heckenhöhe | Krautsaum-Breite (beide Seiten) | Grabentiefe |
+|---|---|---|---|
+| Dorngrasmücke ja | **1,83 ± 0,12 m** | **3,17 ± 0,40 m** | – |
+| Dorngrasmücke nein | 2,83 ± 0,16 m | 1,23 ± 0,13 m | – |
+| Goldammer ja | – | **2,63 ± 0,30 m** | **1,09 ± 0,12 m** |
+| Goldammer nein | – | 1,12 ± 0,14 m | 0,26 ± 0,06 m |
+
+Koeffizienten: Dorngrasmücke Heckenhöhe −0,261 (P < 0,01), Krautsaum +0,368 (P < 0,001);
+Goldammer Krautsaum +0,221 (P < 0,01), Grabentiefe +0,294 (P < 0,001).
+
+- **95 % der Dorngrasmücken-Nester im Krautsaum**, nicht im Gebüsch.
+- Goldammer: 49 % der Nester im Krautsaum; Nester in der Hecke im Mittel 0,78 m hoch, im
+  Krautsaum 0,10 m. Nester in der Hecke häufiger ausgeraubt.
+- Empfehlung der Autoren: niedrige Hecken und 2 m breite ungemähte Krautstreifen.
+
+Folgen für unser Verfahren:
+1. **Dorngrasmücke:** Heckenhöhe als fallende Kurve (gut bei ≤ ~2 m, schlecht ab ~3 m);
+   entscheidend ist der **Krautsaum** neben der Hecke (Vegetation ~0,2–1 m, ≥ 2–3 m breit).
+2. **Erklärt die schwache Rotterdam-Validierung** (AUC 0,58, nur 38 % der Funde an Hecken): Die
+   Art brütet im Krautsaum, den unsere Heckenmaske (1–8 m) gar nicht erfasst.
+3. **Goldammer:** Krautsaum und **Graben** — Gräben sind im ALS-Geländemodell messbar (Senke
+   neben der Hecke). Neuer Kennwert.
+4. Vorbehalt: AHN wird überwiegend ohne Laub geflogen; ein niedriger Krautsaum ist dann schwer
+   von Boden zu trennen. Prüfen, wie gut 0,2–1 m in AHN4 erkannt wird.
+
 ## Fehlt noch — Volltext nötig (nicht frei zugänglich)
 1. ~~Graham et al. 2018~~ ✔ erledigt (siehe oben), Biological Conservation 220: 122–131,
    doi:10.1016/j.biocon.2018.02.017 — systematische Übersicht: Höhe, Breite, Holzmasse, Lücken je
@@ -100,7 +134,7 @@ Britain“, Biological Conservation 88: 307–320, doi:10.1016/S0006-3207(98)001
 2. **Hinsley & Bellamy 2000**: „The influence of hedge structure, management and landscape context on the value of hedgerows to birds: a review“, J. Environ. Manage. 60: 33–49, doi:10.1006/jema.2000.0360 —
    Heckenstruktur und Vögel, Übersicht.
 3. **Green, Osborne & Sears 1994**: „The distribution of passerine birds in hedgerows during the breeding season in relation to characteristics of the hedgerow and adjacent farmland“ (Titel aus dem Gedächtnis), J. Appl. Ecol. 31: 677–692 — Heckenhöhe/-breite je Art.
-4. **Stoate & Szczur 2001**: „Whitethroat Sylvia communis and Yellowhammer Emberiza citrinella nesting success and breeding distribution in relation to field boundary vegetation“ (Titel aus dem Gedächtnis).
+4. ~~Stoate & Szczur 2001~~ ✔ erledigt (siehe oben).
 5. **Verboom & Huitema 1997**: „The importance of linear landscape elements for the pipistrelle Pipistrellus pipistrellus and the serotine bat Eptesicus serotinus“ (Titel aus dem Gedächtnis), Landscape Ecology 12: 117–125 (Fledermäuse).
 6. **Boughey, Lake, Haysom & Dolman 2011**: „Improving the biodiversity benefits of hedgerows: How physical characteristics and the proximity of foraging habitat affect the use of linear features by bats“ (Titel aus dem Gedächtnis).
 7. Steinkauz: Génot & Van Nieuwenhuyse 2002 (Brutplatzwahl) bzw. Van Nieuwenhuyse et al. 2008,
