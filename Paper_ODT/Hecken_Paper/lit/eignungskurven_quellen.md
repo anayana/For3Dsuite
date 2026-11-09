@@ -13,6 +13,10 @@ Volltext in `species_requirements.csv` übernehmen. PDFs liegen lokal in `lit/pd
 | Bluthänfling | Nesthöhe | 0–2 m in dichten Dornhecken, Brombeere, Gebüsch | GWCT Artblatt (graue Literatur) ✔ |
 | Heckenbraunelle | Deckung | erfolgreiche Nester mit mehr Deckung von oben und seitlich | Tuomenpuro 1991, Ornis Fennica ✔ (Waldhabitat, Finnland — nur bedingt übertragbar) |
 | Haselmaus | Hecken | Besetzung 25–64 %, dichtere Hecken und Wald in der Nähe ↑, Lücken schließen; >50 % der Nester in Schlehe; keine Höhen-/Breitenschwelle angegeben | Ehlers 2012, Peckiana (nur Zusammenfassung PTES) ✔ |
+| Waldpflanzen in Knicks | Breite der Strauchschicht | positiv, aber schwach (GLMM z = 1,70, p = 0,09); Strauchhöhe nicht im Modell; Nähe zu altem Wald und Alter des Knicks wichtiger | Litza & Diekmann 2019, J. Veg. Sci., doi:10.1111/jvs.12744 ✔ (30 Knicks, SO-Schleswig-Holstein) |
+
+→ Folgerung für ALS: **Heckenbreite** (aus der Maske messbar) als eigener Kennwert aufnehmen.
+Bisher steckt die Breite nur indirekt im Schmalheitstest.
 
 ## Fehlt noch — Volltext nötig (nicht frei zugänglich)
 1. **Graham, Gaulton, Gerard & Staley 2018**, Biological Conservation 220: 122–131,
