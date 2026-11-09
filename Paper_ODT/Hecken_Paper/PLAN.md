@@ -267,3 +267,17 @@ auf einer Hälfte, Test **nur** auf der anderen. Ergebnisse in `results/kalibrie
   Literatur, der Krautsaum, ist mit diesem Sensor nicht messbar.
 - Vorbehalte: kleine Stichprobe (n ≈ 50 je Hälfte), Beobachterfehler (Funde an Wegen),
   nur eine Art mit Funddaten.
+
+## 15. Validierung in drei Räumen mit offenen Daten (gestartet 09.11.2026)
+
+| Raum | Funddaten (Lizenz) | ALS (Lizenz) | Arten | Design |
+|---|---|---|---|---|
+| **Flandern** | INBO Meetnet Agrarische Soorten (CC0), Punktzählungen r = 300 m, 2018–2025, 1608 Zählpunkte, Unsicherheit 10–30 m | DHMV II, März 2014/15, laubfrei (Gratis open data licentie Vlaanderen v1.2) | Dorngrasmücke, Goldammer, Bluthänfling, Heckenbraunelle | 120 Zählpunkte (60 West/60 Ost, je ≥ 25 mit Goldammer); Nutzung vs. verfügbare Hecke im Zählkreis; Kalibrierung West↔Ost |
+| **Rheinland-Pfalz** | ArtenFinder (CC0) via GBIF, ≤ 10 m, 2018–2025 | LPO/LPG (dl-de/by-2.0), Stand 2026, geobasis-rlp.de | + Neuntöter (416 Funde) | 12 km² in Clustern; Kalibrierung Cluster A ↔ Rest |
+| **Leiden (NL)** | NHM Rotterdam Observations 2 (CC BY 4.0), Zwergfledermaus, 8518 Funde, ≤ 25 m | AHN4 (CC0) | Fledermaus-Leitstruktur | Abstand zu Gehölz/Linie/hohem Gehölz, Dichte im 300-m-Umkreis vs. Zufallspunkte |
+
+Vorbehalte: Flandern 3–11 Jahre Abstand ALS → Zählung (Hecken verändern sich); ArtenFinder und
+NHM sind Gelegenheitsfunde (Beobachter-Bias, keine Abwesenheiten); RLP-ALS deutlich jünger als
+viele Funde.
+Skripte: `R/hvi_metrik_jobs.R` (Kennwerte je Ausschnitt, neustartfest), `R/hvi_kalib_arten.R`
+(Validierung/Kalibrierung je Art), `R/hvi_fledermaus.R`.
