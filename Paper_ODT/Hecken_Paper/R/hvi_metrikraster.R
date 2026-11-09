@@ -40,17 +40,19 @@ METRIKEN <- c("h_p95", "h_mean", "fhd", "n_layers", "understory_openness", "vert
               "canopy_sd", "breite", "dichte_02_2m", "baum_anteil", "saum_breite",
               "graben_tiefe", "wald_abstand", "verbund_laenge")
 eignung_teil <- function(laz, core, tif, rand = 50) {
+  # Viertel schon fertig (auch leer) -> ueberspringen; Maschine startet gelegentlich neu
+  if (file.exists(tif) || file.exists(paste0(tif, ".leer"))) return(invisible(tif))
   las <- readLAS(laz, select = "xyzc", filter = sprintf(
     "-keep_xy %f %f %f %f -drop_z_below -10 -drop_z_above 200",
     core[1] - rand, core[2] - rand, core[3] + rand, core[4] + rand))
-  if (is.empty(las)) return(invisible(NULL))
+  if (is.empty(las)) { file.create(paste0(tif, ".leer")); return(invisible(NULL)) }
   st_crs(las) <- 28992
   dtm <- rasterize_terrain(las, res = 1, algorithm = tin())
   las <- normalize_height(las, tin())
   las <- filter_poi(las, Z >= -0.5, Z < 40, !(Classification %in% c(6L, 9L, 26L)))
   chm <- hvi_chm(las, res = 0.5)
   netz <- hedge_net(chm)
-  if (nrow(netz) == 0) return(invisible(NULL))
+  if (nrow(netz) == 0) { file.create(paste0(tif, ".leer")); return(invisible(NULL)) }
   mk <- gehoelz_masken(chm)
   grid1 <- terra::rast(terra::ext(chm), res = 1, crs = "EPSG:28992")
   s <- cut_segments(netz, 5)

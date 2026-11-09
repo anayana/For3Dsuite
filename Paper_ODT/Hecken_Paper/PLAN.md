@@ -239,3 +239,31 @@ Zusatzkennwerten und Waldausschluss. 112 Funde an Hecken (34 %).
   und einen anderen Sensor übertragen. Die Richtung aus der Literatur stimmt, die Schwellen nicht.
   → Nächster Schritt: Kurven mit Literaturrichtung, aber Schwellen aus Funddaten schätzen —
   räumlich getrennt (Kalibrierung auf einer Hälfte der Kacheln, Test auf der anderen).
+
+## 14. Kalibrierung, räumlich getrennt (gerechnet 09.11.2026)
+
+`R/hvi_metrikraster.R` (Kennwerte je 5-m-Zelle als 1-m-Raster, eine Rasterlage, Waldzellen raus)
++ `R/hvi_kalibrierung.R`. Dorngrasmücke, 52 Funde West (30HZ2) / 54 Ost (31CZ1) an Hecken,
+je 3000 Hintergrundpunkte. Richtung aus Literatur fest, Schwellen per Gittersuche (Quantile)
+auf einer Hälfte, Test **nur** auf der anderen. Ergebnisse in `results/kalibrierung/`.
+
+| Test-AUC | West→Ost | Ost→West |
+|---|---|---|
+| nur Höhe, kalibriert | **0,569** | **0,572** |
+| alle drei kalibriert (Höhe, Saum, Dichte) | 0,547 | 0,539 |
+| Literaturkurven | 0,514 | 0,480 |
+| nur Krautsaum | 0,49 | 0,46 |
+| nur Dichte 0,2–2 m | 0,50 | 0,56 |
+
+- **Höhe trägt ein übertragbares Signal:** in beiden Richtungen gleich (0,57). Kalibrierte
+  Schwelle: Eignung fällt ab ~4–5 m und ist bei ~6,5 m null — deutlich höher als in England
+  (1,8/2,8 m, Stoate & Szczur 2001). Richtung bestätigt, Schwelle regional verschieden.
+- **Krautsaum ohne Signal** (41 % der Funde mit Saum 0; laubfreie Befliegung).
+- **Dichte:** Richtung „fallend“ nicht bestätigt (Median an Funden sogar höher); verwerfen.
+- Weitere Kennwerte nur Rauschen → kombiniertes Modell schlechter als Höhe allein.
+- **Kernaussage fürs Paper:** Aus laubfreiem Landes-ALS lässt sich für die Dorngrasmücke nur die
+  Heckenhöhe nutzen, und auch die nur schwach (AUC 0,57). Literaturschwellen übertragen sich nicht
+  zwischen Regionen, lokal kalibrierte schon (räumlicher Test). Der wichtigste Habitatfaktor laut
+  Literatur, der Krautsaum, ist mit diesem Sensor nicht messbar.
+- Vorbehalte: kleine Stichprobe (n ≈ 50 je Hälfte), Beobachterfehler (Funde an Wegen),
+  nur eine Art mit Funddaten.
