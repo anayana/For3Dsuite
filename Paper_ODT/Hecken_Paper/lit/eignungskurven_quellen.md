@@ -200,3 +200,16 @@ Nesthöhe in Dornsträuchern ~0,8–1,7 m, Sträucher 1,7–4 m, offener Boden z
 - Verboom & Huitema (1997), Landscape Ecology 12: lineare Landschaftselemente für Zwerg- und
   Breitflügelfledermaus. — Volltext prüfen
 - Boughey et al. (2011), Biological Conservation: Fledermausaktivität entlang von Hecken. — Volltext prüfen
+
+## Stand der Eignungstabelle (09.11.2026)
+Neue Tabelle `data/arten_eignung.csv` mit Spalten `beleg` und `quelle`.
+- **Zahl** = Schwelle direkt aus Studienwerten (Dorngrasmücke, Goldammer, Neuntöter-Höhe,
+  Haselmaus-Lücken).
+- **Richtung + Klassengrenze 2 m** = Richtung belegt, Schwelle aus der in UK-Studien üblichen
+  2-m-Klasse (Chamberlain et al. 1999; Duvergé & Jones 2003).
+- **Richtung** = nur Richtung belegt, Schwelle ist Annahme → im Paper als Annahme benennen und in
+  der Sensitivität prüfen.
+- Steinkauz und Klappergrasmücke vorerst nicht aufgenommen (keine Werte zugänglich).
+- Fledermäuse nicht als Art, sondern als Netz-Kennwert (Verboom & Huitema 1997).
+- Volltexte nicht zugänglich (Nutzer, 09.11.2026): Green et al. 1994, Hinsley & Bellamy 2000,
+  Boughey et al. 2011 → nur indirekt über Graham et al. 2018 zitiert.
