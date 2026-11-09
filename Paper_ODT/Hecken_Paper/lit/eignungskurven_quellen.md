@@ -58,6 +58,26 @@ Folgen für unser Verfahren:
 4. Primärquellen für Zahlen: Gelling et al. 2007, Duvergé & Jones 2003, Lacoeuilhe et al. 2016,
    Dondina et al. 2016 — im Volltext prüfen.
 
+
+## Batáry, Kovács-Hostyánszki, Fischer, Tscharntke & Holzschuh 2012 ✔ (Volltext gelesen 09.11.2026)
+„Contrasting effect of isolation of hedges from forests on farmland vs. woodland birds“,
+Community Ecology 13(2): 155–161, doi:10.1556/ComEc.13.2012.2.4. Raum Göttingen, 18 Abschnitte à
+200 m (6 Waldränder, 6 an Wald angebundene Hecken, 6 isolierte Hecken ≥ 300 m vom Wald).
+
+- Agrarvögel: mehr Arten und Individuen in Hecken als an Waldrändern; Waldvögel umgekehrt.
+- **Breite und Höhe ohne signifikanten Effekt** auf Artenzahl und Häufigkeit. Einschränkung der
+  Autoren: Die Höhe schwankte kaum; nur 18 Abschnitte, alle mit dichter Strauchschicht.
+  Breite wirkte tendenziell auf Waldvögel (Barkow 2002: Breite wichtigste von 12 Variablen).
+- **Lage zum Wald zählt:** Goldammer vor allem in isolierten Hecken; Amsel und Gartengrasmücke
+  in an Wald angebundenen Hecken. Dorngrasmücke in beiden Heckentypen.
+- Artengemeinschaft unterscheidet sich zwischen angebundenen und isolierten Hecken.
+
+Folgen für unser Verfahren:
+1. Neuer Kennwert **Abstand zum nächsten Wald** (aus derselben ALS-Kachel: große Gehölzflächen,
+   die der Schmalheitstest als Waldblock aussortiert). Goldammer: Eignung steigt mit Abstand.
+2. Breite/Höhe allein erklären die Artenzahl nicht zwingend → Lage im Netz gehört dazu.
+   Spricht für den mehrskaligen Ansatz (Heckenstück + Umgebung).
+
 ## Fehlt noch — Volltext nötig (nicht frei zugänglich)
 1. ~~Graham et al. 2018~~ ✔ erledigt (siehe oben), Biological Conservation 220: 122–131,
    doi:10.1016/j.biocon.2018.02.017 — systematische Übersicht: Höhe, Breite, Holzmasse, Lücken je
