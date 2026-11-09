@@ -18,8 +18,48 @@ Volltext in `species_requirements.csv` übernehmen. PDFs liegen lokal in `lit/pd
 → Folgerung für ALS: **Heckenbreite** (aus der Maske messbar) als eigener Kennwert aufnehmen.
 Bisher steckt die Breite nur indirekt im Schmalheitstest.
 
+
+## Graham, Gaulton, Gerard & Staley 2018 ✔ (Volltext gelesen 09.11.2026)
+„The influence of hedgerow structural condition on wildlife habitat provision in farmed
+landscapes“, Biological Conservation 220: 122–131. Systematische Übersicht, 64 Studien,
+Stimmenzählung (Richtung des Effekts, keine Effektgrößen). Belege überwiegend UK und W-Frankreich.
+
+Werte, die ALS messen kann:
+
+| Thema | Befund | Primärquelle laut Graham |
+|---|---|---|
+| Mindestmaß „guter Zustand“ (UK) | Höhe ≥ 1 m, Breite ≥ 1,5 m, Querschnitt ≥ 3 m² | Defra 2007 |
+| Lücken (UK-Förderprogramm) | < 10 % Lücken | Natural England 2016 |
+| Kleinsäuger | meiden Hecken mit Lücken > 3 m; Rötelmausdichte sinkt mit Lückigkeit | Gelling et al. 2007 |
+| Haselmaus | große, dichte, artenreiche Hecken; dichte Strauchschicht ↑; Höhe wichtig für Nestwahl | Bright & MacPherson 2002; Dondina et al. 2016; Wolton 2009a |
+| Fledermäuse | Große Hufeisennase: Hecken mit Höhe und Breite > 2 m; meiden kurze, stark geschnittene Hecken | Duvergé & Jones 2003; Russ & Montgomery 2002 |
+| Fledermäuse | Holzmasse wirkt stärker auf 1000-m-Skala als lokal; Nachlese-Arten (Myotis, Plecotus) auf 100–300 m | Lacoeuilhe et al. 2016 |
+| Fledermäuse | stark schwankende Laubhöhe entlang der Linie negativ (Zwergfledermaus u. a.) | Froidevaux et al. 2016 |
+| Heckenvögel (7 Spezialisten) | Heckenbraunelle, Dorngrasmücke, Klappergrasmücke, Bluthänfling, Stieglitz, Grünfink, Goldammer | Fuller et al. 2001 |
+| hohe Hecken | Heckenbraunelle, Rotkehlchen, Singdrossel, Fitis, Klappergrasmücke | Green et al. 1994 |
+| breite Hecken | Grünfink, Stieglitz, Zaunkönig, Rotkehlchen, Amsel | Green et al. 1994 |
+| kurze Hecken | Bluthänfling, Goldammer bevorzugen oder tolerieren | Green et al. 1994 |
+| Nestprädation | offene Neststandorte → mehr Verluste durch Rabenvögel; dichte Vegetation am Heckenfuß wichtig | Dunn et al. 2016; Hinsley & Bellamy 2000 |
+| Igel | dichter Heckenfuß, Dornen, Verbindung | Hof & Bright 2010 |
+
+Zusammenfassung (Tab. 2): Höhe, Breite, Holzmasse/Dichte und Verbindung/Lücken sind die am
+häufigsten belegten Strukturgrößen; Breite durchweg positiv für Säuger, Fledermäuse, Vögel. Höhe
+für Vögel überwiegend positiv, aber nicht für alle Arten. **Kein Heckenprofil passt für alle
+Gruppen → Vielfalt der Heckenstruktur fördern.** Graham et al. stellen fest, dass viele dieser
+Größen in Heckenkartierungen bisher nicht erfasst werden → genau die Lücke, die ALS schließen kann.
+
+Folgen für unser Verfahren:
+1. **Neue Kennwerte:** Breite (aus Maske), Querschnitt (Breite × Höhe), Lückenanteil und
+   Lückenlänge entlang der Linie, Dichte am Heckenfuß (0–1,5 m).
+2. **Fledermaus und Haselmaus** als Netzkennwerte: Lücken > 3 m (Kleinsäuger), Höhe/Breite > 2 m
+   (Hufeisennase), Holzmasse im 100–300-m- bzw. 1000-m-Umkreis.
+3. **Artenliste prüfen:** Klappergrasmücke (hohe Hecken) wäre ein guter Gegenpol zur
+   Dorngrasmücke (niedrige Hecken).
+4. Primärquellen für Zahlen: Gelling et al. 2007, Duvergé & Jones 2003, Lacoeuilhe et al. 2016,
+   Dondina et al. 2016 — im Volltext prüfen.
+
 ## Fehlt noch — Volltext nötig (nicht frei zugänglich)
-1. **Graham, Gaulton, Gerard & Staley 2018**: „The influence of hedgerow structural condition on wildlife habitat provision in farmed landscapes“, Biological Conservation 220: 122–131,
+1. ~~Graham et al. 2018~~ ✔ erledigt (siehe oben), Biological Conservation 220: 122–131,
    doi:10.1016/j.biocon.2018.02.017 — systematische Übersicht: Höhe, Breite, Holzmasse, Lücken je
    Tiergruppe. **Wichtigste Quelle.**
 2. **Hinsley & Bellamy 2000**: „The influence of hedge structure, management and landscape context on the value of hedgerows to birds: a review“, J. Environ. Manage. 60: 33–49, doi:10.1006/jema.2000.0360 —
