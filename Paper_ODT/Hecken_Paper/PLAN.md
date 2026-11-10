@@ -304,3 +304,42 @@ B = Rest). `results/rlp/`.
   (0,35–0,41) als Zufallspunkte; Richtung wie Verboom & Huitema 1997, Effekt klein.
 - Höhe/Dichte im Umkreis uneinheitlich zwischen West und Ost (West: viele Funde an einem Ort mit
   hohen Bäumen, 0,89; Ost 0,49) → Klumpung einzelner Erhebungen, nicht verallgemeinerbar.
+
+## 17. Ergebnis Flandern — Zählpunkte mit Anwesenheit/Abwesenheit (10.11.2026)
+
+120 Zählpunkte (60 West, 60 Ost), INBO MAS 2018–2025 (CC0), DHMV II 2014/15 (je 500-m-Kachel
+der dichteste Flugstreifen). 15 Arten. Skript `R/hvi_flandern_punkte.R`, Tabellen in
+`results/flandern/`.
+
+**1. Heckenmenge im 300-m-Kreis ist der stärkste, stabilste Kennwert** (gleiche Richtung in
+West und Ost): mehr Hecke → Mönchsgrasmücke (AUC 0,73/0,72), Zaunkönig (0,80/0,68),
+Heckenbraunelle (0,68/0,78), Singdrossel (0,68/0,73), Grünfink (0,67/0,79), Rotkehlchen
+(0,75/0,66). **Kontrolle Feldhase umgekehrt** (0,26/0,32 → meidet heckenreiche Punkte). Das
+ALS-Heckenmaß trennt also Gehölz- von Offenlandarten.
+
+**2. Struktur passt zur Literatur, wo es Belege gibt:**
+- Zaunkönig, Heckenbraunelle meiden Kreise mit vielen niedrigen Hecken (< 3 m; AUC 0,31–0,41);
+  Heckenbraunelle = „hohe Hecken“ (Green et al. 1994 nach Graham et al. 2018). ✔
+- Schwarzkehlchen: mehr niedrige Hecken → häufiger (0,63/0,61). ✔
+- Singdrossel, Mönchsgrasmücke, Rotkehlchen: mehr Bäume in der Hecke → häufiger. ✔
+- **Graben (aus dem Geländemodell):** Goldammer (0,63/0,87) und Dorngrasmücke (0,69/0,69)
+  häufiger, wo Gräben an den Hecken sind — genau der Befund von Stoate & Szczur 2001. ✔
+- Goldammer meidet hier niedrige Hecken (0,35/0,26) — Widerspruch zu „kurze Hecken“ (Green). ✘
+- Rebhuhn: weniger Hecke, weniger dichte Hecken. ✔ (Offenland)
+
+**3. Übertragbarkeit (Modell auf West geschätzt, auf Ost getestet und umgekehrt):**
+Zaunkönig 0,79/0,74, Singdrossel 0,77/0,69, Mönchsgrasmücke 0,71/0,70, Grünfink 0,74/0,63,
+Rotkehlchen 0,65/0,68, Heckenbraunelle 0,62/0,63. Schwach: Bluthänfling 0,60/0,57, Goldammer
+0,54/0,55, Dorngrasmücke 0,51/0,44, Schwarzkehlchen, Stieglitz ~0,5.
+
+**4. Was bringt die Struktur über die Menge hinaus?** (Mittel beider Richtungen)
+- Gehölzarten: Menge allein 0,70–0,74; mit Struktur nicht besser (teils schlechter →
+  Überanpassung bei n = 60). Für sie zählt vor allem, **wie viel** Gehölz da ist.
+- **Goldammer +0,12 und Dorngrasmücke +0,11** durch Struktur (v. a. Graben, Anteil niedriger
+  Hecken). Für Saum- und Niederheckenarten trägt die Struktur, die Menge nicht.
+
+**Kernaussage:** Offenes, sogar 4–11 Jahre altes laubfreies ALS sagt das Vorkommen von
+Gehölz-/Heckenvögeln an unabhängigen Zählpunkten vorher (AUC ~0,7, räumlich übertragbar). Für
+Arten der niedrigen Hecken und Säume ist das Signal schwach; dort helfen Kennwerte aus dem
+Gelände (Gräben), der Krautsaum bleibt unsichtbar. Der Wert liegt weniger in einem einzigen
+Index als in artgruppenspezifischen Kennwerten.
