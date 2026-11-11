@@ -12,6 +12,7 @@ import json
 import os
 import re
 import secrets
+from datetime import date
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
@@ -19,6 +20,7 @@ from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 
 from jobs import JobStore, start_worker
+from marker_schema import clean_marker, public_markers
 from pipeline import Pipeline
 from storage import LocalStorage, make_stores
 
@@ -127,7 +129,8 @@ def list_scenes():
             "description": s.get("description", ""),
             "created": s.get("created"),
             "thumb_url": media.url(s["thumb"]) if s.get("thumb") else None,
-            "markers": len(s.get("markers", [])),
+            "markers": len(public_markers(s.get("markers"), date.today().year)),
+            "markers_total": len(s.get("markers") or []),
             "source_type": (s.get("source") or {}).get("type"),
             "has_3d": bool(s.get("pointcloud")) or s.get("kind") == "tour",
             "kind": s.get("kind") or ("walk" if s.get("video") else "scene"),
@@ -138,7 +141,14 @@ def list_scenes():
 
 @app.get("/api/scenes/{sid}")
 def get_scene(sid: str):
-    scene = load_scene(sid)
+    """Oeffentliche Szene: nur Marker mit Freigabe 'public' (bzw. abgelaufener Sperre)."""
+    scene = with_urls(load_scene(sid))
+    if "markers" in scene:
+        scene["markers"] = public_markers(scene["markers"], date.today().year)
+    return scene
+
+
+def with_urls(scene):
     scene["pano_url"] = media.url(scene["pano"]) if scene.get("pano") else None
     scene["thumb_url"] = media.url(scene["thumb"]) if scene.get("thumb") else None
     if scene.get("video"):
@@ -194,30 +204,65 @@ def jobs_get(jid: str):
     return job
 
 
+@app.get("/api/studio/scenes/{sid}")
+def studio_get_scene(sid: str):
+    """Szene fuer den Editor: ALLE Marker, auch nicht freigegebene."""
+    return with_urls(load_scene(sid))
+
+
 @app.put("/api/studio/scenes/{sid}/markers")
 async def put_markers(sid: str, request: Request):
+    """Marker speichern (einheitliches Schema, marker_schema.clean_marker).
+
+    Nimmt Titel, Text, Medien, Links, Zeit, Herkunft und Freigabe an; Felder
+    ausserhalb des Schemas (kind, facts, prognosis ...) bleiben erhalten.
+    """
     body = await request.json()
     markers = body.get("markers")
     if not isinstance(markers, list):
         raise HTTPException(400, "Body muss {\"markers\": [...]} sein")
     clean = []
-    for m in markers:
+    for i, m in enumerate(markers):
         try:
-            clean.append({
-                "id": str(m.get("id") or f"m{len(clean) + 1}"),
-                "label": str(m.get("label") or ""),
-                "yaw": round(float(m["yaw"]), 3),
-                "pitch": round(float(m["pitch"]), 3),
-                "xyz": m.get("xyz"),
-                "attributes": m.get("attributes") if isinstance(m.get("attributes"), dict) else {},
-                "demo": bool(m.get("demo", False)),
-            })
-        except (KeyError, TypeError, ValueError):
-            raise HTTPException(400, f"Ungueltiger Marker (yaw/pitch noetig): {m}")
+            clean.append(clean_marker(m, i))
+        except (TypeError, ValueError) as e:
+            raise HTTPException(400, f"Ungueltiger Marker #{i + 1}: {e}")
+    ids = [m["id"] for m in clean]
+    if len(ids) != len(set(ids)):
+        raise HTTPException(400, "Marker-IDs muessen eindeutig sein")
     scene = load_scene(sid)
     scene["markers"] = clean
     save_scene(scene)
     return {"ok": True, "count": len(clean)}
+
+
+MEDIA_EXT = {".jpg": "image", ".jpeg": "image", ".png": "image", ".webp": "image",
+             ".mp4": "video", ".webm": "video",
+             ".mp3": "audio", ".m4a": "audio", ".ogg": "audio", ".wav": "audio"}
+MAX_MEDIA_MB = int(os.environ.get("MAX_MEDIA_MB", "300"))
+
+
+@app.post("/api/studio/scenes/{sid}/media")
+async def upload_media(sid: str, file: UploadFile = File(...)):
+    """Medium (Bild, Video, Ton) fuer Marker hochladen -> scenes/<sid>/story/.
+
+    Antwort: {"type", "src"}; src ist relativ wie bei den bestehenden
+    Story-Medien und funktioniert in der App wie im statischen Export.
+    """
+    if not SLUG.match(sid):
+        raise HTTPException(400, "Ungueltige scene_id")
+    load_scene(sid)  # 404 falls unbekannt
+    ext = Path(file.filename or "").suffix.lower()
+    if ext not in MEDIA_EXT:
+        raise HTTPException(400, f"Dateityp nicht erlaubt; erlaubt: {', '.join(sorted(MEDIA_EXT))}")
+    data = await file.read()
+    if len(data) > MAX_MEDIA_MB * 1024 * 1024:
+        raise HTTPException(413, f"Datei groesser als {MAX_MEDIA_MB} MB")
+    stem = re.sub(r"[^a-z0-9_-]+", "-", Path(file.filename).stem.lower()).strip("-")[:40] or "medium"
+    name = f"{stem}-{secrets.token_hex(3)}{ext}"
+    key = f"scenes/{sid}/story/{name}"
+    media.put_bytes(key, data)
+    return {"type": MEDIA_EXT[ext], "src": "media/" + key, "url": media.url(key)}
 
 
 @app.patch("/api/studio/scenes/{sid}")

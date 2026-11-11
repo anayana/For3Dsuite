@@ -66,6 +66,19 @@
     #edit-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto;
       padding-top: 12px; }
     #addmode-hint { color: #f0b429; font-size: 12.5px; display: none; }
+    .mk { display: flex; flex-direction: column; gap: 6px; }
+    .mk input, .mk select { width: 100%; box-sizing: border-box; }
+    .mk-row { display: flex; gap: 6px; }
+    .mk-row > * { flex: 1; min-width: 0; }
+    .mk-medium { display: flex; flex-direction: column; gap: 4px; padding: 6px;
+      border: 1px solid #30363d; border-radius: 8px; }
+    .mk-medium img, .mk-medium video { width: 100%; max-height: 160px; object-fit: contain;
+      background: #000; border-radius: 6px; }
+    .mk-medium audio { width: 100%; }
+    .ghost-file { display: inline-block; color: #58a6ff; border: 1px dashed #30363d;
+      border-radius: 8px; padding: 6px 10px; font-size: 12.5px; cursor: pointer; text-align: center; }
+    .mk-up-status { color: #f0b429; font-size: 12px; }
+    .mk details summary { color: #8b949e; font-size: 12px; cursor: pointer; }
     .tree-marker { width: 18px; height: 18px; border-radius: 50%;
       background: rgba(126,231,135,.25); border: 2px solid #7ee787; cursor: pointer; }
   </style>
@@ -243,7 +256,9 @@
     let viewer = null, editScene = null, addMode = false;
 
     async function openEditor(sid) {
-      editScene = await (await fetch('/api/scenes/' + encodeURIComponent(sid))).json();
+      // Studio-Endpunkt: liefert ALLE Marker, auch nicht freigegebene
+      editScene = await (await fetch('/api/studio/scenes/' + encodeURIComponent(sid))).json();
+      editScene.markers = Array.isArray(editScene.markers) ? editScene.markers : [];
       $('edit-title').textContent = editScene.title || sid;
       $('editor').classList.add('open');
       $('edit-pano').innerHTML = '';
@@ -276,28 +291,157 @@
       const cfg = viewer.getConfig();
       for (const h of [...(cfg.hotSpots || [])]) viewer.removeHotSpot(h.id);
       for (const m of editScene.markers)
-        viewer.addHotSpot({ id: m.id, yaw: m.yaw, pitch: m.pitch, cssClass: 'tree-marker' });
+        if (typeof m.yaw === 'number' && typeof m.pitch === 'number')   // 3D-Marker (Splat) nicht im Panorama
+          viewer.addHotSpot({ id: m.id, yaw: m.yaw, pitch: m.pitch, cssClass: 'tree-marker' });
     }
+
+    // Altformat (image/video am Marker) einmalig in die Medienliste uebernehmen
+    function ensureMedia(m) {
+      if (Array.isArray(m.media)) return m.media;
+      m.media = [];
+      if (m.video || m.image) m.media.push({
+        type: m.video ? 'video' : 'image', src: m.video || m.image,
+        ...(m.caption ? { caption: m.caption } : {}), ...(m.credit ? { credit: m.credit } : {}),
+      });
+      return m.media;
+    }
+    // Vorschau im Studio (/admin/): relative Story-Pfade liegen unter /media/
+    const previewUrl = (src) => /^(https?:)?\/\//.test(src) || src.startsWith('/') ? src : '/' + src;
+
+    const CONSENT = [['public', 'öffentlich (online)'], ['onsite', 'nur vor Ort'],
+                     ['research', 'nur Forschung'], ['locked', 'gesperrt bis Jahr …']];
+    const PROVENANCE = [['', '– Herkunft –'], ['erinnert', 'erinnert (Zeitzeuge)'],
+                        ['dokumentiert', 'dokumentiert (Archiv)'], ['rekonstruiert', 'rekonstruiert (3D)'],
+                        ['kuratiert', 'kuratiert (Einordnung)']];
+    const opts = (list, cur) => list.map(([v, t]) =>
+      `<option value="${v}"${v === (cur || '') ? ' selected' : ''}>${t}</option>`).join('');
 
     function renderMarkers() {
       const list = $('mk-list');
       list.innerHTML = '';
       editScene.markers.forEach((m, i) => {
+        const media = ensureMedia(m);
+        const rights = m.rights || {};
+        const time = m.time || {};
+        const pos = typeof m.yaw === 'number'
+          ? `yaw ${m.yaw}° · pitch ${m.pitch}°${m.xyz ? ' · xyz (' + m.xyz.map(v => (+v).toFixed(2)).join(', ') + ')' : ''}`
+          : (Array.isArray(m.pos) ? '3D ' + m.pos.map(v => (+v).toFixed(2)).join(', ') : 'ohne Position');
         const div = document.createElement('div');
         div.className = 'mk';
         div.innerHTML = `
-          <input class="mk-label" placeholder="Label" />
-          <div class="pos">yaw ${m.yaw}° · pitch ${m.pitch}°${m.xyz ? ' · xyz (' + m.xyz.map(v => (+v).toFixed(2)).join(', ') + ')' : ''}</div>
-          <textarea class="mk-attrs" placeholder='Attribute als JSON, z. B. {"Baumart": "Picea abies", "BHD_cm": 48.2}'></textarea>
-          <button class="ghost danger">Entfernen</button>`;
-        div.querySelector('.mk-label').value = m.label || '';
-        div.querySelector('.mk-attrs').value = JSON.stringify(m.attributes || {}, null, 1);
-        div.querySelector('.mk-label').oninput = (e) => m.label = e.target.value;
-        div.querySelector('.mk-attrs').onchange = (e) => {
+          <input class="mk-label" placeholder="Kurzlabel am Punkt" />
+          <input class="mk-title" placeholder="Titel der Karte" />
+          <textarea class="mk-text" placeholder="Text (einfacher Text, Absätze mit Leerzeile)"></textarea>
+          <div class="pos">${pos}</div>
+          <div class="mk-media"></div>
+          <label class="ghost-file">+ Video, Bild oder Ton hochladen
+            <input type="file" class="mk-upload" accept="video/*,image/*,audio/*" hidden /></label>
+          <span class="mk-up-status"></span>
+          <textarea class="mk-links" placeholder="Links, eine pro Zeile: Bezeichnung | https://…"></textarea>
+          <div class="mk-row">
+            <input class="mk-from" placeholder="von (Jahr)" inputmode="numeric" />
+            <input class="mk-to" placeholder="bis (Jahr)" inputmode="numeric" />
+            <input class="mk-phase" placeholder="Phase, z. B. Anbau Küche" />
+          </div>
+          <div class="mk-row">
+            <select class="mk-consent">${opts(CONSENT, rights.consent || 'public')}</select>
+            <input class="mk-until" placeholder="Jahr" inputmode="numeric" />
+          </div>
+          <div class="mk-row">
+            <select class="mk-prov">${opts(PROVENANCE, m.provenance)}</select>
+            <input class="mk-license" placeholder="Lizenz, z. B. CC BY-NC-ND 4.0" />
+          </div>
+          <details><summary>Attribute (JSON)</summary>
+            <textarea class="mk-attrs" placeholder='z. B. {"Baumart": "Picea abies", "BHD_cm": 48.2}'></textarea>
+          </details>
+          <button class="ghost danger mk-remove">Marker entfernen</button>`;
+        const q = (c) => div.querySelector(c);
+        q('.mk-label').value = m.label || '';
+        q('.mk-title').value = m.title || '';
+        q('.mk-text').value = typeof m.text === 'string' ? m.text : '';
+        q('.mk-links').value = (m.links || m.sources || []).map(l => (l.label ? l.label + ' | ' : '') + (l.url || '')).join('\n');
+        q('.mk-from').value = time.from ?? '';
+        q('.mk-to').value = time.to ?? '';
+        q('.mk-phase').value = time.phase || '';
+        q('.mk-until').value = rights.until ?? '';
+        q('.mk-until').style.display = rights.consent === 'locked' ? '' : 'none';
+        q('.mk-license').value = rights.license || '';
+        q('.mk-attrs').value = JSON.stringify(m.attributes || {}, null, 1);
+
+        q('.mk-label').oninput = (e) => m.label = e.target.value;
+        q('.mk-title').oninput = (e) => m.title = e.target.value;
+        q('.mk-text').oninput = (e) => m.text = e.target.value;
+        q('.mk-links').onchange = (e) => {
+          m.links = e.target.value.split('\n').map(s => s.trim()).filter(Boolean).map(s => {
+            const k = s.lastIndexOf('|');
+            return k < 0 ? { label: '', url: s } : { label: s.slice(0, k).trim(), url: s.slice(k + 1).trim() };
+          });
+          delete m.sources;
+        };
+        const setTime = () => {
+          const t = { from: q('.mk-from').value.trim(), to: q('.mk-to').value.trim(), phase: q('.mk-phase').value.trim() };
+          m.time = Object.fromEntries(Object.entries(t).filter(([, v]) => v !== '')
+            .map(([k, v]) => [k, k === 'phase' ? v : +v]));
+          if (!Object.keys(m.time).length) delete m.time;
+        };
+        for (const c of ['.mk-from', '.mk-to', '.mk-phase']) q(c).onchange = setTime;
+        const setRights = () => {
+          const c = q('.mk-consent').value;
+          q('.mk-until').style.display = c === 'locked' ? '' : 'none';
+          m.rights = { consent: c };
+          if (c === 'locked' && q('.mk-until').value.trim()) m.rights.until = +q('.mk-until').value.trim();
+          if (q('.mk-license').value.trim()) m.rights.license = q('.mk-license').value.trim();
+        };
+        for (const c of ['.mk-consent', '.mk-until', '.mk-license']) q(c).onchange = setRights;
+        q('.mk-prov').onchange = (e) => { if (e.target.value) m.provenance = e.target.value; else delete m.provenance; };
+        q('.mk-attrs').onchange = (e) => {
           try { m.attributes = JSON.parse(e.target.value || '{}'); e.target.style.borderColor = ''; }
           catch { e.target.style.borderColor = '#f85149'; }
         };
-        div.querySelector('button').onclick = () => {
+
+        // Medienliste: Vorschau, Bildunterschrift, Credit, entfernen
+        const box = q('.mk-media');
+        media.forEach((it, j) => {
+          const row = document.createElement('div');
+          row.className = 'mk-medium';
+          const prev = it.type === 'image' ? document.createElement('img')
+            : document.createElement(it.type === 'audio' ? 'audio' : 'video');
+          prev.src = previewUrl(it.src);
+          if (it.type !== 'image') { prev.controls = true; prev.preload = 'metadata'; }
+          row.appendChild(prev);
+          row.insertAdjacentHTML('beforeend',
+            '<input class="mm-cap" placeholder="Bildunterschrift" /><input class="mm-cred" placeholder="Credit / Rechte" />' +
+            '<button class="ghost danger mm-del">Medium entfernen</button>');
+          row.querySelector('.mm-cap').value = it.caption || '';
+          row.querySelector('.mm-cred').value = it.credit || '';
+          row.querySelector('.mm-cap').oninput = (e) => it.caption = e.target.value;
+          row.querySelector('.mm-cred').oninput = (e) => it.credit = e.target.value;
+          row.querySelector('.mm-del').onclick = () => {
+            media.splice(j, 1);
+            delete m.video; delete m.image;   // Altfelder nicht wieder auferstehen lassen
+            renderMarkers();
+          };
+          box.appendChild(row);
+        });
+        q('.mk-upload').onchange = async (e) => {
+          const f = e.target.files[0];
+          if (!f) return;
+          q('.mk-up-status').textContent = 'Lade hoch …';
+          const fd = new FormData();
+          fd.append('file', f);
+          try {
+            const r = await fetch('/api/studio/scenes/' + encodeURIComponent(editScene.id) + '/media',
+              { method: 'POST', body: fd });
+            const j = await r.json();
+            if (!r.ok) throw new Error(j.detail || r.statusText);
+            media.push({ type: j.type, src: j.src });
+            renderMarkers();
+          } catch (err) {
+            q('.mk-up-status').textContent = 'Fehler: ' + err.message;
+          }
+        };
+        q('.mk-remove').onclick = () => {
+          if (!confirm('Marker wirklich entfernen?')) return;
           editScene.markers.splice(i, 1); renderMarkers(); refreshHotspots();
         };
         list.appendChild(div);
