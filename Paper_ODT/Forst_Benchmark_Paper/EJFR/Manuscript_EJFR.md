@@ -99,23 +99,57 @@ including a run of 3DFin itself on twelve real plots with simulated partial cove
 
 ### 2.1 Estimators
 
-All estimators operate on the points of one stem in the band 1.05–1.55 m (cylinder: 1.0–1.6 m):
+All estimators operate on the points $(x_i, y_i)$, $i = 1, \dots, N$, of one stem in the band
+1.05–1.55 m above ground (the cylinder fit uses 1.0–1.6 m); the height coordinate is ignored except by
+the cylinder fit. The DBH is reported as twice the fitted radius. Six estimators that are common in
+TLS processing or represent distinct statistical principles were compared.
 
-- **Kasa**: algebraic least-squares circle (Kåsa 1976).
-- **Geometric**: least-squares circle minimising orthogonal distances (Gauss–Newton, bounded centre
-  ±0.3 m and radius 4–75 cm; Kasa start).
-- **RANSAC**: three-point circle hypotheses (400 iterations, 12 mm inlier tolerance); a hypothesis is
-  admitted only if its inliers span at least 90°; final Kasa fit on the inliers (Fischler and Bolles 1981).
-- **Cylinder**: circle fit in the plane normal to an axis whose tilt is optimised (Nelder–Mead,
-  ≤ 15°), to remove the elliptical bias of tilted stems.
-- **Hough**: circle Hough transform of scikit-image (`hough_circle`, default normalised accumulators;
-  van der Walt et al. 2014) on a binary raster of the points, coarse-to-fine (1 cm raster over radii
-  4–75 cm with the accumulator extended beyond the image, then 2.5 mm raster within ±1.5 cm of the coarse
-  radius); the strongest accumulator cell is taken. No parameter was tuned.
-- **Huber-robust**: geometric fit with Huber loss (scale 1 cm), Kasa start.
+*Kasa fit.* The algebraic circle fit of Kåsa (1976) writes the circle as
+$x^2 + y^2 + Dx + Ey + F = 0$ and minimises the algebraic residuals
 
-Implementations: `dbh_methods.py`, `arc_error_mc_real.py` (see Data availability). The 3DFin acceptance rule is evaluated as the number of occupied 22.5° sectors around
-the stem centre in a 10 cm slice at 1.3 m.
+$$\min_{D,E,F} \sum_{i=1}^{N} \left(x_i^2 + y_i^2 + D x_i + E y_i + F\right)^2, \qquad (1)$$
+
+which is a linear least-squares problem with centre $(a, b) = (-D/2, -E/2)$ and radius
+$r = \sqrt{a^2 + b^2 - F}$. It is fast and needs no start value, but its implicit weighting of the
+residuals biases the radius towards small values when the points cover only a short, noisy arc
+(Al-Sharadqah and Chernov 2009; Chernov 2010).
+
+*Geometric fit.* The geometric fit minimises the orthogonal distances of the points to the circle,
+
+$$\min_{a,b,r} \sum_{i=1}^{N} \left(\sqrt{(x_i - a)^2 + (y_i - b)^2} - r\right)^2, \qquad (2)$$
+
+solved iteratively from the Kasa solution with the centre bounded to ±0.3 m around the start and the
+radius to 4–75 cm; a solution on a bound is treated as a failure.
+
+*RANSAC.* Circle hypotheses are formed from three randomly drawn points (400 iterations), and points
+within 12 mm of a hypothesis count as inliers (Fischler and Bolles 1981). A hypothesis is admitted only
+if its inliers span at least 90° around its centre, which prevents small circles through dense clusters
+of points on a short arc from winning; the final estimate is a Kasa fit to the inliers of the best
+admitted hypothesis.
+
+*Cylinder fit.* The axis direction is optimised (Nelder–Mead, tilt limited to 15°) so that the circle
+fitted in the plane normal to the axis has minimal residual spread; this removes the elliptical
+distortion that a tilted stem produces in a horizontal slice. A solution at the tilt limit is treated as
+a failure.
+
+*Huber-robust fit.* The geometric objective (2) is replaced by the Huber loss of the orthogonal
+residuals $e_i$,
+
+$$\rho(e) = \begin{cases} e^2/2, & |e| \le c \\ c\,(|e| - c/2), & |e| > c \end{cases} \qquad (3)$$
+
+with $c = 1$ cm, so that residuals larger than the scale enter linearly instead of quadratically; start
+values and bounds as for the geometric fit.
+
+*Hough transform.* The circle Hough transform of scikit-image (`hough_circle` with normalised
+accumulators; van der Walt et al. 2014) is applied to a binary raster of the points, coarse-to-fine:
+first on a 1 cm raster over radii of 4–75 cm, with the accumulator extended beyond the image so that
+centres of short arcs may lie outside the point extent, then on a 2.5 mm raster within ±1.5 cm of the
+coarse radius. The strongest accumulator cell is taken.
+
+No parameter of any estimator was tuned to the data. Implementations: `dbh_methods.py` and
+`arc_error_mc_real.py` (see Data availability). For comparison with inventory software, the 3DFin
+acceptance rule is evaluated as the number of occupied 22.5° sectors around the stem centre in a 10 cm
+slice at 1.3 m.
 
 ### 2.2 Monte Carlo experiment
 
@@ -126,8 +160,16 @@ axis ratio U(0.85, 1), random orientation; true DBH = perimeter/π, tape definit
 outliers* (points 2–30 cm outside the surface, as from twigs, foliage or understorey in front of the
 stem); *5 / 10 mm registration offset* (the second half of arcs > 90° shifted, mimicking a second scan
 position); *combined* (non-circular + 5 % outliers + 5 mm offset). 100 replicates per cell (300 for the
-ideal grid). The Cramér–Rao lower bound for the radius under the ideal model is reported as a
-reference for the best achievable precision. Code: `scripts/arc_error_mc.py`, `scripts/arc_error_mc_real.py`.
+ideal grid). As a reference for the best achievable precision, the Cramér–Rao lower bound for
+the radius is computed for the ideal model. With the residual derivatives
+$\mathbf{g}_i = (-\cos\varphi_i, -\sin\varphi_i, -1)$ with respect to $(a, b, r)$ at the point angles
+$\varphi_i$ spread uniformly over the arc, the Fisher information is
+
+$$\mathbf{J} = \sigma^{-2} \sum_{i=1}^{N} \mathbf{g}_i^{\mathsf T} \mathbf{g}_i, \qquad
+\mathrm{SD}(\hat r) \ge \sqrt{\left(\mathbf{J}^{-1}\right)_{33}}. \qquad (4)$$
+
+The bound grows rapidly as the arc shortens, because the centre and the radius become nearly
+interchangeable on a short arc. Code: `scripts/arc_error_mc.py`, `scripts/arc_error_mc_real.py`.
 
 ### 2.3 HELIOS++ simulation
 
@@ -155,7 +197,10 @@ Occupied-sector counts and fine angular bins both depend on point density. As a 
 measure of coverage we therefore compute the geometrically visible arc: for 360 points on the true elliptical perimeter at
 1.3 m, a point counts as visible from a position if it faces it (cosine of incidence > 0.1) and the line
 of sight does not intersect another stem; the union over the positions of a configuration gives the
-visible arc (`scripts/paperC_eval.py`). This is the CDRC of Li et al. (2021), here evaluated on the
+visible arc (`scripts/paperC_eval.py`). Formally, with $v_k(\psi) \in \{0, 1\}$ indicating whether the
+perimeter point at angle $\psi$ is visible from position $k$, the visible arc of a configuration $K$ is
+
+$$\theta_{\mathrm{vis}} = \frac{360^\circ}{360} \sum_{j=1}^{360} \max_{k \in K} v_k(\psi_j). \qquad (5)$$ This is the CDRC of Li et al. (2021), here evaluated on the
 true elliptical perimeter.
 
 ### 2.4 Real point clouds
@@ -196,13 +241,25 @@ full-coverage 3DFin value.
 
 ### 2.6 Metrics
 
-Per estimator and arc class: bias, RMSE, share of stems within ±2 cm (failures counted as outside),
-failure rate. A *coverage threshold* is the smallest arc from which RMSE ≤ 2 cm, |bias| ≤ 1 cm and
-failure ≤ 10 % hold for all larger arcs. For the share within 2 cm we additionally report the
-smallest arc class from which at least 80 % of the stems are within 2 cm, with 95 % confidence
-intervals from a cluster bootstrap over stems (B = 300; all cases of a stem are resampled together
-because the same stem appears in many configurations; `scripts/paperC_bootstrap.py`). The 2 cm level corresponds to the DBH accuracy of 1–2 cm that the international
-TLS benchmark found achievable (Liang et al. 2018).
+For each estimator and class of visible arc, the error of a DBH estimate is
+$e = \widehat{\mathrm{DBH}} - \mathrm{DBH}_{\mathrm{ref}}$, where the reference is the true perimeter-based
+DBH in the simulations, the full-coverage estimate on SegmentedForests and the field measurement on
+LAUT. Bias and root mean square error are computed over all successful estimates,
+
+$$\mathrm{bias} = \frac{1}{n} \sum e_j, \qquad \mathrm{RMSE} = \sqrt{\frac{1}{n} \sum e_j^2}, \qquad (6)$$
+
+and the failure rate is the share of cases in which an estimator returned no value. The share of stems
+within ±2 cm counts failures as outside, so that an estimator cannot improve its score by refusing
+difficult stems. The 2 cm level corresponds to the DBH accuracy of 1–2 cm that the international TLS
+benchmark found achievable (Liang et al. 2018).
+
+In the Monte Carlo experiment, a *coverage threshold* is the smallest arc from which RMSE ≤ 2 cm,
+|bias| ≤ 1 cm and failure ≤ 10 % hold for all larger arcs. For the share within 2 cm we additionally
+report the smallest arc class from which at least 80 % of the stems are within 2 cm. Because the same
+stem appears in many scan configurations and arc reductions, cases are not independent; 95 %
+confidence intervals for the shares and for the 80 % point were therefore obtained by a cluster
+bootstrap that resamples stems with replacement and keeps all cases of a drawn stem together
+(B = 300; `scripts/paperC_bootstrap.py`).
 
 ## 3. Results
 
@@ -219,7 +276,8 @@ DBH 40 cm and to 90–135° for DBH 20 cm: a partial view of an ellipse yields a
 that grows with diameter (Fig. 1b). Registration offsets of 5–10 mm set an RMSE floor of 0.2–0.5 cm
 at full coverage but barely change thresholds.
 
-Outliers dominate everything else (Fig. 1c). With 5–15 % outliers, Kasa, geometric and cylinder fits
+Table 1 summarises the coverage thresholds of all estimators and scenarios. Outliers dominate everything
+else (Fig. 1c). With 5–15 % outliers, Kasa, geometric and cylinder fits
 never meet the threshold, even at 360° (RMSE 1.6–8.6 cm). RANSAC meets it from 112.5–135°, the
 Huber-robust fit only from 135–270° (it fails on short arcs because its Kasa starting value is already
 biased), Hough from 180–247.5°. Hough tolerates outliers but not non-circularity: for DBH 40 cm it
@@ -245,13 +303,33 @@ With the same stems and scan positions as S1b but branches crossing the breast-h
 RANSAC is practically unaffected (71 %, 79 % and 89 % at 135–180°, 180–225° and 225–270°, versus
 73 %, 80 % and 90 % without branches). Hough degrades (43 % instead of 70 % at 225–270°; Fig. 3).
 
-The cluster bootstrap places the 80 % point of the Kasa, cylinder
+Table 2 lists the 80 % points for all datasets. The cluster bootstrap places the 80 % point of the Kasa, cylinder
 and RANSAC fits in the 180–225° class for the pooled HELIOS stands (95 % CI: 180–225° to 225–270°),
 of the geometric and Huber fits one class higher, and of Hough in the 270–315° class. With branches,
 RANSAC reaches 80 % in the 225–270° class (CI 180–225° to 225–270°), Hough only beyond 315°, and the
 least-squares and Huber fits never.
 
-### 3.3 Sector rule and scan design
+### 3.3 Stem diameter, distance and point density
+
+In the pooled HELIOS stands (371 core stems: 78 below 20 cm DBH, 164 of 20–30 cm, 93 of 30–40 cm and
+36 of 40 cm or more), larger stems needed more visible arc for the same accuracy. At 180–225°, 89 % of
+the stems below 20 cm were within 2 cm with the Kasa fit, compared with 85 %, 75 % and 70 % in the three
+larger classes, and the RMSE rose from 1.2 cm to 1.6, 1.8 and 2.3 cm. At 225–270° the shares were
+94 %, 96 %, 91 % and 80 %, and beyond 270° all classes reached at least 93 %. The dependence on diameter
+follows from the non-circularity of the simulated cross-sections: the same relative deviation from a
+circle produces a larger absolute error on a thick stem, as in the Monte Carlo experiment, where
+non-circularity raised the thresholds for 40 cm stems far more than for 20 cm stems (Table 1).
+
+The visible arc decreased with the distance between a stem and the nearest scan position of a
+configuration: its median was 284° for stems closer than 5 m, 259° at 5–10 m, 210° at 10–15 m and 168°
+beyond 15 m. The number of points in the 10 cm slice at breast height fell even more steeply, from a
+median of 1 903 to 604, 215 and 51 points. At a given visible arc, however, accuracy hardly depended on
+distance or point count. At 180–225°, 87 %, 83 %, 81 % and 79 % of the stems were within 2 cm in the
+four distance classes, and the share varied only between 80 % and 83 % across point counts from fewer
+than 50 to more than 500. Once a few dozen points are available, the error is therefore controlled by
+the visible arc rather than by point density or range.
+
+### 3.4 Sector rule and scan design
 
 The 3DFin rule of ≥ 9/16 sectors corresponds to a median geometric arc of 190° at exactly nine sectors
 (Fig. 4); 7.2 % of accepted stems have less than 180° visible. Used as an acceptance filter, the rule
@@ -263,7 +341,12 @@ bring 89 %, 82 % and 80 % of stems above 180° in the three stands; six bring 96
 clustered near the centre reach 89 %, 71 % and 56 %, i.e. the penalty of clustering grows with stand
 density. Random placement performs close to the grid.
 
-### 3.4 Real point clouds
+### 3.5 Real point clouds
+
+The real multi-scan clouds themselves do not guarantee full coverage. Of the 1 908 LAUT trees, the
+observed coverage around the fitted centre (5° classes) had a median of 265°; 82 % of the trees were
+covered on at least 180° and 24 % on at least 330°, so that only about a quarter of the trees could serve
+for the arc reduction.
 
 With stem points only (SegmentedForests, Fig. 6a), the Kasa fit reaches 56 % of stems within 2 cm at
 180°, 72 % at 202.5°, 82 % at 225° and 91 % at 270°; its RMSE falls from 6.1 cm at 135° to 2.9 cm at
@@ -283,12 +366,16 @@ lower LAUT values include field-measurement error and the absence of any segment
 RANSAC and Huber 315° (270–315° for Huber); with surrounding points only RANSAC at 360° (315–360°);
 on LAUT no estimator reaches 80 % at any arc.
 
-### 3.5 3DFin on real plots with reduced coverage
+### 3.6 3DFin on real plots with reduced coverage
 
 The full-cloud runs gave 296 reference stems in 12 plots (median DBH 23.6 cm). Under reduced coverage
 3DFin still detects most stems (66 % with one position, 83–96 % with two to six), but accepts a DBH for
 far fewer: 10 % with one position, 24 %, 36 %, 49 % and 54 % with two, three, four and six spread
-positions, and 36 % with four clustered positions, which behave like three spread ones (Fig. 7). By
+positions, and 36 % with four clustered positions, which behave like three spread ones (Fig. 7). The
+median visible arc of the reference stems was 166° with one position, 168° with two, 209° with three,
+247° with four and 283° with six spread positions, and the share of stems with at least 180° rose from
+0 % to 43 %, 68 %, 80 % and 93 %; four clustered positions gave a median of 193° and 75 % of stems above
+180°. By
 visible arc, acceptance rises from 16 % at 135–180° and 36 % at 180–225° to 52–56 % at 225–315° and
 76 % beyond 315°. The accepted diameters are accurate: 88 % lie within 2 cm of the full-coverage value
 (66 % at 135–180°, 78 % at 180–225°, 95 % at 225–270°, ≥ 96 % beyond), and 14 % of the accepted
@@ -311,6 +398,15 @@ bootstrap interval reaching 270°. The negative bias of the Kasa fit on short re
 line with the negative DBH bias that Bauwens et al. (2016) found for all scanning approaches and
 attributed to bark roughness and non-circular cross-sections.
 
+The required coverage also grows with stem diameter. In the simulated stands, stems of 40 cm or more
+reached the 80 % level only beyond 270°, whereas stems below 20 cm reached it at 135–180° (Section on
+stem diameter in the Results). A rule expressed as a fixed angle is therefore stricter than necessary
+for thin stems and too lenient for thick ones, at least where cross-sections deviate from a circle. In
+absolute terms the effect is plausible: the same relative non-circularity displaces the fitted circle by
+more centimetres on a thick stem. Inventories that emphasise large trees, for example for volume or
+biomass, should therefore aim at more coverage than a single angular rule suggests, or use estimators
+that model the cross-section shape.
+
 Segmentation proved more decisive than coverage. When branch points entered the breast-height band in
 the simulation (Fig. 3), or when the surrounding points were left in the real data (Fig. 6b, c),
 least-squares fits failed at any coverage, because a few points outside the stem surface pull the
@@ -323,6 +419,17 @@ points on rough bark (87 % within 2 cm at full coverage). A coverage rule is the
 together with a statement of how stem points were separated from branches and understorey and which
 estimator was applied to them.
 
+The simulations also separate two quantities that are usually confounded in field data: the visible
+arc and the point density. Both decrease with distance from the scanner, and Olofsson et al. (2014)
+reported that the proportion of detected trees decreased with distance following the decrease of
+visible area. For the diameter error, the present results point to the arc as the controlling factor.
+At a given visible arc, the share of stems within 2 cm changed by only a few percentage points between
+stems closer than 5 m and stems beyond 15 m, and between fewer than 50 and more than 500 points in the
+breast-height slice, whereas it changed by tens of percentage points between arc classes. Point density
+matters for detection and for the stability of the fit on very sparse stems, but once a few dozen
+points describe the visible arc, adding points does not compensate for missing circumference. Scan
+planning should therefore target the angular coverage of stems rather than point density alone.
+
 On real plots, the sector rule of 3DFin acted as intended. Accepted diameters were within 2 cm of the
 full-coverage value for 78 % of the stems at 180–225° and 95 % at 225–270°, close to the behaviour of
 least-squares fits in the simulations, and in the simulated stands the rule separated stems with 92 %
@@ -332,6 +439,17 @@ completeness: with four or six spread positions about half of the reference stem
 diameter, and a quarter of the stems with more than 315° visible were still rejected. Unless the
 rejected stems are measured otherwise or imputed, inventories that rely on such rules should report the
 share of stems without DBH, and scan designs should aim at more coverage than the nominal 202.5°.
+
+The accuracies obtained here are of the same order as those reported for ground-based laser scanning.
+For hand-held mobile scanning, Bauwens et al. (2016) found a DBH bias of −0.08 cm and an RMSE of 1.11 cm,
+with the full cross-section scanned for 91 % of the trees, and Ryding et al. (2015) an RMSE of 1.5 cm
+relative to a concurrent TLS survey. With an early personal laser scanning system the RMSE was 5.06 cm
+(Liang et al. 2014), and for TLS plots Olofsson et al. (2014) reported a relative RMSE of 14 % within
+10 m of the scanner. The simulated RMSE of 1.6–1.7 cm at 180–225° and 0.5–0.8 cm beyond 315° is at the
+favourable end of this range, as expected for perfect segmentation and modest bark roughness; the real
+SegmentedForests stems, with an RMSE of 2.9 cm at 202.5° and 1.5 cm at 270° for the Kasa fit, are closer
+to field conditions. The comparison supports the interpretation that much of the spread between studies
+reflects how much of each stem was seen and how stem points were isolated, not only the sensor.
 
 Spreading scan positions mattered more than adding them. Four grid positions brought 80–89 % of the
 simulated stems above 180° of visible arc, whereas four positions clustered near the plot centre reached
@@ -359,6 +477,18 @@ sensor type, so the thresholds apply to any ground-based point cloud once the re
 is known. Static TLS also remains in use where its accuracy and repeatability are needed, including
 tests in national forest inventories (Holvoet et al. 2025).
 
+Several practical recommendations follow. First, the estimator should be chosen with the segmentation
+in mind: least-squares fits are adequate, and on short arcs the geometric fit preferable, only for
+clean stem points, whereas point sets that may contain branches or understorey call for a robust,
+arc-constrained estimator such as RANSAC. Second, coverage should be planned and reported as the visible
+arc per stem, which can be estimated from stem positions and scan positions before or after scanning,
+rather than as point density or number of positions. Third, for least-squares fits of well-segmented
+stems, about 200–225° of visible arc should be the target, more for thick or irregular stems. Fourth,
+scan positions should be spread over the plot; in the simulated stands, four to six positions on a grid
+brought most stems above 180°, while clustering near the centre lost a large part of that benefit in
+dense stands. Fifth, inventories that apply acceptance rules should report the share of rejected
+stems, because the accepted diameters alone can give a misleading impression of completeness.
+
 Several limitations apply. In the HELIOS++ scenes, segmentation was perfect, crowns were absent,
 branches were represented in one scene only and as simple cylinders, the terrain was flat, a single
 scanner model was used, and outliers and registration offsets were idealised; range-dependent incidence
@@ -370,15 +500,25 @@ reduced coverage by removing points from a multi-scan cloud with a stem-only occ
 single-position scans differ in point density and range effects, and the reference there is the
 full-coverage result of 3DFin itself.
 
+Future work should extend the geometric analysis to mobile trajectories, so that walking or flight
+paths can be planned with the same coverage targets, and to scenes with crowns, sloped terrain and
+realistic branch and understorey structure. Field campaigns with measured stem perimeters and recorded
+scan positions would allow the visible-arc thresholds to be tested directly against tape measurements.
+
 ## 5. Conclusions
 
-Coverage rules for TLS diameters should be reported per estimator and per segmentation quality.
+This study quantified how the error of DBH estimates from ground-based laser scanning depends on the
+visible part of the stem circumference, using controlled simulations, virtual laser scanning and open
+real data. Coverage rules for TLS diameters should be reported per estimator and per segmentation quality.
 With clean stem points, least-squares fits need about 180° (simulation) to 225° (real bark) of
 visible arc for most stems to be within 2 cm, and 3DFin's 202.5° sector rule sits in this range.
 Without clean segmentation, no amount of coverage rescues least-squares fits; robust estimators such
 as RANSAC with an arc constraint are then the main lever. Scan positions should be spread rather than
 clustered, especially in dense stands. Coverage rules such as 3DFin's keep the accepted diameters accurate
 but leave many stems without a DBH; the share of rejected stems belongs in every TLS inventory report.
+Because the error is controlled by the visible arc rather than by point density, and because thick stems
+need more coverage than thin ones, scan planning for TLS as well as for mobile systems should be based
+on the expected visible arc of the stems that matter most for the inventory.
 
 ## Acknowledgements
 
@@ -520,3 +660,32 @@ Winiwarter L, Esmorís Pena AM, Weiser H, Anders K, Martínez Sánchez J, Searle
 **Fig. 7**
 
 \newpage
+
+## Tables
+
+**Table 1.** Coverage thresholds (°) in the Monte Carlo experiment: smallest arc from which RMSE ≤ 2 cm,
+|bias| ≤ 1 cm and failure ≤ 10 % hold for all larger arcs, at σ = 5 mm. Ranges span DBH 20 and 40 cm
+and N = 200 and 1000 points. "never": threshold not reached at any arc up to 360°; *: reached only
+for DBH 20 cm.
+
+| Scenario | Kasa | Geometric | RANSAC | Cylinder | Huber | Hough |
+|---|---|---|---|---|---|---|
+| Ideal | 112.5–135 | 45–67.5 | 112.5–135 | 112.5–135 | 45–67.5 | 180–225 |
+| Non-circular | 135–202.5 | 90–202.5 | 135–202.5 | 135–202.5 | 90–202.5 | 202.5* |
+| 5 % outliers | never | never | 112.5–135 | never | 135–270 | 180–225 |
+| 15 % outliers | never | never | 112.5–135 | never | 157.5–270 | 202.5–247.5 |
+| 5 mm offset | 135 | 45–67.5 | 112.5–135 | 135 | 45–67.5 | 180–202.5 |
+| 10 mm offset | 135 | 45–67.5 | 112.5–135 | 135 | 45–67.5 | 180–360 |
+| Combined | never | never | 135–180 | never | 180–225 | 202.5* |
+
+**Table 2.** Smallest visible arc (°) from which at least 80 % of the stems are within ±2 cm, with 95 %
+cluster-bootstrap confidence interval in brackets. HELIOS values are classes of geometrically visible
+arc; real-data values are retained arcs. "–": 80 % not reached at any arc.
+
+| Dataset | Kasa | Geometric | RANSAC | Cylinder | Huber | Hough |
+|---|---|---|---|---|---|---|
+| HELIOS, three stands (371 stems) | 180–225 (180–225 to 225–270) | 225–270 (180–225 to 225–270) | 180–225 (180–225 to 225–270) | 180–225 (180–225 to 225–270) | 225–270 (180–225 to 225–270) | 270–315 (270–315) |
+| HELIOS, branches (130 stems) | – | – | 225–270 (180–225 to 225–270) | – | – | 315–360 (315–360) |
+| SegmentedForests, stem points (458 stems) | 225 (225–270) | 270 (270–315) | 315 (315) | 270 (270) | 315 (270–315) | – |
+| SegmentedForests, with surroundings (458 stems) | – | – | 360 (315–360) | – | – | – |
+| LAUT, field DBH (460 trees) | – | – | – | – | – | – |

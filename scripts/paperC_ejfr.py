@@ -58,6 +58,7 @@ def main():
     figs = re.findall(r"!\[(\*\*Figure (\d)\.\*\*.*?)\]\((figures/[^)]+)\)", section(s, "Figures"), re.S)
     caps = "\n\n".join(" ".join(c.split()) for c, n, f in figs)
     figblocks = "\n\n".join(f"![]({f}){{width=16cm}}\n\n**Fig. {n}**\n\n\\newpage" for c, n, f in figs)
+    tables = "## Tables\n\n" + section(s, "Tables")
     refs_raw = re.split(r"\n(?=- )", section(s, "References"))
     refs = "\n\n".join(ref_springer(e) for e in refs_raw if e.startswith("- "))
     data = cite_style((section(s, "Data availability") + " " + section(s, "Code availability")).replace("\n", " "))
@@ -104,6 +105,8 @@ Corresponding author: Angel Naya, angel.naya@posteo.de
 \\newpage
 
 {figblocks}
+
+{tables}
 """
     OUT.mkdir(exist_ok=True)
     (OUT / "Manuscript_EJFR.md").write_text(md)
