@@ -6,9 +6,11 @@ Angel Naya^a^
 
 ^a^ Independent Researcher, Berlin, Germany
 
-Corresponding author: Angel Naya, angel.naya@posteo.de
+Corresponding author: Angel Naya, Berlin, Germany. E-mail: angel.naya@posteo.de
 
-## Abstract
+## Abstract[^abbr]
+
+[^abbr]: Abbreviations: CDRC, cumulative degree of ring closure; DBH, diameter at breast height; MLS, mobile laser scanning; PLS, personal laser scanning; RANSAC, random sample consensus; RMSE, root mean square error; SLAM, simultaneous localization and mapping; TLS, terrestrial laser scanning.
 
 Stem diameters at breast height (DBH) are derived from terrestrial laser scanning (TLS) data by fitting circles or cylinders
 to stem points, but occlusion leaves each stem partly hidden. Algorithms apply coverage rules — 3DFin accepts a
@@ -16,10 +18,10 @@ diameter only if at least 9 of 16 angular sectors (202.5°) contain points — y
 has not been quantified. We combined a Monte Carlo experiment (six estimators, seven
 perturbations), HELIOS++ simulations of three stands (400–1200 stems ha⁻¹) with geometrically computed visible arc, a stand with branches at breast
 height, and two open real datasets. For round stems without outliers, 45–180° of visible arc gave a
-DBH RMSE ≤ 2 cm; non-circularity raised this to 157.5–202.5° for 40 cm stems; with outliers, only
+DBH root mean square error (RMSE) ≤ 2 cm; non-circularity raised this to 157.5–202.5° for 40 cm stems; with outliers, only
 robust estimators reached it. In simulated stands 82 % of stems were within 2 cm at 180–225° and
 over 90 % beyond 225°; the 3DFin rule corresponds to a median of 190°. Branches in the breast-height
-band made least-squares fits fail at any coverage, whereas RANSAC was unaffected. On 458 real stems
+band made least-squares fits fail at any coverage, whereas random sample consensus (RANSAC) fitting was unaffected. On 458 real stems
 Kasa fitting needed 225° for 80 % within 2 cm; with surrounding points left in, only RANSAC
 approached this. Running 3DFin on twelve real plots with partial coverage, 88 % of accepted
 diameters were within 2 cm, but about half the stems received a diameter with four to six
@@ -71,7 +73,7 @@ diameter of a stem is estimated from the part of its circumference that was reco
 The diameter fitted to a partial arc is poorly constrained. Algebraic circle fits are biased towards
 small radii on short, noisy arcs (Kåsa, 1976; Al-Sharadqah and Chernov, 2009; Chernov, 2010), and both
 the scan mode and the circle-fitting method affect stem detection and diameter estimates (Pueschel et
-al., 2013). Robust approaches such as RANSAC reduce the influence of noise (Olofsson et al., 2014).
+al., 2013). Robust approaches such as random sample consensus (RANSAC) reduce the influence of noise (Olofsson et al., 2014).
 Processing software reacts with coverage rules. 3DFin (Laino et al., 2024) divides the stem
 cross-section into 16 angular sectors and accepts a diameter only if at least nine sectors contain
 points, i.e. 202.5° of the circumference, while FORTLS (Molina-Valero et al., 2022) corrects stand-level
@@ -153,7 +155,7 @@ centres of short arcs may lie outside the point extent, then on a 2.5 mm raster 
 coarse radius. The strongest accumulator cell is taken.
 
 No parameter of any estimator was tuned to the data. Implementations: `dbh_methods.py` and
-`arc_error_mc_real.py` (see Data availability). For comparison with inventory software, the 3DFin
+`arc_error_mc_real.py` (Naya, 2026; see Data availability). For comparison with inventory software, the 3DFin
 acceptance rule is evaluated as the number of occupied 22.5° sectors around the stem centre in a 10 cm
 slice at 1.3 m.
 
@@ -192,7 +194,7 @@ from the centre), (b) 10 random draws from the pool, (c) the n positions closest
 ("clustered"). Stem points are assigned by the HELIOS object identifier, i.e. segmentation
 is perfect, isolating coverage and fitting from detection.
 
-The stems described above carry no branches. To test the effect of branches at breast height, a
+The stems of S1a–S1c carry no branches. To test the effect of branches at breast height, a
 fourth scene S1b-B repeats S1b with identical stems, positions and scan pool and adds branches as thin tapered cylinders
 (Poisson(6) per stem, attachment height 0.5–3.0 m, inclination −10° to +50°, length 0.3–2.0 m, base
 diameter 1.5–5 cm). Branches belong to the stem object, so their points enter the stem point set as they
@@ -241,7 +243,7 @@ and 4 clustered near the plot centre) and a stem-occlusion model: a point is kep
 facing side of its own stem and the line of sight from at least one position does not cross another
 stem (all full-cloud detections act as occluders). Branches and foliage do not occlude in this model,
 so coverage is, if anything, overestimated in 3DFin's favour. 3DFin was rerun with the same settings on
-each reduced cloud; per reference stem we record the geometric visible arc (as in the HELIOS++ simulation),
+each reduced cloud; per reference stem we record the geometric visible arc (as in Section 2.3),
 detection (a 3DFin stem within 0.5 m), acceptance (non-zero DBH) and the DBH difference to the
 full-coverage 3DFin value.
 
@@ -250,7 +252,7 @@ full-coverage 3DFin value.
 For each estimator and class of visible arc, the error of a DBH estimate is
 $e = \widehat{\mathrm{DBH}} - \mathrm{DBH}_{\mathrm{ref}}$, where the reference is the true perimeter-based
 DBH in the simulations, the full-coverage estimate on SegmentedForests and the field measurement on
-LAUT. Bias and root mean square error are computed over all successful estimates,
+LAUT. Bias and root mean square error (RMSE) are computed over all successful estimates,
 
 $$\mathrm{bias} = \frac{1}{n} \sum e_j, \qquad \mathrm{RMSE} = \sqrt{\frac{1}{n} \sum e_j^2}, \qquad (6)$$
 
@@ -295,11 +297,6 @@ never meets the threshold on elliptical stems (RMSE at full coverage 4.7 cm with
 1000), and below 135° it fails in 29–100 % of cases. In the combined scenario only RANSAC (135–180°) and the Huber fit
 (180–225°) reach the threshold for both diameters; Hough only for DBH 20 cm (202.5°).
 
-**Table 1.** Coverage thresholds (°) in the Monte Carlo experiment: smallest arc from which RMSE ≤ 2 cm,
-|bias| ≤ 1 cm and failure ≤ 10 % hold for all larger arcs, at σ = 5 mm. Ranges span DBH 20 and 40 cm
-and N = 200 and 1000 points. "never": threshold not reached at any arc up to 360°; *: reached only
-for DBH 20 cm.
-
 | Scenario | Kasa | Geometric | RANSAC | Cylinder | Huber | Hough |
 |---|---|---|---|---|---|---|
 | Ideal | 112.5–135 | 45–67.5 | 112.5–135 | 112.5–135 | 45–67.5 | 180–225 |
@@ -310,6 +307,11 @@ for DBH 20 cm.
 | 10 mm offset | 135 | 45–67.5 | 112.5–135 | 135 | 45–67.5 | 180–360 |
 | Combined | never | never | 135–180 | never | 180–225 | 202.5* |
 
+**Table 1.** Coverage thresholds (°) in the Monte Carlo experiment: smallest arc from which RMSE ≤ 2 cm,
+|bias| ≤ 1 cm and failure ≤ 10 % hold for all larger arcs, at σ = 5 mm. Ranges span DBH 20 and 40 cm
+and N = 200 and 1000 points. "never": threshold not reached at any arc up to 360°; *: reached only
+for DBH 20 cm.
+
 ### 3.2 HELIOS++: error versus visible arc
 
 Pooled over the three stands (26 712 cases; 56, 130 and 185 core stems), the RMSE of Kasa, cylinder and
@@ -318,7 +320,7 @@ worst throughout (13.7 cm at 180–225°, 2.1 cm beyond 315°; Fig. 2a). The sha
 180–225°, 93 % at 225–270° and 98–99 % beyond 270° for the Kasa and cylinder fits; RANSAC stays
 slightly lower beyond 225° (89–94 %) (Fig. 2b). Thicker stems need more coverage:
 at 180–225° RMSE is 2.0 cm in S1a (mean DBH 37 cm) versus 1.5–1.7 cm in S1b and S1c, consistent
-with the non-circularity effect in the Monte Carlo experiment. A single scan position sees at most 172° of a
+with the non-circularity effect in the Monte Carlo experiment (Section 3.1). A single scan position sees at most 172° of a
 stem (median 164°).
 
 ![**Figure 2.** HELIOS++ simulations, three stands pooled (26 712 stem × configuration cases). (a) RMSE of
@@ -343,10 +345,6 @@ of the geometric and Huber fits one class higher, and of Hough in the 270–315�
 RANSAC reaches 80 % in the 225–270° class (CI 180–225° to 225–270°), Hough only beyond 315°, and the
 least-squares and Huber fits never.
 
-**Table 2.** Smallest visible arc (°) from which at least 80 % of the stems are within ±2 cm, with 95 %
-cluster-bootstrap confidence interval in brackets. HELIOS values are classes of geometrically visible
-arc; real-data values are retained arcs. "–": 80 % not reached at any arc.
-
 | Dataset | Kasa | Geometric | RANSAC | Cylinder | Huber | Hough |
 |---|---|---|---|---|---|---|
 | HELIOS, three stands (371 stems) | 180–225 (180–225 to 225–270) | 225–270 (180–225 to 225–270) | 180–225 (180–225 to 225–270) | 180–225 (180–225 to 225–270) | 225–270 (180–225 to 225–270) | 270–315 (270–315) |
@@ -354,6 +352,10 @@ arc; real-data values are retained arcs. "–": 80 % not reached at any arc.
 | SegmentedForests, stem points (458 stems) | 225 (225–270) | 270 (270–315) | 315 (315) | 270 (270) | 315 (270–315) | – |
 | SegmentedForests, with surroundings (458 stems) | – | – | 360 (315–360) | – | – | – |
 | LAUT, field DBH (460 trees) | – | – | – | – | – | – |
+
+**Table 2.** Smallest visible arc (°) from which at least 80 % of the stems are within ±2 cm, with 95 %
+cluster-bootstrap confidence interval in brackets. HELIOS values are classes of geometrically visible
+arc; real-data values are retained arcs. "–": 80 % not reached at any arc.
 
 ### 3.3 Stem diameter, distance and point density
 
@@ -363,7 +365,7 @@ the stems below 20 cm were within 2 cm with the Kasa fit, compared with 85 %, 75
 larger classes, and the RMSE rose from 1.2 cm to 1.6, 1.8 and 2.3 cm. At 225–270° the shares were
 94 %, 96 %, 91 % and 80 %, and beyond 270° all classes reached at least 93 %. The dependence on diameter
 follows from the non-circularity of the simulated cross-sections: the same relative deviation from a
-circle produces a larger absolute error on a thick stem, as in the Monte Carlo experiment, where
+circle produces a larger absolute error on a thick stem, as in the Monte Carlo experiment (Section 3.1), where
 non-circularity raised the thresholds for 40 cm stems far more than for 20 cm stems (Table 1).
 
 The visible arc decreased with the distance between a stem and the nearest scan position of a
@@ -418,7 +420,7 @@ When branches, understorey and unlabelled points within 30 cm (SegmentedForests)
 remain (Fig. 6b, c), the least-squares fits saturate: at full coverage only
 55 % (Kasa) and 64 % (geometric) of SegmentedForests stems are within 2 cm, and 35–38 % of LAUT trees
 against field DBH. RANSAC rises with coverage to 84 % (SegmentedForests) and 62 % (LAUT) and is the
-best estimator from about 112° on, reproducing the outlier scenario of the Monte Carlo experiment on real data. The
+best estimator from about 112° on, reproducing the outlier scenario of the Monte Carlo experiment (Section 3.1) on real data. The
 lower LAUT values include field-measurement error and the absence of any segmentation. Bootstrap 80 % points
 (95 % CI) on SegmentedForests: Kasa 225° (225–270°), cylinder 270° (270°), geometric 270° (270–315°),
 RANSAC and Huber 315° (270–315° for Huber); with surrounding points only RANSAC at 360° (315–360°);
@@ -457,13 +459,13 @@ fits of clean stem points, the simulations confirm the guideline of Li et al. (2
 about 200° is required: 82 % of the simulated stems were within 2 cm at 180–225° of visible arc. On real
 stems with rough bark and a median DBH of 16 cm, however, the 80 % point shifted to 225°, with a
 bootstrap interval reaching 270°. The negative bias of the Kasa fit on short real arcs (−4.4 cm at 135°,
-−1.0 cm at 202.5°) matches the short-arc bias of algebraic fits in the Monte Carlo experiment and is in
+−1.0 cm at 202.5°) matches the short-arc bias of algebraic fits in the Monte Carlo experiment (Section 3.1) and is in
 line with the negative DBH bias that Bauwens et al. (2016) found for all scanning approaches and
 attributed to bark roughness and non-circular cross-sections.
 
 The required coverage also grows with stem diameter. In the simulated stands, stems of 40 cm or more
-reached the 80 % level only beyond 270°, whereas stems below 20 cm reached it at 135–180° (Section on
-stem diameter in the Results). A rule expressed as a fixed angle is therefore stricter than necessary
+reached the 80 % level only beyond 270°, whereas stems below 20 cm reached it at 135–180° (Section
+3.3). A rule expressed as a fixed angle is therefore stricter than necessary
 for thin stems and too lenient for thick ones, at least where cross-sections deviate from a circle. In
 absolute terms the effect is plausible: the same relative non-circularity displaces the fitted circle by
 more centimetres on a thick stem. Inventories that emphasise large trees, for example for volume or
@@ -538,7 +540,7 @@ natural forests and found that occlusion reduced stem point density and detectio
 errors. The present study is complementary: it addresses static scan positions, the choice of estimator
 and the acceptance rules of processing software, and expresses coverage as a geometric visible arc that
 can equally be computed along a trajectory. Mobile workflows also fit stems from partial arcs; one workflow, for
-example, detects stem arcs and matches them iteratively to cope with drift of the SLAM trajectory
+example, detects stem arcs and matches them iteratively to cope with drift of the simultaneous localization and mapping (SLAM) trajectory
 (Hyyppä et al., 2020). The visible arc used here describes the geometry between sensor and stem, not the
 sensor type, so the thresholds apply to any ground-based point cloud once the recorded arc of each stem
 is known. Static TLS also remains in use where its accuracy and repeatability are needed, including
@@ -595,78 +597,76 @@ on the expected visible arc of the stems that matter most for the inventory.
 
 The author declares no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
 
-## Declaration of generative AI and AI-assisted technologies in the writing process
+## Declaration of generative AI and AI-assisted technologies in the manuscript preparation process
 
-During the preparation of this work the author used Claude (Anthropic) to assist with programming, data analysis and drafting of the text. After using this tool, the author reviewed and edited the content as needed and takes full responsibility for the content of the publication.
+During the preparation of this work the author used Claude (Anthropic) in order to assist with programming, data analysis and drafting of the text. After using this tool, the author reviewed and edited the content as needed and takes full responsibility for the content of the published article.
 
 ## Data availability
 
-All result tables underlying the figures and numbers are included in the Zenodo archive (https://doi.org/10.5281/zenodo.23911186); simulated scenes are reproducible from the scripts and seeds. The real point clouds are third-party open data and are not redistributed: SegmentedForests (Laino et al., 2026; MIT), LAUT (Gollob et al., 2020b; CC BY 4.0). All scripts used for this study (Monte Carlo, HELIOS++ scenes and evaluation, real-data analyses, 3DFin experiment, bootstrap and figures) are archived on Zenodo (https://doi.org/10.5281/zenodo.23911186; GPL-3.0-or-later). Third-party software: HELIOS++ 2.2.2 (conda-forge), 3DFin 0.6.0 with dendromatics 0.7.0, scikit-image 0.26, NumPy, SciPy, pandas.
+All result tables underlying the figures and numbers are included in the Zenodo archive (Naya, 2026); simulated scenes are reproducible from the scripts and seeds. The real point clouds are third-party open data and are not redistributed: SegmentedForests (Laino et al., 2026; MIT), LAUT (Gollob et al., 2020b; CC BY 4.0). All scripts used for this study (Monte Carlo, HELIOS++ scenes and evaluation, real-data analyses, 3DFin experiment, bootstrap and figures) are archived on Zenodo (https://doi.org/10.5281/zenodo.23911186; GPL-3.0-or-later). Third-party software: HELIOS++ 2.2.2 (conda-forge), 3DFin 0.6.0 with dendromatics 0.7.0, scikit-image 0.26, NumPy, SciPy, pandas.
 
 ## Funding
 
-This research received no specific grant from any funding agency in the public, commercial or
-not-for-profit sectors.
+This research did not receive any specific grant from funding agencies in the public, commercial, or not-for-profit sectors.
 
 ## Acknowledgements
 
-The author thanks the creators of the open datasets SegmentedForests, LAUT and the ICOS IT-Ren
-multi-platform LiDAR dataset for publishing their data under open licences, and the developers of
+The author thanks the creators of the open datasets SegmentedForests and LAUT for publishing their data under open licences, and the developers of
 HELIOS++, 3DFin and scikit-image.
 
 ## References
 
 - Abegg, M., Kükenbrink, D., Zell, J., Schaepman, M.E., Morsdorf, F., 2017. Terrestrial laser scanning for forest
-  inventories—tree diameter distribution and scanner location impact on occlusion. Forests 8(6), 184.
+  inventories—tree diameter distribution and scanner location impact on occlusion. Forests 8 (6), 184.
   https://doi.org/10.3390/f8060184
 - Al-Sharadqah, A., Chernov, N., 2009. Error analysis for circle fitting algorithms. Electronic Journal of
   Statistics 3, 886–911. https://doi.org/10.1214/09-EJS419
 - Balenović, I., Liang, X., Jurjević, L., Hyyppä, J., Seletković, A., Kukko, A., 2021. Hand-held personal laser
   scanning: current status and perspectives for forest inventory application. Croatian Journal of Forest
-  Engineering 42(1), 165–183. https://doi.org/10.5552/crojfe.2021.858
+  Engineering 42 (1), 165–183. https://doi.org/10.5552/crojfe.2021.858
 - Bauwens, S., Bartholomeus, H., Calders, K., Lejeune, P., 2016. Forest inventory with terrestrial LiDAR: a comparison
-  of static and hand-held mobile laser scanning. Forests 7(6), 127. https://doi.org/10.3390/f7060127
+  of static and hand-held mobile laser scanning. Forests 7 (6), 127. https://doi.org/10.3390/f7060127
 - Bienert, A., Georgi, L., Kunz, M., Maas, H.-G., von Oheimb, G., 2018. Comparison and combination of mobile and
-  terrestrial laser scanning for natural forest inventories. Forests 9(7), 395. https://doi.org/10.3390/f9070395
+  terrestrial laser scanning for natural forest inventories. Forests 9 (7), 395. https://doi.org/10.3390/f9070395
 - Calders, K., Adams, J., Armston, J., Bartholomeus, H., Bauwens, S., Bentley, L.P., et al., 2020. Terrestrial laser
   scanning in forest ecology: expanding the horizon. Remote Sensing of Environment 251, 112102.
   https://doi.org/10.1016/j.rse.2020.112102
 - Chernov, N., 2010. Circular and Linear Regression: Fitting Circles and Lines by Least Squares. CRC Press.
 - Del Perugia, B., Giannetti, F., Chirici, G., Travaglini, D., 2019. Influence of scan density on the estimation of
-  single-tree attributes by hand-held mobile laser scanning. Forests 10(3), 277. https://doi.org/10.3390/f10030277
+  single-tree attributes by hand-held mobile laser scanning. Forests 10 (3), 277. https://doi.org/10.3390/f10030277
 - Fischler, M.A., Bolles, R.C., 1981. Random sample consensus: a paradigm for model fitting with applications to
-  image analysis and automated cartography. Communications of the ACM 24(6), 381–395.
+  image analysis and automated cartography. Communications of the ACM 24 (6), 381–395.
 - Gollob, C., Ritter, T., Nothdurft, A., 2020a. Comparison of 3D point clouds obtained by terrestrial laser
-  scanning and personal laser scanning on forest inventory sample plots. Data 5(4), 103.
+  scanning and personal laser scanning on forest inventory sample plots. Data 5 (4), 103.
   https://doi.org/10.3390/data5040103
-- Gollob, C., Ritter, T., Nothdurft, A., 2020b. LAUT – Terrestrial and personal laser scanner data from Austrian
+- [dataset] Gollob, C., Ritter, T., Nothdurft, A., 2020b. LAUT – Terrestrial and personal laser scanner data from Austrian
   forest inventory plots. Zenodo. https://doi.org/10.5281/zenodo.3698956
 - Gollob, C., Ritter, T., Nothdurft, A., 2020c. Forest inventory with long range and high-speed personal laser
-  scanning (PLS) and simultaneous localization and mapping (SLAM) technology. Remote Sensing 12(9), 1509.
+  scanning (PLS) and simultaneous localization and mapping (SLAM) technology. Remote Sensing 12 (9), 1509.
   https://doi.org/10.3390/rs12091509
 - Gollob, C., Ritter, T., Wassermann, C., Nothdurft, A., 2019. Influence of scanner position and plot size on the
   accuracy of tree detection and diameter estimation using terrestrial laser scanning on forest inventory
-  plots. Remote Sensing 11(13), 1602. https://doi.org/10.3390/rs11131602
+  plots. Remote Sensing 11 (13), 1602. https://doi.org/10.3390/rs11131602
 - Holvoet, J., Eichhorn, M.P., Giannetti, F., Kükenbrink, D., Liang, X., Mokroš, M., et al., 2025. Terrestrial and
   mobile laser scanning for national forest inventories: from theory to implementation. Remote Sensing of
   Environment 329, 114947. https://doi.org/10.1016/j.rse.2025.114947
 - Hyyppä, E., Yu, X., Kaartinen, H., Hakala, T., Kukko, A., Vastaranta, M., Hyyppä, J., 2020. Comparison of backpack,
   handheld, under-canopy UAV, and above-canopy UAV laser scanning for field reference data collection in
-  boreal forests. Remote Sensing 12(20), 3327. https://doi.org/10.3390/rs12203327
-- Kåsa, I., 1976. A circle fitting procedure and its error analysis. IEEE Transactions on Instrumentation and
-  Measurement IM-25(1), 8–14. https://doi.org/10.1109/TIM.1976.6312298
+  boreal forests. Remote Sensing 12 (20), 3327. https://doi.org/10.3390/rs12203327
 - Kuželka, K., 2025. Trajectory design for handheld mobile laser scanning in complex natural forests: a
   simulation approach. ISPRS Journal of Photogrammetry and Remote Sensing 230, 524–546.
   https://doi.org/10.1016/j.isprsjprs.2025.09.025
+- Kåsa, I., 1976. A circle fitting procedure and its error analysis. IEEE Transactions on Instrumentation and
+  Measurement IM-25 (1), 8–14. https://doi.org/10.1109/TIM.1976.6312298
 - Laino, D., Cabo, C., Ordóñez, C., Bolanos, R., Janvier, R., Giulioni, F., Herrmann, M., Hudak, A., Parsons, R.,
   Santín, C., 2026. SegmentedForests: a labelled dataset of terrestrial LiDAR point clouds for semantic
-  segmentation of forests. Forestry 99(2). https://doi.org/10.1093/forestry/cpaf062
+  segmentation of forests. Forestry 99 (2). https://doi.org/10.1093/forestry/cpaf062
 - Laino, D., Cabo, C., Prendes, C., Janvier, R., Ordóñez, C., Nikonovas, T., Doerr, S., Santín, C., 2024. 3DFin:
-  a software for automated 3D forest inventories from terrestrial point clouds. Forestry 97(4), 479–496.
+  a software for automated 3D forest inventories from terrestrial point clouds. Forestry 97 (4), 479–496.
   https://doi.org/10.1093/forestry/cpae020
 - Li, L., Mu, X., Soma, M., Wan, P., Qi, J., Hu, R., Zhang, W., Tong, Y., Yan, G., 2021. An iterative-mode scan
   design of terrestrial laser scanning in forests for minimizing occlusion effects. IEEE Transactions on
-  Geoscience and Remote Sensing 59(4), 3547–3566. https://doi.org/10.1109/TGRS.2020.3018643
+  Geoscience and Remote Sensing 59 (4), 3547–3566. https://doi.org/10.1109/TGRS.2020.3018643
 - Liang, X., Hyyppä, J., Kaartinen, H., et al., 2018. International benchmarking of terrestrial laser scanning
   approaches for forest inventories. ISPRS Journal of Photogrammetry and Remote Sensing 144, 137–179.
   https://doi.org/10.1016/j.isprsjprs.2018.06.021
@@ -674,7 +674,7 @@ HELIOS++, 3DFin and scikit-image.
   forest inventories. ISPRS Journal of Photogrammetry and Remote Sensing 115, 63–77.
   https://doi.org/10.1016/j.isprsjprs.2016.01.006
 - Liang, X., Kukko, A., Kaartinen, H., Hyyppä, J., Yu, X., Jaakkola, A., Wang, Y., 2014. Possibilities of a personal
-  laser scanning system for forest mapping and ecosystem services. Sensors 14(1), 1228–1248.
+  laser scanning system for forest mapping and ecosystem services. Sensors 14 (1), 1228–1248.
   https://doi.org/10.3390/s140101228
 - Mokroš, M., Mikita, T., Singh, A., Tomaštík, J., Chudá, J., Wężyk, P., et al., 2021. Novel low-cost mobile mapping
   systems for forest inventories as terrestrial laser scanning alternatives. International Journal of Applied
@@ -682,21 +682,22 @@ HELIOS++, 3DFin and scikit-image.
 - Molina-Valero, J.A., Martínez-Calvo, A., Ginzo Villamayor, M.J., Novo Pérez, M.A., Álvarez-González, J.G.,
   Montes, F., Pérez-Cruzado, C., 2022. Operationalizing the use of TLS in forest inventories: the R package
   FORTLS. Environmental Modelling & Software 150, 105337. https://doi.org/10.1016/j.envsoft.2022.105337
+- [dataset] Naya, A., 2026. Code and results for: "How much of the stem must a terrestrial laser scanner see?" Zenodo, v1. https://doi.org/10.5281/zenodo.23911186
 - Olofsson, K., Holmgren, J., Olsson, H., 2014. Tree stem and height measurements using terrestrial laser scanning
-  and the RANSAC algorithm. Remote Sensing 6(5), 4323–4344. https://doi.org/10.3390/rs6054323
+  and the RANSAC algorithm. Remote Sensing 6 (5), 4323–4344. https://doi.org/10.3390/rs6054323
 - Pueschel, P., Newnham, G., Rock, G., Udelhoven, T., Werner, W., Hill, J., 2013. The influence of scan mode and
   circle fitting on tree stem detection, stem diameter and volume extraction from terrestrial laser scans.
   ISPRS Journal of Photogrammetry and Remote Sensing 77, 44–56. https://doi.org/10.1016/j.isprsjprs.2012.12.001
 - Ritter, T., Gollob, C., Nothdurft, A., 2020. Towards an optimization of sample plot size and scanner position
-  layout for terrestrial laser scanning in multi-scan mode. Forests 11(10), 1099. https://doi.org/10.3390/f11101099
+  layout for terrestrial laser scanning in multi-scan mode. Forests 11 (10), 1099. https://doi.org/10.3390/f11101099
 - Ryding, J., Williams, E., Smith, M.J., Eichhorn, M.P., 2015. Assessing handheld mobile laser scanners for forest
-  surveys. Remote Sensing 7(1), 1095–1111. https://doi.org/10.3390/rs70101095
-- van der Walt, S., Schönberger, J.L., Nunez-Iglesias, J., Boulogne, F., Warner, J.D., Yager, N., Gouillart, E.,
-  Yu, T., the scikit-image contributors, 2014. scikit-image: image processing in Python. PeerJ 2, e453.
-  https://doi.org/10.7717/peerj.453
+  surveys. Remote Sensing 7 (1), 1095–1111. https://doi.org/10.3390/rs70101095
 - Wilkes, P., Lau, A., Disney, M., Calders, K., Burt, A., Gonzalez de Tanago, J., et al., 2017. Data acquisition
   considerations for terrestrial laser scanning of forest plots. Remote Sensing of Environment 196, 140–153.
   https://doi.org/10.1016/j.rse.2017.04.030
 - Winiwarter, L., Esmorís Pena, A.M., Weiser, H., Anders, K., Martínez Sánchez, J., Searle, M., Höfle, B., 2022.
   Virtual laser scanning with HELIOS++: a novel take on ray tracing-based simulation of topographic
   full-waveform 3D laser scanning. Remote Sensing of Environment 269, 112772. https://doi.org/10.1016/j.rse.2021.112772
+- van der Walt, S., Schönberger, J.L., Nunez-Iglesias, J., Boulogne, F., Warner, J.D., Yager, N., Gouillart, E.,
+  Yu, T., the scikit-image contributors, 2014. scikit-image: image processing in Python. PeerJ 2, e453.
+  https://doi.org/10.7717/peerj.453

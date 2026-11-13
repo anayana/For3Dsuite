@@ -14,10 +14,10 @@ diameter only if at least 9 of 16 angular sectors (202.5°) contain points — y
 has not been quantified. We combined a Monte Carlo experiment (six estimators, seven
 perturbations), HELIOS++ simulations of three stands (400–1200 stems ha⁻¹) with geometrically computed visible arc, a stand with branches at breast
 height, and two open real datasets. For round stems without outliers, 45–180° of visible arc gave a
-DBH RMSE ≤ 2 cm; non-circularity raised this to 157.5–202.5° for 40 cm stems; with outliers, only
+DBH root mean square error (RMSE) ≤ 2 cm; non-circularity raised this to 157.5–202.5° for 40 cm stems; with outliers, only
 robust estimators reached it. In simulated stands 82 % of stems were within 2 cm at 180–225° and
 over 90 % beyond 225°; the 3DFin rule corresponds to a median of 190°. Branches in the breast-height
-band made least-squares fits fail at any coverage, whereas RANSAC was unaffected. On 458 real stems
+band made least-squares fits fail at any coverage, whereas random sample consensus (RANSAC) fitting was unaffected. On 458 real stems
 Kasa fitting needed 225° for 80 % within 2 cm; with surrounding points left in, only RANSAC
 approached this. Running 3DFin on twelve real plots with partial coverage, 88 % of accepted
 diameters were within 2 cm, but about half the stems received a diameter with four to six
@@ -70,7 +70,7 @@ diameter of a stem is estimated from the part of its circumference that was reco
 The diameter fitted to a partial arc is poorly constrained. Algebraic circle fits are biased towards
 small radii on short, noisy arcs (Kåsa, 1976; Al-Sharadqah and Chernov, 2009; Chernov, 2010), and both
 the scan mode and the circle-fitting method affect stem detection and diameter estimates (Pueschel et
-al., 2013). Robust approaches such as RANSAC reduce the influence of noise (Olofsson et al., 2014).
+al., 2013). Robust approaches such as random sample consensus (RANSAC) reduce the influence of noise (Olofsson et al., 2014).
 Processing software reacts with coverage rules. 3DFin (Laino et al., 2024) divides the stem
 cross-section into 16 angular sectors and accepts a diameter only if at least nine sectors contain
 points, i.e. 202.5° of the circumference, while FORTLS (Molina-Valero et al., 2022) corrects stand-level
@@ -152,7 +152,7 @@ centres of short arcs may lie outside the point extent, then on a 2.5 mm raster 
 coarse radius. The strongest accumulator cell is taken.
 
 No parameter of any estimator was tuned to the data. Implementations: `dbh_methods.py` and
-`arc_error_mc_real.py` (see Data availability). For comparison with inventory software, the 3DFin
+`arc_error_mc_real.py` (see Data availability statement). For comparison with inventory software, the 3DFin
 acceptance rule is evaluated as the number of occupied 22.5° sectors around the stem centre in a 10 cm
 slice at 1.3 m.
 
@@ -191,7 +191,7 @@ from the centre), (b) 10 random draws from the pool, (c) the n positions closest
 ("clustered"). Stem points are assigned by the HELIOS object identifier, i.e. segmentation
 is perfect, isolating coverage and fitting from detection.
 
-The stems described above carry no branches. To test the effect of branches at breast height, a
+The stems of S1a–S1c carry no branches. To test the effect of branches at breast height, a
 fourth scene S1b-B repeats S1b with identical stems, positions and scan pool and adds branches as thin tapered cylinders
 (Poisson(6) per stem, attachment height 0.5–3.0 m, inclination −10° to +50°, length 0.3–2.0 m, base
 diameter 1.5–5 cm). Branches belong to the stem object, so their points enter the stem point set as they
@@ -240,7 +240,7 @@ and 4 clustered near the plot centre) and a stem-occlusion model: a point is kep
 facing side of its own stem and the line of sight from at least one position does not cross another
 stem (all full-cloud detections act as occluders). Branches and foliage do not occlude in this model,
 so coverage is, if anything, overestimated in 3DFin's favour. 3DFin was rerun with the same settings on
-each reduced cloud; per reference stem we record the geometric visible arc (as in the HELIOS++ simulation),
+each reduced cloud; per reference stem we record the geometric visible arc (as in Section 2.3),
 detection (a 3DFin stem within 0.5 m), acceptance (non-zero DBH) and the DBH difference to the
 full-coverage 3DFin value.
 
@@ -249,7 +249,7 @@ full-coverage 3DFin value.
 For each estimator and class of visible arc, the error of a DBH estimate is
 $e = \widehat{\mathrm{DBH}} - \mathrm{DBH}_{\mathrm{ref}}$, where the reference is the true perimeter-based
 DBH in the simulations, the full-coverage estimate on SegmentedForests and the field measurement on
-LAUT. Bias and root mean square error are computed over all successful estimates,
+LAUT. Bias and root mean square error (RMSE) are computed over all successful estimates,
 
 $$\mathrm{bias} = \frac{1}{n} \sum e_j, \qquad \mathrm{RMSE} = \sqrt{\frac{1}{n} \sum e_j^2}, \qquad (6)$$
 
@@ -298,7 +298,7 @@ worst throughout (13.7 cm at 180–225°, 2.1 cm beyond 315°; Fig. 2a). The sha
 180–225°, 93 % at 225–270° and 98–99 % beyond 270° for the Kasa and cylinder fits; RANSAC stays
 slightly lower beyond 225° (89–94 %) (Fig. 2b). Thicker stems need more coverage:
 at 180–225° RMSE is 2.0 cm in S1a (mean DBH 37 cm) versus 1.5–1.7 cm in S1b and S1c, consistent
-with the non-circularity effect in the Monte Carlo experiment. A single scan position sees at most 172° of a
+with the non-circularity effect in the Monte Carlo experiment (Section 3.1). A single scan position sees at most 172° of a
 stem (median 164°).
 
 With the same stems and scan positions as S1b but branches crossing the breast-height band
@@ -322,7 +322,7 @@ the stems below 20 cm were within 2 cm with the Kasa fit, compared with 85 %, 75
 larger classes, and the RMSE rose from 1.2 cm to 1.6, 1.8 and 2.3 cm. At 225–270° the shares were
 94 %, 96 %, 91 % and 80 %, and beyond 270° all classes reached at least 93 %. The dependence on diameter
 follows from the non-circularity of the simulated cross-sections: the same relative deviation from a
-circle produces a larger absolute error on a thick stem, as in the Monte Carlo experiment, where
+circle produces a larger absolute error on a thick stem, as in the Monte Carlo experiment (Section 3.1), where
 non-circularity raised the thresholds for 40 cm stems far more than for 20 cm stems (Table 1).
 
 The visible arc decreased with the distance between a stem and the nearest scan position of a
@@ -365,7 +365,7 @@ When branches, understorey and unlabelled points within 30 cm (SegmentedForests)
 remain (Fig. 6b, c), the least-squares fits saturate: at full coverage only
 55 % (Kasa) and 64 % (geometric) of SegmentedForests stems are within 2 cm, and 35–38 % of LAUT trees
 against field DBH. RANSAC rises with coverage to 84 % (SegmentedForests) and 62 % (LAUT) and is the
-best estimator from about 112° on, reproducing the outlier scenario of the Monte Carlo experiment on real data. The
+best estimator from about 112° on, reproducing the outlier scenario of the Monte Carlo experiment (Section 3.1) on real data. The
 lower LAUT values include field-measurement error and the absence of any segmentation. Bootstrap 80 % points
 (95 % CI) on SegmentedForests: Kasa 225° (225–270°), cylinder 270° (270°), geometric 270° (270–315°),
 RANSAC and Huber 315° (270–315° for Huber); with surrounding points only RANSAC at 360° (315–360°);
@@ -399,13 +399,13 @@ fits of clean stem points, the simulations confirm the guideline of Li et al. (2
 about 200° is required: 82 % of the simulated stems were within 2 cm at 180–225° of visible arc. On real
 stems with rough bark and a median DBH of 16 cm, however, the 80 % point shifted to 225°, with a
 bootstrap interval reaching 270°. The negative bias of the Kasa fit on short real arcs (−4.4 cm at 135°,
-−1.0 cm at 202.5°) matches the short-arc bias of algebraic fits in the Monte Carlo experiment and is in
+−1.0 cm at 202.5°) matches the short-arc bias of algebraic fits in the Monte Carlo experiment (Section 3.1) and is in
 line with the negative DBH bias that Bauwens et al. (2016) found for all scanning approaches and
 attributed to bark roughness and non-circular cross-sections.
 
 The required coverage also grows with stem diameter. In the simulated stands, stems of 40 cm or more
-reached the 80 % level only beyond 270°, whereas stems below 20 cm reached it at 135–180° (Section on
-stem diameter in the Results). A rule expressed as a fixed angle is therefore stricter than necessary
+reached the 80 % level only beyond 270°, whereas stems below 20 cm reached it at 135–180° (Section
+3.3). A rule expressed as a fixed angle is therefore stricter than necessary
 for thin stems and too lenient for thick ones, at least where cross-sections deviate from a circle. In
 absolute terms the effect is plausible: the same relative non-circularity displaces the fitted circle by
 more centimetres on a thick stem. Inventories that emphasise large trees, for example for volume or
@@ -480,7 +480,7 @@ natural forests and found that occlusion reduced stem point density and detectio
 errors. The present study is complementary: it addresses static scan positions, the choice of estimator
 and the acceptance rules of processing software, and expresses coverage as a geometric visible arc that
 can equally be computed along a trajectory. Mobile workflows also fit stems from partial arcs; one workflow, for
-example, detects stem arcs and matches them iteratively to cope with drift of the SLAM trajectory
+example, detects stem arcs and matches them iteratively to cope with drift of the simultaneous localization and mapping (SLAM) trajectory
 (Hyyppä et al., 2020). The visible arc used here describes the geometry between sensor and stem, not the
 sensor type, so the thresholds apply to any ground-based point cloud once the recorded arc of each stem
 is known. Static TLS also remains in use where its accuracy and repeatability are needed, including
@@ -558,8 +558,7 @@ Visualization, Writing – original draft, Writing – review & editing.
 
 ## Acknowledgements
 
-The author thanks the creators of the open datasets SegmentedForests, LAUT and the ICOS IT-Ren
-multi-platform LiDAR dataset for publishing their data under open licences, and the developers of
+The author thanks the creators of the open datasets SegmentedForests and LAUT for publishing their data under open licences, and the developers of
 HELIOS++, 3DFin and scikit-image.
 
 ## Figures

@@ -21,9 +21,28 @@ HIGHLIGHTS = [
 ]
 KEYWORDS = ["Terrestrial laser scanning", "Diameter at breast height", "Occlusion", "Circle fitting",
             "Virtual laser scanning", "Scan design"]
-AI = ("During the preparation of this work the author used Claude (Anthropic) to assist with programming, "
-      "data analysis and drafting of the text. After using this tool, the author reviewed and edited the "
-      "content as needed and takes full responsibility for the content of the publication.")
+AI = ("During the preparation of this work the author used Claude (Anthropic) in order to assist with "
+      "programming, data analysis and drafting of the text. After using this tool, the author reviewed and "
+      "edited the content as needed and takes full responsibility for the content of the published article.")
+FUNDING = ("This research did not receive any specific grant from funding agencies in the public, commercial, "
+           "or not-for-profit sectors.")
+ABBR = ("Abbreviations: CDRC, cumulative degree of ring closure; DBH, diameter at breast height; "
+        "MLS, mobile laser scanning; PLS, personal laser scanning; RANSAC, random sample consensus; "
+        "RMSE, root mean square error; SLAM, simultaneous localization and mapping; "
+        "TLS, terrestrial laser scanning.")
+OWN = ("- [dataset] Naya, A., 2026. Code and results for: \"How much of the stem must a terrestrial laser "
+       "scanner see?\" Zenodo, v1. https://doi.org/10.5281/zenodo.23911186")
+
+
+def refs(r):
+    """Elsevier-Beispielstil: 'Band (Heft), Seiten'; Datensaetze mit [dataset]; eigenes Archiv dazu."""
+    r = re.sub(r"(\d)\((\d)", r"\1 (\2", r)
+    r = r.replace("- Gollob, C., Ritter, T., Nothdurft, A., 2020b. LAUT",
+                  "- [dataset] Gollob, C., Ritter, T., Nothdurft, A., 2020b. LAUT")
+    items = re.split(r"\n(?=- )", r.strip())
+    items.append(OWN)
+    key = lambda x: re.sub(r"^- (\[dataset\] )?", "", x)
+    return "\n".join(sorted(items, key=key))
 
 
 def section(s, name):
@@ -41,7 +60,12 @@ def main():
             re.findall(r"!\[(\*\*Figure (\d)\.\*\*.*?)\]\((figures/[^)]+)\)", section(s, "Figures"), re.S)}
     tabs = {int(n): b.strip() for n, b in
             re.findall(r"\*\*Table (\d)\.\*\*(.*?)(?=\n\*\*Table \d\.\*\*|\Z)", section(s, "Tables"), re.S)}
-    tabs = {n: f"**Table {n}.** " + b for n, b in tabs.items()}
+    # Unterschrift UNTER die Tabelle (Guide for Authors: caption directly below)
+    def tab(n, b):
+        cap = "\n".join(l for l in b.splitlines() if not re.match(r"\|[ -]", l)).strip()
+        tbl = "\n".join(l for l in b.splitlines() if re.match(r"\|[ -]", l))
+        return tbl + "\n\n" + f"**Table {n}.** " + cap
+    tabs = {n: tab(n, b) for n, b in tabs.items()}
     paras, out, done = body.split("\n\n"), [], set()
     for para in paras:
         out.append(para)
@@ -52,6 +76,8 @@ def main():
     assert len(done) == len(figs) + len(tabs), done
     body = "\n\n".join(out)
     data = (section(s, "Data availability") + " " + section(s, "Code availability")).replace("\n", " ")
+    data = data.replace("Zenodo archive (https://doi.org/10.5281/zenodo.23911186)", "Zenodo archive (Naya, 2026)", 1)
+    body = re.sub(r"\(see Data availability statement\)", "(Naya, 2026; see Data availability)", body)
     md = f"""---
 title: "{title}"
 ---
@@ -60,9 +86,11 @@ Angel Naya^a^
 
 ^a^ Independent Researcher, Berlin, Germany
 
-Corresponding author: Angel Naya, angel.naya@posteo.de
+Corresponding author: Angel Naya, Berlin, Germany. E-mail: angel.naya@posteo.de
 
-## Abstract
+## Abstract[^abbr]
+
+[^abbr]: {ABBR}
 
 {abstract}
 
@@ -78,7 +106,7 @@ Corresponding author: Angel Naya, angel.naya@posteo.de
 
 The author declares no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
 
-## Declaration of generative AI and AI-assisted technologies in the writing process
+## Declaration of generative AI and AI-assisted technologies in the manuscript preparation process
 
 {AI}
 
@@ -88,7 +116,7 @@ The author declares no known competing financial interests or personal relations
 
 ## Funding
 
-{section(s, "Funding")}
+{FUNDING}
 
 ## Acknowledgements
 
@@ -96,7 +124,7 @@ The author declares no known competing financial interests or personal relations
 
 ## References
 
-{section(s, "References")}
+{refs(section(s, "References"))}
 """
     OUT.mkdir(exist_ok=True)
     (OUT / "Manuscript_ISPRS.md").write_text(md)
