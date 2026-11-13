@@ -61,7 +61,10 @@ been compared for field reference data (Hyyppä et al., 2020), low-cost devices 
 alternatives (Mokroš et al., 2021), and hand-held PLS has been reviewed with a view to operational
 inventories (Balenović et al., 2021). Mobile systems do not, however, remove the question of coverage.
 Their coverage is governed by the trajectory, and the density of walking lines affected single-tree
-estimates from hand-held scanning (Del Perugia et al., 2019). In all ground-based point clouds, the
+estimates from hand-held scanning (Del Perugia et al., 2019). Simulations of hand-held trajectories in
+complex natural forests showed that occlusion by the surrounding vegetation reduces the point density on
+stems, lowers detection and increases DBH errors, which makes trajectory design a question of coverage
+as well (Kuželka, 2025). In all ground-based point clouds, the
 diameter of a stem is estimated from the part of its circumference that was recorded.
 
 The diameter fitted to a partial arc is poorly constrained. Algebraic circle fits are biased towards
@@ -472,7 +475,11 @@ al., 2020c). Faster static scanners allow more positions per plot, and the prese
 benefit of additional positions depends strongly on their arrangement. The coverage question does not
 disappear with mobile systems, however. Their coverage is governed by the trajectory instead of fixed
 positions, and the density of walking lines affected single-tree estimates from hand-held scanning
-(Del Perugia et al., 2019). Mobile workflows also fit stems from partial arcs; one workflow, for
+(Del Perugia et al., 2019). Kuželka (2025) used simulation to design hand-held trajectories in complex
+natural forests and found that occlusion reduced stem point density and detection and increased DBH
+errors. The present study is complementary: it addresses static scan positions, the choice of estimator
+and the acceptance rules of processing software, and expresses coverage as a geometric visible arc that
+can equally be computed along a trajectory. Mobile workflows also fit stems from partial arcs; one workflow, for
 example, detects stem arcs and matches them iteratively to cope with drift of the SLAM trajectory
 (Hyyppä et al., 2020). The visible arc used here describes the geometry between sensor and stem, not the
 sensor type, so the thresholds apply to any ground-based point cloud once the recorded arc of each stem
@@ -657,6 +664,9 @@ arc; real-data values are retained arcs. "–": 80 % not reached at any arc.
   boreal forests. Remote Sensing 12(20), 3327. https://doi.org/10.3390/rs12203327
 - Kåsa, I., 1976. A circle fitting procedure and its error analysis. IEEE Transactions on Instrumentation and
   Measurement IM-25(1), 8–14. https://doi.org/10.1109/TIM.1976.6312298
+- Kuželka, K., 2025. Trajectory design for handheld mobile laser scanning in complex natural forests: a
+  simulation approach. ISPRS Journal of Photogrammetry and Remote Sensing 230, 524–546.
+  https://doi.org/10.1016/j.isprsjprs.2025.09.025
 - Laino, D., Cabo, C., Ordóñez, C., Bolanos, R., Janvier, R., Giulioni, F., Herrmann, M., Hudak, A., Parsons, R.,
   Santín, C., 2026. SegmentedForests: a labelled dataset of terrestrial LiDAR point clouds for semantic
   segmentation of forests. Forestry 99(2). https://doi.org/10.1093/forestry/cpaf062
