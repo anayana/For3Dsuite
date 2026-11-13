@@ -1,2 +1,1 @@
-trajectory design handheld mobile laser scanning complex natural forests simulation approach
-handheld mobile laser scanning trajectory occlusion simulation natural forest DBH error 2025
+crossref: Trajectory design for handheld mobile laser scanning in complex natural forests: a simulation approach

@@ -26,6 +26,20 @@ def abstract(inv):
 out = ["# Literaturpruefung (OpenAlex, automatisch)\n"]
 for q in [l.strip() for l in open(".github/litsearch-request.txt") if l.strip() and not l.startswith("#")]:
     out.append(f"## Anfrage: {q}")
+    if q.startswith("crossref:"):
+        q2 = q[9:].strip()
+        try:
+            items = get("https://api.crossref.org/works?rows=3&query.bibliographic=" + urllib.parse.quote(q2))["message"]["items"]
+        except Exception as e:
+            out.append(f"Fehler: {e}\n"); continue
+        for it in items:
+            au = ", ".join(f"{a.get('given','')} {a.get('family','')}" for a in it.get("author", [])[:15])
+            yr = (it.get("issued", {}).get("date-parts") or [[None]])[0][0]
+            out.append(f"- **{(it.get('title') or [''])[0]}** — {au} ({yr}). *{(it.get('container-title') or [''])[0]}* "
+                       f"{it.get('volume','')}({it.get('issue','')}) {it.get('page','') or it.get('article-number','')} — https://doi.org/{it.get('DOI','')}")
+            ab = it.get("abstract", "")
+            out.append(f"  - Abstract: {ab[:2500]}")
+        out.append(""); continue
     try:
         res = get("https://api.openalex.org/works?per-page=2&search=" + urllib.parse.quote(q))["results"]
     except Exception as e:
