@@ -1,5 +1,2 @@
-Trajectory design for handheld mobile laser scanning in complex natural forests: a simulation approach
-Supervised terrestrial to airborne laser scanner model calibration for 3D individual-tree attribute mapping using deep neural networks
-Segmentation of Individual Trees in TLS Point Clouds via Graph Optimization
-occlusion terrestrial laser scanning stem diameter estimation partial circumference
-virtual laser scanning simulation forest scan position stem visibility diameter
+trajectory design handheld mobile laser scanning complex natural forests simulation approach
+handheld mobile laser scanning trajectory occlusion simulation natural forest DBH error 2025
