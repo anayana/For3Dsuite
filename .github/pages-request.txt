@@ -1,4 +1,3 @@
-# eine URL je Zeile
-https://em-consulte.com/getInfoProduit/CULHER/instructionsAuteurs/CULHER.pdf
-https://www.sciencedirect.com/journal/journal-of-cultural-heritage/publish/guide-for-authors
-https://www.elsevier.com/journals/journal-of-cultural-heritage/1296-2074/guide-for-authors
+# Impact Factor: Springer-Zeitschriftenseiten
+https://link.springer.com/journal/10342
+https://link.springer.com/journal/41064
