@@ -1,0 +1,3 @@
+"kalibriert_auf","getestet_auf","n_funde_test","n_hintergrund_test","auc_kalibriert_kombiniert","auc_literaturkurven","auc_nur_hoehe_kalibriert","auc_nur_saum_kalibriert","auc_nur_dichte_kalibriert"
+"West","Ost",54,3000,0.547,0.514,0.569,0.49,0.501
+"Ost","West",52,3000,0.539,0.48,0.572,0.46,0.559

@@ -1,0 +1,10 @@
+"art","modus","flecken","flaeche_m2","laenge_median_m","laenge_max_m","flecken_unter_10m"
+"Dorngrasmuecke","streng",46,862,5,25,31
+"Dorngrasmuecke","tolerant",61,1370,5,45,38
+"Fledermaus-Leitstruktur","streng",106,16315,25,555,21
+"Fledermaus-Leitstruktur","tolerant",105,17104,30,555,20
+"Goldammer","streng",9,92,5,10,8
+"Goldammer","tolerant",112,3280,5,65,73
+"Neuntoeter","streng",67,2144,5,60,42
+"Neuntoeter","tolerant",145,4619,5,80,87
+"Wildbienen/Bestaeuber","tolerant",41,703,5,20,30

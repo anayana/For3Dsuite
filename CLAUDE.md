@@ -8,6 +8,10 @@
   Cloud gesperrt), das ausdrücklich sagen. Einen Link, der beim Nutzer nicht funktioniert hat, nie
   wieder schicken und keine Adressen raten.
 - Der Nutzer arbeitet oft am Handy.
+- **Klick-Anleitungen nur nach dem, was wirklich auf dem Bildschirm steht.** Keine Knöpfe nennen,
+  die es dort vielleicht nicht gibt (z. B. „Add file“ in einem leeren GitHub-Repo). Lage genau
+  beschreiben (Kasten, Farbe, Zeile). Wenn nicht sicher bekannt ist, was zu sehen ist: um ein
+  Bildschirmfoto bitten statt raten.
 
 ## Kosten und Rechenzeit
 - Veröffentlichung nur ohne Kosten (Abo-Weg, kein Open-Access-Gebühr).

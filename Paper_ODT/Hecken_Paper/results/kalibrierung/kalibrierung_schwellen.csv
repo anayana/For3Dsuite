@@ -1,0 +1,7 @@
+"kalibriert_auf","kennwert","richtung","p1","p2","auc_kalibrierung"
+"West","h_p95","dec",5.13,6.519,0.576
+"West","saum_breite","inc",0,0.047,0.499
+"West","dichte_02_2m","dec",0.238,0.564,0.562
+"Ost","h_p95","dec",3.711,6.443,0.598
+"Ost","saum_breite","inc",0.177,0.237,0.54
+"Ost","dichte_02_2m","dec",0.382,0.666,0.55
