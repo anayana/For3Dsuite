@@ -8,8 +8,8 @@
 
 ## Abstract
 
-Stem diameters are derived from terrestrial laser scanning (TLS) data by fitting circles or cylinders
-to stem points, but occlusion leaves each stem partly hidden. Processing algorithms apply coverage rules — 3DFin accepts a
+Stem diameters at breast height (DBH) are derived from terrestrial laser scanning (TLS) data by fitting circles or cylinders
+to stem points, but occlusion leaves each stem partly hidden. Algorithms apply coverage rules — 3DFin accepts a
 diameter only if at least 9 of 16 angular sectors (202.5°) contain points — yet the required coverage
 has not been quantified. We combined a Monte Carlo experiment (six estimators, seven
 perturbations), HELIOS++ simulations of three stands (400–1200 stems ha⁻¹) with geometrically computed visible arc, a stand with branches at breast
@@ -18,9 +18,9 @@ DBH RMSE ≤ 2 cm; non-circularity raised this to 157.5–202.5° for 40 cm stem
 robust estimators reached it. In simulated stands 82 % of stems were within 2 cm at 180–225° and
 over 90 % beyond 225°; the 3DFin rule corresponds to a median of 190°. Branches in the breast-height
 band made least-squares fits fail at any coverage, whereas RANSAC was unaffected. On 458 real stems
-Kasa fitting needed about 225° for 80 % within 2 cm; with surrounding points left in, only RANSAC
-approached this. Running 3DFin on twelve real plots with simulated partial coverage, 88 % of accepted
-diameters were within 2 cm, but about half of the stems received a diameter with four to six
+Kasa fitting needed 225° for 80 % within 2 cm; with surrounding points left in, only RANSAC
+approached this. Running 3DFin on twelve real plots with partial coverage, 88 % of accepted
+diameters were within 2 cm, but about half the stems received a diameter with four to six
 spread scan positions. Coverage thresholds must be stated per estimator and segmentation
 quality, rejected stems must be reported, and scan positions should be spread rather than added.
 
@@ -55,7 +55,7 @@ detection rate and diameter accuracy on real inventory plots, and FORTLS (Molina
 corrects stand estimates for occlusion in single-scan inventories. Li et al. (2021)
 introduced the cumulative degree of ring closure (CDRC) — the union of the angular sectors of a stem
 circle that are visible from the scan positions — to optimise scan positions in HELIOS-simulated
-forests, and noted that accurate DBH estimation requires a CDRC above about 200°. That statement rests
+forests, and noted that accurate diameter at breast height (DBH) estimation requires a CDRC above about 200°. That statement rests
 on one least-squares estimator, idealised segmentation and simulated stems. How the threshold depends
 on the estimator, on non-circular stems, on outliers from branches and understorey, and whether it holds
 for real bark and field-measured DBH, has to our knowledge not been quantified, nor has it been related
@@ -85,7 +85,7 @@ All estimators operate on the points of one stem in the band 1.05–1.55 m (cyli
   radius); the strongest accumulator cell is taken. No parameter was tuned.
 - **Huber-robust**: geometric fit with Huber loss (scale 1 cm), Kasa start.
 
-Implementations: `dbh_methods.py`, `arc_error_mc_real.py` (Section *Code availability*). The 3DFin acceptance rule is evaluated as the number of occupied 22.5° sectors around
+Implementations: `dbh_methods.py`, `arc_error_mc_real.py` (see Data availability). The 3DFin acceptance rule is evaluated as the number of occupied 22.5° sectors around
 the stem centre in a 10 cm slice at 1.3 m.
 
 ### 2.2 Monte Carlo experiment
@@ -150,7 +150,7 @@ and 4 clustered near the plot centre) and a stem-occlusion model: a point is kep
 facing side of its own stem and the line of sight from at least one position does not cross another
 stem (all full-cloud detections act as occluders). Branches and foliage do not occlude in this model,
 so coverage is, if anything, overestimated in 3DFin's favour. 3DFin was rerun with the same settings on
-each reduced cloud; per reference stem we record the geometric visible arc (as in Section 2.3),
+each reduced cloud; per reference stem we record the geometric visible arc (as in the HELIOS++ simulation),
 detection (a 3DFin stem within 0.5 m), acceptance (non-zero DBH) and the DBH difference to the
 full-coverage 3DFin value.
 
@@ -185,7 +185,7 @@ worst throughout (13.7 cm at 180–225°, 2.1 cm beyond 315°; Fig. 2a). The sha
 180–225°, 93 % at 225–270° and 98–99 % beyond 270° for the Kasa and cylinder fits; RANSAC stays
 slightly lower beyond 225° (89–94 %) (Fig. 2b). Thicker stems need more coverage:
 at 180–225° RMSE is 2.0 cm in S1a (mean DBH 37 cm) versus 1.5–1.7 cm in S1b and S1c, consistent
-with the non-circularity effect in Section 3.1. A single scan position sees at most 172° of a
+with the non-circularity effect in the Monte Carlo experiment. A single scan position sees at most 172° of a
 stem (median 164°).
 
 **Branches at breast height (S1b-B).** With the same stems and scan positions as S1b but branches
@@ -238,7 +238,7 @@ only 58 % even at 360°.
 30 cm (SegmentedForests) or 25 cm (LAUT) remain, the least-squares fits saturate: at full coverage only
 55 % (Kasa) and 64 % (geometric) of SegmentedForests stems are within 2 cm, and 35–38 % of LAUT trees
 against field DBH. RANSAC rises with coverage to 84 % (SegmentedForests) and 62 % (LAUT) and is the
-best estimator from about 112° on, reproducing the outlier scenario of Section 3.1 on real data. The
+best estimator from about 112° on, reproducing the outlier scenario of the Monte Carlo experiment on real data. The
 lower LAUT values include field-measurement error and the absence of any segmentation. Bootstrap 80 % points
 (95 % CI) on SegmentedForests: Kasa 225° (225–270°), cylinder 270° (270°), geometric 270° (270–315°),
 RANSAC and Huber 315° (270–315° for Huber); with surrounding points only RANSAC at 360° (315–360°);
