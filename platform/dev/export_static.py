@@ -56,7 +56,8 @@ def dataset_tags(s):
     if any("ExG" in k or k == "Vitalitaet" for k in attr_keys):
         tags.append("RGB-Bildanalyse")
     if any(lv.get("bin_gt_url") for lv in ((s.get("pointcloud") or {}).get("levels") or [])):
-        tags.append("Semantik-Ground-Truth")
+        # Art der Wahrheit: Klassen je Punkt (Standard) oder Baum-ID je Punkt
+        tags.append((s.get("pointcloud") or {}).get("gt_tag") or "Semantik-Ground-Truth")
     if s.get("canopy"):
         tags.append("Kronenanalyse (LAI)")
     if any(m.get("prognosis") for m in markers):
@@ -136,6 +137,112 @@ def export_html():
             shutil.copyfile(src, OUT / extra)
 
 
+def export_scene(sj):
+    """Eine Szene aus platform/dev-data nach docs/ (Medien + scene-<id>.json).
+
+    Gibt den Eintrag fuer docs/data/scenes.json zurueck.
+    """
+    s = json.loads(sj.read_text(encoding="utf-8"))
+    sid = s["id"]
+    src = sj.parent
+    dst = OUT / "media" / "scenes" / sid
+    if dst.exists():
+        shutil.rmtree(dst)
+    dst.mkdir(parents=True)
+    for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken, Video, QSM, Splat)
+        if not (f.is_file() and f.suffix in (".jpg", ".bin", ".mp4", ".ply", ".splat")):
+            continue
+        # Panos auf MAX_PANO_W begrenzen (Thumbs/kleine Bilder bleiben unberuehrt)
+        if f.suffix == ".jpg" and f.name != "thumb.jpg":
+            with Image.open(f) as im:
+                if im.width > MAX_PANO_W:
+                    h = round(im.height * MAX_PANO_W / im.width)
+                    im.convert("RGB").resize((MAX_PANO_W, h), Image.LANCZOS) \
+                      .save(dst / f.name, quality=JPEG_Q)
+                    continue
+        shutil.copyfile(f, dst / f.name)
+
+    # Marker-Medien (Bilder/Videos hinter Markern) liegen in story/ -- 1:1
+    # uebernehmen, Bilder auf MAX_PANO_W begrenzen. Wiederverwendbar fuer
+    # erzaehlte Rundgaenge (z. B. Museums-Tour).
+    story_src = src / "story"
+    if story_src.is_dir():
+        story_dst = dst / "story"
+        story_dst.mkdir(parents=True, exist_ok=True)
+        for f in sorted(story_src.iterdir()):
+            if not (f.is_file() and f.suffix.lower()
+                    in (".jpg", ".jpeg", ".png", ".mp4", ".webm")):
+                continue
+            if f.suffix.lower() in (".jpg", ".jpeg", ".png"):
+                with Image.open(f) as im:
+                    if im.width > MAX_PANO_W:
+                        h = round(im.height * MAX_PANO_W / im.width)
+                        im.convert("RGB").resize((MAX_PANO_W, h), Image.LANCZOS) \
+                          .save(story_dst / f.name, quality=JPEG_Q)
+                        continue
+            shutil.copyfile(f, story_dst / f.name)
+
+    rel = f"media/scenes/{sid}"
+    # Panorama nur setzen, wenn vorhanden (wolken-only-Szenen wie TreeScope
+    # haben keins -> pano_url = null, Viewer startet direkt in 3D)
+    s["pano_url"] = f"{rel}/pano.jpg" if s.get("pano") and (src / "pano.jpg").is_file() else None
+    s["thumb_url"] = f"{rel}/thumb.jpg" if (src / "thumb.jpg").is_file() else None
+    if s.get("video") and (src / Path(s["video"]).name).is_file():
+        s["video_url"] = f"{rel}/{Path(s['video']).name}"
+    for v in s.get("variants") or []:
+        v["pano_url"] = rel + "/" + v["pano"].rsplit("/", 1)[-1]
+    can = s.get("canopy")
+    if can and can.get("fisheye") and (src / "hemi.jpg").is_file():
+        can["fisheye_url"] = f"{rel}/hemi.jpg"
+    qsm = s.get("qsm")
+    if qsm and (src / "qsm.bin").is_file():
+        qsm["bin_url"] = f"{rel}/qsm.bin"
+    elif qsm:
+        s["qsm"] = None
+    sp = s.get("splat")
+    if sp and sp.get("file") and (src / sp["file"]).is_file():
+        sp["url"] = f"{rel}/{sp['file']}"      # lokal im Repo
+    elif sp and sp.get("url"):
+        pass                                    # extern gehostet (Release/CDN)
+    elif sp:
+        s["splat"] = None
+    pc = s.get("pointcloud")
+    if pc and (src / pc["bin"].rsplit("/", 1)[-1]).is_file():
+        pc["bin_url"] = rel + "/" + pc["bin"].rsplit("/", 1)[-1]
+        for lv in pc.get("levels") or []:
+            lv["bin_url"] = rel + "/" + lv["bin"].rsplit("/", 1)[-1]
+            # Zusaetzliche Einfaerbungen: ITCD (berechnet) und Ground Truth
+            # (manuell annotiert, z. B. SegmentedForests) -- falls erzeugt
+            for key in ("bin_itcd", "bin_gt"):
+                seg = lv.get(key)
+                if seg and (src / seg.rsplit("/", 1)[-1]).is_file():
+                    lv[key + "_url"] = rel + "/" + seg.rsplit("/", 1)[-1]
+    elif pc:
+        s["pointcloud"] = None
+    (OUT / "data" / f"scene-{sid}.json").write_text(
+        json.dumps(s, ensure_ascii=False), encoding="utf-8")
+
+    entry = {
+        "id": sid, "title": s.get("title"),
+        "description": s.get("description", ""),
+        "created": s.get("created"),
+        "thumb_url": s["thumb_url"],
+        "markers": len(s.get("markers", [])),
+        "source_type": (s.get("source") or {}).get("type"),
+        "has_3d": bool(s.get("pointcloud")),
+        "kind": "walk" if s.get("video") else "splat" if s.get("splat") else "scene",
+        "datasets": dataset_tags(s),
+    }
+    # Koordinate fuer die Uebersichtskarte (source.gps, sonst metadata.geometry)
+    gps = (s.get("source") or {}).get("gps") or {}
+    geom = ((s.get("metadata") or {}).get("geometry") or {}).get("coordinates")
+    if gps.get("lat") is not None:
+        entry["lat"], entry["lon"] = gps["lat"], gps["lon"]
+    elif geom:
+        entry["lon"], entry["lat"] = geom[0], geom[1]
+    return entry
+
+
 def main():
     ap = argparse.ArgumentParser(description="Statischer Gallery-Export nach docs/")
     ap.add_argument("--html-only", action="store_true",
@@ -165,106 +272,11 @@ def main():
     publish, held = load_publish_list()
     listing = []
     for sj in sorted(MEDIA.glob("scenes/*/scene.json")):
-        s = json.loads(sj.read_text(encoding="utf-8"))
-        sid = s["id"]
+        sid = json.loads(sj.read_text(encoding="utf-8"))["id"]
         if publish is not None and sid not in publish:
             held.append(sid)
             continue
-        src = sj.parent
-        dst = OUT / "media" / "scenes" / sid
-        dst.mkdir(parents=True)
-        for f in src.iterdir():   # alle Medien (Panos, Varianten, Wolken, Video, QSM, Splat)
-            if not (f.is_file() and f.suffix in (".jpg", ".bin", ".mp4", ".ply", ".splat")):
-                continue
-            # Panos auf MAX_PANO_W begrenzen (Thumbs/kleine Bilder bleiben unberuehrt)
-            if f.suffix == ".jpg" and f.name != "thumb.jpg":
-                with Image.open(f) as im:
-                    if im.width > MAX_PANO_W:
-                        h = round(im.height * MAX_PANO_W / im.width)
-                        im.convert("RGB").resize((MAX_PANO_W, h), Image.LANCZOS) \
-                          .save(dst / f.name, quality=JPEG_Q)
-                        continue
-            shutil.copyfile(f, dst / f.name)
-
-        # Marker-Medien (Bilder/Videos hinter Markern) liegen in story/ -- 1:1
-        # uebernehmen, Bilder auf MAX_PANO_W begrenzen. Wiederverwendbar fuer
-        # erzaehlte Rundgaenge (z. B. Museums-Tour).
-        story_src = src / "story"
-        if story_src.is_dir():
-            story_dst = dst / "story"
-            story_dst.mkdir(parents=True, exist_ok=True)
-            for f in sorted(story_src.iterdir()):
-                if not (f.is_file() and f.suffix.lower()
-                        in (".jpg", ".jpeg", ".png", ".mp4", ".webm")):
-                    continue
-                if f.suffix.lower() in (".jpg", ".jpeg", ".png"):
-                    with Image.open(f) as im:
-                        if im.width > MAX_PANO_W:
-                            h = round(im.height * MAX_PANO_W / im.width)
-                            im.convert("RGB").resize((MAX_PANO_W, h), Image.LANCZOS) \
-                              .save(story_dst / f.name, quality=JPEG_Q)
-                            continue
-                shutil.copyfile(f, story_dst / f.name)
-
-        rel = f"media/scenes/{sid}"
-        # Panorama nur setzen, wenn vorhanden (wolken-only-Szenen wie TreeScope
-        # haben keins -> pano_url = null, Viewer startet direkt in 3D)
-        s["pano_url"] = f"{rel}/pano.jpg" if s.get("pano") and (src / "pano.jpg").is_file() else None
-        s["thumb_url"] = f"{rel}/thumb.jpg" if (src / "thumb.jpg").is_file() else None
-        if s.get("video") and (src / Path(s["video"]).name).is_file():
-            s["video_url"] = f"{rel}/{Path(s['video']).name}"
-        for v in s.get("variants") or []:
-            v["pano_url"] = rel + "/" + v["pano"].rsplit("/", 1)[-1]
-        can = s.get("canopy")
-        if can and can.get("fisheye") and (src / "hemi.jpg").is_file():
-            can["fisheye_url"] = f"{rel}/hemi.jpg"
-        qsm = s.get("qsm")
-        if qsm and (src / "qsm.bin").is_file():
-            qsm["bin_url"] = f"{rel}/qsm.bin"
-        elif qsm:
-            s["qsm"] = None
-        sp = s.get("splat")
-        if sp and sp.get("file") and (src / sp["file"]).is_file():
-            sp["url"] = f"{rel}/{sp['file']}"      # lokal im Repo
-        elif sp and sp.get("url"):
-            pass                                    # extern gehostet (Release/CDN)
-        elif sp:
-            s["splat"] = None
-        pc = s.get("pointcloud")
-        if pc and (src / pc["bin"].rsplit("/", 1)[-1]).is_file():
-            pc["bin_url"] = rel + "/" + pc["bin"].rsplit("/", 1)[-1]
-            for lv in pc.get("levels") or []:
-                lv["bin_url"] = rel + "/" + lv["bin"].rsplit("/", 1)[-1]
-                # Zusaetzliche Einfaerbungen: ITCD (berechnet) und Ground Truth
-                # (manuell annotiert, z. B. SegmentedForests) -- falls erzeugt
-                for key in ("bin_itcd", "bin_gt"):
-                    seg = lv.get(key)
-                    if seg and (src / seg.rsplit("/", 1)[-1]).is_file():
-                        lv[key + "_url"] = rel + "/" + seg.rsplit("/", 1)[-1]
-        elif pc:
-            s["pointcloud"] = None
-        (OUT / "data" / f"scene-{sid}.json").write_text(
-            json.dumps(s, ensure_ascii=False), encoding="utf-8")
-
-        entry = {
-            "id": sid, "title": s.get("title"),
-            "description": s.get("description", ""),
-            "created": s.get("created"),
-            "thumb_url": s["thumb_url"],
-            "markers": len(s.get("markers", [])),
-            "source_type": (s.get("source") or {}).get("type"),
-            "has_3d": bool(s.get("pointcloud")),
-            "kind": "walk" if s.get("video") else "splat" if s.get("splat") else "scene",
-            "datasets": dataset_tags(s),
-        }
-        # Koordinate fuer die Uebersichtskarte (source.gps, sonst metadata.geometry)
-        gps = (s.get("source") or {}).get("gps") or {}
-        geom = ((s.get("metadata") or {}).get("geometry") or {}).get("coordinates")
-        if gps.get("lat") is not None:
-            entry["lat"], entry["lon"] = gps["lat"], gps["lon"]
-        elif geom:
-            entry["lon"], entry["lat"] = geom[0], geom[1]
-        listing.append(entry)
+        listing.append(export_scene(sj))
     listing.sort(key=lambda x: x.get("created") or "", reverse=True)
     (OUT / "data" / "scenes.json").write_text(
         json.dumps(listing, ensure_ascii=False), encoding="utf-8")

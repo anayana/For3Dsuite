@@ -359,6 +359,23 @@
       line-height: 1.5; }
     #ib-body .ib-sources a { color: #58a6ff; text-decoration: none; }
     #ib-body .ib-sources a:hover { text-decoration: underline; }
+
+    /* Handy: Umschalter unten mittig gestapelt, Legende und Validierung
+       eingeklappt (Titelzeile antippen) -- sonst decken sie die Umschalter zu */
+    @media (max-width: 700px) {
+      #lod { bottom: 10px; }
+      #coloring { bottom: 50px; right: 50%; transform: translateX(50%); }
+      #coloring button, #lod button { padding: 7px 11px; white-space: nowrap;
+        font-size: 12px; }
+      #validation, #cloudlegend { bottom: 92px; left: 10px;
+        max-width: calc(100vw - 20px); cursor: pointer; }
+      #validation:not(.open) .muted { display: none; }
+      #cloudlegend:not(.open) > :not(b) { display: none; }
+      #validation > b:first-child::after, #cloudlegend > b::after {
+        content: ' \25B8'; color: #8b949e; }
+      #validation.open > b:first-child::after, #cloudlegend.open > b::after {
+        content: ' \25BE'; }
+    }
   </style>
 </head>
 <body>
@@ -929,6 +946,26 @@
       el.classList.add('on');
     }
 
+    // Validierung und Farblegende sitzen beide unten links: hat eine Szene
+    // beides, rueckt die Legende ueber das Validierungs-Panel
+    // Auf dem Handy sind beide eingeklappt; Antippen klappt auf/zu.
+    function stackLowerLeft() {
+      const v = document.getElementById('validation');
+      const lg = document.getElementById('cloudlegend');
+      const both = !v.hidden && lg.classList.contains('on');
+      const place = () => {
+        if (!both) return;
+        const vb = parseFloat(getComputedStyle(v).bottom) || 16;
+        lg.style.bottom = (vb + v.offsetHeight + 8) + 'px';
+      };
+      [v, lg].forEach(el => el.addEventListener('click', () => {
+        el.classList.toggle('open');
+        place();
+      }));
+      place();
+      window.addEventListener('resize', place);
+    }
+
     // Validierungs-Panel: berechnete Marker gegen Datensatz-Ground-Truth
     function buildValidation(scene) {
       const v = scene.validation;
@@ -1225,9 +1262,12 @@
         ([id, , url]) => id === 'rgb' || levels.some(lv => url(lv)));
       if (avail.length < 2) return;
       bar.classList.add('on');
+      // Wolken ohne Kamerafarbe (z. B. Hoehe als Grundeinfaerbung) benennen
+      // ihre Grundstufe selbst: pointcloud.base_label
+      const baseLabel = (scene.pointcloud && scene.pointcloud.base_label) || null;
       avail.forEach(([id, label, url], i) => {
         const b = document.createElement('button');
-        b.textContent = label;
+        b.textContent = (id === 'rgb' && baseLabel) ? baseLabel : label;
         if (i === 0) b.classList.add('active');
         b.onclick = async () => {
           if (b.classList.contains('active') || !cloud) return;
@@ -1281,6 +1321,7 @@
       const origin = (scene.source && scene.source.origin_xyz) || [0, 0, 0];
       const levels = scene.pointcloud.levels || [];
       curLevel = levels[0] || scene.pointcloud;   // Default = erste (schnellste) Stufe
+      if (scene.pointcloud.start) curLevel = { ...curLevel, start: scene.pointcloud.start };
       buildColorBy(scene);          // vor loadCloud, damit die erste Ladung faerbt
       await loadCloud();
       cloud.setMarkers(scene.markers || [], origin);
@@ -1318,6 +1359,7 @@
       buildLegend(scene);
       buildCloudLegend(scene);
       buildValidation(scene);
+      stackLowerLeft();
       buildCanopy(scene);
       buildContext(scene);
       buildSpin();
