@@ -21,9 +21,17 @@ Abegg, M., Kükenbrink, D., Zell, J., Schaepman, M.E. and Morsdorf, F. 2017 Terr
 
 Al-Sharadqah, A. and Chernov, N. 2009 Error analysis for circle fitting algorithms. *Electron. J. Stat.* 3, 886–911.
 
-Chang, M., Candotti, A., von Ellenrieder, K., Tomelleri, E. and Camurri, M. 2025 Data for: “A multi-platform LiDAR dataset for standardized forest inventory measurement at long term ecological monitoring sites”. Zenodo. https://doi.org/10.5281/zenodo.17186174.
+Balenović, I., Liang, X., Jurjević, L., Hyyppä, J., Seletković, A. and Kukko, A. 2021 Hand-held personal laser scanning: current status and perspectives for forest inventory application. *Croat. J. For. Eng.* 42, 165–183.
+
+Bauwens, S., Bartholomeus, H., Calders, K. and Lejeune, P. 2016 Forest inventory with terrestrial LiDAR: a comparison of static and hand-held mobile laser scanning. *Forests* 7, 127.
+
+Bienert, A., Georgi, L., Kunz, M., Maas, H.-G. and von Oheimb, G. 2018 Comparison and combination of mobile and terrestrial laser scanning for natural forest inventories. *Forests* 9, 395.
+
+Calders, K., Adams, J., Armston, J., Bartholomeus, H., Bauwens, S., Bentley, L.P. et al. 2020 Terrestrial laser scanning in forest ecology: expanding the horizon. *Remote Sens. Environ.* 251, 112102.
 
 Chernov, N. 2010 *Circular and Linear Regression: Fitting Circles and Lines by Least Squares*. CRC Press, Boca Raton.
+
+Del Perugia, B., Giannetti, F., Chirici, G. and Travaglini, D. 2019 Influence of scan density on the estimation of single-tree attributes by hand-held mobile laser scanning. *Forests* 10, 277.
 
 Fischler, M.A. and Bolles, R.C. 1981 Random sample consensus: a paradigm for model fitting with applications to image analysis and automated cartography. *Commun. ACM* 24, 381–395.
 
@@ -31,7 +39,13 @@ Gollob, C., Ritter, T. and Nothdurft, A. 2020a Comparison of 3D point clouds obt
 
 Gollob, C., Ritter, T. and Nothdurft, A. 2020b LAUT – Terrestrial and personal laser scanner data from Austrian forest inventory plots. Zenodo. https://doi.org/10.5281/zenodo.3698956.
 
+Gollob, C., Ritter, T. and Nothdurft, A. 2020c Forest inventory with long range and high-speed personal laser scanning (PLS) and simultaneous localization and mapping (SLAM) technology. *Remote Sens.* 12, 1509.
+
 Gollob, C., Ritter, T., Wassermann, C. and Nothdurft, A. 2019 Influence of scanner position and plot size on the accuracy of tree detection and diameter estimation using terrestrial laser scanning on forest inventory plots. *Remote Sens.* 11, 1602.
+
+Holvoet, J., Eichhorn, M.P., Giannetti, F., Kükenbrink, D., Liang, X., Mokroš, M. et al. 2025 Terrestrial and mobile laser scanning for national forest inventories: from theory to implementation. *Remote Sens. Environ.* 329, 114947.
+
+Hyyppä, E., Yu, X., Kaartinen, H., Hakala, T., Kukko, A., Vastaranta, M. and Hyyppä, J. 2020 Comparison of backpack, handheld, under-canopy UAV, and above-canopy UAV laser scanning for field reference data collection in boreal forests. *Remote Sens.* 12, 3327.
 
 Kåsa, I. 1976 A circle fitting procedure and its error analysis. *IEEE Trans. Instrum. Meas.* IM-25, 8–14.
 
@@ -41,13 +55,27 @@ Laino, D., Cabo, C., Ordóñez, C., Bolanos, R., Janvier, R., Giulioni, F. et al
 
 Li, L., Mu, X., Soma, M., Wan, P., Qi, J., Hu, R. et al. 2021 An iterative-mode scan design of terrestrial laser scanning in forests for minimizing occlusion effects. *IEEE Trans. Geosci. Remote Sens.* 59, 3547–3566.
 
+Liang, X., Kukko, A., Kaartinen, H., Hyyppä, J., Yu, X., Jaakkola, A. and Wang, Y. 2014 Possibilities of a personal laser scanning system for forest mapping and ecosystem services. *Sensors* 14, 1228–1248.
+
+Liang, X., Kankare, V., Hyyppä, J., Wang, Y., Kukko, A., Haggrén, H. et al. 2016 Terrestrial laser scanning in forest inventories. *ISPRS J. Photogramm. Remote Sens.* 115, 63–77.
+
 Liang, X., Hyyppä, J., Kaartinen, H. et al. 2018 International benchmarking of terrestrial laser scanning approaches for forest inventories. *ISPRS J. Photogramm. Remote Sens.* 144, 137–179.
+
+Mokroš, M., Mikita, T., Singh, A., Tomaštík, J., Chudá, J., Wężyk, P. et al. 2021 Novel low-cost mobile mapping systems for forest inventories as terrestrial laser scanning alternatives. *Int. J. Appl. Earth Obs. Geoinf.* 104, 102512.
 
 Molina-Valero, J.A., Martínez-Calvo, A., Ginzo Villamayor, M.J., Novo Pérez, M.A., Álvarez-González, J.G., Montes, F. et al. 2022 Operationalizing the use of TLS in forest inventories: the R package FORTLS. *Environ. Model. Softw.* 150, 105337.
 
+Olofsson, K., Holmgren, J. and Olsson, H. 2014 Tree stem and height measurements using terrestrial laser scanning and the RANSAC algorithm. *Remote Sens.* 6, 4323–4344.
+
+Pueschel, P., Newnham, G., Rock, G., Udelhoven, T., Werner, W. and Hill, J. 2013 The influence of scan mode and circle fitting on tree stem detection, stem diameter and volume extraction from terrestrial laser scans. *ISPRS J. Photogramm. Remote Sens.* 77, 44–56.
+
 Ritter, T., Gollob, C. and Nothdurft, A. 2020 Towards an optimization of sample plot size and scanner position layout for terrestrial laser scanning in multi-scan mode. *Forests* 11, 1099.
 
+Ryding, J., Williams, E., Smith, M.J. and Eichhorn, M.P. 2015 Assessing handheld mobile laser scanners for forest surveys. *Remote Sens.* 7, 1095–1111.
+
 van der Walt, S., Schönberger, J.L., Nunez-Iglesias, J., Boulogne, F., Warner, J.D., Yager, N. et al. 2014 scikit-image: image processing in Python. *PeerJ* 2, e453.
+
+Wilkes, P., Lau, A., Disney, M., Calders, K., Burt, A., Gonzalez de Tanago, J. et al. 2017 Data acquisition considerations for terrestrial laser scanning of forest plots. *Remote Sens. Environ.* 196, 140–153.
 
 Winiwarter, L., Esmorís Pena, A.M., Weiser, H., Anders, K., Martínez Sánchez, J., Searle, M. et al. 2022 Virtual laser scanning with HELIOS++: a novel take on ray tracing-based simulation of topographic full-waveform 3D laser scanning. *Remote Sens. Environ.* 269, 112772.
 """

@@ -1,0 +1,13 @@
+"kennwert","teilraum","n_funde","median_fund","median_zufall","auc"
+"abst_gehoelz","West",4259,1.4,3,0.41
+"abst_gehoelz","Ost",4259,1.4,2.2,0.386
+"abst_hoch","West",4259,1.4,5.4,0.337
+"abst_hoch","Ost",4259,4.2,4.2,0.488
+"abst_linie","West",4259,1.4,4,0.351
+"abst_linie","Ost",4259,1.4,3.2,0.41
+"hoehe_umkreis","West",4122,28.9,11.5,0.887
+"hoehe_umkreis","Ost",4204,11.9,11.8,0.493
+"linien_300","West",4259,0.1,0.2,0.321
+"linien_300","Ost",4259,0.2,0.1,0.603
+"gehoelz_300","West",4259,0.2,0.2,0.376
+"gehoelz_300","Ost",4259,0.2,0.2,0.569

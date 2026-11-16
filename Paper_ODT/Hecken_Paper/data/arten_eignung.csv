@@ -1,0 +1,24 @@
+species,metric,type,p1,p2,p3,p4,weight,beleg,quelle,note
+Dorngrasmuecke (Curruca communis),h_p95,mono_dec,1.8,2.8,NA,NA,1.0,Zahl,Stoate & Szczur 2001 Tab. 1,Hecke mit Revier 1.83 m / ohne 2.83 m
+Dorngrasmuecke (Curruca communis),saum_breite,mono_inc,1.2,3.2,NA,NA,1.5,Zahl,Stoate & Szczur 2001 Tab. 1,Krautsaum beide Seiten mit Revier 3.17 m / ohne 1.23 m; 95 % der Nester im Saum
+Goldammer (Emberiza citrinella),saum_breite,mono_inc,1.1,2.6,NA,NA,1.0,Zahl,Stoate & Szczur 2001 Tab. 1,Krautsaum mit Revier 2.63 m / ohne 1.12 m
+Goldammer (Emberiza citrinella),graben_tiefe,mono_inc,0.26,1.09,NA,NA,1.0,Zahl,Stoate & Szczur 2001 Tab. 1,Graben mit Revier 1.09 m / ohne 0.26 m
+Goldammer (Emberiza citrinella),wald_abstand,mono_inc,0,300,NA,NA,0.7,Richtung + Studiengrenze,Batary et al. 2012,vor allem in isolierten Hecken >= 300 m vom Wald
+Goldammer (Emberiza citrinella),h_p95,mono_dec,2,4,NA,NA,0.5,Richtung + Klassengrenze 2 m,Green et al. 1994 nach Graham et al. 2018; Chamberlain et al. 1999,bevorzugt oder toleriert kurze Hecken
+Neuntoeter (Lanius collurio),h_p95,trapz,1.0,1.7,3.0,4.5,1.0,Zahl,Jakober & Stauber 1983,Nest 0.8-1.6 m bevorzugt; Nester > 2.5 m gefaehrdet; Straeucher > 2 m verjuengen
+Neuntoeter (Lanius collurio),saum_breite,mono_inc,0.5,3.0,NA,NA,0.8,Richtung,Jakober & Stauber 1983,freie Flaechen als Jagdraum Voraussetzung (keine Zahl)
+Bluthaenfling (Linaria cannabina),h_p95,mono_dec,2,4,NA,NA,1.0,Richtung + Klassengrenze 2 m,Green et al. 1994 nach Graham et al. 2018; GWCT,Nest 0-2 m in dichten Dornhecken; kurze Hecken
+Bluthaenfling (Linaria cannabina),dichte_02_2m,mono_inc,0.2,0.6,NA,NA,1.0,Richtung,GWCT; Dunn et al. 2016 nach Graham et al. 2018,dichte Hecke schuetzt Nest; Schwellen = Anteil Treffer (Annahme)
+Heckenbraunelle (Prunella modularis),h_p95,mono_inc,1.5,2.5,NA,NA,1.0,Richtung + Klassengrenze 2 m,Green et al. 1994 nach Graham et al. 2018,hohe Hecken mit wenigen Baeumen
+Heckenbraunelle (Prunella modularis),dichte_02_2m,mono_inc,0.2,0.6,NA,NA,1.0,Richtung,Tuomenpuro 1991; Hinsley & Bellamy 2000 nach Graham et al. 2018,Deckung um das Nest erhoeht Bruterfolg
+Heckenbraunelle (Prunella modularis),baum_anteil,mono_dec,0.1,0.4,NA,NA,0.5,Richtung,Green et al. 1994 nach Graham et al. 2018,wenige Baeume; Anteil CHM > 8 m (Annahme)
+Haselmaus (Muscardinus avellanarius),breite,mono_inc,1.5,3.0,NA,NA,1.0,Mindestmass + Richtung,Defra 2007 nach Graham et al. 2018; Ehlers 2012,grosse dichte Hecken; Mindestbreite 1.5 m
+Haselmaus (Muscardinus avellanarius),dichte_02_2m,mono_inc,0.2,0.6,NA,NA,1.0,Richtung,Dondina et al. 2016 nach Graham et al. 2018,dichte Strauchschicht
+Haselmaus (Muscardinus avellanarius),verbund_laenge,mono_inc,30,150,NA,NA,1.0,Zahl (Luecke 3 m) + Annahme (Laenge),Gelling et al. 2007 nach Graham et al. 2018,Kleinsaeuger meiden Luecken > 3 m; Verbund = Heckenlaenge ohne Luecke > 3 m; Laengenschwellen Annahme
+Singdrossel (Turdus philomelos),h_p95,mono_inc,1.5,2.5,NA,NA,1.0,Richtung + Klassengrenze 2 m,Green et al. 1994 nach Graham et al. 2018,hohe Hecken
+Rotkehlchen (Erithacus rubecula),h_p95,mono_inc,1.5,2.5,NA,NA,1.0,Richtung + Klassengrenze 2 m,Green et al. 1994 nach Graham et al. 2018,hohe und breite Hecken
+Rotkehlchen (Erithacus rubecula),breite,mono_inc,1.5,2.5,NA,NA,1.0,Richtung + Klassengrenze 2 m,Green et al. 1994 nach Graham et al. 2018,hohe und breite Hecken
+Gruenfink (Chloris chloris),breite,mono_inc,1.5,2.5,NA,NA,1.0,Richtung + Klassengrenze 2 m,Green et al. 1994 nach Graham et al. 2018,breite Hecken
+Stieglitz (Carduelis carduelis),breite,mono_inc,1.5,2.5,NA,NA,1.0,Richtung + Klassengrenze 2 m,Green et al. 1994 nach Graham et al. 2018,breite Hecken
+Zaunkoenig (Troglodytes troglodytes),breite,mono_inc,1.5,2.5,NA,NA,1.0,Richtung + Klassengrenze 2 m,Green et al. 1994 nach Graham et al. 2018,breite Hecken
+Zaunkoenig (Troglodytes troglodytes),dichte_02_2m,mono_inc,0.2,0.6,NA,NA,1.0,Richtung,Hinsley & Bellamy 2000 nach Graham et al. 2018,dichte Basis; Schwellen Annahme

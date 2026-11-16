@@ -1,0 +1,13 @@
+"spalte","n_fund","median_fund","median_hintergrund","auc","p_wert"
+"Dorngrasmuecke (Curruca communis)|streng",112,0,0,0.484,0.52
+"Dorngrasmuecke (Curruca communis)|tolerant",112,0,0,0.493,0.796
+"Goldammer (Emberiza citrinella)|streng",112,0,0,0.46,0.146
+"Goldammer (Emberiza citrinella)|tolerant",112,0.279,0.268,0.461,0.159
+"Neuntoeter (Lanius collurio)|streng",112,0.002,0.002,0.532,0.245
+"Neuntoeter (Lanius collurio)|tolerant",112,0.459,0.363,0.532,0.244
+"Bluthaenfling (Linaria cannabina)|streng",112,0.111,0.089,0.498,0.944
+"Bluthaenfling (Linaria cannabina)|tolerant",112,0.228,0.222,0.491,0.744
+"Heckenbraunelle (Prunella modularis)|streng",112,0.376,0.386,0.463,0.177
+"Heckenbraunelle (Prunella modularis)|tolerant",112,0.628,0.635,0.445,0.0442
+"Haselmaus (Muscardinus avellanarius)|streng",112,0.267,0.321,0.45,0.0679
+"Haselmaus (Muscardinus avellanarius)|tolerant",112,0.667,0.668,0.414,0.00164

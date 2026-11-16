@@ -1,0 +1,11 @@
+"spalte","n_fund","median_fund","median_hintergrund","auc","p_wert"
+"Neuntoeter (Lanius collurio)|streng",126,0.622,0.408,0.626,1.28e-06
+"Neuntoeter (Lanius collurio)|tolerant",126,0.695,0.578,0.604,6.41e-05
+"Dorngrasmuecke (Sylvia communis)|streng",126,0.319,0.016,0.589,0.000651
+"Dorngrasmuecke (Sylvia communis)|tolerant",126,0.494,0.414,0.578,0.00263
+"Goldammer (Emberiza citrinella)|streng",126,0.004,0.003,0.584,0.00116
+"Goldammer (Emberiza citrinella)|tolerant",126,0.587,0.559,0.579,0.00203
+"Fledermaus-Leitstruktur (Myotis/Plecotus)|streng",126,0.795,0.965,0.348,5.42e-09
+"Fledermaus-Leitstruktur (Myotis/Plecotus)|tolerant",126,0.81,0.967,0.348,5.03e-09
+"Wildbienen/Bestaeuber (Saumgilde)|streng",126,0.002,0.002,0.616,8.68e-06
+"Wildbienen/Bestaeuber (Saumgilde)|tolerant",126,0.465,0.404,0.621,3.38e-06

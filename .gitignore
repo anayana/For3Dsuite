@@ -49,3 +49,4 @@ bolderwood/*.csv
 # Auch die QC-Panoramen: je 2-3 MB Rauschbild, nicht komprimierbar, und der Push
 # scheitert hier ab ~1 MB. "bolderwood_io.py --qc-images" erzeugt sie neu.
 bolderwood/QC_scene*.png
+Paper_ODT/Hecken_Paper/lit/pdf/

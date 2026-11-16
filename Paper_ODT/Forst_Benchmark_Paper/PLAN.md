@@ -184,3 +184,8 @@ Prüft, ob die Schwellen aus S1/S2 auf echte Rinde/Äste übertragbar sind.
 - Portal: https://mc.manuscriptcentral.com/forest
 - Code/Ergebnisse: Zenodo, doi:10.5281/zenodo.23911186.
 - Vorgeschlagene Gutachter: C. Gollob (BOKU), M. Abegg (WSL), C. Cabo (Univ. Oviedo), J. A. Molina-Valero.
+- **Desk reject** durch Forestry (12.11.2026), ohne Begutachtung. Gründe laut Editor: Diskussion als Stichpunkte,
+  Aufbau entspricht keinem typischen Forestry-Paper, Einleitung zu kurz und Stand der Forschung unvollständig,
+  Problem werde durch bessere MLS-Systeme und schnellere TLS kleiner. Neueinreichung bei Forestry ausgeschlossen.
+- Neue Zielzeitschrift: **European Journal of Forest Research** (Springer, Hybrid, ohne Pflichtgebühr;
+  JCR 2024 Q1 Forestry laut Peeref). Einreichfassung in `EJFR/` (`scripts/paperC_ejfr.py`).
