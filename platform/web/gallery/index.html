@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>360Pano3D — Scenes</title>
+  <title>For3Dsuite — Scenes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -92,7 +92,7 @@
 </head>
 <body>
   <header>
-    <h1>360Pano3D — Scenes</h1>
+    <h1>For3Dsuite — Scenes</h1>
     <p>Self-hosted 360° panoramas, point clouds and 3D scenes from terrestrial laser
        scans (E57) and fisheye images. Markers in the scenes locate inventory data
        derived from the point cloud.</p>
@@ -240,8 +240,17 @@
           const n = document.createElement('span'); n.className = 'n';
           n.textContent = '(' + sub.list.length + ')'; d.querySelector('h3').appendChild(n);
           d.querySelector('p').textContent = sub.text || '';
-          if (!sub.text) d.querySelector('p').remove();
-          sub.list.forEach(s => { used.add(s.id); d.querySelector('.cards').appendChild(makeCard(s)); });
+          if (sub.link) {                       // optionaler Link je Unterkategorie
+            const l = document.createElement('a'); l.href = sub.link.href;
+            l.textContent = ' ' + sub.link.label; d.querySelector('p').appendChild(l);
+          }
+          if (!sub.text && !sub.link) d.querySelector('p').remove();
+          sub.list.forEach(s => used.add(s.id));
+          // collapse: eine Karte fuer eine ganze Serie (z. B. Rundgang), oeffnet die erste Szene
+          const shown = sub.collapse ? sub.list.slice(0, 1) : sub.list;
+          shown.forEach(s => { const c = makeCard(s);
+            if (sub.collapse && sub.card_title) c.querySelector('h2').textContent = sub.card_title;
+            d.querySelector('.cards').appendChild(c); });
           sec.appendChild(d);
           const ts = document.createElement('a'); ts.href = '#s-' + sub.id;
           ts.textContent = sub.title.split(' — ')[0]; toc.appendChild(ts);

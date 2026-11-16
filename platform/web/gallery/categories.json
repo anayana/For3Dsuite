@@ -10,31 +10,74 @@
           "id": "qforest",
           "title": "Canopy structure, light and ground truth — Q-ForestLab data",
           "text": "Open TLS data from Q-ForestLab (Ghent University, CC BY 4.0): four plots from tropical rainforest to alpine conifer forest with every tree labelled, plus a large old tropical tree scanned from the ground and from the canopy. Colourings: height, ground truth, single trees, strata, light at the ground.",
-          "scenes": ["qforest-robsoncreek", "qforest-litchfield", "qforest-wytham", "qforest-ofental", "qforest-qsm-bra"]
+          "scenes": [
+            "qforest-robsoncreek",
+            "qforest-litchfield",
+            "qforest-wytham",
+            "qforest-ofental",
+            "qforest-qsm-bra"
+          ],
+          "link": {
+            "href": "qforest.html",
+            "label": "→ Four forests compared: profiles, strata, light"
+          }
         },
         {
           "id": "renon",
           "title": "One stand, the whole chain — Renon / ICOS IT-Ren",
           "text": "Norway spruce stand in South Tyrol (Leica BLK360, E57): panorama, point cloud, single trees, DBH, QSM, growth projection, occlusion, synthetic scan and Gaussian splatting of the same site.",
-          "scenes": ["renon-combined", "renon-setup01", "renon-setup02", "renon-occlusion", "renon-helios-synth", "renon-splat"]
+          "scenes": [
+            "renon-combined",
+            "renon-setup01",
+            "renon-setup02",
+            "renon-occlusion",
+            "renon-helios-synth",
+            "renon-splat"
+          ]
         },
         {
           "id": "benchmarks",
           "title": "Benchmarks with ground truth",
           "text": "Point clouds with manual labels or field measurements: how well do detection, segmentation and DBH work?",
-          "scenes": ["segforests-vienna-spruce", "segforests-vienna-beech", "syssifoss-arboretum", "syssifoss-br01", "forestvr-eifel-tree"]
+          "scenes": [
+            "segforests-vienna-spruce",
+            "segforests-vienna-beech",
+            "syssifoss-arboretum",
+            "syssifoss-br01",
+            "forestvr-eifel-tree"
+          ]
         },
         {
           "id": "hedges",
           "title": "Hedgerows and agricultural landscape",
           "text": "Hedges and tree rows from TLS and open ALS: structure index and habitat suitability.",
-          "scenes": ["hedgerow-be-alder", "hvi-ahn-hedges", "ph-quadrangle-sunny"]
+          "scenes": [
+            "hedgerow-be-alder",
+            "hvi-ahn-hedges"
+          ]
         },
         {
           "id": "panoramas",
           "title": "360° forest panoramas",
           "text": "Openly licensed forest panoramas as input to the panorama pipeline (consumer 360° cameras, HDRIs, a VR study).",
-          "scenes": ["forestvr-eifel-pano", "consumer360-wilder-kaiser-wald", "consumer360-chopfholz-wald", "ph-rainforest-trail", "ph-nature-reserve-forest", "ph-sunset-forest", "ph-mossy-forest"]
+          "scenes": [
+            "forestvr-eifel-pano",
+            "consumer360-wilder-kaiser-wald",
+            "consumer360-chopfholz-wald",
+            "ph-rainforest-trail",
+            "ph-nature-reserve-forest",
+            "ph-sunset-forest",
+            "ph-mossy-forest",
+            "ph-quadrangle-sunny"
+          ]
+        },
+        {
+          "id": "splat-forest",
+          "title": "Photorealistic 3D — Gaussian splatting",
+          "text": "Walkable photorealistic models trained from photos (WASD/mouse).",
+          "scenes": [
+            "stump-3dgs"
+          ]
         }
       ]
     },
@@ -45,27 +88,50 @@
       "subs": [
         {
           "id": "buildings",
-          "title": "Historic buildings in 3D — Gaussian splatting",
-          "text": "Photorealistic 3D models trained from open image sets and checked against a photogrammetric reference point cloud.",
-          "scenes": ["pellis-2-osa", "pellis-3-ss", "pellis-5-cb"]
+          "title": "Historic buildings and sites in 3D — Gaussian splatting",
+          "text": "Photorealistic, walkable 3D models trained from open image sets; the Pellis buildings are checked against a photogrammetric reference point cloud.",
+          "scenes": [
+            "petra-3dgs",
+            "pellis-2-osa",
+            "pellis-3-ss",
+            "pellis-5-cb"
+          ]
         },
         {
           "id": "archive",
           "title": "Archive photos back in place",
           "text": "Historical photographs without known camera positions, located by structure from motion.",
-          "scenes": ["semperoper-histsfm"]
+          "scenes": [
+            "semperoper-histsfm"
+          ]
         },
         {
           "id": "barberini",
           "title": "Museum Barberini — walkable tour",
-          "text": "Ten rooms as a street-view tour; portals jump from room to room.",
-          "scenes": ["barberini-01", "barberini-02", "barberini-03", "barberini-04", "barberini-05", "barberini-06", "barberini-07", "barberini-08", "barberini-09", "barberini-10"]
+          "text": "Ten rooms as a street-view tour; the card opens room 1, portals jump from room to room.",
+          "scenes": [
+            "barberini-01",
+            "barberini-02",
+            "barberini-03",
+            "barberini-04",
+            "barberini-05",
+            "barberini-06",
+            "barberini-07",
+            "barberini-08",
+            "barberini-09",
+            "barberini-10"
+          ],
+          "collapse": true,
+          "card_title": "Museum Barberini, Potsdam — walkable tour (10 rooms)"
         },
         {
           "id": "interiors",
           "title": "Historic interiors",
-          "text": "Spherical panoramas of historic rooms.",
-          "scenes": ["a7r-rathaus-hof"]
+          "text": "Historic rooms as spherical panorama and as walkable Gaussian splatting.",
+          "scenes": [
+            "drjohnson-3dgs",
+            "a7r-rathaus-hof"
+          ]
         }
       ]
     },
@@ -78,7 +144,9 @@
           "id": "camera",
           "title": "Camera classes",
           "text": "",
-          "scenes": ["consumer360-battery-point"]
+          "scenes": [
+            "consumer360-battery-point"
+          ]
         }
       ]
     }
