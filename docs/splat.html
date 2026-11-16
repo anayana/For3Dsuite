@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Splat — 360Pano3D</title>
+  <title>Splat — For3Dsuite</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script type="importmap">
   {
@@ -99,7 +99,7 @@
       const r = await fetch('data/scene-' + encodeURIComponent(sid) + '.json');
       if (!r.ok) return fail('Scene not found');
       const scene = await r.json();
-      document.title = (scene.title || sid) + ' — 360Pano3D';
+      document.title = (scene.title || sid) + ' — For3Dsuite';
       document.getElementById('title').textContent = scene.title || sid;
 
       const sp = scene.splat || {};

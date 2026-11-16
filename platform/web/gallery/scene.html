@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Scene — 360Pano3D</title>
+  <title>Scene — For3Dsuite</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
   <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
@@ -1367,7 +1367,7 @@
       // einheitlich lesen -- die alten Feldnamen bleiben dabei gefuellt.
       scene.markers = (scene.markers || []).map(normalizeMarker);
       window.__scene = scene;        // Bestandesangaben fuer die Prognose-Fussnote
-      document.title = (scene.title || sid) + ' — 360Pano3D';
+      document.title = (scene.title || sid) + ' — For3Dsuite';
       document.getElementById('title').textContent = scene.title || sid;
       buildLegend(scene);
       buildCloudLegend(scene);
