@@ -67,7 +67,7 @@ export function normalizeMarker(m) {
   return n;
 }
 
-// Marker, die eine Medien-/Text-Karte oeffnen (statt Baum-Datenblatt oder
+// Marker, die eine Medien-/Text-Map oeffnen (statt Baum-Datenblatt oder
 // Themen-Panel): ohne `kind`, kein Portal, mit Text, Medium oder Link.
 export function hasCardContent(n) {
   return !n.kind && n.type !== 'portal'
@@ -212,7 +212,7 @@ const CSS = `
 .mc-card p { margin: 0; font-size: 14px; line-height: 1.62; color: #cbd5e1; }
 .mc-card p + p { margin-top: 10px; }
 .mc-card a, .mc-links a { color: #79c0ff; }
-/* Bausteine -- auch ausserhalb der Karte (Themen-Panels in scene.html) */
+/* Bausteine -- auch ausserhalb der Map (Themen-Panels in scene.html) */
 .mc-fig { margin: 14px 0 0; }
 .mc-fig img, .mc-fig video { width: 100%; display: block; background: #000;
   max-height: 52vh; object-fit: contain; border-radius: 8px; }
@@ -249,17 +249,17 @@ function ensureDom() {
   addEventListener('keydown', e => { if (e.key === 'Escape') closeMarkerCard(); });
 }
 
-// Inhalt der Karte als Element (ohne Overlay) -- auch fuer eine Studio-Vorschau.
+// Inhalt der Map als Element (ohne Overlay) -- auch fuer eine Studio-Vorschau.
 export function buildCard(n) {
   const frag = document.createDocumentFragment();
   const media = n.media || [];
-  // Erstes Bild/Video steht randlos oben, seine Unterschrift unten in der Karte
+  // Erstes Bild/Video steht randlos oben, seine Unterschrift unten in der Map
   // (wie bisher in splat.html); weitere Medien und Audio folgen im Text.
   const hero = media[0] && media[0].type !== 'audio' ? media[0] : null;
   if (hero) { const h = mediaElement(hero); if (h) frag.appendChild(h); }
   const body = el('div', 'mc-body');
   const x = el('button', 'mc-x', '×');
-  x.setAttribute('aria-label', 'Schließen');
+  x.setAttribute('aria-label', 'Close');
   x.onclick = closeMarkerCard;
   body.appendChild(x);
   body.appendChild(el('h2', null, n.title || ''));
@@ -278,7 +278,7 @@ export function buildCard(n) {
   if (cap) body.appendChild(el('div', 'mc-cap', cap));
   if (cred) body.appendChild(el('div', 'mc-cred', cred));
   const lic = n.rights && n.rights.license;
-  if (lic) body.appendChild(el('div', 'mc-cred', 'Lizenz: ' + lic));
+  if (lic) body.appendChild(el('div', 'mc-cred', 'License: ' + lic));
   frag.appendChild(body);
   return frag;
 }

@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Szene — 360Pano3D</title>
+  <title>Scene — 360Pano3D</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
   <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
@@ -264,8 +264,8 @@
     #infobox h2 { margin: 0 0 2px; font-size: 15px; }
     /* [hidden] muss gewinnen: eine eigene display-Regel schlaegt sonst das
        hidden-Attribut aus dem Browser-Stylesheet. Das ist hier zweimal passiert --
-       der Hinweis "Demo-Werte" stand an JEDEM Baum (display:inline-block), und der
-       Umschalter "Heute/Prognose" stand in den Bestandes-Panels (display:flex),
+       der Hinweis "Demo values" stand an JEDEM Baum (display:inline-block), und der
+       Umschalter "Heute/Projection" stand in den Bestandes-Panels (display:flex),
        obwohl beide per .hidden=true abgeschaltet waren. Darum eine Regel fuer das
        ganze Infofenster statt einer je Element. */
     #infobox [hidden] { display: none !important; }
@@ -392,33 +392,33 @@
       <button id="mode-pano" class="active">Panorama</button>
       <button id="mode-3d" disabled>3D-Punktwolke</button>
     </div>
-    <button id="spin" title="Szene langsam drehen lassen (Vortragsmodus)">⟳ Drehen</button>
+    <button id="spin" title="Rotate the scene slowly (presentation mode)">⟳ Rotate</button>
   </div>
   <div id="nav">
-    <button id="nav-orbit" class="active">Umkreisen</button>
-    <button id="nav-walk">Begehen</button>
+    <button id="nav-orbit" class="active">Orbit</button>
+    <button id="nav-walk">Walk</button>
   </div>
   <div id="repr" hidden>
     <button data-repr="points" class="active">Punktwolke</button>
-    <button data-repr="qsm">QSM-Modell</button>
+    <button data-repr="qsm">QSM model</button>
     <button data-repr="both">beides</button>
   </div>
   <div id="crosshair"></div>
   <div id="walkhint">
-    <b>Klicken zum Loslaufen</b><br>
+    <b>Click to start walking</b><br>
     <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> gehen ·
-    <kbd>Maus</kbd> umsehen<br>
-    <kbd>Leertaste</kbd> / <kbd>C</kbd> höher / tiefer ·
+    <kbd>Mouse</kbd> umsehen<br>
+    <kbd>Leertaste</kbd> / <kbd>C</kbd> up / down ·
     <kbd>Shift</kbd> schneller<br>
-    <kbd>Klick</kbd> auf einen Baum zeigt seine Kennwerte ·
+    <kbd>Click</kbd> on a tree shows its metrics ·
     <kbd>Esc</kbd> beendet
   </div>
   <div id="variants"></div>
   <div id="lod"></div>
   <div id="coloring"></div>
   <div id="colorby">
-    <label>Einfärben nach <select id="colorby-select"></select></label>
-    <div id="colorby-agg" hidden>Eignung:
+    <label>Colour by <select id="colorby-select"></select></label>
+    <div id="colorby-agg" hidden>Suitability:
       <button data-agg="strict" class="active">streng</button>
       <button data-agg="tolerant">tolerant</button>
     </div>
@@ -428,28 +428,28 @@
   <div id="validation" hidden></div>
   <div id="cloudlegend"></div>
   <div id="qsmlegend">
-    <b>QSM-Segmente (anklickbar)</b>
-    <div class="row"><span class="sw" style="background:rgb(155,100,60)"></span>Stamm (Ordnung 1)</div>
-    <div class="row"><span class="sw" style="background:rgb(235,150,55)"></span>Ast (Ordnung 2–3)</div>
-    <div class="row"><span class="sw" style="background:rgb(110,205,110)"></span>Zweig (Ordnung ≥ 4)</div>
-    <div class="note">Klick auf ein Segment zeigt Durchmesser, Länge, Volumen, Höhe.</div>
+    <b>QSM segments (clickable)</b>
+    <div class="row"><span class="sw" style="background:rgb(155,100,60)"></span>Stem (order 1)</div>
+    <div class="row"><span class="sw" style="background:rgb(235,150,55)"></span>Branch (order 2–3)</div>
+    <div class="row"><span class="sw" style="background:rgb(110,205,110)"></span>Twig (order ≥ 4)</div>
+    <div class="note">Click a segment to see diameter, length, volume and height.</div>
   </div>
   <div id="canopy" hidden></div>
   <div id="legend">
-    <b>RGB-Vitalität</b>
+    <b>RGB vitality</b>
     <div class="row"><span class="sw vital"></span>vital</div>
-    <div class="row"><span class="sw unauffaellig"></span>unauffällig</div>
-    <div class="row"><span class="sw auffaellig"></span>auffällig</div>
-    <div class="note">Bestandesrelativ (weniger grün als Median) — kein absolutes
-      Schadstufen-Urteil.</div>
+    <div class="row"><span class="sw unauffaellig"></span>inconspicuous</div>
+    <div class="row"><span class="sw auffaellig"></span>conspicuous</div>
+    <div class="note">Relative to the stand (less green than the median) — not an absolute
+      damage class.</div>
   </div>
   <div id="infobox">
     <h2 id="ib-label"></h2>
-    <span class="demo" id="ib-demo" hidden>Demo-Werte</span>
+    <span class="demo" id="ib-demo" hidden>Demo values</span>
     <div id="ib-vital"></div>
     <div id="ib-toggle" hidden>
       <button id="ib-now" class="active">Heute</button>
-      <button id="ib-fut">Prognose</button>
+      <button id="ib-fut">Projection</button>
     </div>
     <div id="ib-horizon" hidden>
       <div class="hz-head">Wachstumsprognose (TreeGrOSS) — Zeithorizont</div>
@@ -461,7 +461,7 @@
     <table id="ib-attrs"></table>
     <div id="ib-bench"></div>
     <div class="xyz" id="ib-xyz"></div>
-    <button class="close" id="ib-close">Schließen</button>
+    <button class="close" id="ib-close">Close</button>
   </div>
 
   <script type="module">
@@ -511,25 +511,35 @@
 
     // Anzeigenamen/Einheiten fuer die kuratierten Felder (Rest kommt generisch)
     const LABELS = {
-      BHD_cm: ['BHD', 'cm'], Hoehe_m: ['Höhe', 'm'], Distanz_m: ['Distanz', 'm'],
-      Kronenansatz_m: ['Kronenansatz', 'm'], Kronenlaenge_m: ['Kronenlänge', 'm'],
-      Kronendurchmesser_m: ['Kronendurchmesser', 'm'], Kronenvolumen_m3: ['Kronenvolumen', 'm³'],
-      Vital_gruen: ['Grünanteil', ''], Nichtgruen: ['nicht grün', ''],
+      BHD_cm: ['DBH', 'cm'], Hoehe_m: ['Height', 'm'], Distanz_m: ['Distance', 'm'],
+      Kronenansatz_m: ['Crown base height', 'm'], Kronenlaenge_m: ['Crown length', 'm'],
+      Kronendurchmesser_m: ['Crown diameter', 'm'], Kronenvolumen_m3: ['Crown volume', 'm³'],
+      Vital_gruen: ['Green fraction', ''], Nichtgruen: ['not green', ''],
       ExG_mean: ['ExG', ''], GLI_mean: ['GLI', ''],
-      GLCM_Kontrast: ['GLCM-Kontrast', ''], GLCM_Entropie: ['GLCM-Entropie', ''],
-      Vital_zscore: ['z (Bestand)', ''], Ansichten: ['Ansichten', ''],
+      GLCM_Kontrast: ['GLCM contrast', ''], GLCM_Entropie: ['GLCM entropy', ''],
+      Vital_zscore: ['z (stand)', ''], Ansichten: ['Views', ''],
       Status: ['Status', ''],
-      QSM_BHD_cm: ['BHD aus QSM', 'cm'], QSM_Holzvolumen_l: ['Holzvolumen', 'L'],
-      QSM_Stammvolumen_l: ['davon Schaft', 'L'],
-      QSM_Kronenholz_l: ['davon Kronenholz', 'L'],
-      QSM_Oberflaeche_m2: ['Holzoberfläche', 'm²'],
-      QSM_Schaftlaenge_m: ['modellierte Schaftlänge', 'm'],
-      QSM_Verzweigungsordnung: ['max. Verzweigungsordnung', ''],
-      QSM_Zylinder: ['Zylinder im Modell', ''],
-      BHD_Guete: ['BHD-Datenlage', ''], BHD_Verfahren: ['BHD-Verfahren', ''],
-      Punkte_ITCD: ['Punkte (Einzelbaum)', ''],
-      Volumen_m3: ['Schaftvolumen', 'm³'], Alter: ['Alter', 'J.'],
-      Baumart: ['Baumart', ''],
+      QSM_BHD_cm: ['DBH from QSM', 'cm'], QSM_Holzvolumen_l: ['Wood volume', 'L'],
+      QSM_Stammvolumen_l: ['of which stem', 'L'],
+      QSM_Kronenholz_l: ['of which crown wood', 'L'],
+      QSM_Oberflaeche_m2: ['Wood surface', 'm²'],
+      QSM_Schaftlaenge_m: ['modelled stem length', 'm'],
+      QSM_Verzweigungsordnung: ['max. branching order', ''],
+      QSM_Zylinder: ['Cylinders in model', ''],
+      BHD_Guete: ['DBH data quality', ''], BHD_Verfahren: ['DBH method', ''],
+      Punkte_ITCD: ['Points (single tree)', ''],
+      Volumen_m3: ['Stem volume', 'm³'], Alter: ['Age', 'yrs'],
+      Baumart: ['Species', ''], Art: ['Species', ''], Punkte: ['Points', ''],
+      Referenz_ID: ['Reference ID', ''], ITCD_IoU: ['Segmentation IoU', ''],
+      Hoehe_Umkreis_m: ['Height (neighbourhood)', 'm'], Hoehe_Quelle: ['Height source', ''],
+      Volumen_nur_Boden_m3: ['Wood volume, ground scan only', 'm³'],
+      Volumen_mit_Krone_m3: ['Wood volume, ground + canopy scan', 'm³'],
+      Aeste_nur_Boden: ['Branches, ground scan only', ''],
+      Aeste_mit_Krone: ['Branches, ground + canopy scan', ''],
+      Astlaenge_nur_Boden_m: ['Branch length, ground scan only', 'm'],
+      Astlaenge_mit_Krone_m: ['Branch length, ground + canopy scan', 'm'],
+      Astwinkel_Median_Grad: ['Branch angle (median)', '°'],
+      Anteil_steile_Aeste: ['Share of steep branches (<45°)', ''],
     };
     const STRUCT = ['BHD_cm', 'Hoehe_m', 'Kronenansatz_m', 'Kronenlaenge_m',
                     'Kronendurchmesser_m', 'Kronenvolumen_m3'];
@@ -540,9 +550,9 @@
                  'QSM_Kronenholz_l', 'QSM_Oberflaeche_m2', 'QSM_Schaftlaenge_m',
                  'QSM_Verzweigungsordnung', 'QSM_Zylinder'];
     const RGB = ['Vital_gruen', 'ExG_mean', 'GLI_mean', 'GLCM_Kontrast',
-                 'GLCM_Entropie', 'Vital_zscore', 'Ansichten'];
+                 'GLCM_Entropie', 'Vital_zscore', 'Views'];
     const HIDDEN = new Set([...STRUCT, ...RGB, ...QSM, 'Vitalitaet', 'Nichtgruen',
-      'GLCM_Homogenitaet', 'GLCM_Energie', 'GLCM_Korrelation', 'Kronenpixel']);
+      'GLCM_Homogenitaet', 'GLCM_Energie', 'GLCM_Korrelation', 'Crown pixels']);
 
     function fmt(k, v) {
       const unit = (LABELS[k] && LABELS[k][1]) ? ' ' + LABELS[k][1] : '';
@@ -565,7 +575,7 @@
       // Struktur — heute oder Prognose (prog: entweder m.prognosis oder ein
       // Punkt der prognosis_series, auf BHD_cm/Hoehe_m normalisiert)
       prog = prog || m.prognosis || {};
-      section(table, mode === 'fut' ? `Struktur — Prognose ${prog.Prognosejahr}` : 'Struktur (heute)');
+      section(table, mode === 'fut' ? `Structure — projection ${prog.Prognosejahr}` : 'Struktur (heute)');
       const src = mode === 'fut' ? prog : a;
       for (const k of STRUCT) if (src[k] != null) addRow(table, k, src[k]);
       if (mode === 'fut' && prog.Status) addRow(table, 'Status', prog.Status);
@@ -577,7 +587,7 @@
       }
       // Vitalitaet (RGB) — nur "heute"
       if (mode !== 'fut' && a.Vital_gruen != null) {
-        section(table, 'Vitalität (RGB, Stufe 1)');
+        section(table, 'Vitality (RGB, level 1)');
         for (const k of RGB) if (a[k] != null) addRow(table, k, a[k]);
       }
       // uebrige Attribute generisch (Robustheit fuer andere Szenen) — nur "heute";
@@ -590,8 +600,8 @@
       }
     }
 
-    // Der BHD-Methodenvergleich gehoert zur HEUTIGEN Messung. In der Prognose
-    // stuende er neben einem modellierten Zukunfts-BHD, den kein Verfahren
+    // Der DBH-Methodenvergleich gehoert zur HEUTIGEN Messung. In der Projection
+    // stuende er neben einem modellierten Zukunfts-DBH, den kein Method
     // gemessen hat -- das stellte Messverfahren und Rechenwert nebeneinander,
     // als waeren sie dasselbe.
     function showBench(on) {
@@ -603,16 +613,16 @@
       if (m.kind && m.kind !== 'tree') { showPanel(m); return; }
       if (hasCardContent(m)) { showCard(m); return; }
       document.getElementById('ib-body').innerHTML = '';   // Reste eines Panels raeumen
-      document.getElementById('ib-demo').textContent = 'Demo-Werte';
+      document.getElementById('ib-demo').textContent = 'Demo values';
       document.getElementById('ib-label').textContent = m.label || m.id;
       document.getElementById('ib-demo').hidden = !m.demo;
 
       // Vitalitaets-Badge (Anzeige mit Umlaut, Klasse bleibt der ASCII-Wert)
       const vb = document.getElementById('ib-vital');
       const vit = (m.attributes || {}).Vitalitaet;
-      const VITTXT = { vital: 'vital', unauffaellig: 'unauffällig', auffaellig: 'auffällig' };
+      const VITTXT = { vital: 'vital', unauffaellig: 'inconspicuous', auffaellig: 'conspicuous' };
       vb.innerHTML = vit
-        ? `<span class="badge ${vit}">RGB-Vitalität: ${VITTXT[vit] || vit}</span>` : '';
+        ? `<span class="badge ${vit}">RGB vitality: ${VITTXT[vit] || vit}</span>` : '';
 
       // TreeGrOSS-Hinweistext (Bestandesangaben je Szene, nicht fest verdrahtet)
       const prognote = document.getElementById('ib-prognote');
@@ -620,12 +630,12 @@
         const st = window.__scene && window.__scene.stand;
         let txt = 'TreeGrOSS/BWINPro (NW-FVA, GPLv3) · ';
         if (st) {
-          txt += `Bonität ${st.site_index} m (h100=${st.h100_m} m bei `
-               + `${st.top_age_years} J. Oberschicht) · Alter je Baum aus der Höhe`;
-          if (m.attributes && m.attributes.Alter != null)
-            txt += ` — dieser Baum ${m.attributes.Alter} J.`;
-          txt += ' · Fichte angenommen (Marker tragen keine Art).';
-        } else { txt += 'Fichte angenommen (Marker tragen keine Art).'; }
+          txt += `Site index ${st.site_index} m (h100=${st.h100_m} m at `
+               + `${st.top_age_years} yrs, upper layer) · age per tree from height`;
+          if (m.attributes && m.attributes.Age != null)
+            txt += ` — this tree ${m.attributes.Alter} yrs`;
+          txt += ' · Norway spruce assumed (markers carry no species).';
+        } else { txt += 'Norway spruce assumed (markers carry no species).'; }
         return txt;
       };
 
@@ -644,7 +654,7 @@
           const y = +sl.value, dy = y - y0;
           const pt = ser.find(s => s.year === y) || ser[0];
           document.getElementById('hz-out').textContent =
-            dy === 0 ? `heute (${y})` : `+${dy} Jahre → ${y}`;
+            dy === 0 ? `today (${y})` : `+${dy} years → ${y}`;
           prognote.hidden = dy === 0;
           prognote.textContent = dy === 0 ? '' : progNote();
           renderAttrs(m, dy === 0 ? 'now' : 'fut',
@@ -666,7 +676,7 @@
         };
         if (m.prognosis) {
           toggle.hidden = false;
-          fut.textContent = 'Prognose ' + m.prognosis.Prognosejahr;
+          fut.textContent = 'Projection ' + m.prognosis.Prognosejahr;
           now.onclick = () => setMode('now');
           fut.onclick = () => setMode('fut');
         } else { toggle.hidden = true; }
@@ -680,7 +690,7 @@
       openInfobox();
     }
 
-    // --- Medien-Marker (Text/Bild/Video/Audio/Links): gemeinsame Karte --------
+    // --- Medien-Marker (Text/Bild/Video/Audio/Links): gemeinsame Map --------
     function showCard(m) {
       closeInfobox();
       setSpinPaused(true);
@@ -704,7 +714,7 @@
       }
       return table;
     }
-    // Balkendiagramm der Durchmesserverteilung (Baeume/ha je BHD-Klasse)
+    // Balkendiagramm der Durchmesserverteilung (Baeume/ha je DBH-Klasse)
     function dbhChartSVG(ch) {
       const cls = ch.classes || [];
       const W = 268, H = 150, padL = 26, padR = 6, padT = 8, padB = 24;
@@ -728,7 +738,7 @@
         `<text x="${padL - 4}" y="${padT + ih}" text-anchor="end" font-size="8" fill="#8b949e">0</text>`;
       return `<div class="ib-chart"><svg viewBox="0 0 ${W} ${H}" width="100%">`
            + `${axis}${bars}${xl}${yl}</svg>`
-           + `<div class="ib-axis"><span>${ch.xlabel || 'BHD-Klasse (cm)'}</span>`
+           + `<div class="ib-axis"><span>${ch.xlabel || 'DBH-Klasse (cm)'}</span>`
            + `<span>${ch.unit || 'Bäume/ha'}</span></div>`
            + (ch.note ? `<div class="ib-cnote">${ch.note}</div>` : '') + `</div>`;
     }
@@ -788,17 +798,17 @@
       openInfobox();
     }
 
-    // BHD-Methodenvergleich am Baum (m.dbh_benchmark aus scripts/bench_dbh.py):
-    // gemessenes Feld-BHD + je Verfahren die Schaetzung und die Abweichung.
+    // DBH-Methodenvergleich am Baum (m.dbh_benchmark aus scripts/bench_dbh.py):
+    // gemessenes Feld-DBH + je Method die Schaetzung und die Abweichung.
     function renderDbhBench(m) {
       const el = document.getElementById('ib-bench');
       const b = m.dbh_benchmark;
       if (!b || !(b.methods || []).length) { el.innerHTML = ''; return; }
       // Zwei Faelle, und der Unterschied ist keine Formalie, sondern die Aussage:
       //   field_cm da   -> Bezug ist die FELDMESSUNG = Genauigkeit
-      //   kein field_cm -> Bezug ist der KONSENS der Verfahren = nur
+      //   kein field_cm -> Bezug ist der KONSENS der Method = nur
       //                    Uebereinstimmung. Am eigenen Bestand (Renon) gibt es
-      //                    keine Feldmessung, die Verfahren koennen gemeinsam
+      //                    keine Feldmessung, die Method koennen gemeinsam
       //                    falsch liegen -- also wird es auch so beschriftet.
       const ref = b.field_cm != null ? b.field_cm : b.consensus_cm;
       if (ref == null) { el.innerHTML = ''; return; }
@@ -806,7 +816,7 @@
       const rows = b.methods.map(mm => {
         const d = mm.dbh_cm - ref;
         const cls = Math.abs(d) <= 5 ? 'ok' : 'off';
-        // Verfahren, die den Konsens NICHT mitbilden, sind die unabhaengigen
+        // Method, die den Konsens NICHT mitbilden, sind die unabhaengigen
         // Gegenproben -- im Fall ohne Feld-GT der interessante Teil.
         const mark = (!isField && mm.consensus === false) ? ' *' : '';
         return `<tr><td>${mm.name}${mark}</td><td>${mm.dbh_cm.toFixed(1)}</td>` +
@@ -816,45 +826,45 @@
         ? `<tr class="fld"><td>Feld (gemessen)</td><td>${ref.toFixed(1)}</td><td>cm</td></tr>`
         : `<tr class="fld"><td>Konsens (Median)</td><td>${ref.toFixed(1)}</td><td>cm</td></tr>`;
       const note = isField
-        ? `Δ = Abweichung vom Feld-BHD (cm). <a href="benchmark.html">alle Bäume →</a>`
-        : `Δ = Abweichung vom Konsens (cm) — <b>Übereinstimmung, nicht Genauigkeit</b>: `
-          + `für diesen Bestand gibt es keine Feldmessung, die Verfahren können `
-          + `gemeinsam falsch liegen. * = unabhängige Gegenprobe, nicht im Konsens.`
+        ? `Δ = deviation from field DBH (cm). <a href="benchmark.html">all trees →</a>`
+        : `Δ = deviation from consensus (cm) — <b>agreement, not accuracy</b>: `
+          + `there is no field measurement for this stand; the methods may `
+          + `all be wrong together. * = independent cross-check, not in the consensus.`
           + (b.spread_cm != null ? ` Spanne ${b.spread_cm.toFixed(1)} cm.` : '')
           + (b.quality_note ? `<br>${b.quality_note}` : '')
-          + ` <a href="benchmark.html">Genauigkeit gegen Feld-GT →</a>`;
+          + ` <a href="benchmark.html">Accuracy against field GT →</a>`;
       el.innerHTML =
-        `<div class="bench-h">BHD-Methodenvergleich</div>` +
-        `<table class="bench"><thead><tr><th>Verfahren</th><th>BHD</th><th>Δ</th></tr></thead>` +
+        `<div class="bench-h">DBH-Methodenvergleich</div>` +
+        `<table class="bench"><thead><tr><th>Method</th><th>DBH</th><th>Δ</th></tr></thead>` +
         head + rows + `</table>` +
         `<div class="bench-note">${note}</div>`;
     }
 
-    // Klick auf einen QSM-Zylinder: Kennzahlen des Segments (Stamm/Ast) + des
+    // Click auf einen QSM-Zylinder: Kennzahlen des Segments (Stem/Branch) + des
     // ganzen Baums. "gruen/tot" steckt NICHT in der QSM-Geometrie (braeuchte
-    // Blatt-Holz-/Vitalitaetsdaten) -- daher der tiefste Ast als Kronenansatz.
+    // Blatt-Holz-/Vitalitaetsdaten) -- daher der tiefste Branch als Crown base height.
     function showQSMInfo(info) {
       const n = (v, d = 1) => (v == null ? '—' : Number(v).toFixed(d));
       document.getElementById('ib-label').textContent =
-        info.is_trunk ? 'Stamm' : `${info.klasse} — Ordnung ${info.order}`;
+        info.is_trunk ? 'Stem' : `${info.klasse} — Ordnung ${info.order}`;
       document.getElementById('ib-demo').hidden = true;
       document.getElementById('ib-vital').innerHTML = '';
       document.getElementById('ib-toggle').hidden = true;
       document.getElementById('ib-prognote').hidden = true;
       const table = document.getElementById('ib-attrs');
       table.innerHTML = '';
-      section(table, 'Segment (angeklickter Zylinder)');
+      section(table, 'Segment (clicked cylinder)');
       const row = (k, v) => { const tr = table.insertRow();
         tr.insertCell().textContent = k; tr.insertCell().textContent = v; };
-      row('Durchmesser', n(info.diameter_cm, 1) + ' cm');
-      row('Länge', n(info.length_m, 2) + ' m');
-      row('Segment-Holzvolumen', n(info.segment_volume_l, 2) + ' L');
-      row('Höhe über Grund', n(info.z_from_ground_m, 1) + ' m');
-      row('Verzweigungsordnung', info.is_trunk ? 'Stamm (1)' : info.order);
+      row('Diameter', n(info.diameter_cm, 1) + ' cm');
+      row('Length', n(info.length_m, 2) + ' m');
+      row('Segment wood volume', n(info.segment_volume_l, 2) + ' L');
+      row('Height above ground', n(info.z_from_ground_m, 1) + ' m');
+      row('Verzweigungsordnung', info.is_trunk ? 'Stem (1)' : info.order);
       document.getElementById('ib-xyz').textContent =
-        'Ganzbaum-QSM-Werte (Holzvolumen, BHD, Verzweigungsordnung) am jeweiligen '
-        + 'Baum-Marker. grün/tot ist aus der QSM-Geometrie nicht ableitbar '
-        + '(braucht Blatt-Holz-/Vitalitätsdaten).';
+        'Whole-tree QSM values (wood volume, DBH, branching order) at the respective '
+        + 'tree markers. Green/dead cannot be derived from the QSM geometry '
+        + '(needs leaf/wood or vitality data).';
       openInfobox();
     }
 
@@ -869,7 +879,7 @@
       setSpinPaused(false);
     }
 
-    // Portal-Hotspot: Pfeil + Beschriftung; Klick springt in die Zielszene.
+    // Portal-Hotspot: Pfeil + Beschriftung; Click springt in die Zielszene.
     function portalDiv(div, m) {
       div.classList.add('portal-marker');
       div.appendChild(document.createTextNode(m.id === 'prev' ? '‹' : '›'));
@@ -973,11 +983,11 @@
       if (!v) return;
       el.hidden = false;
       el.innerHTML =
-        `<b>Validierung gegen Ground-Truth</b><br>` +
+        `<b>Validation against ground truth</b><br>` +
         `Recall <b>${(v.recall * 100).toFixed(0)}%</b> · ` +
         `Precision <b>${(v.precision * 100).toFixed(0)}%</b> · ` +
-        `Lagefehler <b>${v.pos_err_median_cm} cm</b> (Median)<br>` +
-        `<span class="muted">${v.matched}/${v.reference_trees} Referenzbäume getroffen ` +
+        `position error <b>${v.pos_err_median_cm} cm</b> (Median)<br>` +
+        `<span class="muted">${v.matched}/${v.reference_trees} reference trees matched ` +
         `(≤ ${v.match_dist_m} m). ${v.method}</span>`;
     }
 
@@ -992,13 +1002,13 @@
       const n = (v, d = 2) => (v == null ? '—' : Number(v).toFixed(d));
       el.hidden = false;
       el.innerHTML =
-        `<b>Kronenschluss — zwei Wege</b>` +
+        `<b>Canopy closure — two ways</b>` +
         (c.fisheye_url ? `<img id="hemi-img" src="${c.fisheye_url}" alt="Hemisphärische Ansicht">` : '') +
         `<table>` +
         `<tr><td>optisch <span class="muted">hemispheR</span></td>` +
         `<td>LAI <b>${n(o.lai)}</b></td><td>Himmel ${n(o.openness_pct, 1)} %</td></tr>` +
         `<tr><td>strukturell <span class="muted">lidR</span></td>` +
-        `<td>LAI <b>${n(s.lai)}</b></td><td>Höhe ${n(s.hoehe_p95_m, 1)} m</td></tr>` +
+        `<td>LAI <b>${n(s.lai)}</b></td><td>Height ${n(s.hoehe_p95_m, 1)} m</td></tr>` +
         `</table>` +
         `<div class="muted">${c.limits || ''}</div>`;
     }
@@ -1019,14 +1029,14 @@
 
       if (geo.relief && !geo.relief.error) {
         sect('Standort');
-        row('Höhe', geo.relief.elevation_m, 'm');
+        row('Height', geo.relief.elevation_m, 'm');
         row('Hangneigung', geo.relief.slope_deg, '°');
         row('Exposition', geo.relief.aspect_deg, '°');
       }
       // Boden nur, wenn wirklich Werte vorliegen (SoilGrids liefert nicht ueberall)
       if (geo.soil && !geo.soil.error &&
           ['phh2o', 'clay', 'sand', 'soc'].some(k => num(geo.soil[k]) != null)) {
-        sect('Boden (0–5 cm)');
+        sect('Soil (0–5 cm)');
         row('pH', num(geo.soil.phh2o));
         row('Ton', num(geo.soil.clay), '%');
         row('Sand', num(geo.soil.sand), '%');
@@ -1045,7 +1055,7 @@
       }
       if (img.gap_fraction != null) {
         sect('Bildanalyse');
-        row('Kronenschluss offen', img.canopy_openness_pct, '%');
+        row('Canopy open', img.canopy_openness_pct, '%');
         row('Greenness ExG', img.greenness_exg);
         row('Greenness GLI', img.greenness_gli);
         if (sun.elevation_deg != null)
@@ -1054,8 +1064,8 @@
       if (!rows.length) return;
       const lic = (md.source || {}).license;
       el.innerHTML = `<table>${rows.join('')}</table>` +
-        `<div class="prov">Abgeleitete Karten-/Bildwerte, keine Messung am Punkt.` +
-        (lic ? ` Bild: ${(md.source||{}).provider||''} ${lic}.` : '') + `</div>`;
+        `<div class="prov">Derived map/image values, not a measurement at the point.` +
+        (lic ? ` Image: ${(md.source||{}).provider||''} ${lic}.` : '') + `</div>`;
       btn.hidden = false;
       btn.onclick = () => {
         const on = el.classList.toggle('on');
@@ -1136,7 +1146,7 @@
       });
     }
 
-    // Dichte-Stufen der Punktwolke (Ausgedünnt | Voll), nur in der 3D-Ansicht
+    // Dichte-Stufen der Punktwolke (Thinned | Full), nur in der 3D-Ansicht
     // Aktuelle Dichte-Stufe und Einfaerbung; beide bestimmen die geladene .bin
     let curLevel = null, curColoring = 'rgb';
 
@@ -1145,10 +1155,10 @@
     // so steht der eigene Algorithmus direkt neben dem, woran er zu messen ist.
     const COLORINGS = [
       ['rgb', 'RGB', lv => lv.bin_url],
-      ['gt', 'Ground Truth', lv => lv.bin_gt_url],
-      ['itcd', 'Einzelbäume', lv => lv.bin_itcd_url],
-      ['strata', 'Schichten', lv => lv.bin_strata_url],
-      ['light', 'Licht', lv => lv.bin_light_url],
+      ['gt', 'Ground truth', lv => lv.bin_gt_url],
+      ['itcd', 'Single trees', lv => lv.bin_itcd_url],
+      ['strata', 'Strata', lv => lv.bin_strata_url],
+      ['light', 'Light', lv => lv.bin_light_url],
     ];
 
     function binUrlFor(lv, coloring) {
@@ -1163,7 +1173,7 @@
 
     // Umschaltbare Einfaerbung nach Kennwert/Arteignung (scene.hedge_colorings).
     // Faerbt die Punktwolke ueber die Segment-ID-Spur live um -- keine weiteren
-    // Downloads, ein Klick wechselt zwischen HVI-Struktur und je Zielart.
+    // Downloads, ein Click wechselt zwischen HVI-Struktur und je Zielart.
     let colorByData = null, curColorBy = null, curAgg = 'strict';
 
     function rampColor(stops, t) {
@@ -1198,8 +1208,8 @@
       document.getElementById('colorby-agg').hidden = !isSpecies;
       document.getElementById('colorby-note').textContent = isSpecies
         ? (opt.note || '') + (curAgg === 'tolerant'
-            ? ' — tolerant: schwacher Kennwert wird ausgeglichen.'
-            : ' — streng: ein schlechter Kennwert (hier oft die Höhe) kappt die Eignung.')
+            ? ' — tolerant: a weak metric is compensated.'
+            : ' — strict: one poor metric (often height here) caps the suitability.')
         : '';
     }
 
@@ -1245,7 +1255,7 @@
           bar.querySelectorAll('button').forEach(x => x.classList.remove('active'));
           b.classList.add('active');
           const t = b.textContent;
-          b.textContent = 'lädt …';
+          b.textContent = 'loading …';
           curLevel = lv;
           await loadCloud();
           b.textContent = t;
@@ -1278,7 +1288,7 @@
           bar.querySelectorAll('button').forEach(x => x.classList.remove('active'));
           b.classList.add('active');
           const t = b.textContent;
-          b.textContent = 'lädt …';
+          b.textContent = 'loading …';
           curColoring = id;
           await loadCloud();
           b.textContent = t;
@@ -1287,7 +1297,7 @@
       });
     }
 
-    // Umkreisen (Orbit) <-> Begehen (First-Person, Pointer-Lock)
+    // Orbit (Orbit) <-> Begehen (First-Person, Pointer-Lock)
     function buildNav() {
       const orbit = document.getElementById('nav-orbit');
       const walk = document.getElementById('nav-walk');
@@ -1351,7 +1361,7 @@
     async function init() {
       if (!sid) { location.href = 'index.html'; return; }
       const r = await fetch('/api/scenes/' + encodeURIComponent(sid));
-      if (!r.ok) { document.getElementById('title').textContent = 'Szene nicht gefunden'; return; }
+      if (!r.ok) { document.getElementById('title').textContent = 'Scene not found'; return; }
       const scene = await r.json();
       // Alt (yaw/pitch/xyz/label ...) und neues Schema (anchor/title/media ...)
       // einheitlich lesen -- die alten Feldnamen bleiben dabei gefuellt.
@@ -1380,7 +1390,7 @@
         document.body.classList.add('mode-3d');
         buildLod(scene);
         buildColoring(scene);
-        btn3d.textContent = '3D lädt …';
+        btn3d.textContent = 'Loading 3D …';
         await initCloud(scene);
         btn3d.textContent = '3D-Punktwolke';
         applySpin();
@@ -1402,7 +1412,7 @@
           document.body.classList.add('mode-3d');
           btn3d.classList.add('active'); btnPano.classList.remove('active');
           if (!cloud) {
-            btn3d.textContent = '3D lädt …';
+            btn3d.textContent = 'Loading 3D …';
             await initCloud(scene);
             btn3d.textContent = '3D-Punktwolke';
           }
