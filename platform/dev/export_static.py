@@ -23,6 +23,8 @@ from pathlib import Path
 
 from PIL import Image
 
+from texts_en import translate_scene
+
 Image.MAX_IMAGE_PIXELS = None
 MAX_PANO_W = 4096   # Web-Viewer braucht kein 8k; haelt docs/ schlank + pushbar
 JPEG_Q = 82
@@ -44,28 +46,28 @@ def dataset_tags(s):
     attr_keys = {k for m in markers for k in (m.get("attributes") or {})}
     tags = []
     if s.get("pano_url"):
-        tags.append("RGB-Panorama")
+        tags.append("RGB panorama")
     if s.get("video_url"):
-        tags.append("Video-Rundgang")
+        tags.append("Video tour")
     if s.get("splat"):
         tags.append("Gaussian Splatting")
     if s.get("pointcloud"):
-        tags.append("LiDAR-Punktwolke")
+        tags.append("LiDAR point cloud")
     if any(k.startswith("QSM_") for k in attr_keys):
         tags.append("QSM")
     if any("ExG" in k or k == "Vitalitaet" for k in attr_keys):
-        tags.append("RGB-Bildanalyse")
+        tags.append("RGB image analysis")
     if any(lv.get("bin_gt_url") for lv in ((s.get("pointcloud") or {}).get("levels") or [])):
         # Art der Wahrheit: Klassen je Punkt (Standard) oder Baum-ID je Punkt
-        tags.append((s.get("pointcloud") or {}).get("gt_tag") or "Semantik-Ground-Truth")
+        tags.append((s.get("pointcloud") or {}).get("gt_tag") or "Semantic ground truth")
     if s.get("canopy"):
-        tags.append("Kronenanalyse (LAI)")
+        tags.append("Canopy analysis (LAI)")
     if any(m.get("prognosis") for m in markers):
-        tags.append("Wachstumsprognose")
+        tags.append("Growth projection")
     if s.get("hedge_colorings"):
-        tags += ["NDVI (CIR)", "Arteignung"]
+        tags += ["NDVI (CIR)", "Species suitability"]
     if markers:
-        tags.append("Inventur-Marker")
+        tags.append("Inventory markers")
     return tags
 
 
@@ -142,7 +144,7 @@ def export_scene(sj):
 
     Gibt den Eintrag fuer docs/data/scenes.json zurueck.
     """
-    s = json.loads(sj.read_text(encoding="utf-8"))
+    s = translate_scene(json.loads(sj.read_text(encoding="utf-8")))   # Englisch
     sid = s["id"]
     src = sj.parent
     dst = OUT / "media" / "scenes" / sid
