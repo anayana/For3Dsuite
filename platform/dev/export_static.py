@@ -101,7 +101,7 @@ def export_html():
     OUT.mkdir(exist_ok=True)
     (OUT / ".nojekyll").write_text("")
     index = patch((GALLERY / "index.html").read_text(encoding="utf-8"), [
-        ("fetch('/api/scenes')", "fetch('data/scenes.json')"),
+        ("fetch('/api/scenes')", "fetch('data/scenes.json', {cache: 'no-cache'})"),
         ('Im <a href="/admin/">Studio</a> Bilder hochladen.', "&nbsp;"),
         ('— <a href="/admin/">Studio (Login)</a>',
          '— <a href="https://github.com/anayana/For3Dsuite">Quellcode auf GitHub</a>'),
@@ -110,7 +110,7 @@ def export_html():
 
     scene = patch((GALLERY / "scene.html").read_text(encoding="utf-8"), [
         ("fetch('/api/scenes/' + encodeURIComponent(sid))",
-         "fetch('data/scene-' + encodeURIComponent(sid) + '.json')"),
+         "fetch('data/scene-' + encodeURIComponent(sid) + '.json', {cache: 'no-cache'})"),
     ], "scene.html")
     (OUT / "scene.html").write_text(scene, encoding="utf-8")
 
