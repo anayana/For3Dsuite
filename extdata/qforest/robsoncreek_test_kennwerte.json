@@ -1,0 +1,87 @@
+{
+ "flaeche_m2": 509.0,
+ "voxel_m": 0.2,
+ "breitengrad": -17.12,
+ "kronendach_H95_m": 20.5,
+ "kronendach_H99_m": 26.0,
+ "deckungsgrad_ueber_2m": 0.981,
+ "PAI_proxy_gesamt": 10.66,
+ "ENL_inverse_Simpson": 20.27,
+ "FHD_Shannon": 3.126,
+ "schichten": [
+  {
+   "schicht": "Boden",
+   "von_m": 0.0,
+   "bis_m": 0.5,
+   "PAI_proxy": 0.25,
+   "deckung_draufsicht": 0.196,
+   "punkte_anteil": 0.03
+  },
+  {
+   "schicht": "Unterwuchs 0,5–2 m",
+   "von_m": 0.5,
+   "bis_m": 2.0,
+   "PAI_proxy": 1.12,
+   "deckung_draufsicht": 0.5,
+   "punkte_anteil": 0.079
+  },
+  {
+   "schicht": "untere Schicht",
+   "von_m": 2.0,
+   "bis_m": 6.8,
+   "PAI_proxy": 3.36,
+   "deckung_draufsicht": 0.796,
+   "punkte_anteil": 0.252
+  },
+  {
+   "schicht": "mittlere Schicht",
+   "von_m": 6.8,
+   "bis_m": 13.6,
+   "PAI_proxy": 3.79,
+   "deckung_draufsicht": 0.864,
+   "punkte_anteil": 0.274
+  },
+  {
+   "schicht": "Kronendach",
+   "von_m": 13.6,
+   "bis_m": 36.1,
+   "PAI_proxy": 2.52,
+   "deckung_draufsicht": 0.796,
+   "punkte_anteil": 0.166
+  }
+ ],
+ "licht": {
+  "senkrecht_mittel": 0.0111,
+  "senkrecht_p10": 0.0,
+  "senkrecht_p90": 0.0018,
+  "sonnengang": {
+   "Tag-und-Nacht-Gleiche": {
+    "mittel": 0.0014,
+    "p10": 0.0,
+    "p90": 0.0005,
+    "anteil_zellen_ueber_10pct": 0.0,
+    "sonnenstaende": 23
+   },
+   "Juni-Sonnenwende": {
+    "mittel": 0.0009,
+    "p10": 0.0,
+    "p90": 0.0,
+    "anteil_zellen_ueber_10pct": 0.0,
+    "sonnenstaende": 21
+   },
+   "Dezember-Sonnenwende": {
+    "mittel": 0.0023,
+    "p10": 0.0,
+    "p90": 0.0033,
+    "anteil_zellen_ueber_10pct": 0.0,
+    "sonnenstaende": 25
+   }
+  }
+ },
+ "annahmen": {
+  "licht": "Transmission = Produkt (1 - Deckung) der durchquerten Voxel; Deckung = 2-cm-Punkte / (v/0,02)^2",
+  "vegetation_ab_m": 0.3,
+  "rand": "Plot periodisch fortgesetzt",
+  "grenze": "keine Scannerstandorte, keine Verdeckungskorrektur; oberes Kronendach unterschaetzt -> Luecken eher ueberschaetzt; Ergebnis haengt von der Voxelkante ab; Werte relativ deuten"
+ }
+}

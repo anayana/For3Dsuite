@@ -89,6 +89,67 @@ trotzdem Zahlen. Sie ruhen dann auf 180°-Bögen. Das ist kein Vorteil unserer
 Verfahren, sondern eine Aussage über die Renon-Wolke — vier Standpunkte auf engem
 Raum ersetzen keine verteilte Mehrscan-Kampagne.
 
+## Tropischer Regenwald mit Einzelbaum-Wahrheit — Q-ForestLab, Robson Creek
+
+Datensatz: Cherlet et al. (2026), *Benchmarking tree instance segmentation of
+terrestrial laser scanning point clouds*, ISPRS J. Photogramm. 231, 230–247
+([doi:10.1016/j.isprsjprs.2025.10.033](https://doi.org/10.1016/j.isprsjprs.2025.10.033)),
+Daten [Zenodo 16875688](https://doi.org/10.5281/zenodo.16875688), CC BY 4.0
+(Q-ForestLab, Universität Gent). Anders als SegmentedForests trägt hier **jeder
+Punkt die Baum-ID** (von Hand, neun Bearbeiter, eine Nachkontrolle). Damit fällt die
+Grenze „Referenzstämme sind geclustert" (unten) weg, und zum ersten Mal lässt sich
+auch die **Einzelbaum-Segmentierung** messen, nicht nur die Detektion.
+
+Ausgewertet: Testgebiet des Plots Robson Creek (TERN-SuperSite, Far North
+Queensland), 20 m × 25 m, 30,9 Mio. Punkte (2-cm-Voxel: 20,0 Mio.), 225 Baum-IDs.
+
+**Referenz (52 Bäume):** Stamm in der Testfläche und BHD ≥ 10 cm; ohne messbaren BHD
+(Brettwurzel, Schräglage) ab 10 m Höhe. BHD je Referenzbaum aus den eigenen Punkten
+des Baumes: robuster Kreisfit in 1,2–1,4 m **plus Schaftkontrolle in 2,0 m**. Ohne
+die Kontrolle hätten Unterstand-Bäumchen mit Laub bis zum Boden „Stämme" von
+75–145 cm BHD bei 4–6 m Höhe geliefert. 54 Randbäume (Stamm außerhalb oder
+angeschnitten) zählen weder als Referenz noch als Fehlalarm.
+
+| Verfahren | Detektionen | Recall | Precision | Lagefehler (Median) |
+|---|--:|--:|--:|--:|
+| `inventory_from_cloud.py` (Baseline) | 98 | 25,0 % | 52,0 % | 31,8 cm |
+| **3DFin** (Autoren-INI plot_06, nur max. Durchmesser 2,5 m / max. Höhe 45 m) | 141 | **86,5 %** | **84,4 %** | 20,4 cm |
+
+**Befund:** Die Rangfolge aus dem Wienerwald hält auch in den Tropen, aber 3DFin
+verliert 8–12 Punkte Recall und 11–16 Punkte Precision. Und: **3DFin gibt nur
+für 6 von 155 Stämmen einen Durchmesser aus** — im dichten Unterwuchs findet es die
+Stämme, akzeptiert aber fast keinen Kreis. Ob das an der INI liegt (Sektoren,
+Punktzahl je Schnitt), ist offen.
+
+**Einzelbaum-Segmentierung** (`itcd_cloud.py`, Saat = 3DFin-Stämme): 96,8 % der
+Baumpunkte werden zugeordnet, aber nur **25 % der Referenzbäume** erreichen eine
+IoU ≥ 0,5 (Mittel 0,40). Im verzahnten Kronendach des Regenwaldes trennt der
+Kürzeste-Wege-Ansatz die Kronen nicht — ein klarer, jetzt messbarer Befund.
+
+Szene: `qforest-robsoncreek` (Umschalter Höhe · Ground Truth · Einzelbäume; die
+ITCD-Segmente tragen die Farbe ihres besten Referenzbaums). Ergebnisdateien:
+`extdata/qforest/robsoncreek_test_*`.
+
+```bash
+# nur das Testgebiet aus dem 2,9-GB-ZIP (Range-Request; ZIP ist Deflate64 -> pip install zipfile-deflate64)
+python scripts/qforest_bench.py prep robsoncreek_test.ply --out data/qforest/rc_test.npz
+python scripts/qforest_bench.py gt   data/qforest/rc_test.npz --out data/qforest/rc_gt.csv
+python scripts/qforest_bench.py fin  data/qforest/rc_test.npz extdata/qforest/robsoncreek.ini --out data/qforest/rc_3dfin.csv --work data/qforest/fin
+python scripts/inventory_from_cloud.py data/qforest/rc_test.npz data/qforest/rc_base.csv
+python scripts/itcd_cloud.py data/qforest/rc_test.npz data/qforest/rc_3dfin.csv --out data/qforest/rc_itcd.npz
+python scripts/qforest_bench.py eval data/qforest/rc_test.npz data/qforest/rc_gt.csv \
+    --det 3DFin=data/qforest/rc_3dfin.csv --det Baseline=data/qforest/rc_base.csv \
+    --itcd data/qforest/rc_itcd.npz --out data/qforest/rc_report.json
+python platform/dev/seed_qforest.py qforest-robsoncreek data/qforest/rc_test.npz data/qforest/rc_gt.csv \
+    data/qforest/rc_report.json --itcd data/qforest/rc_itcd.npz --lat -17.12 --lon 145.63 \
+    --title "Robson Creek (Queensland) — tropischer Regenwald, jeder Baum als Ground Truth (Q-ForestLab)" \
+    --plot-info "Testgebiet (20 m x 25 m) des Plots Robson Creek, TERN-SuperSite im tropischen Regenwald von Far North Queensland, Australien."
+python platform/dev/publish_scene.py qforest-robsoncreek     # nur diese Szene nach docs/
+```
+
+Offen: die drei anderen Plots des Datensatzes (Wytham Woods, Ofental, Litchfield)
+mit demselben Ablauf — dann steht derselbe Vergleich über vier Waldtypen.
+
 ## Worauf die Fehlalarme sitzen
 
 Weil der Datensatz auch die Nicht-Baum-Klassen labelt, steht hier nicht

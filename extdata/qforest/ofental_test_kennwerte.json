@@ -1,0 +1,87 @@
+{
+ "flaeche_m2": 518.2,
+ "voxel_m": 0.2,
+ "breitengrad": 47.6,
+ "kronendach_H95_m": 15.5,
+ "kronendach_H99_m": 18.8,
+ "deckungsgrad_ueber_2m": 0.962,
+ "PAI_proxy_gesamt": 19.16,
+ "ENL_inverse_Simpson": 14.98,
+ "FHD_Shannon": 2.827,
+ "schichten": [
+  {
+   "schicht": "Boden",
+   "von_m": 0.0,
+   "bis_m": 0.5,
+   "PAI_proxy": 0.23,
+   "deckung_draufsicht": 0.172,
+   "punkte_anteil": 0.029
+  },
+  {
+   "schicht": "Unterwuchs 0,5–2 m",
+   "von_m": 0.5,
+   "bis_m": 2.0,
+   "PAI_proxy": 0.69,
+   "deckung_draufsicht": 0.295,
+   "punkte_anteil": 0.027
+  },
+  {
+   "schicht": "untere Schicht",
+   "von_m": 2.0,
+   "bis_m": 5.2,
+   "PAI_proxy": 2.75,
+   "deckung_draufsicht": 0.638,
+   "punkte_anteil": 0.131
+  },
+  {
+   "schicht": "mittlere Schicht",
+   "von_m": 5.2,
+   "bis_m": 10.4,
+   "PAI_proxy": 8.73,
+   "deckung_draufsicht": 0.933,
+   "punkte_anteil": 0.459
+  },
+  {
+   "schicht": "Kronendach",
+   "von_m": 10.4,
+   "bis_m": 24.7,
+   "PAI_proxy": 7.49,
+   "deckung_draufsicht": 0.831,
+   "punkte_anteil": 0.317
+  }
+ ],
+ "licht": {
+  "senkrecht_mittel": 0.0369,
+  "senkrecht_p10": 0.0,
+  "senkrecht_p90": 0.0,
+  "sonnengang": {
+   "Tag-und-Nacht-Gleiche": {
+    "mittel": 0.0,
+    "p10": 0.0,
+    "p90": 0.0,
+    "anteil_zellen_ueber_10pct": 0.0,
+    "sonnenstaende": 21
+   },
+   "Juni-Sonnenwende": {
+    "mittel": 0.0003,
+    "p10": 0.0,
+    "p90": 0.0,
+    "anteil_zellen_ueber_10pct": 0.0,
+    "sonnenstaende": 29
+   },
+   "Dezember-Sonnenwende": {
+    "mittel": 0.0,
+    "p10": 0.0,
+    "p90": 0.0,
+    "anteil_zellen_ueber_10pct": 0.0,
+    "sonnenstaende": 13
+   }
+  }
+ },
+ "annahmen": {
+  "licht": "Transmission = Produkt (1 - Deckung) der durchquerten Voxel; Deckung = 2-cm-Punkte / (v/0,02)^2",
+  "vegetation_ab_m": 0.3,
+  "rand": "Plot periodisch fortgesetzt",
+  "grenze": "keine Scannerstandorte, keine Verdeckungskorrektur; oberes Kronendach unterschaetzt -> Luecken eher ueberschaetzt; Ergebnis haengt von der Voxelkante ab; Werte relativ deuten"
+ }
+}

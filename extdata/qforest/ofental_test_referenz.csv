@@ -1,0 +1,120 @@
+id,x,y,z,Rand,BHD_cm,BHD_Guete,Hoehe_m,Punkte,Kronenansatz_m,Kronenlaenge_m,Kronendurchmesser_m,Kronenvolumen_m3
+5,91.04820251464844,-1.7483253479003906,1105.4215264320374,nein,,"Kreisfit verworfen (Bogen 210 Grad, RMS 8.3 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",19.5,748875,4.1,15.4,5.1,80.5
+7,84.0834846496582,15.335176467895508,1096.1203107833862,ja,,Stamm ausserhalb/am Rand der Testflaeche,16.4,15088,12.3,4.1,3.6,5.1
+13,81.18420791625977,2.3901519775390625,1103.2686519026756,nein,,"Kreisfit verworfen (Bogen 250 Grad, RMS 6.2 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",5.9,140517,1.6,4.3,2.8,12.2
+15,77.86865234375,-8.263386726379395,1109.5555885136127,ja,,Stamm ausserhalb/am Rand der Testflaeche,7.1,110884,1.5,5.6,2.6,12.8
+16,88.90361022949219,3.9457101821899414,1102.0143654346466,nein,,"Kreisfit verworfen (Bogen 220 Grad, RMS 7.5 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",16.7,917202,1.5,15.2,5.3,116.3
+17,82.82122039794922,-9.150676727294922,1110.2611824274063,ja,,Stamm ausserhalb/am Rand der Testflaeche,22.0,523472,2.0,20.0,6.3,91.8
+18,84.59044019314368,-7.362249273493262,1108.397022984922,nein,17.9,gut,18.3,230380,5.1,13.2,3.8,33.3
+19,91.11318969726562,14.361991882324219,1096.1787483990192,nein,,"Kreisfit verworfen (Bogen 180 Grad, RMS 4.8 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",7.2,143960,1.6,5.7,2.7,15.8
+20,90.369873046875,-2.1763691902160645,1105.4215264320374,nein,,"Kreisfit verworfen (Bogen 70 Grad, RMS 2.2 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",5.5,38002,1.6,3.8,2.6,5.3
+22,95.09576305654801,0.42857845521393756,1103.4610662460327,nein,13.8,gut,8.1,213670,2.5,5.6,3.2,21.0
+24,87.80071640014648,10.117986679077148,1098.0090371668339,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",9.7,126870,2.6,7.2,3.9,18.3
+25,89.88436889648438,4.744352340698242,1101.2035262584686,nein,,"Kreisfit verworfen (Bogen 290 Grad, RMS 7.4 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",10.1,239781,1.5,8.6,3.9,35.0
+26,89.74669647216797,-0.04193830490112305,1103.909721583128,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",11.6,19608,1.5,10.1,2.4,4.5
+27,85.24696731567383,-2.767892360687256,1105.2350172363222,nein,,"Kreisfit verworfen (Bogen 190 Grad, RMS 2.9 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",15.1,447554,1.5,13.5,4.6,57.2
+30,78.2665023803711,-2.5734312534332275,1105.8617172539234,ja,,Stamm ausserhalb/am Rand der Testflaeche,16.3,403726,2.0,14.2,3.6,60.5
+34,80.92579650878906,14.654857635498047,1096.072911530733,ja,,Stamm ausserhalb/am Rand der Testflaeche,20.6,1003300,1.5,19.1,5.3,147.9
+43,87.86149215698242,15.580196380615234,1095.5833146572113,ja,,Stamm ausserhalb/am Rand der Testflaeche,9.3,92382,2.1,7.2,4.3,15.0
+49,86.40292358398438,-9.475073337554932,1108.8494890853763,ja,,Stamm ausserhalb/am Rand der Testflaeche,22.2,390648,1.5,20.7,5.3,85.2
+50,80.9825325012207,-6.4017908573150635,1109.0347676873207,nein,,"Kreisfit verworfen (Bogen 310 Grad, RMS 12.1 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",16.1,420826,1.5,14.6,4.8,68.3
+54,92.96460342407227,-7.162205457687378,1107.0674058049917,nein,,"Kreisfit verworfen (Bogen 130 Grad, RMS 3.4 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",8.0,34132,4.0,4.0,2.2,6.0
+60,96.34996795654297,1.8045759201049805,1102.7017647325993,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",24.5,865957,3.6,20.9,5.5,119.1
+61,97.80474853515625,-2.123307466506958,1104.3092185258865,ja,,Stamm ausserhalb/am Rand der Testflaeche,11.5,167978,1.6,9.9,2.6,16.4
+63,81.87238311767578,-3.0833044052124023,1106.3255405426025,nein,,"Kreisfit verworfen (Bogen 310 Grad, RMS 4.1 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",8.3,121648,2.6,5.7,2.9,14.9
+65,90.97692108154297,-0.6646595001220703,1103.8733087480068,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",8.8,57032,4.2,4.7,2.5,8.0
+67,84.27110978730832,2.7003867415648983,1102.3885121941566,nein,15.3,gut,15.4,166855,4.6,10.8,5.0,27.2
+70,77.87924194335938,11.896526336669922,1096.9619250297546,ja,,Stamm ausserhalb/am Rand der Testflaeche,14.4,86329,5.2,9.3,3.1,12.6
+73,89.6223373413086,11.18294906616211,1097.2304103523493,nein,,"Kreisfit verworfen (Bogen 190 Grad, RMS 3.6 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",19.8,584954,1.5,18.3,4.6,101.2
+74,85.7891731262207,-5.3201799392700195,1107.3402107357979,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",7.8,98340,2.6,5.2,3.7,15.7
+79,84.24232033302336,5.0665914697709695,1101.0063456445932,nein,12.0,gut,11.9,159969,2.6,9.3,2.3,24.1
+85,96.26242065429688,10.133142471313477,1097.4312911778688,nein,,"Kreisfit verworfen (Bogen 70 Grad, RMS 2.7 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",5.6,24346,1.5,4.1,1.6,4.9
+86,93.88331604003906,5.228276252746582,1101.48185159266,nein,,"Kreisfit verworfen (Bogen 140 Grad, RMS 6.7 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",14.9,192182,2.6,12.4,10.9,27.4
+92,88.28128051757812,8.825407028198242,1098.890298962593,nein,,"Kreisfit verworfen (Bogen 310 Grad, RMS 13.6 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",19.8,515225,2.0,17.8,4.8,98.8
+99,95.16610549945025,-8.120797761479821,1107.2129314988852,nein,9.0,gut,8.7,196712,2.0,6.6,2.8,17.9
+104,89.57532501220703,-1.5126609802246094,1104.7625525854528,nein,,"Kreisfit verworfen (Bogen 330 Grad, RMS 11.8 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",4.4,52471,1.6,2.7,2.4,6.9
+106,91.62814331054688,-0.48398399353027344,1103.8965211212635,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",10.0,87775,3.2,6.8,5.4,12.9
+109,86.82313537597656,13.032726287841797,1096.4820306301117,nein,,"Kreisfit verworfen (Bogen 260 Grad, RMS 7.3 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",5.8,61290,1.6,4.2,3.3,12.0
+111,94.28363037109375,2.132990837097168,1102.7631232440472,nein,,"Kreisfit verworfen (Bogen 340 Grad, RMS 12.6 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",15.8,870850,1.5,14.3,3.8,94.3
+113,85.94060134887695,-1.1111536026000977,1104.9298757314682,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",24.1,1096545,2.5,21.6,6.9,165.0
+116,82.99140548706055,14.198278427124023,1096.1745955049992,ja,,Stamm ausserhalb/am Rand der Testflaeche,8.4,166526,1.6,6.8,4.5,25.5
+125,84.16563415527344,0.21656322479248047,1104.3613285422325,nein,,"Kreisfit verworfen (Bogen 240 Grad, RMS 10.6 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",16.9,563612,1.5,15.4,3.9,80.8
+126,96.3419189453125,-6.164980888366699,1106.72615455091,ja,,Stamm ausserhalb/am Rand der Testflaeche,22.2,1239554,1.5,20.7,4.8,166.4
+129,97.80203247070312,9.699886322021484,1097.1033771038055,ja,,Stamm ausserhalb/am Rand der Testflaeche,6.5,1061,3.5,3.0,1.7,0.7
+131,78.58342742919922,15.396621704101562,1094.686529636383,ja,,Stamm ausserhalb/am Rand der Testflaeche,17.0,18961,4.6,12.4,2.5,5.4
+143,79.98436737060547,2.0288000106811523,1103.3935096859932,nein,,"Kreisfit verworfen (Bogen 320 Grad, RMS 4.9 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",9.3,201280,1.6,7.8,4.0,25.5
+145,87.83829498291016,5.741235733032227,1100.5503292679787,nein,,"Kreisfit verworfen (Bogen 230 Grad, RMS 4.7 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",7.2,149788,1.5,5.7,2.9,20.1
+153,89.20610046386719,2.7754974365234375,1103.283942759037,nein,,"Kreisfit verworfen (Bogen 360 Grad, RMS 4.1 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",17.0,142051,2.6,14.4,6.1,24.4
+158,79.74482727050781,15.458263397216797,1094.5161932706833,ja,,Stamm ausserhalb/am Rand der Testflaeche,5.9,9441,2.1,3.7,2.1,3.3
+166,92.95926486515167,-8.000672338136155,1107.4193460941315,nein,11.3,gut,7.1,29120,2.6,4.6,2.6,7.8
+169,91.00622177124023,8.272050857543945,1098.7280154004693,nein,,"Kreisfit verworfen (Bogen 130 Grad, RMS 2.9 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",7.4,163046,1.6,5.8,2.6,16.2
+170,96.71349334716797,8.208446502685547,1099.59222099185,ja,,Stamm ausserhalb/am Rand der Testflaeche,19.9,1130229,1.5,18.4,5.0,125.4
+171,87.79464721679688,7.089038848876953,1100.0247765779495,nein,,"Kreisfit verworfen (Bogen 250 Grad, RMS 10.1 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",18.7,451784,1.5,17.2,4.0,72.4
+172,84.34826573899643,11.095188516430142,1097.7445488274097,nein,10.9,gut,9.9,125107,2.6,7.3,2.7,14.1
+178,78.43360137939453,1.5762596130371094,1103.9749857336283,ja,,Stamm ausserhalb/am Rand der Testflaeche,21.6,880395,1.5,20.1,5.5,150.0
+182,85.48700332641602,-6.029876232147217,1108.0219952762127,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",9.6,88571,4.0,5.6,2.6,10.3
+194,96.05567169189453,15.312488555908203,1093.980125874281,ja,,Stamm ausserhalb/am Rand der Testflaeche,22.2,280480,1.5,20.7,4.0,64.3
+195,85.10421752929688,2.0695877075195312,1103.759453177452,nein,,"Kreisfit verworfen (Bogen 130 Grad, RMS 3.7 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",7.3,129195,2.6,4.7,3.8,15.3
+197,97.7225341796875,3.8613805770874023,1101.152771115303,ja,,Stamm ausserhalb/am Rand der Testflaeche,15.7,60813,4.6,11.1,2.9,9.0
+201,82.31243515014648,-4.594576597213745,1107.493772059679,nein,,"Kreisfit verworfen (Bogen 280 Grad, RMS 13.7 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",19.1,695550,1.5,17.6,4.3,91.0
+202,97.83094787597656,0.565791130065918,1103.070186406374,ja,,Stamm ausserhalb/am Rand der Testflaeche,22.6,155447,1.5,21.1,4.7,33.8
+204,86.96725463867188,12.809616088867188,1096.295894406736,nein,,"Kreisfit verworfen (Bogen 150 Grad, RMS 6.4 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",12.0,592165,1.6,10.4,4.4,74.8
+205,81.40203094482422,0.8090181350708008,1103.7081371173263,nein,,"Kreisfit verworfen (Bogen 110 Grad, RMS 2.9 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",8.6,156525,2.0,6.6,3.5,17.6
+209,92.76880645751953,12.830821990966797,1096.260565906763,nein,,"Kreisfit verworfen (Bogen 360 Grad, RMS 5.5 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",13.1,225788,1.5,11.5,4.4,39.9
+221,84.43926720627934,2.6439710065437794,1102.3885121941566,nein,13.8,gut,9.3,125394,3.1,6.2,4.2,15.0
+236,93.76669311523438,12.147350311279297,1097.1872501522303,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",12.7,91935,3.5,9.1,4.0,17.8
+237,85.84535598754883,8.217844009399414,1099.9856643080711,nein,,"Kreisfit verworfen (Bogen 210 Grad, RMS 10.2 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",20.5,823229,2.0,18.4,5.4,135.7
+243,77.82686614990234,5.852433204650879,1100.835028231144,ja,,Stamm ausserhalb/am Rand der Testflaeche,11.0,385349,1.5,9.5,4.3,40.8
+247,84.06698608398438,10.673330307006836,1097.7445488274097,nein,,"Kreisfit verworfen (Bogen 360 Grad, RMS 3.2 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",15.4,441280,2.1,13.4,3.5,60.1
+249,88.69325256347656,2.5887327194213867,1103.283942759037,nein,,"Kreisfit verworfen (Bogen 180 Grad, RMS 4.3 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",6.9,24249,1.6,5.3,4.4,4.2
+260,79.50521087646484,1.0262746810913086,1104.1557893157005,nein,,"Kreisfit verworfen (Bogen 320 Grad, RMS 10.5 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",11.3,101734,3.6,7.7,5.9,19.3
+264,77.6530532836914,-3.4082117080688477,1107.3552755117416,ja,,Stamm ausserhalb/am Rand der Testflaeche,16.2,29688,3.0,13.2,4.7,9.9
+267,82.83600616455078,7.881034851074219,1099.6754930913448,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",6.2,89772,1.6,4.7,2.9,13.0
+268,84.32614135742188,-3.7527031898498535,1106.8758508563042,nein,,"Kreisfit verworfen (Bogen 360 Grad, RMS 16.0 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",19.6,824310,3.0,16.6,4.7,121.5
+274,97.84193420410156,-3.938511848449707,1105.159455537796,ja,,Stamm ausserhalb/am Rand der Testflaeche,8.5,926,5.8,2.6,2.8,0.8
+275,89.73068237304688,0.9454894065856934,1103.3474262952805,nein,,"Kreisfit verworfen (Bogen 110 Grad, RMS 6.1 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",18.1,508254,1.5,16.6,4.4,82.6
+279,90.01591491699219,12.819541931152344,1096.5359470844269,nein,,"Kreisfit verworfen (Bogen 360 Grad, RMS 30.8 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",14.4,749103,1.5,12.9,3.9,91.9
+280,90.52632141113281,-7.179180145263672,1107.2635308653116,nein,,"Kreisfit verworfen (Bogen 360 Grad, RMS 37.2 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",23.0,1704940,2.0,21.0,7.0,252.5
+281,92.79112243652344,9.45755386352539,1098.2897257711738,nein,,"Kreisfit verworfen (Bogen 230 Grad, RMS 5.5 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",20.4,491805,2.6,17.9,5.2,86.6
+288,90.97309875488281,1.0640230178833008,1103.3889590501785,nein,,"Kreisfit verworfen (Bogen 130 Grad, RMS 3.8 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",9.0,129707,1.6,7.4,3.2,18.0
+291,81.88436889648438,-7.380852222442627,1108.81880864501,nein,,"Kreisfit verworfen (Bogen 230 Grad, RMS 10.6 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",22.5,996291,2.6,19.9,6.4,140.2
+294,92.78861999511719,15.538352966308594,1094.3244544938207,ja,,Stamm ausserhalb/am Rand der Testflaeche,17.0,346121,2.1,14.9,6.2,61.4
+300,89.00059127807617,-5.470535039901733,1106.3671218827367,nein,,"Kreisfit verworfen (Bogen 180 Grad, RMS 4.5 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",5.4,150746,1.6,3.8,2.4,12.6
+301,97.77228546142578,12.234443664550781,1096.0045519843698,ja,,Stamm ausserhalb/am Rand der Testflaeche,13.7,135220,1.5,12.2,3.2,28.5
+303,83.61872482299805,12.809297561645508,1096.3653914928436,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",7.5,206006,2.0,5.5,4.2,24.9
+304,96.24695587158203,11.409770965576172,1097.8432453274727,nein,,"Kreisfit verworfen (Bogen 260 Grad, RMS 16.2 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",22.6,651480,2.0,20.6,4.9,131.5
+306,95.60250854492188,-4.771745920181274,1105.9370452463627,nein,,"Kreisfit verworfen (Bogen 280 Grad, RMS 2.6 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",17.4,281122,3.1,14.3,4.8,40.7
+307,77.62630462646484,10.818277359008789,1097.5664595663548,ja,,Stamm ausserhalb/am Rand der Testflaeche,7.4,81014,1.6,5.8,3.0,11.0
+313,93.36261749267578,-5.53692102432251,1106.4784254580736,nein,,"Kreisfit verworfen (Bogen 250 Grad, RMS 12.0 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",20.6,385402,1.5,19.1,5.2,69.8
+315,86.72396469116211,-7.454076766967773,1108.0960004273802,nein,,"Kreisfit verworfen (Bogen 220 Grad, RMS 6.1 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",13.9,528506,1.5,12.4,3.5,53.6
+317,96.36201477050781,14.102680206298828,1095.130841434002,nein,,"Kreisfit verworfen (Bogen 160 Grad, RMS 8.5 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",17.6,367037,1.5,16.1,4.4,62.4
+320,79.14042663574219,-1.7325983047485352,1105.2569704055786,nein,,"Kreisfit verworfen (Bogen 190 Grad, RMS 3.7 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",12.8,270702,1.5,11.2,3.0,35.2
+322,83.52877044677734,3.073683738708496,1102.3981364965439,nein,,"Kreisfit verworfen (Bogen 170 Grad, RMS 8.5 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",13.9,203197,4.1,9.8,3.6,26.0
+324,81.41841888427734,-1.1138248443603516,1104.9550022184849,nein,,"Kreisfit verworfen (Bogen 340 Grad, RMS 3.6 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",16.6,313372,4.5,12.1,4.1,52.6
+325,80.80212783813477,9.65165901184082,1098.302002966404,nein,,"Kreisfit verworfen (Bogen 350 Grad, RMS 22.7 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",20.3,1149584,1.5,18.8,5.1,151.8
+326,97.79828643798828,-3.544283151626587,1105.1594555675983,ja,,Stamm ausserhalb/am Rand der Testflaeche,8.6,47995,1.5,7.1,2.6,10.0
+328,93.71041870117188,8.767433166503906,1099.2078710198402,nein,,"Kreisfit verworfen (Bogen 360 Grad, RMS 2.7 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",17.4,306282,1.5,15.9,3.9,53.9
+329,91.62041854858398,10.560001373291016,1097.3595341499895,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",11.0,168646,1.5,9.5,3.3,25.8
+330,83.6292953491211,6.9584197998046875,1100.0506539344788,nein,,"Kreisfit verworfen (Bogen 240 Grad, RMS 23.6 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",20.0,982202,1.5,18.5,5.2,152.2
+335,85.07526779174805,-7.356534481048584,1108.397022984922,nein,,"Kreisfit verworfen (Bogen 80 Grad, RMS 3.4 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",8.4,33586,1.6,6.8,3.0,8.4
+336,91.99840545654297,-7.748226642608643,1107.0674058012664,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",12.0,67159,2.5,9.5,2.9,14.3
+341,79.91861724853516,1.321859359741211,1103.3935097157955,nein,,"Kreisfit verworfen (Bogen 320 Grad, RMS 2.5 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",18.1,225041,2.5,15.6,5.6,49.6
+345,92.68067932128906,7.9150543212890625,1100.3706394433975,nein,,"Kreisfit verworfen (Bogen 130 Grad, RMS 6.2 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",11.0,132892,1.6,9.4,3.3,21.3
+351,80.71110534667969,-0.12893199920654297,1104.6354590654373,nein,,"Kreisfit verworfen (Bogen 200 Grad, RMS 6.5 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",16.1,251136,1.5,14.6,4.0,40.4
+356,82.81107330322266,3.895949363708496,1101.8867645263672,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",7.6,108702,2.5,5.1,2.9,12.5
+365,91.01176452636719,-9.221548080444336,1107.8675483465195,ja,,Stamm ausserhalb/am Rand der Testflaeche,9.9,78193,1.6,8.4,2.8,13.5
+384,81.89988708496094,13.553524017333984,1096.652183353901,nein,,"Kreisfit verworfen (Bogen 230 Grad, RMS 12.7 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",15.2,616783,1.5,13.7,5.4,89.3
+386,97.52481079101562,-4.67849063873291,1105.3774283081293,ja,,Stamm ausserhalb/am Rand der Testflaeche,9.4,98533,3.1,6.3,4.0,12.5
+393,84.72922897338867,15.493186950683594,1095.9770723581314,ja,,Stamm ausserhalb/am Rand der Testflaeche,14.1,150052,1.5,12.6,3.3,28.4
+403,94.66928100585938,10.70022201538086,1097.9048361480236,nein,,"Kreisfit verworfen (Bogen 300 Grad, RMS 3.2 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",22.1,277183,2.5,19.6,6.2,77.1
+408,97.2414321899414,-1.2604703903198242,1103.9093536138535,ja,,Stamm ausserhalb/am Rand der Testflaeche,17.7,172049,2.0,15.7,3.6,21.7
+413,82.09725189208984,5.536057472229004,1100.583686484024,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",14.8,616408,2.0,12.7,5.7,76.5
+421,89.65056610107422,-1.780627727508545,1105.4215264320374,nein,,"Kreisfit verworfen (Bogen 170 Grad, RMS 5.5 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",6.9,105847,1.6,5.3,2.4,10.4
+422,92.82372283935547,5.971318244934082,1100.759715795517,nein,,"Kreisfit verworfen (Bogen 130 Grad, RMS 5.2 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",12.0,184297,1.5,10.5,3.4,26.6
+432,80.9859390258789,8.90924072265625,1099.1861740350723,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",7.7,253611,2.1,5.7,4.6,28.1
+437,82.18861389160156,0.6980142593383789,1103.7363345939666,nein,,"Kreisfit verworfen (Bogen 170 Grad, RMS 4.0 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",7.5,88693,2.5,5.0,2.9,9.7
+445,90.9742431640625,-3.3676459789276123,1105.6241170614958,nein,,"Kreisfit verworfen (Bogen 230 Grad, RMS 9.8 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",19.0,508374,1.5,17.5,5.1,81.2
+446,97.63739776611328,13.92354965209961,1095.3567640781403,ja,,Stamm ausserhalb/am Rand der Testflaeche,20.7,26188,2.5,18.2,3.5,12.2
+448,83.66392517089844,-5.569112300872803,1107.4553802618757,nein,,"Schaftkontrolle verworfen: in 2,0 m kein passender Stammquerschnitt (Laub/Aeste in Brusthoehe?)",11.1,207029,1.5,9.6,2.6,25.3
+449,87.18158721923828,-9.105070114135742,1108.8494890779257,ja,,Stamm ausserhalb/am Rand der Testflaeche,13.3,295062,1.5,11.7,5.7,49.6
+460,90.31836700439453,1.9723396301269531,1103.0975959897041,nein,,"Kreisfit verworfen (Bogen 210 Grad, RMS 2.8 cm) -- Brettwurzel, Schraeglage oder Aeste in Brusthoehe",6.2,76452,2.1,4.2,2.1,8.7

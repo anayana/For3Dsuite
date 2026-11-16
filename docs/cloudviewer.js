@@ -204,6 +204,16 @@ export class CloudViewer {
       this._pitch = 0.15;
       this.controls.target.set((mn[0] + mx[0]) / 2, (mn[1] + mx[1]) / 2,
                                mn[2] + (mx[2] - mn[2]) * 0.4);
+      // Optionale Startansicht der Szene (pointcloud.start, lokale Koordinaten),
+      // z. B. fuer hohe, dichte Bestaende, die man von aussen sehen muss
+      const st = meta.start;
+      if (st && st.pos && st.target) {
+        this.camera.position.set(...st.pos);
+        this.controls.target.set(...st.target);
+        const d = new THREE.Vector3(...st.target).sub(new THREE.Vector3(...st.pos));
+        this._yaw = Math.atan2(d.y, d.x);
+        this._pitch = Math.atan2(d.z, Math.hypot(d.x, d.y));
+      }
     }
   }
 

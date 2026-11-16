@@ -5,7 +5,7 @@ Diese Tabelle ist die Grundlage für „Data availability" / „Acknowledgements
 den Papern und für die Namensnennung in der Galerie. Der **Code** steht unter
 GPL-3.0-or-later ([LICENSE](LICENSE)); die Daten behalten ihre eigenen Lizenzen.
 
-Stand: 12.10.2026.
+Stand: 12.10.2026 (Q-ForestLab ergänzt 15.11.2026).
 
 **Status**
 
@@ -28,6 +28,7 @@ Stand: 12.10.2026.
 | `segforests-vienna-spruce`, `-beech` | SegmentedForests plot_07/06 (Laino et al. 2025) | MIT | [10.5281/zenodo.17396681](https://doi.org/10.5281/zenodo.17396681) | 🔎 |
 | `syssifoss-arboretum`, `-br01` | SYSSIFOSS, Einzelbäume Blatt-Holz-getrennt (RIEGL VZ-400) | CC BY 4.0 | [10.11588/DATA/UUMEDI](https://doi.org/10.11588/DATA/UUMEDI) | 🔎 |
 | `hedgerow-be-alder` | Belgische Hecken und Baumreihen (RIEGL VZ-1000) | CC BY 4.0 | [zenodo.org/records/4487116](https://zenodo.org/records/4487116) | 🔎 |
+| `qforest-robsoncreek` | Q-ForestLab (Universität Gent), TLS-Instanz-Benchmark, Plot Robson Creek (tropischer Regenwald, Queensland), Testgebiet; Cherlet, Dayal, Chen, Cooper, Disney, Hanzl, Levick, Nightingale, Origo, Senf, Soenens, Terryn, Van den Broeck, Calders (2026), ISPRS J. Photogramm. 231, 230–247, [10.1016/j.isprsjprs.2025.10.033](https://doi.org/10.1016/j.isprsjprs.2025.10.033) | CC BY 4.0 (Zenodo-API, geprüft 15.11.2026) | [10.5281/zenodo.16875688](https://doi.org/10.5281/zenodo.16875688) | ✅ |
 | `forestvr-eifel-pano`, `-tree` | Zürcher, Zhao, Lau, Brede, Klippel (2023), WUR | CC BY 4.0 | [10.5281/zenodo.7632474](https://doi.org/10.5281/zenodo.7632474) | 🔎 |
 | `hvi-ahn-hedges` | AHN (Actueel Hoogtebestand Nederland), ALS | **CC0** laut Earth-Engine-Katalog; im Repo als CC BY 4.0 geführt | [ahn.nl](https://www.ahn.nl/) | 🔎 Lizenz in der `scene.json` auf CC0 korrigieren, falls ahn.nl das bestätigt |
 | `ph-mossy-forest` | Poly Haven, Greg Zaal | CC0 | [polyhaven.com/a/mossy_forest](https://polyhaven.com/a/mossy_forest) | ✅ |

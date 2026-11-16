@@ -1,0 +1,96 @@
+{
+ "baum": "BRA",
+ "quelle": "Zenodo 15880857 (CC BY 4.0)",
+ "laeufe_je_QSM": 10,
+ "nur_bodenscan": {
+  "Gesamtvolumen_L": {
+   "mittel": 20733.23,
+   "sd": 6484.2
+  },
+  "Astvolumen_L": {
+   "mittel": 6982.44,
+   "sd": 811.77
+  },
+  "Stammvolumen_L": {
+   "mittel": 13750.79,
+   "sd": 6292.3
+  },
+  "Astlaenge_m": {
+   "mittel": 748.18,
+   "sd": 14.43
+  },
+  "Aeste": {
+   "mittel": 561.2,
+   "sd": 15.03
+  },
+  "max_Astordnung": {
+   "mittel": 6.5,
+   "sd": 0.81
+  },
+  "Baumhoehe_m": {
+   "mittel": 29.87,
+   "sd": 1.26
+  },
+  "BHD_cm": {
+   "mittel": 95.43,
+   "sd": 34.98
+  },
+  "Astwinkel_1Ordnung_Median_Grad": {
+   "mittel": 52.45,
+   "sd": 5.82
+  },
+  "Anteil_steile_Aeste_unter_45Grad": {
+   "mittel": 0.41,
+   "sd": 0.08
+  }
+ },
+ "boden_plus_kronenscan": {
+  "Gesamtvolumen_L": {
+   "mittel": 21804.63,
+   "sd": 3641.82
+  },
+  "Astvolumen_L": {
+   "mittel": 6784.11,
+   "sd": 1128.08
+  },
+  "Stammvolumen_L": {
+   "mittel": 15020.52,
+   "sd": 3875.87
+  },
+  "Astlaenge_m": {
+   "mittel": 1033.78,
+   "sd": 9.35
+  },
+  "Aeste": {
+   "mittel": 671.8,
+   "sd": 19.37
+  },
+  "max_Astordnung": {
+   "mittel": 7.2,
+   "sd": 0.87
+  },
+  "Baumhoehe_m": {
+   "mittel": 30.06,
+   "sd": 0.32
+  },
+  "BHD_cm": {
+   "mittel": 106.73,
+   "sd": 22.06
+  },
+  "Astwinkel_1Ordnung_Median_Grad": {
+   "mittel": 48.85,
+   "sd": 6.13
+  },
+  "Anteil_steile_Aeste_unter_45Grad": {
+   "mittel": 0.43,
+   "sd": 0.13
+  }
+ },
+ "zuwachs_durch_kronenscan_prozent": {
+  "Gesamtvolumen_L": 5.2,
+  "Astvolumen_L": -2.8,
+  "Astlaenge_m": 38.2,
+  "Aeste": 19.7
+ },
+ "punkte_nur_kronenscan_anteil": 0.228
+}

@@ -31,6 +31,24 @@ und der Abbruch ohne `platform/dev-data/` sind umgesetzt; `platform/dev/marker_c
 zählt/sichert/vergleicht die Marker je Szene. `docs/data/` wurde **nicht** geändert,
 es gibt also nichts zurückzuspielen (Rückspiel-Skript erst nötig, wenn das passiert).
 
+### Stand 15.11.2026 — neue Szene aus der Cloud: `qforest-robsoncreek`
+
+Q-ForestLab-Benchmark (Robson Creek, CC BY 4.0) wurde in der Cloud gebaut und mit
+`platform/dev/publish_scene.py` **direkt nach `docs/`** gelegt (fasst nur diese eine
+Szene an). Auf dem Notebook liegt sie noch **nicht** in `platform/dev-data/` — vor dem
+nächsten Vollexport einmal zurückspielen, sonst fällt sie aus der Galerie:
+
+```bash
+for s in qforest-robsoncreek qforest-wytham qforest-ofental qforest-litchfield qforest-qsm-bra; do
+  mkdir -p platform/dev-data/media/scenes/$s
+  cp docs/media/scenes/$s/* platform/dev-data/media/scenes/$s/
+  cp docs/data/scene-$s.json platform/dev-data/media/scenes/$s/scene.json
+done
+```
+Alle fünf `qforest-*`-Szenen stehen in `publish.json`.
+
+(Alternativ neu bauen: Befehle in `scripts/BENCH_DETECTION.md`, Abschnitt Q-ForestLab.)
+
 ### Stand 13.10.2026 — was seit der Übergabe erledigt ist
 
 | Bereich | Stand |

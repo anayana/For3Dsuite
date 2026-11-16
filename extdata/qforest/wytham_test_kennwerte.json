@@ -1,0 +1,87 @@
+{
+ "flaeche_m2": 2399.0,
+ "voxel_m": 0.2,
+ "breitengrad": 51.77,
+ "kronendach_H95_m": 18.9,
+ "kronendach_H99_m": 21.0,
+ "deckungsgrad_ueber_2m": 0.866,
+ "PAI_proxy_gesamt": 3.56,
+ "ENL_inverse_Simpson": 19.29,
+ "FHD_Shannon": 3.02,
+ "schichten": [
+  {
+   "schicht": "Boden",
+   "von_m": 0.0,
+   "bis_m": 0.5,
+   "PAI_proxy": 0.05,
+   "deckung_draufsicht": 0.044,
+   "punkte_anteil": 0.042
+  },
+  {
+   "schicht": "Unterwuchs 0,5–2 m",
+   "von_m": 0.5,
+   "bis_m": 2.0,
+   "PAI_proxy": 0.24,
+   "deckung_draufsicht": 0.155,
+   "punkte_anteil": 0.053
+  },
+  {
+   "schicht": "untere Schicht",
+   "von_m": 2.0,
+   "bis_m": 6.3,
+   "PAI_proxy": 0.59,
+   "deckung_draufsicht": 0.297,
+   "punkte_anteil": 0.136
+  },
+  {
+   "schicht": "mittlere Schicht",
+   "von_m": 6.3,
+   "bis_m": 12.6,
+   "PAI_proxy": 1.22,
+   "deckung_draufsicht": 0.542,
+   "punkte_anteil": 0.284
+  },
+  {
+   "schicht": "Kronendach",
+   "von_m": 12.6,
+   "bis_m": 24.7,
+   "PAI_proxy": 1.56,
+   "deckung_draufsicht": 0.591,
+   "punkte_anteil": 0.354
+  }
+ ],
+ "licht": {
+  "senkrecht_mittel": 0.1212,
+  "senkrecht_p10": 0.0008,
+  "senkrecht_p90": 0.3555,
+  "sonnengang": {
+   "Tag-und-Nacht-Gleiche": {
+    "mittel": 0.0122,
+    "p10": 0.0001,
+    "p90": 0.0367,
+    "anteil_zellen_ueber_10pct": 0.007,
+    "sonnenstaende": 21
+   },
+   "Juni-Sonnenwende": {
+    "mittel": 0.0405,
+    "p10": 0.0033,
+    "p90": 0.1009,
+    "anteil_zellen_ueber_10pct": 0.102,
+    "sonnenstaende": 31
+   },
+   "Dezember-Sonnenwende": {
+    "mittel": 0.0001,
+    "p10": 0.0,
+    "p90": 0.0,
+    "anteil_zellen_ueber_10pct": 0.0,
+    "sonnenstaende": 13
+   }
+  }
+ },
+ "annahmen": {
+  "licht": "Transmission = Produkt (1 - Deckung) der durchquerten Voxel; Deckung = 2-cm-Punkte / (v/0,02)^2",
+  "vegetation_ab_m": 0.3,
+  "rand": "Plot periodisch fortgesetzt",
+  "grenze": "keine Scannerstandorte, keine Verdeckungskorrektur; oberes Kronendach unterschaetzt -> Luecken eher ueberschaetzt; Ergebnis haengt von der Voxelkante ab; Werte relativ deuten"
+ }
+}
