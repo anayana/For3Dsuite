@@ -213,7 +213,7 @@ def export_scene(sj):
             lv["bin_url"] = rel + "/" + lv["bin"].rsplit("/", 1)[-1]
             # Zusaetzliche Einfaerbungen: ITCD (berechnet) und Ground Truth
             # (manuell annotiert, z. B. SegmentedForests) -- falls erzeugt
-            for key in ("bin_itcd", "bin_gt"):
+            for key in ("bin_itcd", "bin_gt", "bin_strata", "bin_light"):
                 seg = lv.get(key)
                 if seg and (src / seg.rsplit("/", 1)[-1]).is_file():
                     lv[key + "_url"] = rel + "/" + seg.rsplit("/", 1)[-1]

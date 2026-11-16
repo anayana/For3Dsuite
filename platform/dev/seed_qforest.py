@@ -36,6 +36,7 @@ REPO = Path(__file__).resolve().parents[2]
 MEDIA = REPO / "platform" / "dev-data" / "media"
 sys.path.insert(0, str(REPO / "scripts"))
 from qforest_bench import is_reference                            # noqa: E402
+from qforest_profile import STRATA, STRATA_COLORS                 # noqa: E402
 LEVELS = [("lite", "Ausgedünnt", "cloud_lite.bin", 160_000),
           ("full", "Voll", "cloud.bin", 700_000)]
 GROUND = (118, 100, 82)
@@ -97,6 +98,15 @@ def thumbnail(dest, p, hag, rgb, inst, W=640, H=480):
     Image.fromarray(img).save(dest, quality=82)
 
 
+def light_color(t):
+    """Transmission 0,001..1 (log) -> dunkelblau .. tuerkis .. gelb."""
+    stops = np.array([[30, 40, 110], [40, 150, 160], [250, 220, 80]], float)
+    x = np.clip((np.log10(np.maximum(t, 1e-3)) + 3) / 3, 0, 1) * (len(stops) - 1)
+    i = np.minimum(x.astype(int), len(stops) - 2)
+    f = (x - i)[:, None]
+    return (stops[i] * (1 - f) + stops[i + 1] * f).astype(np.uint8)
+
+
 def start_view(lv):
     """Startkamera von Suedwesten, schraeg von oben: der ganze Bestand im Bild."""
     mn, mx = np.array(lv["bbox_min"]), np.array(lv["bbox_max"])
@@ -113,7 +123,8 @@ def main():
     ap.add_argument("sid")
     ap.add_argument("npz")
     ap.add_argument("gt")
-    ap.add_argument("report")
+    ap.add_argument("--report", help="Bericht aus qforest_bench.py eval (Detektion/ITCD)")
+    ap.add_argument("--profile", help="Praefix aus qforest_profile.py (Schichten, Licht)")
     ap.add_argument("--itcd")
     ap.add_argument("--title", required=True)
     ap.add_argument("--plot-info", required=True)
@@ -125,7 +136,22 @@ def main():
     d = np.load(args.npz)
     xyz = d["xyz"].astype(np.float64) + d["shift"]
     inst, sem, rgb = d["inst"], d["sem"], d["rgb"]
-    rep = json.loads(Path(args.report).read_text(encoding="utf-8"))
+    rep = json.loads(Path(args.report).read_text(encoding="utf-8")) if args.report else {}
+    prof = json.loads(Path(f"{args.profile}_kennwerte.json").read_text(encoding="utf-8")) \
+        if args.profile else None
+    strata_rgb = light_rgb = None
+    if prof:
+        L = np.load(f"{args.profile}_licht.npz")
+        hag = d["hag"]
+        st = np.searchsorted(L["strata_bounds"], hag, side="right")
+        strata_rgb = np.array(STRATA_COLORS, np.uint8)[np.clip(st, 0, len(STRATA_COLORS) - 1)]
+        lm, lo = L["licht"], L["lo"]                      # Tagesmittel TNG, 0,5-m-Zellen
+        ij = np.floor((d["xyz"][:, :2] - lo) / 0.5).astype(int)
+        ij[:, 0] = np.clip(ij[:, 0], 0, lm.shape[0] - 1)
+        ij[:, 1] = np.clip(ij[:, 1], 0, lm.shape[1] - 1)
+        light_rgb = np.full((len(hag), 3), 48, np.uint8)  # Vegetation gedaempft
+        low = hag < 1.5
+        light_rgb[low] = light_color(lm[ij[low, 0], ij[low, 1]])
     gtr = list(csv.DictReader(open(args.gt, encoding="utf-8")))
     lab = np.load(args.itcd, allow_pickle=True)["label"] if args.itcd else None
 
@@ -158,12 +184,18 @@ def main():
             sname = fname.replace(".bin", "_seg.bin")
             (dest / sname).write_bytes(p.tobytes() + seg_rgb[sel].tobytes())
             lv["bin_itcd"] = f"scenes/{args.sid}/{sname}"
+        for key, arr, suf in (("bin_strata", strata_rgb, "_strata.bin"),
+                              ("bin_light", light_rgb, "_licht.bin")):
+            if arr is not None and lid == "lite":      # nur leichte Stufe (Repo-Groesse)
+                nm = fname.replace(".bin", suf)
+                (dest / nm).write_bytes(p.tobytes() + arr[sel].tobytes())
+                lv[key] = f"scenes/{args.sid}/{nm}"
         levels.append(lv)
         print(f"  {label}: {len(p):,} Punkte")
         if lid == "full":
             thumbnail(dest / "thumb.jpg", local[sel], d["hag"][sel], gt_rgb[sel], inst[sel])
 
-    det = rep["detektion"].get(args.detector, {})
+    det = rep.get("detektion", {}).get(args.detector, {})
     per = rep.get("per_tree", {})
     markers = []
     for r in gtr:
@@ -199,18 +231,28 @@ def main():
             "xyz": [round(x, 3), round(y, 3), round(z0 + 1.3, 3)],
             "attributes": attrs, "demo": False})
 
-    ref = rep["referenz"]
+    ref = rep.get("referenz") or {"baeume_ab_10cm": len(markers)}
     it = rep.get("itcd")
     desc = (f"Terrestrischer Laserscan (RIEGL VZ) aus dem Instanz-Benchmark von "
             f"Q-ForestLab (Universitaet Gent). {args.plot_info} Jeder Punkt traegt "
-            f"die manuell vergebene Baum-ID: {ref['baeume_ab_10cm']} Referenzbaeume "
-            f"ab 10 cm BHD. Daran gemessen findet {args.detector} "
-            f"{det.get('treffer', 0)} ({det.get('recall', 0) * 100:.0f} %) bei "
-            f"{det.get('precision', 0) * 100:.0f} % Precision")
-    if it:
-        desc += (f"; die eigene Einzelbaum-Segmentierung trennt "
-                 f"{it['anteil_iou_ab_0_5'] * 100:.0f} % der Baeume mit IoU >= 0,5")
-    desc += ". Quelle: Zenodo 16875688, CC BY 4.0."
+            f"die manuell vergebene Baum-ID ({ref['baeume_ab_10cm']} Referenzbaeume "
+            f"ab 10 cm BHD).")
+    if det:
+        desc += (f" Daran gemessen findet {args.detector} "
+                 f"{det.get('treffer', 0)} ({det.get('recall', 0) * 100:.0f} %) bei "
+                 f"{det.get('precision', 0) * 100:.0f} % Precision")
+        if it:
+            desc += (f"; die eigene Einzelbaum-Segmentierung trennt "
+                     f"{it['anteil_iou_ab_0_5'] * 100:.0f} % der Baeume mit IoU >= 0,5")
+        desc += "."
+    if prof:
+        lt = prof["licht"]
+        desc += (f" Kronendach (H95) {prof['kronendach_H95_m']:.0f} m, PAI-Proxy "
+                 f"{prof['PAI_proxy_gesamt']:.1f}, Deckung "
+                 f"{prof['deckungsgrad_ueber_2m'] * 100:.0f} %; am Boden kommen senkrecht "
+                 f"{lt['senkrecht_mittel'] * 100:.1f} % des Lichts an (Schaetzung aus der "
+                 f"Punktwolke, ohne Verdeckungskorrektur).")
+    desc += " Quelle: Zenodo 16875688, CC BY 4.0."
     scene = {
         "id": args.sid, "title": args.title, "description": desc,
         "created": datetime.now(timezone.utc).isoformat(timespec="seconds"),
@@ -242,19 +284,30 @@ def main():
             "note": ("Einzelbäume = eigene Segmentierung (itcd_cloud.py). Gleiche Farbe "
                      "wie in der Ground Truth = Baum richtig getrennt; grau = nicht zugeordnet."),
         },
-        "validation": {
+        "validation": None if not det else {
             "recall": det.get("recall", 0), "precision": det.get("precision", 0),
             "pos_err_median_cm": det.get("lagefehler_median_cm"),
             "matched": det.get("treffer", 0), "reference_trees": ref["baeume_ab_10cm"],
-            "match_dist_m": rep["match_dist_m"],
+            "match_dist_m": rep.get("match_dist_m"),
             "method": (f"Detektor {args.detector}; Referenz = manuell segmentierte Bäume "
                        f"im Testgebiet ab 10 cm BHD (ohne messbaren BHD: ab 10 m Höhe)."
                        + (f" Einzelbaum-Segmentierung: mittlere IoU {it['mittlere_iou']:.2f}."
                           if it else "")),
         },
-        "benchmark": {k: v for k, v in rep.items() if k != "per_tree"},
+        "benchmark": {k: v for k, v in rep.items() if k != "per_tree"} or None,
+        "struktur": prof,
         "markers": markers,
     }
+    if prof:
+        scene["legend"]["items"] += (
+            [{"label": f"Schicht: {n}", "color": "rgb({},{},{})".format(*c)}
+             for (n, _), c in zip(STRATA, STRATA_COLORS)]
+            + [{"label": "Licht am Boden (Tagesmittel, Tag-und-Nacht-Gleiche): "
+                         "dunkelblau 0,1 % … gelb 100 %",
+                "color": "linear-gradient(90deg,rgb(30,40,110),rgb(40,150,160),rgb(250,220,80))"}])
+    if lab is None:
+        scene["legend"]["note"] = ("Schichten relativ zur Kronendachhöhe; Licht = Schätzung "
+                                   "aus der Punktwolke ohne Verdeckungskorrektur.")
     if args.lat is not None:
         scene["source"]["gps"] = {"lat": args.lat, "lon": args.lon}
     (dest / "scene.json").write_text(json.dumps(scene, ensure_ascii=False, indent=2),
