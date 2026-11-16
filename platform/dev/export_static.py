@@ -133,7 +133,7 @@ def export_html():
 
     # Statische Zusatzseiten (Benchmark, Rohdaten, Browser-Studio), 1:1 kopiert
     for extra in ("benchmark.html", "bench_dbh_results.csv",
-                  "bench_detection_results.csv", "create.html"):
+                  "bench_detection_results.csv", "create.html", "categories.json"):
         src = GALLERY / extra
         if src.exists():
             shutil.copyfile(src, OUT / extra)
