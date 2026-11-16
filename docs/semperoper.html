@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Semperoper aus Archivfotos &mdash; For3Dsuite</title>
+<title>Semperoper from archive photos &mdash; For3Dsuite</title>
 <style>
 :root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 body{margin:0}
@@ -166,33 +166,33 @@ button:focus-visible,a:focus-visible{outline:2px solid var(--cyan);outline-offse
 <canvas id="stage" tabindex="0" aria-label="3D-Ansicht der rekonstruierten Semperoper. Ziehen zum Drehen, Mausrad oder zwei Finger zum Zoomen."></canvas>
 
 <header class="head">
-  <p class="eyebrow">Semperoper Dresden · 20 Fotos · Oktober 2026</p>
-  <h1>Zwanzig Fotos, zurück an ihren Standort</h1>
-  <p class="lede">Historische Aufnahmen aus der Deutschen Fotothek, keine mit bekanntem Aufnahmeort. Jedes Foto hängt jetzt dort in der Luft, wo seine Kamera stand, aufgespannt im Winkel ihres Objektivs. Dahinter die Punktwolke, aus der die Standpunkte gerechnet wurden.</p>
+  <p class="eyebrow">Semperoper Dresden · 20 photos · October 2026</p>
+  <h1>Twenty photos, back in place</h1>
+  <p class="lede">Historical photographs from the Deutsche Fotothek, none with a known camera position. Every photo now hangs in the air where its camera stood, spread at the angle of its lens. Behind it, the point cloud from which the positions were computed.</p>
 </header>
 
 <section class="stats" aria-label="Kennzahlen">
   <dl class="figs">
-    <div><dt>verortet</dt><dd>20 / 20<small>Fotos</small></dd></div>
-    <div><dt>Punkte</dt><dd>7178<small>im Modell</small></dd></div>
+    <div><dt>verortet</dt><dd>20 / 20<small>Photos</small></dd></div>
+    <div><dt>Points</dt><dd>7178<small>in the model</small></dd></div>
     <div><dt>Fehlregistrierung</dt><dd>1<small>von zwanzig</small></dd></div>
-    <div><dt>Position</dt><dd>6,8 %<small>Median zur Referenz</small></dd></div>
-    <div><dt>Blickrichtung</dt><dd>2,1°<small>Median zur Referenz</small></dd></div>
+    <div><dt>Position</dt><dd>6,8 %<small>Median to reference</small></dd></div>
+    <div><dt>Blickrichtung</dt><dd>2,1°<small>Median to reference</small></dd></div>
     <div><dt>Rechenzeit</dt><dd>7 min<small>RTX 2000 Ada</small></dd></div>
   </dl>
-  <p class="how">DISK + LightGlue · pycolmap 4.2.1 · eine Kamera je Foto, Brennweite mitgeschätzt</p>
-  <p class="note">Punktwolke und Standpunkte aus dem Lauf vom 27. Oktober 2026 auf HistImage2021 (F. Maiwald, TU Dresden, <a href="https://doi.org/10.25532/OPARA-146" target="_blank" rel="noopener">DOI 10.25532/OPARA-146</a>, CC BY-SA 4.0). Fotos: SLUB Dresden / Deutsche Fotothek; der Datensatz bittet, sie nicht in sozialen Netzwerken zu teilen. Abweichung gemessen am mittleren Abstand der Referenzkameras zur Szenenmitte.</p>
+  <p class="how">DISK + LightGlue · pycolmap 4.2.1 · one camera per photo, focal length co-estimated</p>
+  <p class="note">Point cloud and positions from the run of 27 October 2026 on HistImage2021 (F. Maiwald, TU Dresden, <a href="https://doi.org/10.25532/OPARA-146" target="_blank" rel="noopener">DOI 10.25532/OPARA-146</a>, CC BY-SA 4.0). Photos: SLUB Dresden / Deutsche Fotothek; the dataset asks not to share them on social networks. Deviation measured relative to the mean distance of the reference cameras from the scene centre.</p>
 </section>
 
-<aside class="photos" id="photos" aria-label="Die zwanzig Fotos">
-  <h2>Die zwanzig Fotos</h2>
+<aside class="photos" id="photos" aria-label="The twenty photos">
+  <h2>The twenty photos</h2>
   <div class="rows" id="rows"></div>
-  <div class="pick" id="pick"><span>Ein Foto wählen: es wird in der Szene hervorgehoben und hier groß gezeigt.</span></div>
+  <div class="pick" id="pick"><span>Choose a photo: it is highlighted in the scene and shown large here.</span></div>
 </aside>
 
-<p class="hint">Ziehen zum Drehen · Mausrad zum Zoomen</p>
+<p class="hint">Drag to rotate · mouse wheel to zoom</p>
 <div id="tags"></div>
-<div class="fallback" id="fallback" hidden>Die 3D-Ansicht braucht WebGL und konnte hier nicht starten.</div>
+<div class="fallback" id="fallback" hidden>The 3D view needs WebGL and could not start here.</div>
 
 <script>
   setTimeout(function(){ if(!window.__sceneOK){ var f=document.getElementById('fallback'); if(f){ f.hidden=false; } } }, 9000);
@@ -348,17 +348,17 @@ function pick(i) {
   picked = i;
   frames.forEach((f, k) => f.row.setAttribute('aria-pressed', String(k === i)));
   if (i < 0) {
-    pickBox.innerHTML = '<span>Ein Foto wählen: es wird in der Szene hervorgehoben und hier groß gezeigt.</span>';
+    pickBox.innerHTML = '<span>Choose a photo: it is highlighted in the scene and shown large here.</span>';
     return;
   }
   const c = frames[i].c;
   pickBox.innerHTML =
     `<img src="${PHOTOS + c.img}" alt="${c.img}" loading="lazy">` +
     `<b>${c.img.replace(/\.jpg$/, '')}</b>` +
-    `<span>Brennweite ${c.f} px · ${c.links} Verknüpfungen zu anderen Fotos</span>` +
+    `<span>Brennweite ${c.f} px · ${c.links} Links to other photos</span>` +
     `<span>${frames[i].bad ? 'falsch platziert, über 25 % der Szenengröße' : 'richtig verortet'}` +
     `${c.sift ? ' · auch mit klassischem SIFT gefunden' : ''}</span>` +
-    `<a href="${c.pl}" target="_blank" rel="noopener">Eintrag in der Deutschen Fotothek</a>`;
+    `<a href="${c.pl}" target="_blank" rel="noopener">Entry in the Deutsche Fotothek</a>`;
 }
 
 /* ===================== Beschriftungen ===================== */

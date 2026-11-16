@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>Splat — 360Pano3D</title>
@@ -45,7 +45,7 @@
     #spin.active { background: rgba(126,231,135,.22); color: #d8ffdb;
       border-color: rgba(126,231,135,.4); }
     #spin[hidden] { display: none; }
-    /* ---- Marker (3D-verankerte Info-Punkte); Karte: marker-card.js ---- */
+    /* ---- Marker (3D-verankerte Info-Punkte); Map: marker-card.js ---- */
     #markers { position: absolute; inset: 0; z-index: 20; pointer-events: none; overflow: hidden; }
     .pin { position: absolute; transform: translate(-50%, -50%); pointer-events: auto;
       cursor: pointer; width: 34px; height: 34px; border-radius: 50%; display: grid;
@@ -70,15 +70,15 @@
   </div>
   <div id="topcenter">
     <div id="modeBar">
-      <button id="m-walk" class="active">Begehen</button>
-      <button id="m-orbit">Umkreisen</button>
+      <button id="m-walk" class="active">Walk</button>
+      <button id="m-orbit">Orbit</button>
     </div>
-    <button id="spin" title="Szene langsam drehen lassen (Vortragsmodus)">⟳ Drehen</button>
+    <button id="spin" title="Rotate the scene slowly (presentation mode)">⟳ Rotate</button>
   </div>
   <div id="note" hidden></div>
   <div id="help">
-    <b>Begehen:</b> Maus ziehen = umschauen · <b>W A S D</b> = gehen ·
-    <b>Q / E</b> = tiefer / höher · <b>Shift</b> = schneller
+    <b>Walk:</b> Drag mouse = look around · <b>W A S D</b> = gehen ·
+    <b>Q / E</b> = down / up · <b>Shift</b> = faster
   </div>
   <div id="err"></div>
   <div id="markers"></div>
@@ -97,14 +97,14 @@
     async function init() {
       if (!sid) { location.href = 'index.html'; return; }
       const r = await fetch('data/scene-' + encodeURIComponent(sid) + '.json');
-      if (!r.ok) return fail('Szene nicht gefunden');
+      if (!r.ok) return fail('Scene not found');
       const scene = await r.json();
       document.title = (scene.title || sid) + ' — 360Pano3D';
       document.getElementById('title').textContent = scene.title || sid;
 
       const sp = scene.splat || {};
       const url = sp.url || sp.splat_url;
-      if (!url) return fail('Diese Szene hat kein Splat-Modell (splat.url fehlt).');
+      if (!url) return fail('This scene has no splat model (splat.url missing).');
       if (sp.note) { const n = document.getElementById('note');
         n.textContent = sp.note; n.hidden = false; }
 
@@ -166,10 +166,10 @@
         viewer.start();
         window._viewer = viewer;          // Debug-/Test-Zugriff (Frame erzwingen)
       } catch (e) {
-        return fail('Splat-Modell konnte nicht geladen werden: ' + (e && e.message || e));
+        return fail('Splat model could not be loaded: ' + (e && e.message || e));
       }
 
-      // ---- eigene Steuerung: Begehen (First-Person) / Umkreisen --------------
+      // ---- eigene Steuerung: Walk (First-Person) / Orbit --------------
       const cam = viewer.camera;
       cam.up.copy(upv);
       const cv = viewer.renderer.domElement;   // frueh: updateMarkers braucht es
@@ -177,11 +177,11 @@
       let yaw = yaw0, pitch = pitch0;   // Start: stehend, Blick schraeg auf den Stumpf
       const pos = eye.clone();
       const step = Math.max(0.05, radius * 0.012);      // Schrittweite an Szenengroesse
-      // Umkreisen: Start-Ausrichtung optional aus scene.json (orbit_yaw/pitch) --
+      // Orbit: Start-Ausrichtung optional aus scene.json (orbit_yaw/pitch) --
       // so laesst sich der Orbit frontal auf eine Fassade drehen.
       let orbYaw = (sp.orbit_yaw != null) ? sp.orbit_yaw : 0;
       let orbPitch = (sp.orbit_pitch != null) ? sp.orbit_pitch : 0.35;
-      let orbR = radius * 1.8;   // Umkreisen
+      let orbR = radius * 1.8;   // Orbit
       // Auto-Rotation (Vortragsmodus), gleicher Parameter wie in scene.html:
       // ?autorotate=<Grad/s>, Standard aus, bei Bewegungsreduktion nie an.
       const SPIN_MAX = 10, SPIN_DEFAULT = 2;
@@ -386,7 +386,7 @@
       // ganze Objekt automatisch ein (kein hand-gesetzter Startblick noetig).
       if (sp.start_mode === 'orbit') setMode('orbit');
     }
-    init().catch(e => fail('Fehler: ' + (e && e.message || e)));
+    init().catch(e => fail('Error: ' + (e && e.message || e)));
   </script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Waldspaziergang — 360Pano3D</title>
+  <title>Forest walk — 360Pano3D</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { color-scheme: dark; }
@@ -53,10 +53,10 @@
 
   <div id="topbar">
     <a href="index.html">← Szenen</a>
-    <span id="title">Waldspaziergang</span>
+    <span id="title">Forest walk</span>
   </div>
 
-  <div id="hint">Klicken oder ▶ zum Loslaufen · Scrollen = vor/zurück gehen</div>
+  <div id="hint">Click or ▶ to start walking · scroll = walk forward/back</div>
 
   <div id="caption"></div>
 
@@ -124,8 +124,8 @@
     async function init() {
       let scene = {};
       try { scene = await fetchScene(sid); } catch (e) {}
-      document.title = (scene.title || 'Waldspaziergang') + ' — 360Pano3D';
-      document.getElementById('title').textContent = scene.title || 'Waldspaziergang';
+      document.title = (scene.title || 'Forest walk') + ' — 360Pano3D';
+      document.getElementById('title').textContent = scene.title || 'Forest walk';
       document.getElementById('caption').innerHTML = scene.description
         ? scene.description : '';
       v.src = scene.video_url || ('/media/scenes/' + sid + '/walk.mp4');
