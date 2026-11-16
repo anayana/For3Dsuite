@@ -19,6 +19,16 @@
     .cards { display: grid; gap: 20px;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
     /* Gliederung: Hauptgruppe > Unterkategorie (categories.json) */
+    .feature { display: flex; gap: 16px; align-items: center; margin: 14px 32px 4px;
+      padding: 14px 16px; border: 1px solid #2f81f7; border-radius: 12px; text-decoration: none;
+      color: inherit; background: linear-gradient(90deg, rgba(47,129,247,.14), rgba(47,129,247,.03)); }
+    .feature:hover { border-color: #58a6ff; }
+    .feature .th { display: flex; gap: 4px; flex: none; }
+    .feature .th img { width: 64px; height: 64px; object-fit: cover; border-radius: 6px; background: #0d1117; }
+    .feature .k { color: #7ee787; font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; }
+    .feature b { display: block; font-size: 16px; margin: 2px 0; color: #e6edf3; }
+    .feature span.t { color: #8b949e; font-size: 13px; }
+    @media (max-width: 700px) { .feature { margin: 12px 14px 4px; flex-direction: column; align-items: flex-start; } }
     #toc { padding: 4px 32px 0; display: flex; flex-wrap: wrap; gap: 6px 14px;
            font-size: 13px; }
     #toc a { color: #58a6ff; text-decoration: none; }
@@ -106,6 +116,11 @@
 
   <div id="map"></div>
   <div id="nocoord"></div>
+  <a class="feature" href="qforestlab/">
+    <div class="th"><img src="media/scenes/qforest-robsoncreek/thumb.jpg" alt=""><img src="media/scenes/qforest-litchfield/thumb.jpg" alt=""><img src="media/scenes/qforest-wytham/thumb.jpg" alt=""><img src="media/scenes/qforest-qsm-bra/thumb.jpg" alt=""></div>
+    <div><div class="k">Project page</div><b>Canopy structure and light — four forests from open Q-ForestLab data →</b>
+      <span class="t">Five interactive 3D scenes, vertical profiles, strata and light at the forest floor, ground vs. canopy scan, next step microclimate.</span></div>
+  </a>
   <div id="toc"></div>
   <div id="grid"></div>
   <div id="empty" hidden>No scenes published yet. &nbsp;</div>
