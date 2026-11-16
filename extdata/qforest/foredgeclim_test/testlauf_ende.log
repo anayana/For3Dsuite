@@ -4,4 +4,4 @@ Warning messages:
   for 'west     ——     east (m)' in 'mbcsToSbcs': - substituted for — (U+2014)
 2: In grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y,  :
   for 'west     ——     east (m)' in 'mbcsToSbcs': - substituted for — (U+2014)
-[1] "Total running time = 29.32 s"
+[1] "Total running time = 38.1 s"
