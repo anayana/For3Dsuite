@@ -376,13 +376,28 @@
       #validation.open > b:first-child::after, #cloudlegend.open > b::after {
         content: ' \25BE'; }
     }
+    /* Eingebettet: dieselbe kompakte Anordnung wie am Handy */
+    body.embed #lod { bottom: 10px; }
+    body.embed #coloring { bottom: 50px; right: 50%; transform: translateX(50%); }
+    body.embed #coloring button, body.embed #lod button { padding: 7px 11px; white-space: nowrap;
+        font-size: 12px; }
+    body.embed #validation, body.embed #cloudlegend { bottom: 92px; left: 10px;
+        max-width: calc(100vw - 20px); cursor: pointer; }
+    body.embed #validation:not(.open) .muted { display: none; }
+    body.embed #cloudlegend:not(.open) > :not(b) { display: none; }
+    body.embed #validation > b:first-child::after, body.embed #cloudlegend > b::after {
+        content: ' \25B8'; color: #8b949e; }
+    body.embed #validation.open > b:first-child::after, body.embed #cloudlegend.open > b::after {
+        content: ' \25BE'; }
+    /* Eingebettet (?embed=1, z. B. Projektseite): ohne Zurueck-Link und Titel */
+    body.embed #topbar > a, body.embed #title, body.embed #modes { display: none; }
   </style>
 </head>
 <body>
   <div id="panorama"></div>
   <div id="cloud"></div>
   <div id="topbar">
-    <a href="index.html">← Szenen</a>
+    <a href="index.html">← Scenes</a>
     <span id="title"></span>
     <button id="ctx-btn" hidden>ℹ Standort &amp; Kontext</button>
   </div>
@@ -390,7 +405,7 @@
   <div id="topcenter">
     <div id="modes">
       <button id="mode-pano" class="active">Panorama</button>
-      <button id="mode-3d" disabled>3D-Punktwolke</button>
+      <button id="mode-3d" disabled>3D point cloud</button>
     </div>
     <button id="spin" title="Rotate the scene slowly (presentation mode)">⟳ Rotate</button>
   </div>
@@ -468,6 +483,7 @@
     import { CloudViewer } from './cloudviewer.js';
     import { normalizeMarker, hasCardContent, markerIcon, openMarkerCard,
              mediaFigure, linkList, richText } from './marker-card.js';
+    if (new URLSearchParams(location.search).has('embed')) document.body.classList.add('embed');
     const sid = new URLSearchParams(location.search).get('id');
 
     // ---- Auto-Rotation (Vortragsmodus) ------------------------------------
@@ -1392,7 +1408,7 @@
         buildColoring(scene);
         btn3d.textContent = 'Loading 3D …';
         await initCloud(scene);
-        btn3d.textContent = '3D-Punktwolke';
+        btn3d.textContent = '3D point cloud';
         applySpin();
         return;
       }
@@ -1414,7 +1430,7 @@
           if (!cloud) {
             btn3d.textContent = 'Loading 3D …';
             await initCloud(scene);
-            btn3d.textContent = '3D-Punktwolke';
+            btn3d.textContent = '3D point cloud';
           }
           applySpin();
         };
