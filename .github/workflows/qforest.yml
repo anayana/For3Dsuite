@@ -1,0 +1,106 @@
+name: qforest
+
+# Q-ForestLab-Projekt (scripts/QFOREST_PROJEKT.md), Schritt 3: die Teilflaechen
+# "test" der Plots Wytham, Ofental und Litchfield aus Zenodo 16875688 (CC BY 4.0)
+# holen (Range-Request, nur dieses Mitglied des ZIP), Referenzbaeume, Struktur-
+# profil + Licht rechnen und je Plot eine Szene bauen. Eingecheckt werden nur
+# Ergebnisse (extdata/qforest/, docs/). Ausloeser: Aenderung an
+# .github/qforest-request.txt oder manuell.
+on:
+  push:
+    paths: [".github/qforest-request.txt"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: qforest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  plot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - plot: wytham
+            lat: "51.77"
+            geo: "--lat 51.77 --lon -1.34"
+            title: "Wytham Woods (England) — Laubwald, jeder Baum als Ground Truth (Q-ForestLab)"
+            info: "Testgebiet des Plots Wytham Woods (gemaessigter Laubwald, Oxfordshire, England)."
+          - plot: ofental
+            lat: "47.6"
+            geo: ""
+            title: "Ofental (Deutschland) — Nadelwald, jeder Baum als Ground Truth (Q-ForestLab)"
+            info: "Testgebiet des Plots Ofental (gemaessigter Nadelwald, Deutschland; Breite fuer den Sonnenstand geschaetzt 47,6 Grad)."
+          - plot: litchfield
+            lat: "-13.2"
+            geo: "--lat -13.2 --lon 130.8"
+            title: "Litchfield (Northern Territory) — tropische Savanne, jeder Baum als Ground Truth (Q-ForestLab)"
+            info: "Testgebiet des Plots Litchfield (tropische Savanne, TERN-SuperSite, Northern Territory, Australien)."
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: pip install numpy scipy pillow zipfile-deflate64
+      - name: Teilflaeche holen (Range-Request aus dem ZIP)
+        run: |
+          python - <<'PY'
+          import re, sys
+          sys.path.insert(0, "scripts")
+          import zipfile_deflate64 as zipfile
+          from zenodo_zip_pick import HttpFile
+          p = "${{ matrix.plot }}"
+          z = zipfile.ZipFile(HttpFile(f"https://zenodo.org/records/16875688/files/{p}.zip?download=1"))
+          h = [i for i in z.infolist() if re.search(rf"(^|/){p}_test\.ply$", i.filename)][0]
+          print(h.filename, round(h.file_size / 1e6), "MB", flush=True)
+          with z.open(h) as s, open("plot.ply", "wb") as f:
+              while (b := s.read(8 << 20)):
+                  f.write(b)
+          PY
+      - run: python scripts/qforest_bench.py prep plot.ply --out work/p.npz && rm plot.ply
+      - run: python scripts/qforest_bench.py gt work/p.npz --out extdata/qforest/${{ matrix.plot }}_test_referenz.csv
+      - run: python scripts/qforest_profile.py work/p.npz --lat ${{ matrix.lat }} --out extdata/qforest/${{ matrix.plot }}_test
+      - run: >
+          python platform/dev/seed_qforest.py qforest-${{ matrix.plot }} work/p.npz
+          extdata/qforest/${{ matrix.plot }}_test_referenz.csv
+          --profile extdata/qforest/${{ matrix.plot }}_test ${{ matrix.geo }}
+          --title "${{ matrix.title }}" --plot-info "${{ matrix.info }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: "qforest-${{ matrix.plot }}"
+          path: |
+            extdata/qforest/${{ matrix.plot }}_test_*
+            platform/dev-data/media/scenes/qforest-${{ matrix.plot }}
+          retention-days: 5
+          if-no-files-found: ignore
+
+  commit:
+    needs: plot
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: "${{ github.ref_name }}" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.13" }
+      - run: pip install pillow
+      - uses: actions/download-artifact@v4
+        with: { path: dl, merge-multiple: true }
+      - run: |
+          ls -R dl | head -40
+          cp -r dl/. .
+          for d in platform/dev-data/media/scenes/qforest-*/; do
+            sid=$(basename "$d")
+            [ "$sid" = "qforest-robsoncreek" ] && continue
+            [ -f "$d/scene.json" ] && python platform/dev/publish_scene.py "$sid"
+          done
+          git config user.name "github-actions[bot]"
+          git config user.email "41898699+github-actions[bot]@users.noreply.github.com"
+          git add extdata/qforest docs/data docs/media/scenes
+          git commit -m "Q-ForestLab: Wytham, Ofental, Litchfield (Struktur, Licht, Szenen)" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && exit 0; sleep $((i*5)); done; exit 1

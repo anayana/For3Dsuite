@@ -21,9 +21,12 @@ ersten offenen Punkt weitermachen.
 - [x] 1. Robson Creek als Szene (Detektion + ITCD gegen Ground Truth) — `qforest-robsoncreek`, PR #21
 - [x] 2. Strukturprofile + Schichten + Lichtkarte je Plot — `scripts/qforest_profile.py`
       (Robson Creek: PAI-Proxy 10,7, Licht senkrecht 1,1 %, stabil bei 0,1/0,2 m Voxel)
-- [ ] 3. Die drei übrigen Plots über GitHub Actions — `.github/workflows/qforest.yml`,
+- [ ] 3. **läuft** — Die drei übrigen Plots über GitHub Actions — `.github/workflows/qforest.yml`,
       ausgelöst durch Änderung an `.github/qforest-request.txt`; Ergebnisse landen in
-      `extdata/qforest/<plot>_*` und `docs/media/scenes/qforest-<plot>/`
+      `extdata/qforest/<plot>_*` und `docs/media/scenes/qforest-<plot>/`.
+      Prüfen: Actions-Tab → Workflow „qforest“; danach Kennwerte in
+      `extdata/qforest/<plot>_test_kennwerte.json`. Fehlschlag → Log lesen, Skript
+      fixen, `.github/qforest-request.txt` ändern und pushen.
 - [ ] 4. QSM-Szene Brasilien: Bodenscan vs. Boden + Kronenscan
 - [ ] 5. ForEdgeClim: Eingaben lesen, an Wytham laufen lassen, virtuelle Störung
       (ein Kronenbaum per Instanz-ID entfernt → Licht/Temperatur vorher/nachher)
