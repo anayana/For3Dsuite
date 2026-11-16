@@ -139,6 +139,11 @@ def export_html():
         if src.exists():
             shutil.copyfile(src, OUT / extra)
 
+    # Projektseiten in eigenen Ordnern (kurze Adresse, z. B. /qforestlab/)
+    for sub in ("qforestlab",):
+        if (GALLERY / sub).is_dir():
+            shutil.copytree(GALLERY / sub, OUT / sub, dirs_exist_ok=True)
+
 
 def export_scene(sj):
     """Eine Szene aus platform/dev-data nach docs/ (Medien + scene-<id>.json).
