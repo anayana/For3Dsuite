@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>360Pano3D — Szenen</title>
+  <title>360Pano3D — Scenes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -40,7 +40,7 @@
     .chip.d3 { color: #79c0ff; border: 1px solid #1f3d63; }
     .chip.walk { color: #f0b429; border: 1px solid #6b4f10; }
     .chip.tour { color: #7ee787; border: 1px solid #1f5c2e; }
-    /* Ansicht-Umschalter Raster | Karte */
+    /* Ansicht-Umschalter Raster | Map */
     #views { display: flex; gap: 0; margin-top: 14px; width: fit-content;
              border: 1px solid #30363d; border-radius: 9px; overflow: hidden; }
     #views button { background: none; border: none; color: #8b949e; cursor: pointer;
@@ -76,22 +76,22 @@
 </head>
 <body>
   <header>
-    <h1>360Pano3D — Szenen</h1>
-    <p>Selbst gehostete 360°-Panoramen aus terrestrischen Laserscans (E57) und
-       Fisheye-Aufnahmen. Marker in den Szenen verorten aus der Punktwolke
-       abgeleitete Inventurdaten.</p>
+    <h1>360Pano3D — Scenes</h1>
+    <p>Self-hosted 360° panoramas, point clouds and 3D scenes from terrestrial laser
+       scans (E57) and fisheye images. Markers in the scenes locate inventory data
+       derived from the point cloud.</p>
     <div id="views">
       <button id="v-grid" class="active">Raster</button>
-      <button id="v-map">Karte</button>
+      <button id="v-map">Map</button>
     </div>
-    <p style="margin:8px 0 0"><a href="create.html"><b>+ Eigene 360°-Szene erstellen</b></a> — im Browser, ohne Installation, nichts wird hochgeladen</p>
-    <p style="margin:8px 0 0"><a href="benchmark.html">→ Benchmarks gegen Ground Truth: Stammdetektion und BHD-Genauigkeit</a></p>
+    <p style="margin:8px 0 0"><a href="create.html"><b>+ Create your own 360° scene</b></a> — in the browser, no installation, nothing is uploaded</p>
+    <p style="margin:8px 0 0"><a href="benchmark.html">→ Benchmarks against ground truth: stem detection and DBH accuracy</a></p>
   </header>
 
   <div id="map"></div>
   <div id="nocoord"></div>
   <div id="grid"></div>
-  <div id="empty" hidden>Noch keine Szenen veröffentlicht. Im <a href="/admin/">Studio</a> Bilder hochladen.</div>
+  <div id="empty" hidden>No scenes published yet. Upload images in the <a href="/admin/">Studio</a>.</div>
 
   <footer>Open-Source-Stack: Hugin · Pannellum · Garage · Caddy — <a href="/admin/">Studio (Login)</a></footer>
 
@@ -110,7 +110,7 @@
       const located = scenes.filter(s => typeof s.lat === 'number' && typeof s.lon === 'number');
       const missing = scenes.length - located.length;
       document.getElementById('nocoord').textContent = missing
-        ? `${missing} von ${scenes.length} Szenen ohne hinterlegte Koordinate — nur im Raster sichtbar.`
+        ? `${missing} von ${scenes.length} Scenes without coordinates — shown in the grid only.`
         : '';
       if (!located.length || map) return;
       map = L.map('map', { scrollWheelZoom: false });
@@ -138,7 +138,7 @@
         html.href = pageFor(s);
         html.innerHTML =
           `${s.thumb_url ? `<img src="${s.thumb_url}" alt="" loading="lazy">` : ''}` +
-          `<div class="pb"><h3></h3><p></p><div class="open">Szene öffnen →</div></div>`;
+          `<div class="pb"><h3></h3><p></p><div class="open">Open scene →</div></div>`;
         html.querySelector('h3').textContent = s.title || s.id;
         html.querySelector('p').textContent = s.description || '';
         L.marker([s.lat, s.lon], { icon }).addTo(map).bindPopup(html, { closeButton: true });
@@ -183,14 +183,14 @@
             <p></p>
             <div class="meta">
               <span class="chip">${s.source_type || 'pano'}</span>
-              ${isWalk ? '<span class="chip walk">Waldspaziergang</span>' : ''}
+              ${isWalk ? '<span class="chip walk">Forest walk</span>' : ''}
               ${isTour ? '<span class="chip tour">Begehbare Tour</span>' : ''}
               ${s.has_3d && !isTour ? '<span class="chip d3">3D</span>' : ''}
               ${isTour ? '<span class="chip d3">LiDAR + RGB</span>' : ''}
               ${s.markers ? `<span class="chip markers">${s.markers} Marker</span>` : ''}
               <span class="chip">${(s.created || '').slice(0, 10)}</span>
             </div>
-            ${(s.datasets || []).length ? `<div class="datasets"><span class="dl">Daten:</span>${
+            ${(s.datasets || []).length ? `<div class="datasets"><span class="dl">Data:</span>${
               s.datasets.map(d => `<span class="ds">${d}</span>`).join('')}</div>` : ''}
           </div>`;
         a.querySelector('h2').textContent = s.title || s.id;

@@ -13,9 +13,9 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 // Klare, kraeftige Farben statt eines feinen Verlaufs, damit die Segmentierung
 // im Modell sofort erkennbar ist.
 const QSM_CLASSES = [
-  { name: 'Stamm', color: [155, 100, 60] },     // braun
-  { name: 'Ast', color: [235, 150, 55] },       // orange
-  { name: 'Zweig', color: [110, 205, 110] },    // gruen
+  { name: 'Stem', color: [155, 100, 60] },     // braun
+  { name: 'Branch', color: [235, 150, 55] },       // orange
+  { name: 'Twig', color: [110, 205, 110] },    // gruen
 ];
 const QSM_CLASS_IDX = (o) => (o <= 1 ? 0 : (o <= 3 ? 1 : 2));
 const QSM_CLASS_COLOR = (o) => QSM_CLASSES[QSM_CLASS_IDX(o)].color;
@@ -121,9 +121,9 @@ export class CloudViewer {
     if (this.onNavChange) this.onNavChange(mode, this.locked);
   }
 
-  // Auto-Rotation der Umkreisen-Ansicht, in Grad/s (0 = aus). Negativ dreht
+  // Auto-Rotation der Orbit-Ansicht, in Grad/s (0 = aus). Negativ dreht
   // andersherum. Wirkt nur im Orbit-Modus -- eine erzwungene Drehung beim
-  // Begehen waere unbrauchbar.
+  // Walk waere unbrauchbar.
   setAutoRotate(degPerSec) {
     this.autoRot = Number.isFinite(degPerSec) ? degPerSec : 0;
     this._idleSince = 0;      // sofort loslegen; die Ruhephase gilt nach Eingaben
@@ -283,7 +283,7 @@ export class CloudViewer {
       mid.addVectors(s, e).multiplyScalar(0.5);
       q.setFromUnitVectors(up, dir.normalize());
       // Mindestradius je Klasse, damit auch feine Zweige sichtbar bleiben
-      // (echte Radien sind teils <1 px). Reihenfolge Stamm > Ast > Zweig.
+      // (echte Radien sind teils <1 px). Reihenfolge Stamm > Ast > Twig.
       const o = O[i];
       const minR = o <= 1 ? 0.02 : (o <= 3 ? 0.012 : 0.008);
       const r = Math.max(R[i], minR);
@@ -303,7 +303,7 @@ export class CloudViewer {
     this.scene.add(this.qsm);
 
     // Zylinderdaten fuer das Anklicken behalten. ACHTUNG: die .bin verkettet
-    // MEHRERE Baeume eines Plots -> baumweite Summen (Stammlaenge, Kronenansatz)
+    // MEHRERE Baeume eines Plots -> baumweite Summen (Stammlaenge, Crown base height)
     // waeren hier falsch. Ganzbaum-QSM-Werte haengen je Baum am Marker
     // (QSM_Holzvolumen etc.). Hier nur Segment-Kennzahlen + ein Plot-Bodenniveau
     // fuer die relative Hoehe.
