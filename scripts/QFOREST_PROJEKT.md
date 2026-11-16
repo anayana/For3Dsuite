@@ -21,7 +21,7 @@ ersten offenen Punkt weitermachen.
 - [x] 1. Robson Creek als Szene (Detektion + ITCD gegen Ground Truth) — `qforest-robsoncreek`, PR #21
 - [x] 2. Strukturprofile + Schichten + Lichtkarte je Plot — `scripts/qforest_profile.py`
       (Robson Creek: PAI-Proxy 10,7, Licht senkrecht 1,1 %, stabil bei 0,1/0,2 m Voxel)
-- [ ] 3. **läuft** — Die drei übrigen Plots über GitHub Actions — `.github/workflows/qforest.yml`,
+- [x] 3. Die drei übrigen Plots über GitHub Actions — `.github/workflows/qforest.yml`,
       ausgelöst durch Änderung an `.github/qforest-request.txt`; Ergebnisse landen in
       `extdata/qforest/<plot>_*` und `docs/media/scenes/qforest-<plot>/`.
       Prüfen: Actions-Tab → Workflow „qforest“; danach Kennwerte in
@@ -37,7 +37,7 @@ ersten offenen Punkt weitermachen.
       (`Data/RMI_*.csv`): Struktur über die Zeit **und** Mikroklima, offen.
       Eingabe des Modells: Voxelgitter + DTM aus TLS-.las über
       `generate_DTM_grid_TLS()`; Antrieb: RMI-Wetter, Strahlung, Bodentemperatur.
-  - [ ] 5a. **läuft** — Testlauf in GitHub Actions (`.github/workflows/foredgeclim.yml`,
+  - [x] 5a. Testlauf läuft (29 s, Erfolg) — in GitHub Actions (`.github/workflows/foredgeclim.yml`,
         Auslöser `.github/foredgeclim-request.txt`); Ergebnis + Gitterstruktur in
         `extdata/qforest/foredgeclim_test/`
   - [ ] 5b. Virtuelle Störung: im Gontrode-Gitter Kronenvoxel entfernen (Lücke),
@@ -46,7 +46,17 @@ ersten offenen Punkt weitermachen.
         vergleichen (Deckung/Profil je Zeitpunkt ↔ gemessene Pufferung)
   - [ ] 5d. Eigene Q-ForestLab-Plots als Gitter einspeisen (Wytham zuerst; gleiche
         Wetterlage von Gontrode → reiner Struktureffekt)
-- [ ] 6. Vergleich der vier Plots (Profile übereinander, Kennzahlentabelle)
+- [ ] 6. Vergleich der vier Plots (Profile übereinander, Kennzahlentabelle). Zahlen da:
+
+  | Plot | Fläche m² | H95 m | PAI-Proxy | Deckung >2 m | Licht senkrecht |
+  |---|--:|--:|--:|--:|--:|
+  | Litchfield (Savanne) | 2000 | 17,3 | 2,1 | 41 % | 57,9 % |
+  | Wytham (Laubwald) | 2399 | 18,9 | 3,6 | 87 % | 12,1 % |
+  | Ofental (Nadelwald) | 518 | 15,5 | 19,2 | 96 % | 3,7 % |
+  | Robson Creek (Regenwald) | 509 | 20,5 | 10,7 | 98 % | 1,1 % |
+
+  Offen: PAI-Proxy absolut prüfen (Ofental 19 unplausibel hoch; Wytham: Aufnahme
+  belaubt oder unbelaubt?). Lage Ofental unbekannt (Breite 47,6° geschätzt).
 
 ## Methoden (Festlegungen)
 

@@ -39,10 +39,14 @@ Szene an). Auf dem Notebook liegt sie noch **nicht** in `platform/dev-data/` —
 nächsten Vollexport einmal zurückspielen, sonst fällt sie aus der Galerie:
 
 ```bash
-mkdir -p platform/dev-data/media/scenes/qforest-robsoncreek
-cp docs/media/scenes/qforest-robsoncreek/* platform/dev-data/media/scenes/qforest-robsoncreek/
-cp docs/data/scene-qforest-robsoncreek.json platform/dev-data/media/scenes/qforest-robsoncreek/scene.json
+for s in qforest-robsoncreek qforest-wytham qforest-ofental qforest-litchfield qforest-qsm-bra; do
+  mkdir -p platform/dev-data/media/scenes/$s
+  cp docs/media/scenes/$s/* platform/dev-data/media/scenes/$s/
+  cp docs/data/scene-$s.json platform/dev-data/media/scenes/$s/scene.json
+done
 ```
+Die vier `qforest-*`-Szenen außer Robson Creek fehlen noch in `publish.json` bzw. sind
+dort zu ergänzen, sonst nimmt sie der Vollexport heraus.
 
 (Alternativ neu bauen: Befehle in `scripts/BENCH_DETECTION.md`, Abschnitt Q-ForestLab.)
 
