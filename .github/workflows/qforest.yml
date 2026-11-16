@@ -33,9 +33,9 @@ jobs:
             info: "Testgebiet des Plots Wytham Woods (gemaessigter Laubwald, Oxfordshire, England)."
           - plot: ofental
             lat: "47.6"
-            geo: ""
-            title: "Ofental (Deutschland) — Nadelwald, jeder Baum als Ground Truth (Q-ForestLab)"
-            info: "Testgebiet des Plots Ofental (gemaessigter Nadelwald, Deutschland; Breite fuer den Sonnenstand geschaetzt 47,6 Grad)."
+            geo: "--lat 47.61 --lon 12.90"
+            title: "Ofental (Nationalpark Berchtesgaden) — Nadelwald, jeder Baum als Ground Truth (Q-ForestLab)"
+            info: "Testgebiet des Plots Ofental (dichter, steiler Nadelwald im Alpenraum; Ofental in Ramsau bei Berchtesgaden, Nationalpark Berchtesgaden; Kartenpunkt = Ortslage Ramsau, ungefaehr)."
           - plot: litchfield
             lat: "-13.2"
             geo: "--lat -13.2 --lon 130.8"

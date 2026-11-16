@@ -56,7 +56,8 @@ ersten offenen Punkt weitermachen.
   | Robson Creek (Regenwald) | 509 | 20,5 | 10,7 | 98 % | 1,1 % |
 
   Offen: PAI-Proxy absolut prüfen (Ofental 19 unplausibel hoch; Wytham: Aufnahme
-  belaubt oder unbelaubt?). Lage Ofental unbekannt (Breite 47,6° geschätzt).
+  belaubt oder unbelaubt?). Ofental = Tal in Ramsau bei Berchtesgaden (Nationalpark Berchtesgaden); Kartenpunkt
+  = Ortslage Ramsau 47,61/12,90 (ungefähr), genaue Plotkoordinaten nicht gefunden.
 
 ## Methoden (Festlegungen)
 
