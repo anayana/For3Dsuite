@@ -52,6 +52,12 @@
     .sc { display: block; background: var(--surface); border: 1px solid rgba(255,255,255,.12);
       border-radius: 12px; overflow: hidden; text-decoration: none; color: inherit; }
     .sc:hover { border-color: #58a6ff; }
+    .sc.on { border-color: #58a6ff; box-shadow: 0 0 0 2px rgba(88,166,255,.35); }
+    .viewer { margin: 8px 0 14px; }
+    .viewer iframe { width: 100%; height: min(72vh, 640px); border: 1px solid rgba(255,255,255,.12);
+      border-radius: 12px; background: #000; display: block; }
+    .vbar { display: flex; justify-content: space-between; gap: 10px; font-size: 13px;
+      color: var(--ink2); padding: 6px 2px 0; }
     .sc img { width: 100%; height: 150px; object-fit: cover; background: #0d1117; display: block; }
     .sc .b { padding: 10px 12px 12px; }
     .sc h3 { margin: 0 0 4px; font-size: 15px; color: var(--ink); }
@@ -60,6 +66,10 @@
     .sc .go { color: #58a6ff; font-size: 12.5px; margin-top: 6px; display: block; }
     nav.toc { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 13px; margin: 6px 0 0; }
     nav.toc a { text-decoration: none; }
+    @media (max-width: 700px) {
+      .hero h1 { font-size: 21px; } nav.toc { display: none; }
+      .viewer iframe { height: 68vh; } .kick { display: none; }
+    }
     .scenes a { display: inline-block; margin: 2px 12px 2px 0; font-size: 14px; }
   </style>
 </head>
@@ -69,19 +79,27 @@
     <div class="hero">
       <div class="kick">For3Dsuite · project page</div>
       <h1>Canopy structure and light from open terrestrial laser scans — four forests, one method</h1>
-      <p class="sub">Open TLS data from Q-ForestLab (Ghent University, CC BY 4.0): tropical savanna,
+      <p class="sub">Four forests from open Q-ForestLab laser scans (Ghent University, CC BY 4.0) — tropical savanna to tropical rainforest — as interactive 3D scenes, with one structural analysis for all: vertical profiles, strata and light at the forest floor.</p>
+      <nav class="toc"><a href="#scenes">3D scenes</a><a href="#about">About</a><a href="#compare">Comparison</a><a href="#profile">Profiles</a><a href="#light">Light</a><a href="#strata">Strata</a><a href="#qsm">Ground vs. canopy scan</a><a href="#trees">Single trees</a><a href="#micro">Microclimate</a><a href="#limits">Limitations</a></nav>
+    </div>
+    <h2 id="scenes">Explore in 3D</h2>
+    <p class="note">Pick a forest below; it loads here. Drag to rotate, pinch to zoom; colourings at
+      the bottom of the viewer: height · ground truth · single trees · strata · light.</p>
+    <div class="viewer" id="viewer">
+      <iframe id="vf" title="3D viewer" allow="fullscreen" loading="eager"></iframe>
+      <div class="vbar"><span id="vt"></span><a id="vfull" href="#" target="_blank" rel="noopener">Open full screen ↗</a></div>
+    </div>
+    <div class="cards" id="cards"></div>
+
+    <div class="tiles" id="tiles"></div>
+    <h2 id="about">About</h2>
+      <p >Open TLS data from Q-ForestLab (Ghent University, CC BY 4.0): tropical savanna,
         temperate deciduous forest, alpine conifer forest and tropical rainforest, every tree labelled
         by hand, plus a large old tropical tree scanned from the ground and from the canopy. All five
         are interactive 3D scenes; below, the same structural analysis for all plots — vertical
         profiles, strata and light at the forest floor — and the next step towards microclimate.</p>
-      <nav class="toc"><a href="#scenes">3D scenes</a><a href="#compare">Comparison</a><a href="#profile">Profiles</a><a href="#light">Light</a><a href="#strata">Strata</a><a href="#qsm">Ground vs. canopy scan</a><a href="#trees">Single trees</a><a href="#micro">Microclimate</a><a href="#limits">Limitations</a></nav>
-    </div>
-    <div class="tiles" id="tiles"></div>
 
-    <h2 id="scenes">Interactive 3D scenes</h2>
-    <p class="note">Each scene opens in the browser (no installation). Switch the colouring at the
-      bottom right: height · ground truth · single trees · strata · light at the ground.</p>
-    <div class="cards" id="cards"></div>
+
 
     <h2 id="compare">Key figures</h2>
     <div class="card"><table id="tbl"></table></div>
@@ -161,13 +179,24 @@ fetch('../qforest_compare.json', {cache: 'no-cache'}).then(r => r.json()).then(D
     ['+' + Qg.Astlaenge_m.toFixed(0) + ' %', 'branch length added by the canopy scan (large old tree)'],
     [pct(Rd.recall, 0), 'of reference trees found by 3DFin in the rainforest'],
   ].map(([b, l]) => `<div class="tile"><div class="big">${b}</div><div class="lab2">${l}</div></div>`).join('');
-  const scard = (href, img, title, kind, fact, dot) => `<a class="sc" href="${href}"><img src="${img}" alt="" loading="lazy"><div class="b">
+  const scard = (href, img, title, kind, fact, dot) => `<a class="sc" href="${href}" data-title="${esc(title)}"><img src="${img}" alt="" loading="lazy"><div class="b">
       <h3>${dot ? `<span class="dot" style="background:${dot}"></span>` : ''}${esc(title)}</h3><div class="k">${esc(kind)}</div>
-      <div class="f">${fact}</div><span class="go">Open 3D scene →</span></div></a>`;
+      <div class="f">${fact}</div><span class="go">Show in 3D ↑</span></div></a>`;
   document.getElementById('cards').innerHTML = P.map((p, i) => scard(`../scene.html?id=${p.scene}`, `../media/scenes/${p.scene}/thumb.jpg`, p.name, p.kind,
       `Canopy ${p.H95_m.toFixed(0)} m · cover ${pct(p.cover_2m, 0)} · light at ground ${pct(p.light_vertical)}`, COL[i])).join('')
     + scard('../scene.html?id=qforest-qsm-bra', '../media/scenes/qforest-qsm-bra/thumb.jpg', 'Large old tree, Brazil', 'Ground scan vs. ground + canopy scan, TreeQSM',
       `Canopy scan adds +${Qg.Astlaenge_m.toFixed(0)} % branch length, +${Qg.Aeste.toFixed(0)} % branches`, null);
+  const vf = document.getElementById('vf'), vt = document.getElementById('vt'), vfull = document.getElementById('vfull');
+  const show = (a, scroll) => {
+    document.querySelectorAll('.sc').forEach(x => x.classList.toggle('on', x === a));
+    const href = a.getAttribute('href');
+    vf.src = href + (href.includes('?') ? '&' : '?') + 'embed=1';
+    vfull.href = href; vt.textContent = a.dataset.title;
+    if (scroll) document.getElementById('viewer').scrollIntoView({behavior: 'smooth', block: 'start'});
+  };
+  document.querySelectorAll('.sc').forEach(a => a.addEventListener('click', e => { e.preventDefault(); show(a, true); }));
+  const first = document.querySelector('.sc[href*="robsoncreek"]') || document.querySelector('.sc');
+  if (first) show(first, false);
 
   // ---- Kennzahlen ----
   const rows = [
