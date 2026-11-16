@@ -15,8 +15,24 @@
     header h1 { margin: 0; font-size: 22px; font-weight: 650; }
     header p  { margin: 6px 0 0; color: #8b949e; font-size: 14px; max-width: 720px; }
     header a { color: #58a6ff; text-decoration: none; }
-    #grid { display: grid; gap: 20px; padding: 24px 32px 48px;
+    #grid { padding: 8px 32px 48px; }
+    .cards { display: grid; gap: 20px;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+    /* Gliederung: Hauptgruppe > Unterkategorie (categories.json) */
+    #toc { padding: 4px 32px 0; display: flex; flex-wrap: wrap; gap: 6px 14px;
+           font-size: 13px; }
+    #toc a { color: #58a6ff; text-decoration: none; }
+    #toc a.g { font-weight: 650; color: #e6edf3; }
+    .grp { margin-top: 30px; }
+    .grp > h2 { font-size: 21px; margin: 0; padding-bottom: 6px;
+                border-bottom: 1px solid #30363d; }
+    .grp > .gsub { color: #8b949e; font-size: 13.5px; margin: 6px 0 4px; }
+    .sub { margin-top: 22px; }
+    .sub > h3 { font-size: 16px; margin: 0 0 4px; color: #e6edf3; }
+    .sub > p { color: #8b949e; font-size: 13px; margin: 0 0 12px; max-width: 900px;
+               line-height: 1.45; }
+    .sub > h3 .n { color: #8b949e; font-weight: 400; font-size: 13px; }
+    @media (max-width: 700px) { #grid, #toc { padding-left: 14px; padding-right: 14px; } }
     .card { background: #161b22; border: 1px solid #30363d; border-radius: 12px;
             overflow: hidden; text-decoration: none; color: inherit;
             transition: border-color .15s, transform .15s; display: block; }
@@ -81,7 +97,7 @@
        scans (E57) and fisheye images. Markers in the scenes locate inventory data
        derived from the point cloud.</p>
     <div id="views">
-      <button id="v-grid" class="active">Raster</button>
+      <button id="v-grid" class="active">Grid</button>
       <button id="v-map">Map</button>
     </div>
     <p style="margin:8px 0 0"><a href="create.html"><b>+ Create your own 360° scene</b></a> — in the browser, no installation, nothing is uploaded</p>
@@ -90,6 +106,7 @@
 
   <div id="map"></div>
   <div id="nocoord"></div>
+  <div id="toc"></div>
   <div id="grid"></div>
   <div id="empty" hidden>No scenes published yet. Upload images in the <a href="/admin/">Studio</a>.</div>
 
@@ -170,7 +187,12 @@
       const grid = document.getElementById('grid');
       document.getElementById('empty').hidden = scenes.length > 0;
       grid.innerHTML = '';
-      for (const s of scenes) {
+      // Gliederung laden; fehlt sie, bleibt es beim flachen Raster
+      let cats = null;
+      try { cats = await (await fetch('categories.json', {cache: 'no-cache'})).json(); } catch (e) { cats = null; }
+      const byId = new Map(scenes.map(s => [s.id, s]));
+      const used = new Set();
+      const makeCard = (s) => {
         const a = document.createElement('a');
         a.className = 'card';
         const isWalk = s.kind === 'walk';
@@ -184,7 +206,7 @@
             <div class="meta">
               <span class="chip">${s.source_type || 'pano'}</span>
               ${isWalk ? '<span class="chip walk">Forest walk</span>' : ''}
-              ${isTour ? '<span class="chip tour">Begehbare Tour</span>' : ''}
+              ${isTour ? '<span class="chip tour">Walkable tour</span>' : ''}
               ${s.has_3d && !isTour ? '<span class="chip d3">3D</span>' : ''}
               ${isTour ? '<span class="chip d3">LiDAR + RGB</span>' : ''}
               ${s.markers ? `<span class="chip markers">${s.markers} Marker</span>` : ''}
@@ -195,7 +217,44 @@
           </div>`;
         a.querySelector('h2').textContent = s.title || s.id;
         a.querySelector('p').textContent = s.description || '';
-        grid.appendChild(a);
+        return a;
+      };
+      const toc = document.getElementById('toc');
+      const groups = (cats && cats.groups) || [];
+      for (const g of groups) {
+        const subs = (g.subs || []).map(sub => ({...sub, list: (sub.scenes || []).map(id => byId.get(id)).filter(Boolean)}))
+                                    .filter(sub => sub.list.length);
+        if (!subs.length) continue;
+        const sec = document.createElement('section');
+        sec.className = 'grp'; sec.id = 'g-' + g.id;
+        sec.innerHTML = '<h2></h2><div class="gsub"></div>';
+        sec.querySelector('h2').textContent = g.title;
+        sec.querySelector('.gsub').textContent = g.subtitle || '';
+        const tg = document.createElement('a'); tg.className = 'g'; tg.href = '#g-' + g.id;
+        tg.textContent = g.title; toc.appendChild(tg);
+        for (const sub of subs) {
+          const d = document.createElement('div');
+          d.className = 'sub'; d.id = 's-' + sub.id;
+          d.innerHTML = '<h3></h3><p></p><div class="cards"></div>';
+          d.querySelector('h3').textContent = sub.title + ' ';
+          const n = document.createElement('span'); n.className = 'n';
+          n.textContent = '(' + sub.list.length + ')'; d.querySelector('h3').appendChild(n);
+          d.querySelector('p').textContent = sub.text || '';
+          if (!sub.text) d.querySelector('p').remove();
+          sub.list.forEach(s => { used.add(s.id); d.querySelector('.cards').appendChild(makeCard(s)); });
+          sec.appendChild(d);
+          const ts = document.createElement('a'); ts.href = '#s-' + sub.id;
+          ts.textContent = sub.title.split(' — ')[0]; toc.appendChild(ts);
+        }
+        grid.appendChild(sec);
+      }
+      const rest = scenes.filter(s => !used.has(s.id));
+      if (rest.length) {
+        const sec = document.createElement('section');
+        sec.className = 'grp';
+        sec.innerHTML = groups.length ? '<h2>More</h2><div class="cards"></div>' : '<div class="cards"></div>';
+        rest.forEach(s => sec.querySelector('.cards').appendChild(makeCard(s)));
+        grid.appendChild(sec);
       }
       initViews(scenes);
     }
