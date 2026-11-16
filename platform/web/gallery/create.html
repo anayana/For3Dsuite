@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Eigene 360°-Szene erstellen — For3Dsuite</title>
+  <title>Create your own 360° scene — For3Dsuite</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css" />
   <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
@@ -57,18 +57,18 @@
 </head>
 <body>
   <header>
-    <a href="index.html">← Galerie</a>
-    <h1>Eigene 360°-Szene erstellen</h1>
+    <a href="index.html">← Gallery</a>
+    <h1>Create your own 360° scene</h1>
   </header>
   <main>
     <section id="start">
-      <p class="note">Wähle ein 360°-Foto (Seitenverhältnis 2:1, wie es 360°-Kameras und
-        Panorama-Apps liefern). Danach setzt du Marker mit Text, Bildern, Audio oder Video
-        und speicherst die fertige Szene als eine HTML-Datei. Die Datei läuft in jedem
-        Browser, auch offline, und lässt sich auf jede Webseite stellen.
-        <b>Alles bleibt auf deinem Gerät, nichts wird hochgeladen.</b></p>
-      <button class="primary big" id="pick-pano">360°-Foto wählen</button>
-      <button class="big" id="pick-scene">Gespeicherte Szene öffnen (.html)</button>
+      <p class="note">Choose a 360° photo (aspect ratio 2:1, as delivered by 360° cameras and
+        panorama apps). Then place markers with text, images, audio or video
+        and save the finished scene as a single HTML file. The file runs in any
+        browser, even offline, and can be put on any website.
+        <b>Everything stays on your device, nothing is uploaded.</b></p>
+      <button class="primary big" id="pick-pano">Choose 360° photo</button>
+      <button class="big" id="pick-scene">Open saved scene (.html)</button>
       <input class="file" type="file" id="f-pano" accept="image/jpeg,image/png,image/webp" />
       <input class="file" type="file" id="f-scene" accept=".html,text/html" />
       <div id="err"></div>
@@ -78,12 +78,12 @@
       <div id="pano"></div>
       <p id="hint"></p>
       <div class="row">
-        <button class="gold" id="add">+ Marker setzen</button>
-        <button class="primary" id="save">Szene speichern</button>
+        <button class="gold" id="add">+ Place marker</button>
+        <button class="primary" id="save">Save scene</button>
         <button id="new">Neu beginnen</button>
       </div>
-      <label for="s-title">Titel der Szene</label>
-      <input type="text" id="s-title" placeholder="z. B. Küche, Wohnung Familie M." />
+      <label for="s-title">Scene title</label>
+      <input type="text" id="s-title" placeholder="e.g. kitchen, family M.'s flat" />
       <label for="s-desc">Beschreibung</label>
       <input type="text" id="s-desc" placeholder="optional" />
       <div id="list"></div>
@@ -222,8 +222,8 @@
     function setAddMode(on) {
       addMode = on;
       $('pano').classList.toggle('adding', on);
-      $('add').textContent = on ? 'Abbrechen' : '+ Marker setzen';
-      $('hint').textContent = on ? 'Tippe in das Panorama, wo der Marker hin soll.' : '';
+      $('add').textContent = on ? 'Abbrechen' : '+ Place marker';
+      $('hint').textContent = on ? 'Tap in the panorama where the marker should go.' : '';
     }
     $('add').onclick = () => setAddMode(!addMode);
 
@@ -248,7 +248,7 @@
       const list = $('list'); list.replaceChildren();
       if (!scene.markers.length) {
         const p = document.createElement('p'); p.className = 'note';
-        p.textContent = 'Noch keine Marker. Tippe auf „+ Marker setzen" und dann ins Panorama.';
+        p.textContent = 'No markers yet. Tap "+ Place marker" and then into the panorama.';
         list.appendChild(p); return;
       }
       for (const m of scene.markers) {
@@ -256,9 +256,9 @@
         const h = document.createElement('h3');
         h.textContent = markerIcon(normalizeMarker(m), '💬') + ' ' + (m.title || m.id);
         card.appendChild(h);
-        const t = input('text', m.title, 'Titel', v => { m.title = v;
+        const t = input('text', m.title, 'Title', v => { m.title = v;
           h.textContent = markerIcon(normalizeMarker(m), '💬') + ' ' + (v || m.id); refreshHotSpot(m); });
-        card.append(field('Titel', t));
+        card.append(field('Title', t));
         card.append(field('Text (**fett**, *kursiv*, Leerzeile = neuer Absatz)',
           input('textarea', m.text, '', v => { m.text = v; })));
 
@@ -266,14 +266,14 @@
         const ml = document.createElement('div');
         (m.media || []).forEach((it, i) => {
           const row = document.createElement('div'); row.className = 'media-item';
-          const kind = { image: '🖼️ Bild', audio: '🔊 Audio', video: '🎬 Video' }[it.type] || it.type;
+          const kind = { image: '🖼️ Image', audio: '🔊 Audio', video: '🎬 Video' }[it.type] || it.type;
           const k = document.createElement('span'); k.textContent = kind;
-          row.append(k, input('text', it.caption, 'Bildunterschrift / Quelle', v => { it.caption = v; }),
+          row.append(k, input('text', it.caption, 'Caption / source', v => { it.caption = v; }),
             button('✕', 'danger', () => { m.media.splice(i, 1); dirty = true; refreshHotSpot(m); renderList(m.id); }));
           ml.appendChild(row);
         });
-        card.append(field('Bilder, Audio, Video', ml));
-        card.appendChild(button('+ Medium hinzufügen', '', () => { mediaTarget = m; $('f-media').click(); }));
+        card.append(field('Images, audio, video', ml));
+        card.appendChild(button('+ Add media', '', () => { mediaTarget = m; $('f-media').click(); }));
 
         // Link
         const ln = (m.links && m.links[0]) || { label: '', url: '' };
@@ -286,8 +286,8 @@
         row.append(
           button('Vorschau', '', () => openMarkerCard(m)),
           button('Im Panorama zeigen', '', () => viewer.lookAt(m.anchor.pitch, m.anchor.yaw, 75)),
-          button('Löschen', 'danger', () => {
-            if (!confirm(`Marker „${m.title || m.id}" löschen?`)) return;
+          button('Delete', 'danger', () => {
+            if (!confirm(`Delete marker "${m.title || m.id}"?`)) return;
             scene.markers = scene.markers.filter(x => x !== m); dirty = true;
             try { viewer.removeHotSpot(m.id); } catch (e) { /* schon weg */ }
             renderList();
@@ -303,10 +303,10 @@
       const m = mediaTarget; mediaTarget = null;
       if (!f || !m) return;
       const type = f.type.split('/')[0];
-      if (!['image', 'audio', 'video'].includes(type)) { alert('Nur Bilder, Audio oder Video.'); return; }
+      if (!['image', 'audio', 'video'].includes(type)) { alert('Images, audio or video only.'); return; }
       if (f.size > MAX_MEDIA) {
-        alert(`Die Datei ist ${(f.size / 1048576).toFixed(0)} MB groß; erlaubt sind 25 MB. `
-              + 'Kürze oder verkleinere sie vorher.');
+        alert(`The file is ${(f.size / 1048576).toFixed(0)} MB; 25 MB are allowed. `
+              + 'Trim or shrink it first.');
         return;
       }
       (m.media = m.media || []).push({ type, src: await readAs(f), caption: '' });
@@ -316,7 +316,7 @@
     $('s-title').oninput = (e) => { scene.title = e.target.value; dirty = true; };
     $('s-desc').oninput = (e) => { scene.description = e.target.value; dirty = true; };
     $('new').onclick = () => {
-      if (dirty && !confirm('Nicht gespeicherte Änderungen gehen verloren. Trotzdem neu beginnen?')) return;
+      if (dirty && !confirm('Unsaved changes will be lost. Start over anyway?')) return;
       if (viewer) { viewer.destroy(); viewer = null; }
       scene = null; dirty = false; setAddMode(false);
       $('editor').hidden = true; $('start').hidden = false;
@@ -344,11 +344,11 @@
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(() => URL.revokeObjectURL(a.href), 10000);
         dirty = false;
-        $('save-note').textContent = `Gespeichert als ${name}.html (${(html.length / 1048576).toFixed(1)} MB). `
-          + 'Zum Weiterbearbeiten später über „Gespeicherte Szene öffnen" laden.';
+        $('save-note').textContent = `Saved as ${name}.html (${(html.length / 1048576).toFixed(1)} MB). `
+          + 'To keep editing later, load it via "Open saved scene".';
       } catch (err) {
         alert('Speichern fehlgeschlagen: ' + (err.message || err));
-      } finally { btn.disabled = false; btn.textContent = 'Szene speichern'; }
+      } finally { btn.disabled = false; btn.textContent = 'Save scene'; }
     };
 
     function sceneHtml(s, pjs, pcss, mcSrc) {
@@ -358,12 +358,12 @@
       const data = JSON.stringify({ ...s, saved: new Date().toISOString() }).replace(/</g, '\\u003c');
       const noScript = (t) => t.replace(/<\/script/gi, '<\\/script');
       return `<!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="generator" content="For3Dsuite (https://github.com/anayana/For3Dsuite)" />
-<title>${esc(s.title || '360°-Szene')}</title>
+<title>${esc(s.title || '360° scene')}</title>
 <style>${pcss}</style>
 <style>
 html,body{margin:0;height:100%;background:#000;font-family:system-ui,-apple-system,sans-serif}
@@ -381,7 +381,7 @@ html,body{margin:0;height:100%;background:#000;font-family:system-ui,-apple-syst
 <body>
 <div id="pano"></div>
 <div id="bar"></div>
-<div id="by">Erstellt mit <a href="https://github.com/anayana/For3Dsuite" target="_blank" rel="noopener">For3Dsuite</a></div>
+<div id="by">Created with <a href="https://github.com/anayana/For3Dsuite" target="_blank" rel="noopener">For3Dsuite</a></div>
 <script type="application/json" id="scene-data">${data}<\/script>
 <script>${noScript(pjs)}<\/script>
 <script>${noScript(mc)}<\/script>

@@ -1,8 +1,8 @@
 <!doctype html>
-<html lang="de">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Benchmarks gegen Ground Truth — 360Pano3D</title>
+  <title>Benchmarks against ground truth — 360Pano3D</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root { color-scheme: dark; }
@@ -34,173 +34,180 @@
 </head>
 <body>
   <div class="wrap">
-    <a class="back" href="index.html">← Szenen</a>
-    <h1>Benchmarks gegen Ground Truth</h1>
-    <p class="sub">Zwei Fragen, zwei Datensätze mit echter Wahrheit:
-      <b>Findet die Kette die Bäume?</b> (semantisch gelabelte Plot-Wolken,
-      Wienerwald) und <b>wie genau misst sie den BHD?</b> (Einzelbäume mit
-      unabhängiger Feld-Inventur).</p>
-
-    <h1 style="font-size:18px;margin-top:30px">I. Stammdetektion gegen semantische Ground Truth</h1>
-    <p class="sub">Datensatz <a href="https://doi.org/10.5281/zenodo.17396681">SegmentedForests</a>
-      (MIT): zwei TLS-Plots aus dem Wienerwald, in denen <b>jeder Punkt manuell
-      klassiert</b> ist — Stamm, Äste, Boden, Strauch, liegendes Totholz, Steine,
-      Pfähle. Referenz sind die als Stamm gelabelten Punkte, geclustert.</p>
-
-    <h2>plot_06 — Rotbuche, Riegl VZ-2000i, 68 Referenzstämme</h2>
+    <a class="back" href="index.html">← Scenes</a>
+    <h1>Benchmarks against ground truth</h1>
+    <p class="sub">Two questions, datasets with real truth:
+      <b>Does the chain find the trees?</b> (point clouds labelled per point or per tree:
+      Vienna Woods, Robson Creek) and <b>how accurately does it measure DBH?</b>
+      (single trees with an independent field inventory).</p>
+    <h1 style="font-size:18px;margin-top:30px">I. Stem detection against ground truth</h1>
+    <p class="sub">Dataset <a href="https://doi.org/10.5281/zenodo.17396681">SegmentedForests</a>
+      (MIT): two TLS plots from the Vienna Woods in which <b>every point is manually
+      classified</b> — stem, branches, ground, shrub, lying deadwood, stones,
+      poles. The reference is the clustered stem-labelled points.</p>
+    <h2>plot_06 — European beech, Riegl VZ-2000i, 68 reference stems</h2>
     <div class="card">
       <table>
-        <thead><tr><th>Verfahren</th><th></th><th>Detektionen</th><th>Recall</th><th>Precision</th></tr></thead>
+        <thead><tr><th>Method</th><th></th><th>Detections</th><th>Recall</th><th>Precision</th></tr></thead>
         <tbody>
-          <tr><td>Baseline (numpy)</td><td class="note">Python</td><td>97</td><td>60,3 %</td><td class="fail">42,3 %</td></tr>
-          <tr><td>Baseline + Schaftkontrolle</td><td class="note">Python</td><td>55</td><td>57,4 %</td><td>70,9 %</td></tr>
-          <tr><td>lidR-Eigenbau</td><td class="note">R</td><td>98</td><td>66,2 %</td><td class="fail">45,9 %</td></tr>
-          <tr><td>CspStandSegmentation</td><td class="note">R</td><td>141</td><td>57,4 %</td><td class="fail">27,7 %</td></tr>
-          <tr class="mae"><td>3DFin <span class="pill">Konfiguration der Autoren</span></td><td class="note">Python</td><td>70</td><td class="gt">98,5 %</td><td class="gt">95,7 %</td></tr>
+          <tr><td>Baseline (numpy)</td><td class="note">Python</td><td>97</td><td>60.3 %</td><td class="fail">42.3 %</td></tr>
+          <tr><td>Baseline + stem continuity check</td><td class="note">Python</td><td>55</td><td>57.4 %</td><td>70.9 %</td></tr>
+          <tr><td>Custom lidR workflow</td><td class="note">R</td><td>98</td><td>66.2 %</td><td class="fail">45.9 %</td></tr>
+          <tr><td>CspStandSegmentation</td><td class="note">R</td><td>141</td><td>57.4 %</td><td class="fail">27.7 %</td></tr>
+          <tr class="mae"><td>3DFin <span class="pill">authors' configuration</span></td><td class="note">Python</td><td>70</td><td class="gt">98.5 %</td><td class="gt">95.7 %</td></tr>
         </tbody>
       </table>
     </div>
-
-    <h2>plot_07 — Fichten-Mischbestand, Riegl VZ-400i, 128 Referenzstämme</h2>
+    <h2>plot_07 — spruce-dominated mixed stand, Riegl VZ-400i, 128 reference stems</h2>
     <div class="card">
       <table>
-        <thead><tr><th>Verfahren</th><th></th><th>Detektionen</th><th>Recall</th><th>Precision</th></tr></thead>
+        <thead><tr><th>Method</th><th></th><th>Detections</th><th>Recall</th><th>Precision</th></tr></thead>
         <tbody>
-          <tr><td>Baseline (numpy)</td><td class="note">Python</td><td>59</td><td class="fail">34,4 %</td><td>74,6 %</td></tr>
-          <tr class="mae"><td>3DFin <span class="pill">Konfiguration der Autoren</span></td><td class="note">Python</td><td>121</td><td class="gt">94,5 %</td><td class="gt">100,0 %</td></tr>
+          <tr><td>Baseline (numpy)</td><td class="note">Python</td><td>59</td><td class="fail">34.4 %</td><td>74.6 %</td></tr>
+          <tr class="mae"><td>3DFin <span class="pill">authors' configuration</span></td><td class="note">Python</td><td>121</td><td class="gt">94.5 %</td><td class="gt">100.0 %</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="note">Treffer = Detektion höchstens 0,6 m von einem Referenzstamm.
-      Methodik: <a href="https://github.com/anayana/For3Dsuite/blob/main/scripts/BENCH_DETECTION.md">BENCH_DETECTION.md</a></p>
-
-    <h2>Worauf die Fehlalarme sitzen</h2>
-    <p>Weil der Datensatz auch die Nicht-Baum-Klassen labelt, steht hier nicht
-      „vermutlich Totholz", sondern was es war (Baseline auf plot_06, 56 Fehlalarme):</p>
+    <h2>Robson Creek — tropical rainforest, RIEGL VZ, 52 reference trees (Q-ForestLab)</h2>
+    <p>Dataset <a href="https://doi.org/10.5281/zenodo.16875688">TLS forest instance segmentation benchmark</a>
+      (Cherlet et al. 2026, CC BY 4.0): here <b>every point carries its tree ID</b>, so the
+      single-tree segmentation can be measured as well. Test area 20 m × 25 m; reference =
+      trees with the stem inside the area and DBH ≥ 10 cm (without measurable DBH because of
+      buttresses or lean: ≥ 10 m height).</p>
     <div class="card">
       <table>
-        <thead><tr><th>Klasse</th><th>Anzahl</th></tr></thead>
+        <thead><tr><th>Method</th><th></th><th>Detections</th><th>Recall</th><th>Precision</th></tr></thead>
         <tbody>
-          <tr><td>Strauch / Bodenvegetation</td><td>28</td></tr>
-          <tr><td>niedrige Vegetation / liegendes Totholz</td><td>10</td></tr>
-          <tr><td>Äste + Blätter</td><td>10</td></tr>
-          <tr><td>Nicht-Vegetation, aufrecht in Brusthöhe (Pfahl/Person)</td><td>3</td></tr>
-          <tr><td>dünner Baum / Zweig</td><td>3</td></tr>
+          <tr><td>Baseline (numpy)</td><td class="note">Python</td><td>98</td><td class="fail">25.0 %</td><td class="fail">52.0 %</td></tr>
+          <tr class="mae"><td>3DFin <span class="pill">plot_06 configuration, max. diameter 2.5 m</span></td><td class="note">Python</td><td>141</td><td class="gt">86.5 %</td><td class="gt">84.4 %</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="note">Die Zuordnung Zahl → Klassenname ist <b>abgeleitet, nicht dokumentiert</b>:
-      weder Datensatz noch Aufsatz enthalten eine Tabelle. Sie stammt aus einer
-      Geometrie-Analyse (Höhe über Boden, Clusterzahl und -radius im Brusthöhen-Band).
-      Dass Klasse 3 auf beiden Plots unabhängig 68 bzw. 128 Stammquerschnitte ergibt —
-      gegen ~69 bzw. ~128 im Aufsatz genannte Bäume — stützt sie.</p>
-
-    <h2>Befund</h2>
+    <p class="note">3DFin finds the stems but returns a diameter for only 6 of 155. The suite's
+      own single-tree segmentation (ITCD, shortest paths, seeded with the 3DFin stems) reaches
+      IoU ≥ 0.5 for only 25 % of the reference trees (mean IoU 0.40): in the interlocking
+      rainforest canopy the crowns are not separated. Scene:
+      <a href="scene.html?id=qforest-robsoncreek">qforest-robsoncreek</a>.</p>
+    <p class="note">Match = detection at most 0.6 m from a reference stem.
+      Methods: <a href="https://github.com/anayana/For3Dsuite/blob/main/scripts/BENCH_DETECTION.md">BENCH_DETECTION.md</a></p>
+    <h2>What the false alarms are</h2>
+    <p>Because the dataset also labels the non-tree classes, we can say what each false alarm
+      actually was instead of "probably deadwood" (baseline on plot_06, 56 false alarms):</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>Class</th><th>Count</th></tr></thead>
+        <tbody>
+          <tr><td>Shrub / ground vegetation</td><td>28</td></tr>
+          <tr><td>Low vegetation / lying deadwood</td><td>10</td></tr>
+          <tr><td>Branches + leaves</td><td>10</td></tr>
+          <tr><td>Non-vegetation, upright at breast height (pole/person)</td><td>3</td></tr>
+          <tr><td>Thin tree / twig</td><td>3</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">The mapping number → class name is <b>derived, not documented</b>:
+      neither dataset nor paper contains a table. It comes from a geometric analysis
+      (height above ground, number and radius of clusters in the breast-height band).
+      That class 3 independently yields 68 and 128 stem cross-sections on the two plots —
+      against ~69 and ~128 trees named in the paper — supports it.</p>
+    <h2>Findings</h2>
     <ul>
-      <li><b>3DFin ist auf plotweiten TLS-Wolken deutlich überlegen</b> und über
-        beide Plots stabil: 67 von 68 bzw. 121 von 128 Stämmen, im zweiten Fall
-        ohne einen einzigen Fehlalarm. Die eigene numpy-Baseline und der
-        lidR-Eigenbau produzieren mehr Fehlalarme als Treffer.</li>
-      <li><b>Die Schaftkontrolle wirkt.</b> Der Filter prüft, ob sich der Stamm über
-        der Brusthöhe fortsetzt: Precision 42,3 → 70,9 %, 40 von 56 Fehlalarmen
-        entfallen, Kosten 2 echte Bäume. Die verbleibenden Fehlalarme sind
-        überwiegend <b>Äste</b> — aufrechte Strukturen, gegen die dieses Kriterium
-        prinzipiell nicht hilft.</li>
-      <li><b>Csp fairerweise:</b> es ist primär eine Segmentierung, kein Stammdetektor.
-        Die niedrige Precision heißt, dass es viele Nicht-Baum-Objekte als eigene
-        Segmente führt. Die mitgelieferte Spalte <code>quality_flag</code> trennt nicht
-        (139 von 141 Detektionen tragen denselben Wert).</li>
+      <li><b>3DFin is clearly superior on plot-wide TLS clouds</b> and stable across
+        both plots: 67 of 68 and 121 of 128 stems, the latter without a single false
+        alarm. The suite's own numpy baseline and the custom lidR workflow produce more
+        false alarms than hits. In the tropical rainforest (Robson Creek) 3DFin loses
+        8–12 points of recall and 11–16 points of precision.</li>
+      <li><b>The stem continuity check works.</b> The filter tests whether the stem
+        continues above breast height: precision 42.3 → 70.9 %, 40 of 56 false alarms
+        removed, at the cost of 2 real trees. The remaining false alarms are mostly
+        <b>branches</b> — upright structures against which this criterion cannot help
+        in principle.</li>
+      <li><b>To be fair to Csp:</b> it is primarily a segmentation, not a stem detector.
+        The low precision means it keeps many non-tree objects as separate segments.
+        The supplied column <code>quality_flag</code> does not separate them
+        (139 of 141 detections carry the same value).</li>
     </ul>
-
-    <h2>Reichweite — und wo sie endet</h2>
-    <p>Diese Zahlen gelten für <b>plotweite TLS-Wolken mit brauchbarer
-      Umfangsabdeckung</b>. Sie übertragen sich nicht:</p>
+    <h2>Scope — and where it ends</h2>
+    <p>These numbers apply to <b>plot-wide TLS clouds with adequate stem
+      circumference coverage</b>. They do not transfer:</p>
     <div class="card">
       <table>
-        <thead><tr><th>Wolke</th><th>Bogen Median</th><th>≥ 202°</th><th>Punkte je BH-Scheibe</th></tr></thead>
+        <thead><tr><th>Cloud</th><th>Median arc</th><th>≥ 202°</th><th>Points per BH slice</th></tr></thead>
         <tbody>
-          <tr><td>plot_06 Buche</td><td>360°</td><td>86 %</td><td>4 604</td></tr>
-          <tr><td>plot_07 Fichte</td><td>280°</td><td>88 %</td><td>3 263</td></tr>
-          <tr><td>Renon (4 verschmolzene Standpunkte)</td><td class="fail">180°</td><td class="fail">28 %</td><td class="fail">223</td></tr>
+          <tr><td>plot_06 beech</td><td>360°</td><td>86 %</td><td>4,604</td></tr>
+          <tr><td>plot_07 spruce</td><td>280°</td><td>88 %</td><td>3,263</td></tr>
+          <tr><td>Renon (4 merged scan positions)</td><td class="fail">180°</td><td class="fail">28 %</td><td class="fail">223</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="note">3DFin fordert per Voreinstellung 9 von 16 Sektoren = 202°
-      Umfangsabdeckung. Am Renon-Bestand erfüllen das 28 % der Stämme; dort gibt
-      3DFin nur 8 von 37 Detektionen einen Durchmesser. Ein Durchlauf über
-      <code>res_cloth</code> = 0,45/0,70/1,00/1,50 ändert daran nichts — der Engpass ist
-      die Abdeckung, nicht die Konfiguration. <b>Die Weigerung ist korrektes
-      Verhalten</b>, die Daten tragen dort keinen Durchmesser. Kehrseite: unsere
-      eigenen Verfahren liefern an genau diesen Stämmen trotzdem Zahlen, die dann
-      auf 180°-Bögen ruhen.</p>
-
-    <h1 style="font-size:18px;margin-top:38px">II. BHD-Genauigkeit gegen Feld-Inventur</h1>
-    <p class="sub">Wie genau schätzen verschiedene TLS-Verfahren den Brusthöhen­durchmesser?
-      Dieselben dichten Einzelbaum-Wolken (SYSSIFOSS), verglichen gegen die
-      <b>unabhängige Feld-Inventur</b>.</p>
-
-    <h2>Ergebnis (cm)</h2>
+    <p class="note">By default 3DFin requires 9 of 16 sectors = 202° circumference
+      coverage. At the Renon stand 28 % of the stems meet this; there 3DFin gives
+      only 8 of 37 detections a diameter. A sweep over
+      <code>res_cloth</code> = 0.45/0.70/1.00/1.50 changes nothing — the bottleneck is
+      coverage, not configuration. <b>The refusal is correct behaviour</b>: the data do not
+      support a diameter there. The flip side: our own methods still return numbers for
+      exactly these stems, which then rest on 180° arcs.</p>
+    <h1 style="font-size:18px;margin-top:38px">II. DBH accuracy against a field inventory</h1>
+    <p class="sub">How accurately do different TLS methods estimate diameter at breast height?
+      The same dense single-tree clouds (SYSSIFOSS), compared against the
+      <b>independent field inventory</b>.</p>
+    <h2>Result (cm)</h2>
     <div class="card">
       <table>
         <thead><tr>
-          <th>Baum</th><th>Art</th><th>Feld</th>
-          <th>Baseline</th><th>QSM-Holz</th><th>3DFin</th><th>Csp</th>
+          <th>Tree</th><th>Species</th><th>Field</th>
+          <th>Baseline</th><th>QSM wood</th><th>3DFin</th><th>Csp</th>
         </tr></thead>
         <tbody>
-          <tr><td>FagSyl_BR05</td><td>Buche</td><td class="gt">61,7</td><td>58,2</td><td class="best">59,5</td><td>51,9</td><td>67,7</td></tr>
-          <tr><td>PinSyl_KA09</td><td>Kiefer</td><td class="gt">49,7</td><td>45,1</td><td class="best">45,8</td><td>44,5</td><td>44,9</td></tr>
-          <tr><td>PinSyl_KA10</td><td>Kiefer</td><td class="gt">35,0</td><td>49,3</td><td>50,8</td><td>46,1</td><td>49,9</td></tr>
-          <tr><td>QueRub_KA09</td><td>Roteiche</td><td class="gt">11,1</td><td class="fail">228 ✗</td><td class="fail">91,8 ✗</td><td class="fail">—</td><td class="fail">—</td></tr>
-          <tr><td>QueRub_KA11</td><td>Roteiche</td><td class="gt">34,7</td><td>35,5</td><td class="best">33,8</td><td>29,5</td><td>22,4</td></tr>
-          <tr class="mae"><td>MAE</td><td class="note">ohne 11-cm-Jungbaum</td><td></td><td>5,8</td><td class="best">5,7</td><td>7,8</td><td>9,5</td></tr>
+          <tr><td>FagSyl_BR05</td><td>Beech</td><td class="gt">61.7</td><td>58.2</td><td class="best">59.5</td><td>51.9</td><td>67.7</td></tr>
+          <tr><td>PinSyl_KA09</td><td>Pine</td><td class="gt">49.7</td><td>45.1</td><td class="best">45.8</td><td>44.5</td><td>44.9</td></tr>
+          <tr><td>PinSyl_KA10</td><td>Pine</td><td class="gt">35.0</td><td>49.3</td><td>50.8</td><td>46.1</td><td>49.9</td></tr>
+          <tr><td>QueRub_KA09</td><td>Red oak</td><td class="gt">11.1</td><td class="fail">228 ✗</td><td class="fail">91.8 ✗</td><td class="fail">—</td><td class="fail">—</td></tr>
+          <tr><td>QueRub_KA11</td><td>Red oak</td><td class="gt">34.7</td><td>35.5</td><td class="best">33.8</td><td>29.5</td><td>22.4</td></tr>
+          <tr class="mae"><td>MAE</td><td class="note">without the 11 cm sapling</td><td></td><td>5.8</td><td class="best">5.7</td><td>7.8</td><td>9.5</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="note">MAE = mittlerer absoluter Fehler. <a href="bench_dbh_results.csv">Rohdaten BHD (CSV)</a> · <a href="bench_detection_results.csv">Rohdaten Detektion (CSV)</a> ·
-      Methodik &amp; Setup: <a href="https://github.com/anayana/For3Dsuite/blob/main/scripts/BENCH_DBH.md">BENCH_DBH.md</a></p>
-
-    <h2>Methoden</h2>
+    <p class="note">MAE = mean absolute error. <a href="bench_dbh_results.csv">Raw data DBH (CSV)</a> · <a href="bench_detection_results.csv">Raw data detection (CSV)</a> ·
+      Methods &amp; setup: <a href="https://github.com/anayana/For3Dsuite/blob/main/scripts/BENCH_DBH.md">BENCH_DBH.md</a></p>
+    <h2>Methods</h2>
     <ul>
-      <li><b>Baseline</b> <span class="pill">Python</span> — numpy-Kreisfit an der Brusthöhen-Scheibe, <b>laubbelaubte</b> ganze Wolke.</li>
-      <li><b>QSM-Holz</b> <span class="pill">Python</span> — derselbe Fit, aber nur auf <b>Holzpunkten</b> (Classification 0, SYSSIFOSS-Ground-Truth). Das ist per Definition das QSM-BHD (2·Median-Stammradius bei 1,3 m).</li>
-      <li><b>3DFin</b> <span class="pill">Python</span> — <a href="https://github.com/3DFin/3DFin">3DFin</a>, auf Basis der dendromatics-Bibliothek.</li>
-      <li><b>Csp</b> <span class="pill">R</span> — <a href="https://github.com/JulFrey/CspStandSegmentation">CspStandSegmentation</a> (Frey &amp; Schindler, Universität Freiburg), auf Basis von lidR.</li>
+      <li><b>Baseline</b> <span class="pill">Python</span> — numpy circle fit on the breast-height slice, <b>leaf-on</b> whole cloud.</li>
+      <li><b>QSM wood</b> <span class="pill">Python</span> — the same fit, but on <b>wood points</b> only (classification 0, SYSSIFOSS ground truth). By definition this is the QSM DBH (2 × median stem radius at 1.3 m).</li>
+      <li><b>3DFin</b> <span class="pill">Python</span> — <a href="https://github.com/3DFin/3DFin">3DFin</a>, based on the dendromatics library.</li>
+      <li><b>Csp</b> <span class="pill">R</span> — <a href="https://github.com/JulFrey/CspStandSegmentation">CspStandSegmentation</a> (Frey &amp; Schindler, University of Freiburg), based on lidR.</li>
     </ul>
-
     <h2>Interpretation</h2>
     <ul>
-      <li><b>Alle Verfahren versagen am 11-cm-Jungbaum</b> (QueRub_KA09): der Stamm ist zu dünn und die Krone reicht bis in die Brusthöhe. Der laubbelaubte Baseline-Fit liefert einen groben Ausreißer (228 cm), der Holz-only-Fit ist besser (91,8 cm), aber weiterhin ungenau; 3DFin und Csp geben kein Ergebnis aus.</li>
-      <li><b>PinSyl_KA10 wird von allen überschätzt</b> (46–51 statt 35 cm). Die Übereinstimmung der Verfahren deutet auf eine Eigenschaft des Baums oder eine abweichende Feld-Messhöhe hin, nicht auf einen Methodenfehler.</li>
-      <li><b>QSM-Holz erreicht die höchste Genauigkeit</b> (5,7 cm) durch die Blatt-Holz-Trennung und einen sauberen Stamm. Zum Vergleich: das SYSSIFOSS-Paper berichtet für seine sorgfältige TLS-Methode 3,5 cm RMSE.</li>
+      <li><b>All methods fail on the 11 cm sapling</b> (QueRub_KA09): the stem is too thin and the crown reaches down to breast height. The leaf-on baseline fit gives a gross outlier (228 cm), the wood-only fit is better (91.8 cm) but still inaccurate; 3DFin and Csp return no result.</li>
+      <li><b>PinSyl_KA10 is overestimated by all methods</b> (46–51 instead of 35 cm). The agreement between methods points to a property of the tree or a different field measurement height, not a method error.</li>
+      <li><b>QSM wood reaches the highest accuracy</b> (5.7 cm) thanks to the leaf/wood separation and a clean stem. For comparison: the SYSSIFOSS paper reports 3.5 cm RMSE for its careful TLS method.</li>
     </ul>
-
-    <h2>Übereinstimmung ohne Feldmaß (Wienerwald)</h2>
-    <p>Auf den korrekt detektierten 3DFin-Stämmen der beiden Wienerwald-Plots gibt es
-      kein Feld-BHD — messbar ist dort nur die <b>Übereinstimmung</b> der Verfahren,
-      nicht ihre Genauigkeit. Sie ist bemerkenswert eng:</p>
+    <h2>Agreement without field measurement (Vienna Woods)</h2>
+    <p>For the correctly detected 3DFin stems of the two Vienna Woods plots there is
+      no field DBH — only the <b>agreement</b> between methods can be measured there,
+      not their accuracy. It is remarkably tight:</p>
     <div class="card">
       <table>
-        <thead><tr><th>Plot</th><th>n</th><th>Kreisfit</th><th>geometrisch</th><th>RANSAC</th><th>Zylinder</th><th>Median-Spanne</th></tr></thead>
+        <thead><tr><th>Plot</th><th>n</th><th>Circle fit</th><th>geometric</th><th>RANSAC</th><th>Cylinder</th><th>Median spread</th></tr></thead>
         <tbody>
-          <tr><td>plot_06 Buche</td><td>64</td><td>0,44</td><td class="best">0,22</td><td>0,63</td><td>0,37</td><td>0,85 cm</td></tr>
-          <tr><td>plot_07 Fichte</td><td>116</td><td>0,21</td><td>0,22</td><td>0,43</td><td class="best">0,16</td><td>0,60 cm</td></tr>
+          <tr><td>plot_06 beech</td><td>64</td><td>0.44</td><td class="best">0.22</td><td>0.63</td><td>0.37</td><td>0.85 cm</td></tr>
+          <tr><td>plot_07 spruce</td><td>116</td><td>0.21</td><td>0.22</td><td>0.43</td><td class="best">0.16</td><td>0.60 cm</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="note">Werte = mittlere absolute Abweichung vom Konsens (Median der vier
-      Verfahren) in cm. Zum Vergleich: am Renon-Bestand, auf den Stämmen der eigenen
-      Detektion, liegt die Median-Spanne bei 2,2 cm — die Detektionsqualität schlägt
-      also bis in den Verfahrensvergleich durch. <b>Übereinstimmung ist keine
-      Genauigkeit</b>: die Verfahren können gemeinsam falsch liegen.</p>
-
-    <h2>Grenzen</h2>
+    <p class="note">Values = mean absolute deviation from the consensus (median of the four
+      methods) in cm. For comparison: at the Renon stand, on the stems of the suite's own
+      detection, the median spread is 2.2 cm — detection quality carries through into the
+      method comparison. <b>Agreement is not accuracy</b>: the methods can all be wrong together.</p>
+    <h2>Limitations</h2>
     <ul>
-      <li><b>n = 5</b>: nur für so viele lokal vorliegende Bäume ist ein Feld-BHD in der pytreedb-Datenbank hinterlegt. Kleine Stichprobe.</li>
-      <li><b>aRchi</b> (R-QSM-Bibliothek) ist aus CRAN archiviert; das QSM-BHD entspricht aber dem hier gerechneten Holz-Stamm-Fit.</li>
-      <li><b>3DFin schneidet hier schlechter ab als auf den Plot-Wolken</b> (MAE 7,8 cm,
-        schlechter als der simple Kreisfit). Das ist erwartbar: SYSSIFOSS sind
-        <b>isolierte Einzelbäume</b>, 3DFin ist für Plot-Wolken gebaut. Zweckentfremdet,
-        nicht widerlegt.</li>
+      <li><b>n = 5</b>: a field DBH is stored in the pytreedb database for only this many locally available trees. Small sample.</li>
+      <li><b>aRchi</b> (R QSM library) has been archived from CRAN; the QSM DBH, however, corresponds to the wood-stem fit computed here.</li>
+      <li><b>3DFin performs worse here than on the plot clouds</b> (MAE 7.8 cm,
+        worse than the simple circle fit). This is expected: SYSSIFOSS are
+        <b>isolated single trees</b>, 3DFin is built for plot clouds. Misused,
+        not refuted.</li>
     </ul>
   </div>
 </body>
