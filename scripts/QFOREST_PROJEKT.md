@@ -27,7 +27,9 @@ ersten offenen Punkt weitermachen.
       Prüfen: Actions-Tab → Workflow „qforest“; danach Kennwerte in
       `extdata/qforest/<plot>_test_kennwerte.json`. Fehlschlag → Log lesen, Skript
       fixen, `.github/qforest-request.txt` ändern und pushen.
-- [ ] 4. QSM-Szene Brasilien: Bodenscan vs. Boden + Kronenscan
+- [x] 4. QSM-Szene Brasilien `qforest-qsm-bra` (`scripts/qforest_qsm.py`): Kronenscan bringt
+      +38 % Astlänge, +20 % Äste, +5 % Holzvolumen; 23 % der Holzpunkte nur vom
+      Kronenscan (`extdata/qforest/bra_qsm_vergleich.json`)
 - [ ] 5. ForEdgeClim: Eingaben lesen, an Wytham laufen lassen, virtuelle Störung
       (ein Kronenbaum per Instanz-ID entfernt → Licht/Temperatur vorher/nachher)
 - [ ] 6. Vergleich der vier Plots (Profile übereinander, Kennzahlentabelle)

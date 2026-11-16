@@ -1269,7 +1269,8 @@
       const baseLabel = (scene.pointcloud && scene.pointcloud.base_label) || null;
       avail.forEach(([id, label, url], i) => {
         const b = document.createElement('button');
-        b.textContent = (id === 'rgb' && baseLabel) ? baseLabel : label;
+        const custom = ((scene.pointcloud || {}).coloring_labels || {})[id];
+        b.textContent = custom || ((id === 'rgb' && baseLabel) ? baseLabel : label);
         if (i === 0) b.classList.add('active');
         b.onclick = async () => {
           if (b.classList.contains('active') || !cloud) return;
