@@ -166,7 +166,7 @@
     }
 
     async function load() {
-      const scenes = await (await fetch('data/scenes.json')).json();
+      const scenes = await (await fetch('data/scenes.json', {cache: 'no-cache'})).json();
       const grid = document.getElementById('grid');
       document.getElementById('empty').hidden = scenes.length > 0;
       grid.innerHTML = '';
