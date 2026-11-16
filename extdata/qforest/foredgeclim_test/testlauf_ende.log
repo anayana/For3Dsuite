@@ -1,0 +1,7 @@
+[1] "Running model at 2025-01-15 12:00:00 ..."
+Warning messages:
+1: In grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y,  :
+  for 'west     ——     east (m)' in 'mbcsToSbcs': - substituted for — (U+2014)
+2: In grid.Call.graphics(C_text, as.graphicsAnnot(x$label), x$x, x$y,  :
+  for 'west     ——     east (m)' in 'mbcsToSbcs': - substituted for — (U+2014)
+[1] "Total running time = 29.32 s"
