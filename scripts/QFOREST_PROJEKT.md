@@ -30,8 +30,22 @@ ersten offenen Punkt weitermachen.
 - [x] 4. QSM-Szene Brasilien `qforest-qsm-bra` (`scripts/qforest_qsm.py`): Kronenscan bringt
       +38 % Astlänge, +20 % Äste, +5 % Holzvolumen; 23 % der Holzpunkte nur vom
       Kronenscan (`extdata/qforest/bra_qsm_vergleich.json`)
-- [ ] 5. ForEdgeClim: Eingaben lesen, an Wytham laufen lassen, virtuelle Störung
-      (ein Kronenbaum per Instanz-ID entfernt → Licht/Temperatur vorher/nachher)
+- [ ] 5. ForEdgeClim (R-Paket, Zenodo 19630260, MIT).
+      **Fund:** Das Paket enthält selbst TLS-Voxelgitter von Gontrode (Belgien) zu
+      7 Zeitpunkten (Juni 2023 – April 2025, `Data/TLS_scaled_DTM_and_grid_*.rds`),
+      stündliche Mikroklima-Messungen (`Data/TOMST_hourly.xlsx`) und Wetter
+      (`Data/RMI_*.csv`): Struktur über die Zeit **und** Mikroklima, offen.
+      Eingabe des Modells: Voxelgitter + DTM aus TLS-.las über
+      `generate_DTM_grid_TLS()`; Antrieb: RMI-Wetter, Strahlung, Bodentemperatur.
+  - [ ] 5a. **läuft** — Testlauf in GitHub Actions (`.github/workflows/foredgeclim.yml`,
+        Auslöser `.github/foredgeclim-request.txt`); Ergebnis + Gitterstruktur in
+        `extdata/qforest/foredgeclim_test/`
+  - [ ] 5b. Virtuelle Störung: im Gontrode-Gitter Kronenvoxel entfernen (Lücke),
+        gleiche Wetterlage, ForEdgeClim neu → Lufttemperatur am Boden vorher/nachher
+  - [ ] 5c. Struktur über die Zeit: die 7 Gontrode-Gitter mit TOMST-Messungen
+        vergleichen (Deckung/Profil je Zeitpunkt ↔ gemessene Pufferung)
+  - [ ] 5d. Eigene Q-ForestLab-Plots als Gitter einspeisen (Wytham zuerst; gleiche
+        Wetterlage von Gontrode → reiner Struktureffekt)
 - [ ] 6. Vergleich der vier Plots (Profile übereinander, Kennzahlentabelle)
 
 ## Methoden (Festlegungen)
