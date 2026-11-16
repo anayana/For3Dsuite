@@ -45,8 +45,7 @@ for s in qforest-robsoncreek qforest-wytham qforest-ofental qforest-litchfield q
   cp docs/data/scene-$s.json platform/dev-data/media/scenes/$s/scene.json
 done
 ```
-Die vier `qforest-*`-Szenen außer Robson Creek fehlen noch in `publish.json` bzw. sind
-dort zu ergänzen, sonst nimmt sie der Vollexport heraus.
+Alle fünf `qforest-*`-Szenen stehen in `publish.json`.
 
 (Alternativ neu bauen: Befehle in `scripts/BENCH_DETECTION.md`, Abschnitt Q-ForestLab.)
 
