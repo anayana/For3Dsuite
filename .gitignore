@@ -49,3 +49,7 @@ bolderwood/*.csv
 # Auch die QC-Panoramen: je 2-3 MB Rauschbild, nicht komprimierbar, und der Push
 # scheitert hier ab ~1 MB. "bolderwood_io.py --qc-images" erzeugt sie neu.
 bolderwood/QC_scene*.png
+
+# NPP-Seite: Datenbank und Skript-Ausgabe von analyse.py bleiben lokal
+**/npp/npp.db
+**/npp/result.json
