@@ -1,0 +1,542 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Memory, Quiz und Herbarium für 30 Küchenkräuter mit deutschen und botanischen Namen.">
+<title>Kräuter-Memory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500;700&family=Spectral:ital,wght@0,400;0,600;1,400;1,500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: ein Herbarbogen – schmale Spalte, oben Reiter, darunter Spielfeld und ein Herbar-Etikett mit Zeichnung */
+:root {
+  --paper: #e8eee5;
+  --sheet: #f6f8f3;
+  --plate: #fbfbf6;
+  --ink: #1d3427;
+  --ink-soft: #4d6455;
+  --rule: #c5d1c3;
+  --leaf: #2a4a37;
+  --leaf-line: #355c45;
+  --saffron: #b47a12;
+  --good: #2f7a4a;
+  --bad: #a6402f;
+  --font-latin: "Spectral", "Iowan Old Style", Georgia, serif;
+  --font-ui: "Karla", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111914; --sheet: #19241d; --plate: #e3e9de; --ink: #dbe6dc; --ink-soft: #9fb3a4; --rule: #2e3f33;
+    --leaf: #24402f; --leaf-line: #2f5540; --saffron: #e0aa45; --good: #6cc48b; --bad: #e88a76;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111914; --sheet: #19241d; --plate: #e3e9de; --ink: #dbe6dc; --ink-soft: #9fb3a4; --rule: #2e3f33;
+  --leaf: #24402f; --leaf-line: #2f5540; --saffron: #e0aa45; --good: #6cc48b; --bad: #e88a76;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--paper); color: var(--ink);
+  font-family: var(--font-ui); font-size: 16px; line-height: 1.5;
+}
+.wrap {
+  max-width: 940px; margin: 0 auto;
+  padding-block: 28px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 22px;
+}
+header { display: grid; gap: 4px; }
+.eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+h1 { font-family: var(--font-latin); font-weight: 600; font-size: clamp(30px, 6vw, 46px); line-height: 1.05; margin: 0; text-wrap: balance; }
+h1 i { font-weight: 400; color: var(--saffron); }
+.lede { margin: 6px 0 0; color: var(--ink-soft); max-width: 62ch; }
+
+nav.tabs { display: flex; gap: 4px; border-bottom: 1px solid var(--rule); flex-wrap: wrap; }
+nav.tabs a {
+  font-weight: 700; font-size: 15px; text-decoration: none; color: var(--ink-soft);
+  padding: 10px 14px; border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; margin-bottom: -1px;
+}
+nav.tabs a[aria-current="page"] { color: var(--ink); background: var(--sheet); border-color: var(--rule); }
+nav.tabs a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; }
+
+.panel { display: grid; gap: 18px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; justify-content: space-between; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: 18px; overflow: hidden; background: var(--sheet); }
+.seg button { font: inherit; font-size: 14px; font-weight: 500; border: 0; background: transparent; color: var(--ink-soft); padding: 6px 12px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--sheet); }
+.btn { font: inherit; font-weight: 700; font-size: 14px; border: 1px solid var(--ink); background: var(--ink); color: var(--sheet); padding: 7px 14px; border-radius: 999px; cursor: pointer; }
+.btn.ghost { background: transparent; color: var(--ink); }
+.label-sm { font-size: 13px; color: var(--ink-soft); }
+
+.stats { display: flex; gap: 18px; font-family: var(--font-mono); font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.stats b { color: var(--ink); font-weight: 500; font-size: 15px; }
+
+/* Fotos */
+.plate { background: var(--rule); border: 1px solid var(--rule); border-radius: 4px; display: grid; place-items: center; overflow: hidden; }
+.plate img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+/* Spielfeld */
+.board { display: grid; gap: 10px; grid-template-columns: repeat(var(--cols, 4), minmax(0, 1fr)); }
+.board[data-pairs="6"] { --cols: 4; }
+.board[data-pairs="8"] { --cols: 4; }
+.board[data-pairs="12"] { --cols: 6; }
+@media (max-width: 560px) {
+  .board { gap: 7px; }
+  .board[data-pairs="6"] { --cols: 3; }
+  .board[data-pairs="12"] { --cols: 4; }
+}
+.card { appearance: none; border: 0; padding: 0; background: none; cursor: pointer; aspect-ratio: 3 / 4; max-width: 100%; perspective: 900px; font: inherit; color: inherit; text-align: left; }
+.card .inner { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .45s cubic-bezier(.3,.7,.3,1); }
+.card.up .inner, .card.done .inner { transform: rotateY(180deg); }
+.face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 8px; overflow: hidden; }
+.back {
+  background-color: var(--leaf);
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 13px, var(--leaf-line) 13px 14px),
+    repeating-linear-gradient(90deg, transparent 0 13px, var(--leaf-line) 13px 14px);
+  display: grid; place-items: center; color: #cfe3d2; border: 1px solid var(--leaf-line);
+}
+.back svg { width: 34%; height: auto; opacity: .85; }
+.card:hover:not(.up):not(.done) .back { filter: brightness(1.12); }
+.front {
+  transform: rotateY(180deg); background: var(--sheet); border: 1px solid var(--rule);
+  display: flex; flex-direction: column; justify-content: space-between; gap: 4px; padding: 7px 7px 8px;
+}
+.front .kind { font-family: var(--font-mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.front .name { font-size: clamp(12px, 2.1vw, 17px); line-height: 1.15; font-weight: 700; overflow-wrap: break-word; }
+.front.la { padding: 9px; }
+.front.la .name { font-family: var(--font-latin); font-style: italic; font-weight: 500; font-size: clamp(13px, 2.3vw, 18px); }
+.front .meta { font-size: 11px; color: var(--ink-soft); line-height: 1.25; overflow-wrap: break-word; }
+.front.la .meta { font-family: var(--font-latin); font-size: 12px; }
+.front.de .plate { flex: 1; min-height: 0; }
+.card.done .front { border-color: var(--good); box-shadow: inset 0 0 0 1px var(--good); }
+.card.miss .front { border-color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); }
+.card:disabled { cursor: default; }
+@media (max-width: 560px) { .front .kind { font-size: 9px; } .front { padding: 5px 5px 6px; } }
+
+/* Herbar-Etikett */
+.etikett {
+  background: var(--sheet); border: 1px solid var(--ink); border-radius: 4px; padding: 14px 16px;
+  display: grid; gap: 10px; max-width: 680px; justify-self: end; width: 100%;
+  box-shadow: 3px 3px 0 var(--rule);
+}
+.etikett .head { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px solid var(--rule); padding-bottom: 6px; font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.etikett .body { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 16px; align-items: start; }
+.etikett .body .plate { height: 125px; }
+.etikett dl { margin: 0; display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 4px 12px; }
+.etikett dt { font-size: 13px; color: var(--ink-soft); }
+.etikett dd { margin: 0; min-width: 0; }
+.etikett .bot { font-family: var(--font-latin); font-size: 18px; }
+.etikett .bot i { font-weight: 500; }
+.etikett p { margin: 0; }
+@media (max-width: 520px) {
+  .etikett .body { grid-template-columns: 80px minmax(0, 1fr); gap: 12px; }
+  .etikett .body .plate { height: 96px; }
+  .etikett dl { grid-template-columns: 1fr; gap: 0; }
+  .etikett dt { margin-top: 6px; }
+}
+.win { color: var(--good); font-weight: 700; }
+
+/* Quiz */
+.quizbox { background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; padding: 22px; display: grid; gap: 16px; }
+.progress { height: 4px; background: var(--rule); border-radius: 2px; overflow: hidden; }
+.progress span { display: block; height: 100%; background: var(--saffron); transition: width .3s; }
+.qhead { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; align-items: center; }
+.qhead .plate { width: 104px; height: 125px; }
+.qhead .plate.big { width: 150px; height: 180px; }
+.qhead .plate.veiled img { visibility: hidden; }
+.prompt-kind { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); }
+.prompt { font-size: clamp(26px, 5vw, 36px); font-weight: 700; line-height: 1.1; margin: 2px 0 0; text-wrap: balance; }
+.prompt.la { font-family: var(--font-latin); font-style: italic; font-weight: 500; }
+.choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 520px) { .choices { grid-template-columns: 1fr; } .qhead .plate { width: 84px; height: 100px; } .qhead .plate.big { width: 120px; height: 144px; } }
+.choice { font: inherit; text-align: left; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); padding: 12px 14px; border-radius: 6px; cursor: pointer; font-size: 17px; display: grid; gap: 2px; }
+.choice.la { font-family: var(--font-latin); font-style: italic; font-size: 19px; }
+.choice small { font-family: var(--font-latin); font-style: italic; font-size: 15px; color: var(--ink-soft); }
+.choice:hover:not(:disabled) { border-color: var(--ink); }
+.choice:disabled { cursor: default; }
+.choice.right { border-color: var(--good); box-shadow: inset 0 0 0 1px var(--good); }
+.choice.wrong { border-color: var(--bad); box-shadow: inset 0 0 0 1px var(--bad); opacity: .85; }
+.feedback { min-height: 1.5em; color: var(--ink-soft); }
+.feedback strong.ok { color: var(--good); }
+.feedback strong.no { color: var(--bad); }
+.result-big { font-family: var(--font-latin); font-size: 44px; font-weight: 600; margin: 0; font-variant-numeric: tabular-nums; }
+.mist { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.mist li { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; }
+.mist .plate { height: 52px; }
+
+/* Herbarium */
+.search { font: inherit; padding: 8px 12px; border: 1px solid var(--rule); border-radius: 6px; background: var(--sheet); color: var(--ink); width: min(100%, 320px); }
+.table-wrap { overflow-x: auto; background: var(--sheet); border: 1px solid var(--rule); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; min-width: 700px; font-size: 15px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+th { font-family: var(--font-mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; }
+tr.fam td { background: var(--paper); font-family: var(--font-latin); font-size: 14px; color: var(--ink-soft); padding-block: 6px; }
+td.pic { width: 76px; }
+td.pic .plate { width: 56px; height: 68px; }
+td.bot { font-family: var(--font-latin); font-size: 16px; white-space: nowrap; }
+td.bot i { font-weight: 500; }
+td.note { color: var(--ink-soft); font-size: 14px; }
+.foot { font-size: 13px; color: var(--ink-soft); max-width: 70ch; }
+.credit { font-size: 12px; color: var(--ink-soft); }
+.credit a, .credits a { color: inherit; }
+.credits { font-size: 13px; color: var(--ink-soft); }
+.credits summary { cursor: pointer; font-weight: 700; color: var(--ink); }
+.credits ol { margin: 8px 0 0; padding-left: 1.4em; display: grid; gap: 3px; columns: 2 300px; }
+.credits li { break-inside: avoid; overflow-wrap: anywhere; }
+
+@media (prefers-reduced-motion: reduce) {
+  .card .inner, .progress span { transition: none; }
+}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <span class="eyebrow">Herbarium der Küche · 30 Arten</span>
+    <h1>Kräuter-Memory <i>Herbae culinariae</i></h1>
+    <p class="lede">Finde zu jedem fotografierten Kraut den botanischen Namen. Nach jedem Treffer erscheint das Herbar-Etikett mit Familie und Herkunft des Namens.</p>
+  </header>
+
+  <nav class="tabs" aria-label="Spielmodus">
+    <a href="#memory" data-view="memory">Memory</a>
+    <a href="#quiz" data-view="quiz">Quiz</a>
+    <a href="#herbarium" data-view="herbarium">Herbarium</a>
+  </nav>
+
+  <!-- MEMORY -->
+  <section class="panel" id="view-memory">
+    <div class="toolbar">
+      <div class="controls">
+        <span class="label-sm">Paare</span>
+        <div class="seg" id="pairSeg" role="group" aria-label="Anzahl der Paare">
+          <button type="button" data-p="6">6</button>
+          <button type="button" data-p="8">8</button>
+          <button type="button" data-p="12">12</button>
+        </div>
+        <span class="label-sm">Bildkarte</span>
+        <div class="seg" id="modeSeg" role="group" aria-label="Bildkarte">
+          <button type="button" data-m="named">mit Namen</button>
+          <button type="button" data-m="img">nur Bild</button>
+        </div>
+        <button class="btn ghost" type="button" id="newGame">Neu mischen</button>
+      </div>
+      <div class="stats" aria-live="polite">
+        <span>Züge <b id="sMoves">0</b></span>
+        <span>Paare <b id="sFound">0/8</b></span>
+        <span>Zeit <b id="sTime">0:00</b></span>
+      </div>
+    </div>
+    <div class="board" id="board" data-pairs="8"></div>
+    <aside class="etikett" id="etikett" aria-live="polite"></aside>
+  </section>
+
+  <!-- QUIZ -->
+  <section class="panel" id="view-quiz" hidden>
+    <div class="toolbar">
+      <div class="controls">
+        <span class="label-sm">Richtung</span>
+        <div class="seg" id="dirSeg" role="group" aria-label="Fragerichtung">
+          <button type="button" data-d="img">Bild → Name</button>
+          <button type="button" data-d="de">Deutsch → Botanisch</button>
+          <button type="button" data-d="la">Botanisch → Deutsch</button>
+        </div>
+      </div>
+      <div class="stats"><span>Richtig <b id="qScore">0</b></span><span>Frage <b id="qNum">1/10</b></span></div>
+    </div>
+    <div class="quizbox" id="quizbox"></div>
+  </section>
+
+  <!-- HERBARIUM -->
+  <section class="panel" id="view-herbarium" hidden>
+    <div class="toolbar">
+      <label class="label-sm" for="search">Suchen</label>
+      <input class="search" id="search" type="search" placeholder="z. B. Salvia oder Minze" autocomplete="off">
+    </div>
+    <div class="table-wrap"><table id="table"></table></div>
+    <details class="credits"><summary>Bildnachweise (Wikimedia Commons)</summary><ol id="creditList"></ol></details>
+    <p class="foot">Fotos von Wikimedia Commons unter freien Lizenzen; Nachweise unten. Botanische Namen nach heutiger Nomenklatur mit Autorkürzel (L. = Carl von Linné). Rosmarin wird seit 2017 zur Gattung <i>Salvia</i> gestellt; der ältere Name <i>Rosmarinus officinalis</i> ist weiterhin verbreitet. Das × in <i>Mentha</i> × <i>piperita</i> kennzeichnet eine Hybride.</p>
+  </section>
+</div>
+
+<script>
+const HERBS = [
+  ["Basilikum","Ocimum basilicum","L.","Lamiaceae","Lippenblütler","basilicum von griech. basilikós „königlich“ – das Königskraut."],
+  ["Petersilie","Petroselinum crispum","(Mill.) Fuss","Apiaceae","Doldenblütler","griech. pétra „Fels“ + sélinon „Sellerie“; crispum heißt „kraus“."],
+  ["Schnittlauch","Allium schoenoprasum","L.","Amaryllidaceae","Amaryllisgewächse","griech. schoínos „Binse“ + práson „Lauch“ – binsenartiger Lauch."],
+  ["Dill","Anethum graveolens","L.","Apiaceae","Doldenblütler","graveolens bedeutet „stark riechend“."],
+  ["Thymian","Thymus vulgaris","L.","Lamiaceae","Lippenblütler","vulgaris heißt „gewöhnlich, weit verbreitet“."],
+  ["Rosmarin","Salvia rosmarinus","Spenn.","Lamiaceae","Lippenblütler","ros marinus „Tau des Meeres“. Früher Rosmarinus officinalis, seit 2017 zu Salvia gestellt."],
+  ["Salbei","Salvia officinalis","L.","Lamiaceae","Lippenblütler","lat. salvare „heilen“; officinalis „in der Apotheke (officina) gebräuchlich“."],
+  ["Oregano","Origanum vulgare","L.","Lamiaceae","Lippenblütler","griech. óros „Berg“ + gános „Glanz, Freude“. Deutscher Name auch Echter Dost."],
+  ["Majoran","Origanum majorana","L.","Lamiaceae","Lippenblütler","Eng mit Oregano verwandt – gleiche Gattung Origanum. Typisch sind die kugeligen Blütenknospen."],
+  ["Pfefferminze","Mentha × piperita","L.","Lamiaceae","Lippenblütler","Das × markiert eine Kreuzung aus Wasserminze und Grüner Minze; piperita „pfeffrig“."],
+  ["Koriander","Coriandrum sativum","L.","Apiaceae","Doldenblütler","sativum „angebaut“; griech. kóris „Wanze“, nach dem Geruch unreifer Früchte."],
+  ["Estragon","Artemisia dracunculus","L.","Asteraceae","Korbblütler","dracunculus „kleiner Drache“; der deutsche Name kommt über arab. tarchūn."],
+  ["Liebstöckel","Levisticum officinale","W.D.J.Koch","Apiaceae","Doldenblütler","Wegen des Geschmacks auch „Maggikraut“ genannt."],
+  ["Kerbel","Anthriscus cerefolium","(L.) Hoffm.","Apiaceae","Doldenblütler","cerefolium von griech. chairéphyllon „Freudenblatt“."],
+  ["Bohnenkraut","Satureja hortensis","L.","Lamiaceae","Lippenblütler","hortensis „im Garten wachsend“ – das Sommer-Bohnenkraut."],
+  ["Zitronenmelisse","Melissa officinalis","L.","Lamiaceae","Lippenblütler","griech. mélissa „Biene“ – eine beliebte Bienenweide."],
+  ["Lorbeer","Laurus nobilis","L.","Lauraceae","Lorbeergewächse","nobilis „edel, berühmt“ – der Lorbeerkranz der Sieger."],
+  ["Bärlauch","Allium ursinum","L.","Amaryllidaceae","Amaryllisgewächse","ursinum „zum Bären gehörig“ – genau wie der deutsche Name."],
+  ["Borretsch","Borago officinalis","L.","Boraginaceae","Raublattgewächse","Volksname Gurkenkraut, nach dem gurkenähnlichen Geschmack der Blätter."],
+  ["Gartenkresse","Lepidium sativum","L.","Brassicaceae","Kreuzblütler","griech. lepídion „Schüppchen“, nach den kleinen flachen Schötchen."],
+  ["Fenchel","Foeniculum vulgare","Mill.","Apiaceae","Doldenblütler","lat. foenum „Heu“ – Verkleinerung, nach dem feinen, heuartigen Laub."],
+  ["Ysop","Hyssopus officinalis","L.","Lamiaceae","Lippenblütler","Name über griech. hýssōpos aus dem Hebräischen (ezov)."],
+  ["Lavendel","Lavandula angustifolia","Mill.","Lamiaceae","Lippenblütler","lat. lavare „waschen“; angustifolia „schmalblättrig“."],
+  ["Sauerampfer","Rumex acetosa","L.","Polygonaceae","Knöterichgewächse","acetosa „säuerlich“, von lat. acetum „Essig“. Typisch sind die pfeilförmigen Blätter."],
+  ["Pimpinelle","Sanguisorba minor","Scop.","Rosaceae","Rosengewächse","sanguis „Blut“ + sorbere „aufsaugen“ – galt als blutstillend. Auch Kleiner Wiesenknopf."],
+  ["Waldmeister","Galium odoratum","(L.) Scop.","Rubiaceae","Rötegewächse","odoratum „duftend“ – der Duft kommt vom Cumarin beim Welken."],
+  ["Kapuzinerkresse","Tropaeolum majus","L.","Tropaeolaceae","Kapuzinerkressengewächse","tropaeum „Siegeszeichen“: Blätter wie Schilde, Blüten wie Helme."],
+  ["Zitronengras","Cymbopogon citratus","(DC.) Stapf","Poaceae","Süßgräser","griech. kýmbē „Boot“ + pōgōn „Bart“, nach den Blütenständen."],
+  ["Kümmel","Carum carvi","L.","Apiaceae","Doldenblütler","carvi geht auf arab. karawiya zurück. Die Früchte sind die bekannten Kümmelsamen."],
+  ["Weinraute","Ruta graveolens","L.","Rutaceae","Rautengewächse","graveolens „stark riechend“ – derselbe Beiname wie beim Dill."]
+].map(([de, bot, auth, famLa, famDe, note], i) => ({ i, de, bot, auth, famLa, famDe, note }));
+
+const CREDITS = [["David J. Stang","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:Ocimum_basilicum_8zz.jpg"],["Jonathunder","GFDL 1.2","https://commons.wikimedia.org/wiki/File:Petroselinum.jpg"],["Ivar Leidus","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:Allium_schoenoprasum_-_Bombus_lapidarius_-_Tootsi.jpg"],["Tepeyac","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Anethum_graveolens_02.jpg"],["Henry Brisse","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Thymus_vulgaris1.JPG"],["Margalob","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:Rosemary_in_bloom.JPG"],["Didier Descouens","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:(MHNT)_Salvia_officinalis_flowers.jpg"],["Ivar Leidus","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Origanum_vulgare_-_harilik_pune.jpg"],["H. Zell","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Origanum_majorana_002.JPG"],["unbekannt","CC BY 3.0","https://commons.wikimedia.org/wiki/File:Pfefferminze_natur_peppermint.jpg"],["Thamizhpparithi Maari","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:A_scene_of_Coriander_leaves.JPG"],["Ies","Public domain","https://commons.wikimedia.org/wiki/File:Estragon_1511.jpg"],["4028mdk09","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Liebst%C3%B6ckel.JPG"],["Schlaghecken Josef","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:Kerbel_(Anthriscus_cerefolium)_Topfpflanze--Josef_Schlaghecken.jpg"],["Bogdan","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Satureja_hortensis_bgiu.jpg"],["Amitchell125","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:Lemon_balm_plant.jpg"],["Forest and Kim Starr","CC BY 3.0 us","https://commons.wikimedia.org/wiki/File:Starr-071024-0195-Laurus_nobilis-leaves-Enchanting_Floral_Gardens_of_Kula-Maui_(24867859296).jpg"],["Rodolph","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Photo_of_Allium_Ursinum,_wild_garlic,_north-west_Hampshire,_UK,_May_2014.jpg"],["Christian Orlandi","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:Borago_officinalis_(2025).jpg"],["Salicyna","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:Lepidium_sativum_2019-05-04_2820.jpg"],["Alvesgaspar","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Foeniculum_July_2011-1a.jpg"],["H. Zell","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Hyssopus_officinalis_002.JPG"],["Sten Porse","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Lavandula-angustifolia-flowering.JPG"],["Didier Descouens","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:(MHNT)_Rumex_acetosa_-_Habit.jpg"],["Ermell","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:Wiesenknopf_Bl%C3%BCte_6260037-PSD-PSD.jpg"],["Hajotthu","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Waldmeister(Mai).JPG"],["George Chernilevsky","Public domain","https://commons.wikimedia.org/wiki/File:Tropaeolum_majus_2005_G1.jpg"],["Raffi Kojian","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Gardenology.org-IMG_2892_rbgs11jan.jpg"],["H. Zell","CC BY-SA 3.0","https://commons.wikimedia.org/wiki/File:Carum_carvi_001.JPG"],["Plenuska","CC BY-SA 4.0","https://commons.wikimedia.org/wiki/File:Die_Weinraute,_lat._Ruta_graveolens,_Pflanze_mit_den_gelben_Bl%C3%BCten.jpg"]];
+const photo = i => `photos/${String(i).padStart(2, "0")}.jpg`;
+const credit = i => `Foto: ${esc(CREDITS[i][0])} · ${esc(CREDITS[i][1])} · <a href="${esc(CREDITS[i][2])}" target="_blank" rel="noopener">Wikimedia Commons</a>`;
+
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const botHTML = h => `<i>${esc(h.bot).replace(" × ", "</i> × <i>")}</i> ${esc(h.auth)}`;
+const plate = (i, cls = "", alt) => `<div class="plate ${cls}"><img src="${photo(i)}" alt="${esc(alt ?? "Foto: " + HERBS[i].de)}" loading="lazy" decoding="async"></div>`;
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const fmtTime = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+const store = {
+  get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+};
+const LEAF = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5C4.5 10.5 10.5 4.5 19.5 4.5c0 9-6 15-15 15zM4.5 19.5l9-9M9 15h3.5M12 12V8.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+
+/* ---------------- Memory ---------------- */
+let M = null, timer = null;
+let cardMode = store.get("km-mode") || "named";
+
+function newMemory(pairs) {
+  const herbs = shuffle(HERBS).slice(0, pairs);
+  const deck = shuffle(herbs.flatMap(h => [{ h: h.i, k: "de" }, { h: h.i, k: "la" }]));
+  M = { pairs, deck: deck.map(c => ({ ...c, done: false })), open: [], moves: 0, found: 0, elapsed: 0, started: false, last: null, won: false };
+  renderMemory();
+}
+
+function cardLabel(c) { const h = HERBS[c.h]; return c.k === "de" ? (cardMode === "img" ? "Foto eines Krauts" : h.de) : h.bot; }
+
+function renderMemory() {
+  const board = $("#board");
+  board.dataset.pairs = M.pairs;
+  board.innerHTML = M.deck.map((c, idx) => {
+    const h = HERBS[c.h];
+    const front = c.k === "de"
+      ? `<div class="face front de"><span class="kind">${cardMode === "img" ? "Abbildung" : "Deutsch"}</span>${plate(h.i, "", cardMode === "img" ? "Foto eines Krauts" : undefined)}${cardMode === "img" ? "" : `<span class="name">${esc(h.de)}</span>`}</div>`
+      : `<div class="face front la"><span class="kind">Botanisch</span><span class="name">${esc(h.bot)}</span><span class="meta">${esc(h.auth)} · ${esc(h.famLa)}</span></div>`;
+    const up = c.done || M.open.includes(idx);
+    return `<button type="button" class="card${c.done ? " done" : up ? " up" : ""}" data-idx="${idx}" aria-label="${esc(up ? cardLabel(c) : "Verdeckte Karte")}"${c.done ? " disabled" : ""}><div class="inner"><div class="face back">${LEAF}</div>${front}</div></button>`;
+  }).join("");
+  document.querySelectorAll("#pairSeg button").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.p === M.pairs)));
+  document.querySelectorAll("#modeSeg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.m === cardMode)));
+  updateStats();
+  renderEtikett();
+}
+
+function updateStats() {
+  $("#sMoves").textContent = M.moves;
+  $("#sFound").textContent = `${M.found}/${M.pairs}`;
+  $("#sTime").textContent = fmtTime(M.elapsed);
+}
+
+function renderEtikett() {
+  const el = $("#etikett");
+  const best = store.get("km-best-" + M.pairs);
+  if (M.won) {
+    el.innerHTML = `<div class="head"><span>Bestimmung abgeschlossen</span><span>${M.pairs} Paare</span></div>
+      <p class="win">Alle ${M.pairs} Paare gefunden – in ${M.moves} Zügen und ${fmtTime(M.elapsed)}.</p>
+      <p class="label-sm">${best ? `Dein Bestwert bei ${M.pairs} Paaren: ${best.moves} Züge, ${fmtTime(best.time)}.` : ""}</p>
+      <div><button class="btn" type="button" id="againBtn">Noch eine Runde</button></div>`;
+    $("#againBtn").onclick = () => newMemory(M.pairs);
+    return;
+  }
+  if (M.last == null) {
+    el.innerHTML = `<div class="head"><span>Herbar-Etikett</span><span>noch leer</span></div>
+      <p>Decke zwei Karten auf: ein Foto mit deutschem Namen und einen botanischen Namen. Passen sie zusammen, bleibt das Paar offen und hier steht, woher der Name kommt.</p>
+      <p class="label-sm">${best ? `Bestwert bei ${M.pairs} Paaren: ${best.moves} Züge, ${fmtTime(best.time)}.` : "Schwerer wird es mit „nur Bild“: Dann musst du das Kraut am Foto erkennen."}</p>`;
+    return;
+  }
+  const h = HERBS[M.last];
+  el.innerHTML = `<div class="head"><span>Herb. culin. · Nr. ${String(h.i + 1).padStart(2, "0")}</span><span>Paar ${M.found}/${M.pairs}</span></div>
+    <div class="body">${plate(h.i)}
+    <dl>
+      <dt>Botanischer Name</dt><dd class="bot">${botHTML(h)}</dd>
+      <dt>Deutscher Name</dt><dd><strong>${esc(h.de)}</strong></dd>
+      <dt>Familie</dt><dd>${esc(h.famDe)} <span class="label-sm">(${esc(h.famLa)})</span></dd>
+      <dt>Herkunft des Namens</dt><dd>${esc(h.note)}</dd>
+    </dl></div>
+    <p class="credit">${credit(h.i)}</p>`;
+}
+
+function flip(idx) {
+  if (M.lock || M.won) return;
+  const c = M.deck[idx];
+  if (c.done || M.open.includes(idx)) return;
+  if (!M.started) { M.started = true; startTimer(); }
+  M.open.push(idx);
+  setCard(idx, "up");
+  if (M.open.length < 2) return;
+  M.moves++;
+  const [a, b] = M.open.map(i => M.deck[i]);
+  if (a.h === b.h && a.k !== b.k) {
+    a.done = b.done = true;
+    M.open.forEach(i => setCard(i, "done"));
+    M.open = []; M.found++; M.last = a.h;
+    if (M.found === M.pairs) win();
+    updateStats(); renderEtikett();
+  } else {
+    M.lock = true;
+    const pair = M.open.slice();
+    pair.forEach(i => document.querySelector(`.card[data-idx="${i}"]`).classList.add("miss"));
+    updateStats();
+    setTimeout(() => { M.open = []; M.lock = false; pair.forEach(i => setCard(i, "down")); }, 1250);
+  }
+}
+
+function setCard(idx, state) {
+  const el = document.querySelector(`.card[data-idx="${idx}"]`);
+  el.classList.remove("up", "miss");
+  if (state === "up") el.classList.add("up");
+  if (state === "done") { el.classList.add("done"); el.disabled = true; }
+  el.setAttribute("aria-label", state === "down" ? "Verdeckte Karte" : cardLabel(M.deck[idx]));
+}
+
+function win() {
+  M.won = true; stopTimer();
+  const key = "km-best-" + M.pairs, best = store.get(key);
+  if (!best || M.moves < best.moves || (M.moves === best.moves && M.elapsed < best.time)) store.set(key, { moves: M.moves, time: M.elapsed });
+}
+function startTimer() { stopTimer(); timer = setInterval(() => { M.elapsed++; $("#sTime").textContent = fmtTime(M.elapsed); }, 1000); }
+function stopTimer() { clearInterval(timer); timer = null; }
+
+$("#board").addEventListener("click", e => { const b = e.target.closest(".card"); if (b) flip(+b.dataset.idx); });
+$("#pairSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { stopTimer(); store.set("km-pairs", +b.dataset.p); newMemory(+b.dataset.p); } });
+$("#modeSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { cardMode = b.dataset.m; store.set("km-mode", cardMode); stopTimer(); newMemory(M.pairs); } });
+$("#newGame").addEventListener("click", () => { stopTimer(); newMemory(M.pairs); });
+
+/* ---------------- Quiz ---------------- */
+const QN = 10;
+let Q = null;
+
+function newQuiz(dir) {
+  const qs = shuffle(HERBS).slice(0, QN).map(h => {
+    const sameFam = shuffle(HERBS.filter(x => x.i !== h.i && x.famLa === h.famLa));
+    const sameGenus = sameFam.filter(x => x.bot.split(" ")[0] === h.bot.split(" ")[0]);
+    const others = shuffle(HERBS.filter(x => x.i !== h.i && x.famLa !== h.famLa));
+    const pool = [...new Set([...sameGenus, ...sameFam.slice(0, 2), ...others])].slice(0, 3);
+    return { h: h.i, opts: shuffle([h.i, ...pool.map(x => x.i)]) };
+  });
+  Q = { dir, qs, n: 0, score: 0, answered: null, wrong: [] };
+  renderQuiz();
+}
+
+function renderQuiz() {
+  document.querySelectorAll("#dirSeg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.d === Q.dir)));
+  $("#qScore").textContent = Q.score;
+  $("#qNum").textContent = `${Math.min(Q.n + 1, QN)}/${QN}`;
+  const box = $("#quizbox");
+  if (Q.n >= QN) {
+    box.innerHTML = `<div class="progress"><span style="width:100%"></span></div>
+      <span class="prompt-kind">Ergebnis</span>
+      <p class="result-big">${Q.score} von ${QN}</p>
+      ${Q.wrong.length ? `<div><p class="label-sm" style="margin:0 0 8px">Zum Wiederholen:</p><ul class="mist">${Q.wrong.map(i => `<li>${plate(i)}<span><strong>${esc(HERBS[i].de)}</strong> – ${botHTML(HERBS[i])}</span></li>`).join("")}</ul></div>` : `<p>Alles richtig. Versuch es mit einer anderen Richtung.</p>`}
+      <div><button class="btn" type="button" id="qAgain">Neue Runde</button></div>`;
+    $("#qAgain").onclick = () => newQuiz(Q.dir);
+    return;
+  }
+  const q = Q.qs[Q.n], h = HERBS[q.h], d = Q.dir;
+  const kind = d === "img" ? "Welches Kraut ist das?" : d === "de" ? "Wie heißt botanisch …" : "Welches Kraut ist …";
+  const promptTxt = d === "img" ? "" : `<p class="prompt ${d === "la" ? "la" : ""}">${d === "de" ? esc(h.de) : esc(h.bot)}</p>`;
+  const choiceTxt = i => d === "img" ? `<strong>${esc(HERBS[i].de)}</strong><small>${esc(HERBS[i].bot)}</small>` : d === "de" ? esc(HERBS[i].bot) : esc(HERBS[i].de);
+  box.innerHTML = `<div class="progress"><span style="width:${(Q.n / QN) * 100}%"></span></div>
+    <div class="qhead">${plate(q.h, (d === "img" ? "big" : "") + (d === "la" ? " veiled" : ""), d === "img" ? "Foto eines Krauts" : undefined)}
+    <div><span class="prompt-kind">${kind}</span>${promptTxt}${d === "la" ? '<p class="label-sm" style="margin:6px 0 0">Das Foto erscheint nach deiner Antwort.</p>' : ""}</div></div>
+    <div class="choices">${q.opts.map(i => `<button type="button" class="choice ${d === "de" ? "la" : ""}" data-i="${i}">${choiceTxt(i)}</button>`).join("")}</div>
+    <div class="feedback" id="qFb" aria-live="polite"></div>
+    <div><button class="btn" type="button" id="qNext" hidden>${Q.n === QN - 1 ? "Ergebnis zeigen" : "Weiter"}</button></div>`;
+  box.querySelectorAll(".choice").forEach(b => b.onclick = () => answer(+b.dataset.i));
+  $("#qNext").onclick = () => { Q.n++; Q.answered = null; renderQuiz(); };
+  if (Q.answered != null) showAnswer(Q.answered);
+}
+
+function answer(i) {
+  if (Q.answered != null) return;
+  Q.answered = i;
+  const q = Q.qs[Q.n];
+  if (i === q.h) Q.score++; else Q.wrong.push(q.h);
+  $("#qScore").textContent = Q.score;
+  showAnswer(i);
+}
+
+function showAnswer(i) {
+  const q = Q.qs[Q.n], h = HERBS[q.h];
+  document.querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    const v = +b.dataset.i;
+    if (v === q.h) b.classList.add("right"); else if (v === i) b.classList.add("wrong");
+  });
+  const pl = document.querySelector(".qhead .plate"); if (pl) pl.classList.remove("veiled");
+  $("#qFb").innerHTML = `${i === q.h ? '<strong class="ok">Richtig.</strong>' : '<strong class="no">Nicht ganz.</strong>'} ${esc(h.de)} = ${botHTML(h)} · ${esc(h.famDe)}. ${esc(h.note)}`;
+  $("#qNext").hidden = false;
+  $("#qNext").focus({ preventScroll: true });
+}
+
+$("#dirSeg").addEventListener("click", e => { const b = e.target.closest("button"); if (b) newQuiz(b.dataset.d); });
+
+/* ---------------- Herbarium ---------------- */
+function renderTable(filter = "") {
+  const f = filter.trim().toLowerCase();
+  const hits = HERBS.filter(h => !f || [h.de, h.bot, h.famDe, h.famLa].some(s => s.toLowerCase().includes(f)));
+  const count = fam => hits.filter(h => h.famLa === fam).length;
+  const fams = [...new Set(hits.map(h => h.famLa))].sort((a, b) => count(b) - count(a) || a.localeCompare(b));
+  let rows = "";
+  for (const fam of fams) {
+    const list = hits.filter(h => h.famLa === fam).sort((a, b) => a.bot.localeCompare(b.bot));
+    rows += `<tr class="fam"><td colspan="4">${esc(fam)} · ${esc(list[0].famDe)}</td></tr>`;
+    rows += list.map(h => `<tr><td class="pic">${plate(h.i)}</td><td><strong>${esc(h.de)}</strong></td><td class="bot">${botHTML(h)}</td><td class="note">${esc(h.note)}</td></tr>`).join("");
+  }
+  $("#table").innerHTML = `<thead><tr><th>Bild</th><th>Deutsch</th><th>Botanisch</th><th>Herkunft des Namens</th></tr></thead><tbody>${rows || '<tr><td colspan="4">Kein Kraut gefunden. Versuch einen anderen Suchbegriff.</td></tr>'}</tbody>`;
+}
+$("#search").addEventListener("input", e => renderTable(e.target.value));
+$("#creditList").innerHTML = HERBS.map(h => `<li><strong>${esc(h.de)}</strong> – ${credit(h.i)}</li>`).join("");
+
+/* ---------------- Ansichten ---------------- */
+const VIEWS = ["memory", "quiz", "herbarium"];
+function showView() {
+  const v = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : "memory";
+  VIEWS.forEach(x => { $("#view-" + x).hidden = x !== v; });
+  document.querySelectorAll("nav.tabs a").forEach(a => { if (a.dataset.view === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+}
+window.addEventListener("hashchange", showView);
+
+function start(data) {
+  data = data || {};
+  if (data.cardMode) cardMode = data.cardMode;
+  if (data.M && Array.isArray(data.M.deck)) { M = { ...data.M, open: [], lock: false }; renderMemory(); if (M.started && !M.won) startTimer(); }
+  else newMemory(store.get("km-pairs") || 8);
+  if (data.Q && Array.isArray(data.Q.qs)) { Q = data.Q; renderQuiz(); } else newQuiz("img");
+  renderTable();
+  showView();
+}
+window.claude?.hot?.snapshot?.(() => ({ M, Q, cardMode }));
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>
+
+</body>
+</html>
