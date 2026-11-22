@@ -190,7 +190,16 @@ Ergebnis (`bioscale demo`, Seed 42, siehe `tests/test_virtual_species.py` und `t
 | Sentinel-1 (Standard: Planetary Computer `sentinel-1-rtc`) | ja | **nein** – Host gesperrt, Signierung ungetestet |
 | Copernicus Data Space (STAC) | Endpunkt und Asset-Namen hinterlegt | **nein** – Zugriff auf die Dateien braucht ein (kostenloses) Konto |
 | Copernicus HRL | Datei-Import getestet | Download nur über das CLMS-Portal |
-| GBIF (Beispiel `examples/gbif_offene_daten.py`) | – | siehe README |
+
+**Echte Kette Ende-zu-Ende** (`examples/echte_landschaft_virtuelle_art.py`): Gebiet 6 × 6 km im Spessart,
+20 m. Live geladen wurden Sentinel-2 (23 Szenen gefunden, davon 22 Tage brauchbar), Copernicus DEM und
+WorldCover. Darauf sitzt eine virtuelle Art (Baumanteil im Radius 300 m, Höhe); die Standorte liegen nur
+in der Südhälfte. Ergebnis:
+- Richtige Variable (WorldCover-Bäume) mit Radius 400 m gewählt (wahr 300 m). Die Höhe wurde nicht erkannt.
+- Räumlich geprüft ist das Modell schwach (AUC 0,53), zufällig geprüft sähe es besser aus (0,64).
+- Die Ampel steht auf Rot. Die Leitplanke greift: Mit diesen Daten keine belastbare Karte.
+- Korrelation der Karte mit der Wahrheit: 0,76.
+- Laufzeit ca. 2 Minuten, davon ca. 1:45 für den Sentinel-2-Abruf.
 
 Sentinel-1 bei Earth Search (`sentinel-1-grd`) liegt in einem Requester-Pays-Bucket und ist damit
 nicht kostenlos. Er ist deshalb nicht Standard.

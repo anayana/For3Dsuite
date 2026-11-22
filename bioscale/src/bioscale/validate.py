@@ -180,6 +180,19 @@ def metrics(dtype, y, p, background_p=None):
     return count_metrics(y, p) if dtype == "counts" else binary_metrics(y, p, background_p)
 
 
+def fast_score(dtype, y, p):
+    """Nur die Auswahl-Kennzahl (schnell, fuer die vielen Fits der Radiuswahl). Groesser = besser."""
+    y = np.asarray(y, float)
+    if dtype == "counts":
+        mu = np.clip(np.asarray(p, float), 1e-9, None)
+        with np.errstate(divide="ignore", invalid="ignore"):
+            dev = 2 * np.sum(np.where(y > 0, y * np.log(y / mu), 0) - (y - mu))
+            dev0 = 2 * np.sum(np.where(y > 0, y * np.log(y / y.mean()), 0) - (y - y.mean()))
+        return float(1 - dev / dev0) if dev0 > 0 else float("nan")
+    p = np.clip(np.asarray(p, float), 1e-6, 1 - 1e-6)
+    return float(2 * np.mean(y * np.log(p) + (1 - y) * np.log(1 - p)))
+
+
 def main_score(dtype, m):
     """Kennzahl fuer Auswahl (groesser = besser)."""
     if dtype == "counts":

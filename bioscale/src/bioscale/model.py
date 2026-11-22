@@ -197,7 +197,7 @@ def cv_score(kind, X, ds, folds, seed=0):
         te = folds == f
         if ds.dtype != "counts" and len(np.unique(ds.y[te])) < 1:
             continue
-        scores.append(V.main_score(ds.dtype, V.metrics(ds.dtype, ds.y[te], p[te])))
+        scores.append(V.fast_score(ds.dtype, ds.y[te], p[te]))
     scores = np.array([s for s in scores if np.isfinite(s)])
     return float(np.mean(scores)), float(np.std(scores, ddof=1) / np.sqrt(len(scores))) if len(scores) > 1 else 0.0, p
 
