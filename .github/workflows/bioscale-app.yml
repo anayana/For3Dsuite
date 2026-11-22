@@ -6,6 +6,8 @@ name: BioScale-App bauen
 on:
   workflow_dispatch:
   push:
+    branches: [bioscale]
+    paths: ["bioscale/**", ".github/workflows/bioscale-app.yml"]
     tags: ["bioscale-v*"]
 
 jobs:
