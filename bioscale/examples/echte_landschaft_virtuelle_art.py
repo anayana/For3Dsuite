@@ -38,7 +38,7 @@ def main(out="echte_landschaft"):
     eta = 0.0 + 1.8 * z(focal_mean(trees, TRUE_RADIUS, RES)) - 0.8 * z(elev)
     psi = 1 / (1 + np.exp(-eta))
     write_raster(out / "daten" / "wahrheit_psi.tif", psi, g)
-    (out / "daten" / "wahrheit.json").write_text(json.dumps({"true_radius_m": TRUE_RADIUS, "variable": "worldcover_10"}))
+    (out / "daten" / "wahrheit_psi.json").write_text(json.dumps({"true_radius_m": TRUE_RADIUS, "variable": "worldcover_10"}))
     X, Y = g.cell_centers()
     south = Y < Y0 - SIZE / 2
     cand = np.argwhere(south & np.isfinite(psi))

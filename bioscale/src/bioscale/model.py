@@ -94,6 +94,74 @@ class FastGLM:
         return np.exp(eta) if self.family == "poisson" else 1 / (1 + np.exp(-eta))
 
 
+class OccupancyModel:
+    """Einfaches Occupancy-Modell (MacKenzie et al. 2002) mit Einflussgroessen auf die Besetzung.
+
+    logit(psi_i) = Ridge-GLM-Design(X_i)  (linear + quadratisch, wie FastGLM)
+    logit(p)     = konstant je Begehung
+    Maximum Likelihood (scipy, L-BFGS) ueber die Nachweisgeschichten (NaN = nicht begangen).
+    Vorhersage: psi = wahre Besetzungswahrscheinlichkeit, um Nicht-Nachweis korrigiert.
+    """
+
+    def __init__(self, lam=1.0):
+        self.lam = lam
+
+    def fit(self, X, visits):
+        from scipy.optimize import minimize
+        X = np.asarray(X, float)
+        V = np.asarray(visits, float)
+        self.g = FastGLM("binomial", self.lam)
+        g = self.g
+        g.mu, g.sd = X.mean(0), X.std(0)
+        g.sd[g.sd == 0] = 1.0
+        Q = _quad((X - g.mu) / g.sd)
+        g.qmu, g.qsd = Q.mean(0), Q.std(0)
+        g.qsd[g.qsd == 0] = 1.0
+        D = g._design(X)
+        K = np.isfinite(V).sum(1)
+        d = np.nansum(V, 1)
+        det = d > 0
+        npar = D.shape[1]
+
+        nll = lambda th: self._nll(th, D, d, K, det)  # noqa: E731
+
+        m0 = np.clip(det.mean(), 0.02, 0.98)
+        th0 = np.r_[np.log(m0 / (1 - m0)), np.zeros(npar - 1), 0.0]
+        r = minimize(nll, th0, jac=True, method="L-BFGS-B")
+        self.beta, self.alpha = r.x[:npar], r.x[npar]
+        g.beta = self.beta
+        self.p = float(1 / (1 + np.exp(-self.alpha)))
+        return self
+
+    def _nll(self, th, D, d, K, det):
+        npar = D.shape[1]
+        b, a = th[:npar], th[npar]
+        eta = np.clip(D @ b, -30, 30)
+        psi = 1 / (1 + np.exp(-eta))
+        p = 1 / (1 + np.exp(-np.clip(a, -30, 30)))
+        l1 = np.log(np.clip(psi, 1e-12, None)) + d * np.log(p) + (K - d) * np.log1p(-p)
+        l0 = np.log(np.clip(psi * (1 - p) ** K + (1 - psi), 1e-300, None))
+        ll = np.where(det, l1, l0)
+        pen = 0.5 * self.lam * np.sum(b[1:] ** 2)
+        # Gradient
+        q = (1 - p) ** K
+        dpsi = psi * (1 - psi)
+        g_eta = np.where(det, 1 - psi, dpsi * (q - 1) / np.clip(psi * q + 1 - psi, 1e-300, None))
+        gb = -(D.T @ g_eta) + self.lam * np.r_[0, b[1:]]
+        dp = p * (1 - p)
+        g_a1 = d * (1 - p) - (K - d) * p
+        g_a0 = psi * K * (1 - p) ** np.maximum(K - 1, 0) * (-dp) / np.clip(psi * q + 1 - psi, 1e-300, None)
+        ga = -np.sum(np.where(det, g_a1, g_a0))
+        return -ll.sum() + pen, np.r_[gb, ga]
+
+
+    def predict(self, X):
+        return self.g.predict(np.asarray(X, float))
+
+    def predict_observed(self, X, K):
+        return self.predict(X) * (1 - (1 - self.p) ** np.asarray(K, float))
+
+
 # ------------------------------------------------------------------ Modellfabrik
 class Model:
     """Einheitliche Huelle: fit(X, y, w) / predict(X). Fuer Zaehlungen ist y die Rate je Aufwand."""
@@ -119,6 +187,8 @@ class Model:
             kw = dict(n_estimators=200, learning_rate=0.05, num_leaves=8, min_child_samples=5,
                       subsample=0.8, subsample_freq=1, random_state=self.seed, verbose=-1)
             return lgb.LGBMClassifier(**kw) if binary else lgb.LGBMRegressor(objective="poisson", **kw)
+        if k == "occ":
+            return OccupancyModel()
         if k == "maxent":
             try:
                 import elapid
@@ -128,9 +198,14 @@ class Model:
                                      LogisticRegression(C=1.0, max_iter=2000))
         raise ValueError(f"Unbekanntes Modell: {k}")
 
-    def fit(self, X, y, w=None):
+    def fit(self, X, y, w=None, visits=None):
         self.m = self._make()
         X = np.asarray(X, float)
+        if self.kind == "occ":
+            if visits is None:
+                raise ValueError("Occupancy-Modell braucht wiederholte Begehungen (visit_1, visit_2, ...).")
+            self.m.fit(X, visits)
+            return self
         if self.kind == "maxent" and type(self.m).__name__ == "MaxentModel":
             self.m.fit(X, np.asarray(y).astype(int))
             return self
@@ -145,6 +220,12 @@ class Model:
         else:
             self.m.fit(X, y)
         return self
+
+    def predict_observed(self, X, visits=None):
+        """Was beobachtet wird (fuer die Pruefung): bei Occupancy psi x P(mind. ein Nachweis)."""
+        if self.kind == "occ":
+            return self.m.predict_observed(X, np.isfinite(np.asarray(visits, float)).sum(1))
+        return self.predict(X)
 
     def predict(self, X):
         X = np.asarray(X, float)
@@ -165,6 +246,12 @@ class Dataset:
     effort: np.ndarray
     dtype: str
     weight: np.ndarray | None = None
+    visits: np.ndarray | None = None
+
+    def sub(self, idx):
+        return Dataset(self.y[idx], self.xy[idx], self.effort[idx], self.dtype,
+                       None if self.weight is None else self.weight[idx],
+                       None if self.visits is None else self.visits[idx])
 
     @property
     def target(self):
@@ -182,8 +269,9 @@ def cv_predict(kind, X, ds: Dataset, folds, seed=0):
     for f in np.unique(folds):
         te, tr = folds == f, folds != f
         w = None if ds.fit_weight is None else ds.fit_weight[tr]
-        m = Model(kind, ds.dtype, seed).fit(X[tr], ds.target[tr], w)
-        p[te] = m.predict(X[te])
+        vis = None if ds.visits is None else ds.visits
+        m = Model(kind, ds.dtype, seed).fit(X[tr], ds.target[tr], w, None if vis is None else vis[tr])
+        p[te] = m.predict_observed(X[te], None if vis is None else vis[te])
     if ds.dtype == "counts":
         p = p * ds.effort
     return p
@@ -237,6 +325,12 @@ def select_radius(base, radii, feats_by_r: dict, ds: Dataset, folds, seed=0) -> 
                         float(null), useful, warn)
 
 
+def _corr(a, b):
+    if np.std(a) == 0 or np.std(b) == 0:
+        return 0.0
+    return float(np.corrcoef(a, b)[0, 1])
+
+
 def select_features(bases, radii_by_base, point_feats, ds, folds, max_features, corr_max=0.7, seed=0, min_gain=0.5):
     """Radiuswahl je Variable, dann Nutzen-, Korrelations- und Anzahlfilter.
 
@@ -254,7 +348,10 @@ def select_features(bases, radii_by_base, point_feats, ds, folds, max_features, 
     chosen, cur = [], None
     for r in order:
         v = point_feats[(r.base, r.best)]
-        if any(abs(np.corrcoef(v, point_feats[c])[0, 1]) > corr_max for c in chosen):
+        if np.nanstd(v) == 0:
+            notes.append(f"{r.base}: an allen Standorten gleich - nicht verwendet.")
+            continue
+        if any(abs(_corr(v, point_feats[c])) > corr_max for c in chosen):
             notes.append(f"{r.base}: stark korreliert mit einer wichtigeren Variable (|r| > {corr_max}) - nicht verwendet.")
             continue
         if len(chosen) >= max_features:
@@ -281,7 +378,7 @@ def nested_cv(kind, bases, radii_by_base, point_feats, ds: Dataset, folds, max_f
     chosen_per_fold = []
     for f in np.unique(folds):
         te, tr = folds == f, folds != f
-        sub = Dataset(ds.y[tr], ds.xy[tr], ds.effort[tr], ds.dtype, None if ds.weight is None else ds.weight[tr])
+        sub = ds.sub(tr)
         inner_f = folds[tr] if inner == "same" else V.random_folds(tr.sum(), len(np.unique(folds)) - 1, seed)
         _, inner_f = np.unique(inner_f, return_inverse=True)
         pf = {k: v[tr] for k, v in point_feats.items()}
@@ -289,15 +386,15 @@ def nested_cv(kind, bases, radii_by_base, point_feats, ds: Dataset, folds, max_f
         chosen_per_fold.append(ch)
         Xtr = np.column_stack([point_feats[c][tr] for c in ch])
         Xte = np.column_stack([point_feats[c][te] for c in ch])
-        m = Model(kind, ds.dtype, seed).fit(Xtr, sub.target, sub.fit_weight)
-        p[te] = m.predict(Xte) * (ds.effort[te] if ds.dtype == "counts" else 1)
+        m = Model(kind, ds.dtype, seed).fit(Xtr, sub.target, sub.fit_weight, sub.visits)
+        p[te] = m.predict_observed(Xte, None if ds.visits is None else ds.visits[te]) * (ds.effort[te] if ds.dtype == "counts" else 1)
     return p, chosen_per_fold
 
 
 # ------------------------------------------------------------------ Wichtigkeit
 def permutation_importance(model: Model, X, ds: Dataset, n_repeats=5, seed=0):
     rng = np.random.default_rng(seed)
-    pred = model.predict(X) * (ds.effort if ds.dtype == "counts" else 1)
+    pred = model.predict_observed(X, ds.visits) * (ds.effort if ds.dtype == "counts" else 1)
     base = V.main_score(ds.dtype, V.metrics(ds.dtype, ds.y, pred))
     imp = np.zeros(X.shape[1])
     for j in range(X.shape[1]):
@@ -305,7 +402,7 @@ def permutation_importance(model: Model, X, ds: Dataset, n_repeats=5, seed=0):
         for _ in range(n_repeats):
             Xp = X.copy()
             Xp[:, j] = rng.permutation(Xp[:, j])
-            pp = model.predict(Xp) * (ds.effort if ds.dtype == "counts" else 1)
+            pp = model.predict_observed(Xp, ds.visits) * (ds.effort if ds.dtype == "counts" else 1)
             d.append(base - V.main_score(ds.dtype, V.metrics(ds.dtype, ds.y, pp)))
         imp[j] = max(np.mean(d), 0.0)
     if imp.sum() == 0:
@@ -324,6 +421,7 @@ def cluster_bootstrap(kind, X, ds: Dataset, Xpred, n_boot=20, seed=0, clusters=N
         pick = rng.choice(u, len(u), replace=True)
         idx = np.concatenate([np.flatnonzero(clusters == c) for c in pick])
         w = None if ds.fit_weight is None else ds.fit_weight[idx]
-        m = Model(kind, ds.dtype, seed + b).fit(X[idx], ds.target[idx], w)
+        m = Model(kind, ds.dtype, seed + b).fit(X[idx], ds.target[idx], w,
+                                                None if ds.visits is None else ds.visits[idx])
         preds[b] = m.predict(Xpred)
     return preds

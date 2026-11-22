@@ -35,6 +35,7 @@ all = ["lightgbm>=4.0", "elapid>=1.0", "pystac-client>=0.7", "laspy>=2.5", "lazr
 
 [project.scripts]
 bioscale = "bioscale.cli:main"
+bioscale-app = "bioscale.app:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

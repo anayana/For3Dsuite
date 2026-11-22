@@ -13,6 +13,7 @@ def main(argv=None):
     d = sub.add_parser("demo", help="Synthetisches Beispiel (virtuelle Art) erzeugen und komplett rechnen")
     d.add_argument("ordner", nargs="?", default="bioscale_demo")
     d.add_argument("--seed", type=int, default=42)
+    d.add_argument("--artenzahl", action="store_true", help="zusaetzlich Artenzahl einer virtuellen Gemeinschaft rechnen")
 
     r = sub.add_parser("run", help="Projekt rechnen")
     r.add_argument("projekt")
@@ -40,6 +41,9 @@ def main(argv=None):
         print(f"Beispielprojekt geschrieben: {proj}")
         res = run(proj)
         print(f"\nFertig. Bericht oeffnen: {res['report']}")
+        if a.artenzahl:
+            res2 = run(proj.parent / "projekt_artenzahl.yml")
+            print(f"Artenzahl-Bericht: {res2['report']}")
     elif a.cmd == "run":
         from .pipeline import run
         res = run(a.projekt, a.out)

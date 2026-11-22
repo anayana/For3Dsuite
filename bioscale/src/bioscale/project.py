@@ -38,7 +38,7 @@ DEFAULTS = {
 TARGETS = {
     "occurrence": "Vorkommen einer Art (Wahrscheinlichkeit)",
     "abundance": "Haeufigkeit/Aktivitaet einer Art (Zaehlungen)",
-    "richness": "Artenzahl (Phase 2 - bisher nur Einzelart)",
+    "richness": "Artenzahl je Standort (vollstaendige Artenlisten, rarefiziert)",
 }
 
 
@@ -73,12 +73,12 @@ def validate_project(cfg: dict):
         errs.append("'occurrence.path' fehlt (Punktdaten).")
     elif not any((base).glob(occ["path"])) and not (base / occ["path"]).exists():
         errs.append(f"Punktdaten nicht gefunden: {occ['path']}")
-    if not cfg["question"].get("species"):
+    if not cfg["question"].get("species") and cfg["question"].get("target") != "richness":
         errs.append("'question.species' fehlt (wissenschaftlicher Artname).")
     if float(cfg["resolution_m"]) < 1:
         errs.append("'resolution_m' muss >= 1 sein.")
-    if cfg["question"]["target"] == "richness":
-        errs.append("Zielgroesse 'richness' ist noch nicht umgesetzt (Phase 2). Bitte Einzelart waehlen.")
+    if cfg["question"].get("target") not in TARGETS:
+        errs.append(f"'question.target' muss eines von {list(TARGETS)} sein.")
     for L in cfg["covariates"].get("local") or []:
         if not (base / L["path"]).exists():
             errs.append(f"Raster nicht gefunden: {L['path']}")

@@ -113,3 +113,19 @@ def test_counts_with_effort(demo, tmp_path):
     r = run(_modify(proj, f, "counts"), echo=False)
     assert r["dtype"] == "counts" and "R2" in r["cv"]["glm"]["raeumlich"]
     assert (proj.parent / "counts" / "bericht.html").exists()
+
+
+def test_occupancy_chosen_in_demo(demo):
+    _, r = demo
+    assert "occ" in r["cv"]
+    if r["best_model"] == "occ":
+        assert r["occupancy_model"]["p"] == pytest.approx(0.75, abs=0.08)
+
+
+def test_richness_end_to_end(demo):
+    proj, _ = demo
+    r = run(proj.parent / "projekt_artenzahl.yml", echo=False)
+    assert r["target"] == "richness" and r["dtype"] == "counts" and r["rarefy_k"] == 3
+    assert r["truth"]["corr_aoa"] > 0.7
+    html = (proj.parent / "ergebnis_artenzahl" / "bericht.html").read_text()
+    assert "Artenzahl" in html and "Rarefaktion" in html

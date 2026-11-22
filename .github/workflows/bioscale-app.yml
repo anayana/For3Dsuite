@@ -1,0 +1,49 @@
+# Baut die BioScale-Standalone-App fuer Windows, macOS und Linux (kein Python beim Nutzer noetig).
+# Start: GitHub -> Actions -> "BioScale-App bauen" -> "Run workflow". Ergebnis: Artefakte zum Herunterladen.
+# Kostenlos fuer oeffentliche Repositories.
+name: BioScale-App bauen
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ["bioscale-v*"]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: bioscale
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Installieren
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[all,test]" pyinstaller
+      - name: Tests (offline)
+        run: python -m pytest -q -p no:warnings tests/test_aoa.py tests/test_virtual_species.py tests/test_occupancy_richness.py
+      - name: App bauen
+        run: python packaging/build_app.py
+      - name: Rauchtest (Demo mit der gebauten App)
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then EXE=dist/BioScale/BioScale.exe; else EXE=dist/BioScale/BioScale; fi
+          "$EXE" demo rauchtest
+          test -f rauchtest/ergebnis/bericht.html
+      - name: Packen
+        shell: bash
+        run: |
+          cd dist
+          if [ "$RUNNER_OS" = "Windows" ]; then 7z a ../BioScale-${{ runner.os }}.zip BioScale; else zip -qr ../BioScale-${{ runner.os }}.zip BioScale; fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BioScale-${{ runner.os }}
+          path: bioscale/BioScale-${{ runner.os }}.zip
+          retention-days: 30

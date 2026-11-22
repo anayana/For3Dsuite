@@ -126,6 +126,52 @@ def to_dwc(world: VirtualWorld, species="Virtualis exemplaris", start="2025-05-0
     return pd.DataFrame(rows)
 
 
+def make_community(world: VirtualWorld, n_species: int = 25, p_detect: float = 0.7, seed: int = 7):
+    """Virtuelle Artengemeinschaft auf den Standorten der virtuellen Welt.
+
+    Jede Art reagiert mit eigenem Wirkradius (50-400 m) und eigener Staerke auf Wald und Hoehe.
+    Wahrheit: erwartete Artenzahl je Zelle = Summe der psi_s (perfekter Nachweis).
+    Rueckgabe: DwC-Tabelle (vollstaendige Listen, 3 Begehungen), Wahrheitskarte, Artenparameter.
+    """
+    from pyproj import Transformer
+    rng = np.random.default_rng(seed)
+    g = world.grid
+    elev = world.layers["elevation"]
+    truth = np.zeros(g.shape)
+    s = world.sites
+    n_vis = len([c for c in s.columns if c.startswith("visit")])
+    tr = Transformer.from_crs(g.crs, "EPSG:4326", always_xy=True)
+    lon, lat = tr.transform(s.x.values, s.y.values)
+    rows, params = [], []
+    for k in range(n_species):
+        r = float(rng.choice([50, 100, 200, 400]))
+        bf = rng.normal(1.0, 1.0)      # die meisten Arten mogen Wald, einige meiden ihn
+        be = rng.normal(-0.5, 0.6)
+        b0 = rng.normal(-0.8, 0.8)
+        psi = 1 / (1 + np.exp(-(b0 + bf * _z(focal_mean(world.layers["forest"], r, g.res)) + be * _z(elev))))
+        truth += psi
+        z = rng.random(len(s)) < g.sample(psi, s.x.values, s.y.values)
+        det = (rng.random((len(s), n_vis)) < p_detect) & z[:, None]
+        name = f"Virtualis species{k + 1:02d}"
+        params.append(dict(name=name, radius=r, b_forest=bf, b_elev=be, b0=b0))
+        for i in np.flatnonzero(z):
+            for v in np.flatnonzero(det[i]):
+                rows.append(dict(scientificName=name, occurrenceStatus="present", locationID=s.locationID.iloc[i],
+                                 eventID=f"{s.locationID.iloc[i]}-V{v + 1}", decimalLongitude=round(lon[i], 7),
+                                 decimalLatitude=round(lat[i], 7), eventDate=f"2025-0{5 + v}-10",
+                                 basisOfRecord="HumanObservation", samplingProtocol="vollstaendige Artenliste"))
+    # Begehungen ohne Nachweis als leere Liste dokumentieren (damit die Begehungszahl stimmt)
+    seen = {(r_["locationID"], r_["eventID"]) for r_ in rows}
+    for i, loc in enumerate(s.locationID):
+        for v in range(n_vis):
+            if (loc, f"{loc}-V{v + 1}") not in seen:
+                rows.append(dict(scientificName="", occurrenceStatus="absent", locationID=loc, eventID=f"{loc}-V{v + 1}",
+                                 decimalLongitude=round(lon[i], 7), decimalLatitude=round(lat[i], 7),
+                                 eventDate=f"2025-0{5 + v}-10", basisOfRecord="HumanObservation",
+                                 samplingProtocol="vollstaendige Artenliste (keine Art)"))
+    return pd.DataFrame(rows), truth.astype("float32"), params
+
+
 def write_demo_project(outdir, seed: int = 42, **kw) -> Path:
     """Schreibt ein vollstaendiges Beispielprojekt (Raster, Punkte, Gebiet, projekt.yml)."""
     import yaml
@@ -142,7 +188,7 @@ def write_demo_project(outdir, seed: int = 42, **kw) -> Path:
                           "geometry": {"type": "Polygon", "coordinates": [[[minx, miny], [maxx, miny], [maxx, maxy],
                                                                            [minx, maxy], [minx, miny]]]}}]}
     (out / "daten" / "gebiet.geojson").write_text(json.dumps(area), encoding="utf-8")
-    (out / "daten" / "wahrheit.json").write_text(json.dumps(w.truth, indent=2), encoding="utf-8")
+    (out / "daten" / "wahrheit_psi.json").write_text(json.dumps(w.truth, indent=2), encoding="utf-8")
     groups = dict(forest="landcover", canopy_height="structure", elevation="topography", ndvi="spectral",
                   dist_road="access")
     proj = {
@@ -163,4 +209,15 @@ def write_demo_project(outdir, seed: int = 42, **kw) -> Path:
         "demo_truth": "daten/wahrheit_psi.tif",
     }
     (out / "projekt.yml").write_text(yaml.safe_dump(proj, allow_unicode=True, sort_keys=False), encoding="utf-8")
+    # Zweites Projekt: Artenzahl einer virtuellen Gemeinschaft
+    com, truth_s, params = make_community(w, seed=seed + 1)
+    com.to_csv(out / "daten" / "artenlisten_dwc.csv", index=False)
+    write_raster(out / "daten" / "wahrheit_artenzahl.tif", truth_s, w.grid)
+    (out / "daten" / "wahrheit_artenzahl.json").write_text(json.dumps({"arten": params}, indent=1), encoding="utf-8")
+    rich = dict(proj, name="Demo: Artenzahl einer virtuellen Gemeinschaft",
+                question={"target": "richness", "species": "", "profile": "demo_virtuelle_art"},
+                occurrence={"path": "daten/artenlisten_dwc.csv", "format": "dwc"},
+                output="ergebnis_artenzahl", demo_truth="daten/wahrheit_artenzahl.tif")
+    rich["model"] = dict(proj["model"], candidates=["glm", "rf"])
+    (out / "projekt_artenzahl.yml").write_text(yaml.safe_dump(rich, allow_unicode=True, sort_keys=False), encoding="utf-8")
     return out / "projekt.yml"

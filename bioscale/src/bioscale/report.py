@@ -38,8 +38,15 @@ def map_figs(result, maps, out, points=None):
     g = result["grid"]
     ext, x0, y0 = _extent(g)
     figs = {}
+    if result.get("target") == "richness":
+        lab_r = f"Artenzahl je Standort ({result.get('rarefy_k')} Begehungen)"
     lab = "Vorkommenswahrscheinlichkeit" if result["dtype"] == "presence_absence" else (
         "relative Eignung" if result["dtype"] == "presence_only" else f"erwartete Anzahl je {result['ref_effort']:g} Aufwand")
+
+    if result.get("target") == "richness":
+        lab = lab_r
+    elif result.get("occupancy_model"):
+        lab = "Besetzung psi (Nachweis-korrigiert)"
 
     def base(ax):
         ax.set_xlabel("km"); ax.set_ylabel("km")
@@ -211,6 +218,13 @@ ausserhalb: {{ "%.2f"|format(truth.corr_out) }}.{% endif %}</div>{% endif %}
 <td>{{ "%.3g"|format(c.punkte_min) }} - {{ "%.3g"|format(c.punkte_max) }}</td><td>{{ "%.3g"|format(c.gebiet_p05) }} - {{ "%.3g"|format(c.gebiet_p95) }}</td></tr>{% endfor %}</table>
 {% if r.access_bias %}<p>Abstand zu Wegen: Median an Standorten {{ "%.0f"|format(r.access_bias.median_punkte) }} m,
 im Gebiet {{ "%.0f"|format(r.access_bias.median_gebiet) }} m{% if r.access_bias.verzerrt %} - <b>Standorte sind wegnah verzerrt.</b>{% endif %}</p>{% endif %}
+{% if r.occupancy_model %}<div class="card"><b>Occupancy-Modell gewaehlt.</b> Die Karte zeigt die
+<b>Besetzungswahrscheinlichkeit psi</b>: Wie wahrscheinlich die Art an einer Stelle vorkommt, auch wenn sie bei einer
+Begehung uebersehen wird. Geschaetzte Nachweiswahrscheinlichkeit je Begehung: {{ "%.2f"|format(r.occupancy_model.p) }}.</div>{% endif %}
+{% if r.target == "richness" %}<div class="card"><b>Artenzahl:</b> modelliert wird die Zahl der Arten je Standort bei
+{{ r.rarefy_k }} Begehungen (Rarefaktion, damit Standorte mit mehr Begehungen nicht bevorzugt werden). Die Karte zeigt,
+wie viele Arten man an einer Stelle mit diesem Aufwand erwartet - nicht die Artenzahl einer Flaeche (die waere hoeher).
+Uebersehene Arten fehlen in beiden Faellen.</div>{% endif %}
 {% if r.occupancy %}<p>Erkennungswahrscheinlichkeit (einfaches Occupancy-Modell ohne Kovariaten): je Begehung
 <b>{{ "%.2f"|format(r.occupancy.p) }}</b>, nach {{ "%.1f"|format(r.occupancy.mean_visits) }} Begehungen {{ "%.2f"|format(r.occupancy.p_cum) }}.
 Geschaetzte Besetzung {{ "%.2f"|format(r.occupancy.psi) }} (beobachtet {{ "%.2f"|format(r.occupancy.naive) }}).</p>{% endif %}
@@ -265,6 +279,8 @@ def write_report(result, maps, grid, out, points=None, truth=None):
         plaus[r["base"]] = f"{lo:.0f}-{hi:.0f} m" if len(r["radii"]) > 1 else "-"
     src = {p["name"]: p["source"] for p in result["provenance"]}
     dtype_text = {"presence_absence": "Vorkommen/Fehlen", "counts": "Zaehlungen", "presence_only": "nur Vorkommen"}[result["dtype"]]
+    if result.get("target") == "richness":
+        dtype_text = f"Artenzahl, rarefiziert auf {result.get('rarefy_k')} Begehungen"
     html = TEMPLATE.render(r=result, figs=figs, version=__version__, ampel_text=AMPEL_TEXT[result["ampel"]],
                            main_metric=main_metric, metric_keys=metric_keys, plaus=plaus, src=src, nan=float("nan"),
                            dtype_text=dtype_text, truth=truth or result.get("truth"),

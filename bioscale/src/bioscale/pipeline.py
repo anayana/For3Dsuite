@@ -43,6 +43,23 @@ def build_covariates(cfg, grid: Grid, base: Path, log) -> tuple[CovariateStack, 
         log(f"Raster geladen: {L['path']} -> {L.get('name')}")
     od = cov.get("open") or {}
     period = cfg.get("period") or {}
+    cache_key = None
+    if od and cov.get("cache", True):
+        import hashlib
+        cache_key = hashlib.sha1(json.dumps([grid.to_dict(), od, period], sort_keys=True, default=str).encode()).hexdigest()[:12]
+        cache_dir = base / "cache" / "offene_daten" / cache_key
+    if cache_key and (cache_dir / "layers.npz").exists():
+        from .provenance import LayerRecord as _LR
+        arrs = np.load(cache_dir / "layers.npz")
+        meta = json.loads((cache_dir / "layers.json").read_text(encoding="utf-8"))
+        for m in meta:
+            rec = _LR(**m["record"])
+            rec.processing = rec.processing + [f"aus Cache {cache_key}"]
+            st.layers[m["name"]] = Layer(m["name"], arrs[m["name"]], m["group"], m["kind"], m["multiscale"])
+            st.provenance.add(rec)
+        log(f"Offene Daten aus Cache geladen ({len(meta)} Layer, {cache_dir}).")
+        od = {}
+    before = set(st.layers)
     if od.get("sentinel2"):
         o = od["sentinel2"] if isinstance(od["sentinel2"], dict) else {}
         try:
@@ -99,6 +116,15 @@ def build_covariates(cfg, grid: Grid, base: Path, log) -> tuple[CovariateStack, 
                 st.add(Layer(rec.name, arr, "climate", multiscale=False), rec)
             except Exception as e:
                 warnings_.append(f"DWD {var} konnte nicht geladen werden ({type(e).__name__}: {e}).")
+    if cache_key and od:
+        newl = [n for n in st.layers if n not in before]
+        if newl:
+            from dataclasses import asdict
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            np.savez_compressed(cache_dir / "layers.npz", **{n: st.layers[n].array for n in newl})
+            meta = [dict(name=n, group=st.layers[n].group, kind=st.layers[n].kind, multiscale=st.layers[n].multiscale,
+                         record=asdict(st.provenance.records[n])) for n in newl if n in st.provenance.records]
+            (cache_dir / "layers.json").write_text(json.dumps(meta, ensure_ascii=False), encoding="utf-8")
     if cov.get("als"):
         from .covariates import als
         paths = [base / p for p in cov["als"].get("paths", [])]
@@ -136,8 +162,15 @@ def run(project_path, out_dir=None, echo=True, make_report=True) -> dict:
     log(f"Analyseraster: {grid.width} x {grid.height} Zellen a {grid.res:g} m, {mask.sum() * grid.res ** 2 / 1e4:.0f} ha")
 
     # Punktdaten
-    obs = load_observations(cfg["occurrence"], cfg["question"]["species"], cfg["crs"], base, geom, cfg.get("period"),
-                            cfg["sensitive"].get("taxa"))
+    target = cfg["question"].get("target", "occurrence")
+    occ_cfg = dict(cfg["occurrence"])
+    if target == "abundance":
+        occ_cfg["type"] = "counts"
+    obs = load_observations(occ_cfg, cfg["question"].get("species") or "", cfg["crs"], base, geom, cfg.get("period"),
+                            cfg["sensitive"].get("taxa"), target="richness" if target == "richness" else "occurrence")
+    if target == "richness":
+        filt = cfg["occurrence"].get("taxon_filter")
+        obs.species = "Artenzahl" + (f" ({', '.join(f'{k}={v}' for k, v in filt.items())})" if filt else "")
     obs.sensitive = obs.sensitive or bool(prof.get("sensitive"))
     if obs.n_events < 5:
         raise ValueError(f"Zu wenige Daten fuer '{obs.species}': {obs.n} Standorte, {obs.n_events} Ereignisse "
@@ -194,7 +227,9 @@ def run(project_path, out_dir=None, echo=True, make_report=True) -> dict:
         warn.append("Nur-Vorkommen-Daten: Die Karte zeigt relative Eignung, keine Vorkommenswahrscheinlichkeit.")
     else:
         y = s["response"].values.astype(float)
-        ds = M.Dataset(y, xy, s["effort"].values.astype(float), obs.dtype)
+        vm0 = visit_matrix(s)
+        vis = vm0.astype(float) if (vm0 is not None and vm0.shape[1] >= 2 and obs.dtype == "presence_absence") else None
+        ds = M.Dataset(y, xy, s["effort"].values.astype(float), obs.dtype, visits=vis)
         bg_note = None
 
     # Pruef-Folds
@@ -218,7 +253,7 @@ def run(project_path, out_dir=None, echo=True, make_report=True) -> dict:
     okrow = np.all(np.column_stack([np.isfinite(v) for v in pf.values()]), 1)
     if (~okrow).any():
         warn.append(f"{int((~okrow).sum())} Datenpunkte ohne vollstaendige Einflussgroessen (Rand/Luecken) entfernt.")
-        ds = M.Dataset(ds.y[okrow], ds.xy[okrow], ds.effort[okrow], ds.dtype)
+        ds = ds.sub(okrow)
         folds, f_rand = folds[okrow], f_rand[okrow]
         pf = {kk: v[okrow] for kk, v in pf.items()}
         _, folds = np.unique(folds, return_inverse=True)
@@ -237,6 +272,9 @@ def run(project_path, out_dir=None, echo=True, make_report=True) -> dict:
     cand = [c for c in mc.get("candidates", ["glm", "rf"])]
     if obs.dtype == "presence_only" and "maxent" not in cand:
         cand = ["maxent"] + cand
+    if ds.visits is not None and mc.get("occupancy", True) and "occ" not in cand:
+        cand = cand + ["occ"]
+        log("Wiederholte Begehungen vorhanden: Occupancy-Modell (Besetzung um Nicht-Nachweis korrigiert) wird mitgeprueft.")
     if "gbm" in cand:
         try:
             import lightgbm  # noqa: F401
@@ -250,11 +288,22 @@ def run(project_path, out_dir=None, echo=True, make_report=True) -> dict:
                                 p_spatial=p_sp, chosen_per_fold=[[f"{b}@{r:g}" for b, r in c] for c in ch_sp])
         log(f"{kind}: raeumlich {fmt_metrics(cv_results[kind]['raeumlich'])} | zufaellig {fmt_metrics(cv_results[kind]['zufaellig'])}")
     best = max(cand, key=lambda c: V.main_score(ds.dtype, cv_results[c]["raeumlich"]))
+    if "occ" in cand and best != "occ":
+        # Occupancy liefert die eigentlich gesuchte Groesse (wahre Besetzung). Bevorzugen, wenn es in der
+        # raeumlichen Pruefung nicht deutlich schlechter vorhersagt (Devianz-Unterschied < 0.02).
+        d = V.main_score(ds.dtype, cv_results[best]["raeumlich"]) - V.main_score(ds.dtype, cv_results["occ"]["raeumlich"])
+        if d < float(mc.get("occupancy_tolerance", 0.02)):
+            log(f"Occupancy-Modell gewaehlt (Vorhersage fast gleich gut wie {best}, Unterschied {d:.3f}), "
+                "weil es die um Nicht-Nachweis korrigierte Besetzung liefert.")
+            best = "occ"
     log(f"Bestes Modell (raeumliche Pruefung): {best}")
 
     # Endmodell
     Xp = np.column_stack([pf[c] for c in chosen])
-    final = M.Model(best, ds.dtype, seed).fit(Xp, ds.target, ds.fit_weight)
+    final = M.Model(best, ds.dtype, seed).fit(Xp, ds.target, ds.fit_weight, ds.visits)
+    occ_model = dict(p=final.m.p) if best == "occ" else None
+    if occ_model:
+        log(f"Occupancy-Modell: Nachweis je Begehung p = {occ_model['p']:.2f}; Karte = Besetzungswahrscheinlichkeit psi")
     imp = M.permutation_importance(final, Xp, ds, seed=seed)
     stack._cache.clear()
     Xc = stack.matrix(chosen, mask)
@@ -340,7 +389,8 @@ def run(project_path, out_dir=None, echo=True, make_report=True) -> dict:
         pts_x, pts_y = coarsen_xy(pts_x, pts_y, float(cfg["sensitive"].get("coarsen_m", 1000)))
     result = dict(
         project=cfg.get("name", ""), species=obs.species, dtype=obs.dtype, n_sites=int(obs.n), n_events=n_events,
-        sensitive=obs.sensitive, profile={k: prof[k] for k in ("name", "label", "radius_m", "status", "hints", "references")},
+        sensitive=obs.sensitive, target=target, rarefy_k=obs.rarefy_k, occupancy_model=occ_model,
+        profile={k: prof[k] for k in ("name", "label", "radius_m", "status", "hints", "references")},
         grid=grid.to_dict(), area_ha=float(mask.sum() * grid.res ** 2 / 1e4),
         radii=radii, chosen=[dict(variable=b, radius_m=r, wichtigkeit=float(i)) for (b, r), i in zip(chosen, imp)],
         radius_results=[r.__dict__ for r in rad_results], selection_notes=sel_notes,
@@ -428,7 +478,7 @@ def compare_truth(path, maps, grid, base):
     """Nur fuer den synthetischen Testfall: Karte gegen die bekannte Wahrheit."""
     from .grid import read_to_grid
     t = read_to_grid(path, grid)
-    js = Path(path).with_name("wahrheit.json")
+    js = Path(path).with_suffix(".json")
     info = json.loads(js.read_text()) if js.exists() else {}
     a, p = maps["aoa"], maps["vorhersage"]
     ok_in = (a == 1) & np.isfinite(t) & np.isfinite(p)

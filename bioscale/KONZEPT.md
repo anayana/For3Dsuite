@@ -107,7 +107,9 @@ projekt.yml ─► occurrence ─► covariates ─► multiscale ─► model �
                 BatDetect2)       ALS, Drohne, Raster)   aus Profil)      wahl verschachtelt) Metriken) Pebesma)
 ```
 
-- **Python-Kern** (passt zu `platform/app`: FastAPI, Docker). R nur über eine gekapselte Brücke
+- **Python-Kern** (passt zu `platform/app`: FastAPI, Docker). Für Nutzer:innen ohne Python gibt es eine
+  **Standalone-App**: Doppelklick, Browser öffnet sich, Daten bleiben lokal. Gebaut wird sie mit PyInstaller,
+  für alle drei Systeme über GitHub Actions (kostenlos bei öffentlichem Repo). Docker bleibt für Server. R nur über eine gekapselte Brücke
   (`bioscale.rbridge`, CSV + Rscript) für Hmsc, spOccupancy und den CAST-Abgleich. Das MVP läuft ohne R.
 - **Bibliotheken (FOSS):** numpy, scipy, pandas, geopandas, rasterio, pystac-client, scikit-learn,
   lightgbm, elapid, laspy/lazrs, jinja2, matplotlib, FastAPI.
@@ -120,13 +122,13 @@ projekt.yml ─► occurrence ─► covariates ─► multiscale ─► model �
 | Modul | Inhalt |
 |---|---|
 | `project` | YAML-Projektdatei, Prüfung, Assistent (`bioscale wizard`) |
-| `occurrence` | Import (Darwin Core CSV/GPKG, Camtrap DP, BirdNET, BatDetect2), Datentyp-Erkennung, Aufwand, Plausibilität, sensible Taxa, Vergröberung, einfaches Occupancy-Modell (p, ψ) |
+| `occurrence` | Import (Darwin Core CSV/GPKG, Camtrap DP, BirdNET, BatDetect2), Datentyp-Erkennung, Aufwand, Plausibilität, sensible Taxa, Vergröberung, einfaches Occupancy-Modell (p, ψ), **Artenzahl je Standort mit Rarefaktion** |
 | `covariates/opendata` | Sentinel-2 L2A (STAC Earth Search oder CDSE; saisonale Mediane NDVI/NDRE/NDMI/NBR, SCL-Maske), Sentinel-1 (STAC, saisonale Statistik), Copernicus DEM GLO-30 (Hangneigung, Exposition, TWI mit D8), ESA WorldCover, Copernicus HRL (Datei), DWD-Raster |
 | `covariates/intensity` | Mahdereignisse, saisonale Amplitude, Störung (NDMI-Verlust) |
 | `covariates/als` | LAS/LAZ → DTM, normierte Höhe, CHM; Metriken: p95, Mittel, SD, Lückenanteil, Deckung, Foliage Height Diversity, Unterwuchs; auch Drohnen-DSM |
 | `multiscale` | NaN-tolerante Kernel-Mittel (Gauß, Kreisscheibe), Klassenanteile, Radienliste |
 | `profiles` | YAML je Artengruppe: Variablengruppen, Radienspanne, Modell, Hinweise, Status |
-| `model` | schneller Ridge-GLM (IRLS), Random Forest, LightGBM, Maxent (elapid); Radiuswahl, Vorwärtsauswahl, verschachtelte Prüfung, Permutationswichtigkeit, Cluster-Bootstrap |
+| `model` | schneller Ridge-GLM (IRLS), Random Forest, LightGBM, Maxent (elapid), **Occupancy-Modell mit Einflussgrößen** (Besetzung ψ ~ Variablen, Nachweis p je Begehung, ML mit analytischem Gradienten); Radiuswahl, Vorwärtsauswahl, verschachtelte Prüfung, Permutationswichtigkeit, Cluster-Bootstrap |
 | `validate` | kNNDM, Block- und Zufallsfolds; AUC, TSS, Boyce, Devianz, Brier, Kalibrierung; R², erklärte Devianz |
 | `aoa` | DI und AOA wie CAST (Tukey-Hinges wie R `boxplot.stats`) |
 | `sampling` | Abdeckungstabelle, Wege-Bias, gierige AOA-Erweiterung, GPX/GeoPackage |
@@ -149,6 +151,15 @@ projekt.yml ─► occurrence ─► covariates ─► multiscale ─► model �
 - **Zählungen:** Rate je Aufwand mit Aufwand als Gewicht (entspricht einem Offset im Poisson-GLM).
 - **Nur Vorkommen:** Maxent (elapid) mit Zielgruppen-Hintergrund. Ersatzweise wird ein Hintergrund
   nach dem Wege-Abstand gewichtet. Sonst gibt es eine Warnung. Die Karte heißt dann „relative Eignung“.
+- **Occupancy statt GLM bei wiederholten Begehungen:** Beide werden auf das *Beobachtete* geprüft
+  (Occupancy: ψ · (1 − (1 − p)^K)). Occupancy wird gewählt, wenn es nicht deutlich schlechter vorhersagt
+  (Devianz-Unterschied < 0,02), weil es die eigentlich gesuchte Größe liefert: die Besetzung, korrigiert um
+  übersehene Nachweise. In der Demo mit p = 0,4 trifft es die wahre Besetzung deutlich besser als das GLM,
+  das systematisch unterschätzt.
+- **Artenzahl direkt modellieren** (makroökologisches Modell) statt Einzelartmodelle zu stapeln, die sie
+  überschätzen. Je Standort wird stichprobenbasiert rarefiziert auf gleich viele Begehungen (Hypergeometrie).
+  Damit ist der Aufwand fair. Die Karte gilt für die Erfassungseinheit (Standort × k Begehungen), nicht für
+  eine Fläche. Übersehene Arten bleiben unberücksichtigt (Phase 3: Gemeinschafts-Occupancy).
 - **Sensible Arten:** eine Startliste (Fledermäuse, Großvögel mit Horsten, Luchs, Wildkatze, Wolf u. a.)
   plus Projektliste. Folgen: Punkte im Bericht vergröbert (Standard 1 km), veröffentlichbare Karten
   blockgemittelt (Standard 250 m), Karten mit voller Auflösung mit Hinweis „nicht veröffentlichen“.
@@ -201,6 +212,22 @@ in der Südhälfte. Ergebnis:
 - Korrelation der Karte mit der Wahrheit: 0,76.
 - Laufzeit ca. 2 Minuten, davon ca. 1:45 für den Sentinel-2-Abruf.
 
+**Echte Punktdaten** (`examples/gbif_zonienwoud.py`): Zoniënwoud / Forêt de Soignes bei Brüssel
+(buchendominiert), eBird-Checklisten über GBIF (CC BY 4.0), 2015–2025. Geladen wurden 11.958 Nachweise:
+959 Checklisten, 263 Orte, 137 Arten. Verwendet wurden 75 Orte mit mindestens 2 Checklisten. Dazu kamen
+Sentinel-2 (38 Szenen, 18 brauchbare Tage), DEM und WorldCover bei 50 m.
+- **Kleiber:** Das Occupancy-Modell gewinnt die räumliche Prüfung (AUC 0,79; GLM 0,71; RF 0,69).
+  - Nachweis je Checkliste p = 0,42.
+  - Besetzung 0,83 gegenüber naiv 0,64.
+  - Gewählt: Baumanteil (WorldCover) im Radius 650 m.
+  - Ampel gelb.
+- **Artenzahl:** kein belastbarer Zusammenhang (räumlich erklärte Devianz ≈ 0), Ampel rot.
+  Wahrscheinliche Ursache: eBird-Checklisten unterscheiden sich stark in Dauer und Strecke; der Aufwand
+  steht nicht in den GBIF-Daten.
+- Andere Quellen im Gebiet sind für Punktmodelle ungeeignet: waarnemingen.be ist auf 5 km vergröbert,
+  ABV auf 1 km, iNaturalist teils CC BY-NC.
+- Laufzeit: Daten laden ca. 5 min (GBIF + Sentinel-2); jede weitere Rechnung ca. 15 s dank Cache.
+
 Sentinel-1 bei Earth Search (`sentinel-1-grd`) liegt in einem Requester-Pays-Bucket und ist damit
 nicht kostenlos. Er ist deshalb nicht Standard.
 
@@ -209,7 +236,8 @@ nicht kostenlos. Er ist deshalb nicht Standard.
 ## 7. Roadmap
 
 **Phase 1 (MVP, diese Version):** Kette Ende-zu-Ende, virtuelle Art, Downloader, ALS, Profile,
-Web-Assistent, Bericht.
+Web-Assistent, Bericht, Occupancy mit Einflussgrößen, Artenzahl, Standalone-App (PyInstaller,
+Build für Windows/macOS/Linux über GitHub Actions), Cache für offene Daten.
 
 **Phase 2:**
 - Agrar-Intensität:
@@ -217,9 +245,10 @@ Web-Assistent, Bericht.
   - InVeKoS-/GSAA-Schläge als Einheiten.
   - HRL Small Woody Features.
   - Abgleich mit Referenz-Mahdterminen.
-- Occupancy mit Kovariaten (spOccupancy über `rbridge`), Hmsc für Gemeinschaften, integrierte
-  Verbreitungsmodelle (z. B. Kartierung + Zufallsfunde).
-- Zielgrößen Artenzahl und Zusammensetzung: gemeinsame Modelle statt gestapelter Einzelmodelle.
+- Occupancy-Erweiterungen: Nachweis abhängig von Aufwand/Datum, räumliche Occupancy (spOccupancy über
+  `rbridge`), Gemeinschafts-Occupancy für Artenzahl mit übersehenen Arten; Hmsc für Zusammensetzung;
+  integrierte Verbreitungsmodelle (z. B. Kartierung + Zufallsfunde).
+- Aufwand je Checkliste (Dauer, Strecke) für Artenzahl berücksichtigen (z. B. eBird Basic Dataset statt GBIF).
 - Zeitreihen: wiederholte Läufe pro Jahr, Veränderungskarten mit Unsicherheit, Zeitversatz-Prüfung.
 - Sentinel-1 über CDSE mit Konto; Copernicus-DEM-Ableitungen bei 10 m aus nationalen DGMs (offen, je Land).
 - Lokale Lagegenauigkeit der Punkte berücksichtigen (Kernel × Lageunsicherheit).

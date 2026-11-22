@@ -21,19 +21,40 @@ Methoden: [KONZEPT.md](KONZEPT.md).
 
 ## 1. Installieren (einmalig)
 
+### Weg A: Standalone-App (ohne Python, ohne Docker) – empfohlen für Nicht-Fachleute
+
+1. Auf GitHub im Repository oben **„Actions“** anklicken, links **„BioScale-App bauen“** wählen.
+2. Rechts **„Run workflow“** → **„Run workflow“** klicken. Nach ca. 15 Minuten ist der Lauf grün.
+3. Den Lauf anklicken. Unten unter **„Artifacts“** die Datei für Ihr System herunterladen:
+   `BioScale-Windows`, `BioScale-macOS` oder `BioScale-Linux`.
+4. ZIP entpacken (zweimal: GitHub packt das ZIP noch einmal ein). Im Ordner `BioScale` die Datei
+   **`BioScale.exe`** (Windows) bzw. **`BioScale`** (Mac/Linux) doppelklicken.
+5. Ein schwarzes Fenster öffnet sich, danach der Browser mit BioScale. Ergebnisse landen im Ordner
+   `BioScale` in Ihrem Benutzerordner. Zum Beenden das schwarze Fenster schließen.
+
+Hinweise: Windows fragt beim ersten Start evtl. „Computer geschützt“ → **„Weitere Informationen“ → „Trotzdem
+ausführen“** (die App ist nicht signiert). Mac: Rechtsklick auf `BioScale` → **„Öffnen“** → **„Öffnen“**.
+Die App ist ca. 550 MB groß, weil sie Python und alle Geodaten-Bibliotheken enthält.
+Getestet: Linux-Build in der Cloud (Demo und Web-Oberfläche). Windows/Mac werden erst durch den Workflow gebaut und geprüft.
+
+### Weg B: Python-Paket
+
 Sie brauchen Python ab Version 3.10.
 
 1. Terminal öffnen (Windows: „Eingabeaufforderung“, Mac: „Terminal“).
 2. In den Ordner `bioscale` wechseln: `cd pfad/zu/For3Dsuite/bioscale`
 3. Eingeben: `pip install -e ".[all]"`
 
-Mit Docker geht es ohne Python-Installation (das Dockerfile ist in dieser Version noch nicht im Container getestet):
+### Weg C: Docker (für Server; in dieser Version noch nicht im Container getestet)
+
+
 `docker build -t bioscale .` und danach `docker run --rm -p 8765:8765 -v "$PWD/arbeit:/arbeit" bioscale`.
 
-## 2. Ausprobieren mit der Demo (1 Befehl, ca. 30 Sekunden)
+## 2. Ausprobieren mit der Demo (1 Befehl, ca. 10 Sekunden)
 
 ```
-bioscale demo
+bioscale demo              # virtuelle Art
+bioscale demo --artenzahl  # zusätzlich Artenzahl einer virtuellen Gemeinschaft
 ```
 
 Das erzeugt eine **virtuelle Art in einem virtuellen Schutzgebiet**. Die Wahrheit ist bekannt
@@ -73,6 +94,14 @@ bioscale download projekt.yml   # lädt nur die offenen Daten (z. B. vorab, mit 
 | `eventID`, `eventDate` | empfohlen | eine Zeile je Begehung und Art |
 | `samplingEffort` | empfohlen | „10 min“, „2 h“, „14 Nächte“ |
 | `individualCount` | für Zählungen | 3 |
+
+### Zielgrößen
+
+| `question.target` | Was gerechnet wird |
+|---|---|
+| `occurrence` | Vorkommen einer Art. Bei wiederholten Begehungen (`eventID` je Begehung) prüft BioScale zusätzlich ein **Occupancy-Modell**: Die Karte zeigt dann die Besetzung, korrigiert um übersehene Nachweise. |
+| `abundance` | Häufigkeit/Aktivität einer Art (Zählungen, Aufwand als Gewicht) |
+| `richness` | **Artenzahl** je Standort aus vollständigen Artenlisten, auf gleich viele Begehungen rarefiziert (`occurrence.rarefy_to`), optional nur eine Gruppe (`occurrence.taxon_filter: {class: Aves}`) |
 
 Gilt eine Liste als vollständige Artenliste (Standard), zählt jede Begehung ohne die Zielart als
 „nicht gefunden“. Sonst `complete_lists: false` setzen. Dann rechnet BioScale mit „nur Vorkommen“.
@@ -139,6 +168,8 @@ pip install -e ".[all,test]"
 pytest                          # alle Tests offline (Mocks + synthetische Daten)
 BIOSCALE_NETWORK=1 pytest tests/test_network.py   # echte Abrufe (DEM, WorldCover, Sentinel-2, DWD)
 python examples/echte_landschaft_virtuelle_art.py   # echte Landschaft + virtuelle Art (Internet)
+python examples/gbif_zonienwoud.py               # echte eBird-Daten (GBIF), Zonienwoud bei Bruessel (Internet)
+python packaging/build_app.py                    # Standalone-App fuer das eigene Betriebssystem bauen
 ```
 
 Die R-Brücke (`bioscale.rbridge`) ist optional (Hmsc, spOccupancy, CAST-Abgleich). Das MVP braucht kein R.

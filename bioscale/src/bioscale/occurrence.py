@@ -49,6 +49,8 @@ class Observations:
     issues: list[str] = field(default_factory=list)
     sensitive: bool = False
     notes: list[str] = field(default_factory=list)
+    target: str = "occurrence"          # occurrence | richness
+    rarefy_k: int | None = None
 
     @property
     def n(self):
@@ -213,14 +215,80 @@ def read_acoustic(path, sites_path, species: str, crs: str, fmt: str, threshold:
     return st, note
 
 
+# ---------------------------------------------------------------- Artenzahl
+def rarefied_richness(n_s: np.ndarray, K: int, k: int) -> float:
+    """Erwartete Artenzahl bei k von K Begehungen (stichprobenbasierte Rarefaktion, Hypergeometrie).
+
+    n_s: Anzahl Begehungen, in denen Art s nachgewiesen wurde.
+    E[S_k] = sum_s [1 - C(K - n_s, k) / C(K, k)]
+    """
+    from scipy.special import gammaln
+    n_s = np.asarray(n_s, float)
+    if k >= K:
+        return float((n_s > 0).sum())
+
+    def lc(a, b):
+        return gammaln(a + 1) - gammaln(b + 1) - gammaln(a - b + 1)
+    miss = np.where(K - n_s >= k, np.exp(lc(K - n_s, k) - lc(K, k)), 0.0)
+    return float(np.sum(1 - miss))
+
+
+def richness_sites(df: pd.DataFrame, crs: str, taxon_filter: dict | None = None, rarefy_to: int | None = None):
+    """Vollstaendige Artenlisten -> Artenzahl je Standort, auf gleiche Begehungszahl rarefiziert.
+
+    Direkt modellierte Artenzahl statt gestapelter Einzelartmodelle (die ueberschaetzen).
+    Gilt fuer die Erfassungseinheit (Standort x k Begehungen), nicht fuer eine Flaeche.
+    """
+    df = df.copy()
+    for col, val in (taxon_filter or {}).items():
+        vals = val if isinstance(val, list) else [val]
+        df = df[df[col].astype(str).isin([str(v) for v in vals])]
+    if "locationID" not in df:
+        df["locationID"] = df["decimalLatitude"].round(5).astype(str) + "_" + df["decimalLongitude"].round(5).astype(str)
+    if "eventID" not in df:
+        df["eventID"] = df["locationID"].astype(str) + "_" + df.get("eventDate", pd.Series("", index=df.index)).astype(str)
+    st = df["occurrenceStatus"].map(_status) if "occurrenceStatus" in df else pd.Series(1.0, index=df.index)
+    df["_det"] = st.fillna(1.0)
+    K = df.groupby("locationID")["eventID"].nunique()
+    k = int(rarefy_to or K.min())
+    pres = df[df["_det"] > 0]
+    n_s = pres.groupby(["locationID", "scientificName"])["eventID"].nunique()
+    rows = []
+    for loc, Kl in K.items():
+        if Kl < k:
+            continue
+        ns = n_s.loc[loc].values if loc in n_s.index.get_level_values(0) else np.array([])
+        first = df[df.locationID == loc].iloc[0]
+        rows.append(dict(locationID=loc, lat=first["decimalLatitude"], lon=first["decimalLongitude"],
+                         richness_obs=int((ns > 0).sum()), count=rarefied_richness(ns, int(Kl), k),
+                         effort=1.0, n_visits=int(Kl)))
+    sites = pd.DataFrame(rows)
+    sites["detected"] = (sites["richness_obs"] > 0).astype(float)
+    sites["x"], sites["y"] = _to_project_xy(sites.rename(columns={"lon": "decimalLongitude", "lat": "decimalLatitude"}), crs)
+    n_species = int(pres["scientificName"].nunique())
+    dropped = int((K < k).sum())
+    return sites, k, n_species, dropped
+
+
 # ---------------------------------------------------------------- Hauptfunktion
 def load_observations(cfg: dict, species: str, crs: str, base: Path = Path("."), area_geom=None,
-                      period: dict | None = None, sensitive_extra=None) -> Observations:
+                      period: dict | None = None, sensitive_extra=None, target: str = "occurrence") -> Observations:
     fmt = cfg.get("format", "dwc").lower()
     path = base / cfg["path"]
     issues, notes = [], []
     background = None
-    if fmt in ("dwc", "darwincore", "csv", "gpkg"):
+    rk = None
+    if target == "richness":
+        raw = read_table(path)
+        sites, rk, n_sp, dropped = richness_sites(raw, crs, cfg.get("taxon_filter"), cfg.get("rarefy_to"))
+        issues += plausibility(raw, period)
+        if dropped:
+            issues.append(f"{dropped} Standorte mit weniger als {rk} Begehungen nicht verwendet (Rarefaktion).")
+        notes.append(f"Artenzahl: {n_sp} Arten insgesamt; je Standort rarefiziert auf {rk} Begehungen "
+                     "(gleicher Aufwand). Gilt fuer die Erfassungseinheit, nicht fuer eine Flaeche.")
+        has_abs = True
+        cfg = dict(cfg, type="counts")
+    elif fmt in ("dwc", "darwincore", "csv", "gpkg"):
         raw = read_table(path)
         missing = {"decimalLatitude", "decimalLongitude"} - set(raw.columns)
         if missing:
@@ -270,9 +338,10 @@ def load_observations(cfg: dict, species: str, crs: str, base: Path = Path("."),
     dup = sites.duplicated(["x", "y"]).sum()
     if dup:
         issues.append(f"{int(dup)} Standorte mit identischen Koordinaten (Pseudo-Replikation?).")
-    sens = is_sensitive(species, sensitive_extra)
+    sens = is_sensitive(species, sensitive_extra) if target != "richness" else False
     return Observations(sites=sites.reset_index(drop=True), dtype=dtype, species=species, source_format=fmt,
-                        crs=crs, background=background, issues=issues, sensitive=sens, notes=notes)
+                        crs=crs, background=background, issues=issues, sensitive=sens, notes=notes,
+                        target=target, rarefy_k=rk)
 
 
 def plausibility(df: pd.DataFrame, period: dict | None = None) -> list[str]:
