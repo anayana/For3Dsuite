@@ -35,4 +35,12 @@ args = [
 ]
 if sys.platform == "darwin":
     args += ["--osx-bundle-identifier", "org.for3dsuite.bioscale"]
+    # pyproj ist auf macOS gegen Homebrew-PROJ gebaut: dessen Datenbank (proj.db) mitnehmen
+    import subprocess
+    try:
+        prefix = subprocess.run(["brew", "--prefix", "proj"], capture_output=True, text=True).stdout.strip()
+        if prefix and Path(prefix, "share", "proj").exists():
+            args += ["--add-data", f"{prefix}/share/proj:proj_data_brew"]
+    except FileNotFoundError:
+        pass
 PyInstaller.__main__.run(args)
