@@ -1,0 +1,11 @@
+name: voegel_offenland
+label: Brutvoegel im Offenland / Agrarlandschaft
+domain: offenland
+radius_m: [50, 1500]
+variable_groups: [intensity, landcover, spectral, structure, topography]
+recommended_model: glm
+data_types: [presence_absence, counts]
+status: Expertenschaetzung, pruefen
+hints:
+  - Mahd- und Erntetermine, Kleinstrukturen (HRL Small Woody Features) und Offenheit der Landschaft beachten.
+  - Fruchtfolge wechselt jaehrlich - Fernerkundung aus dem Erhebungsjahr verwenden.

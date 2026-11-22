@@ -1,0 +1,13 @@
+name: fledermaeuse
+label: Fledermaeuse (Detektoren, BatDetect2)
+domain: wald
+radius_m: [200, 5000]
+variable_groups: [structure, landcover, topography, climate, spectral]
+recommended_model: glm
+data_types: [counts, presence_absence]
+sensitive: true
+status: Expertenschaetzung, pruefen
+hints:
+  - SENSIBEL - Quartierstandorte nie veroeffentlichen; Ausgaben werden vergroebert.
+  - Aktivitaet (Rufsequenzen je Nacht) ist keine Abundanz; Detektor-Typ und Aufstellhoehe konstant halten.
+  - BatDetect2-Klassen fuer Artengruppen pruefen (Myotis oft nur Gattung).

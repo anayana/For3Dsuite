@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BioScale</title>
+<style>
+:root{--bg:#fff;--fg:#1d2329;--muted:#5b6670;--card:#f4f6f7;--line:#cfd6db;--acc:#1f7a4d}
+@media (prefers-color-scheme:dark){:root{--bg:#14181b;--fg:#e7ecef;--muted:#9aa6af;--card:#1d2328;--line:#34404a;--acc:#3fbf7f}}
+body{background:var(--bg);color:var(--fg);font:16px/1.5 system-ui,sans-serif;max-width:720px;margin:0 auto;padding:16px}
+fieldset{border:1px solid var(--line);border-radius:10px;margin:14px 0;padding:10px 14px}
+legend{font-weight:600} label{display:block;margin:8px 0 2px} .muted{color:var(--muted);font-size:.9em}
+input,select{font:inherit;width:100%;box-sizing:border-box;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--fg)}
+input[type=checkbox]{width:auto} button{font:inherit;padding:10px 18px;border:0;border-radius:8px;background:var(--acc);color:#fff;margin:6px 6px 6px 0}
+#status{background:var(--card);border-radius:8px;padding:10px;margin-top:12px;display:none;white-space:pre-wrap}
+</style></head><body>
+<h1>BioScale</h1>
+<p>Punktdaten (Fallen, Fotofallen, Akustik, Kartierung) auf die Flaeche bringen - mit Gueltigkeitsbereich und Unsicherheit.
+Alles rechnet auf diesem Rechner.</p>
+<button id="demo">Demo mit virtueller Art starten</button>
+<form id="f">
+<fieldset><legend>1. Gebiet und Punkte</legend>
+<label>Gebiet (GeoPackage oder GeoJSON)</label><input type="file" name="area" required>
+<label>Punktdaten (Darwin-Core-CSV)</label><input type="file" name="points" required>
+<label>Format</label><select name="fmt"><option value="dwc">Darwin Core</option></select>
+<p class="muted">Pflichtspalten: decimalLatitude, decimalLongitude, scientificName, occurrenceStatus (present/absent).
+Empfohlen: locationID, eventID, eventDate, samplingEffort. Camtrap DP, BirdNET und BatDetect2 gehen ueber die Kommandozeile.</p>
+</fieldset>
+<fieldset><legend>2. Frage</legend>
+<label>Zielart (wissenschaftlicher Name)</label><input name="species" required placeholder="z. B. Dendrocopos medius">
+<label>Artengruppe (Profil)</label><select name="profile">{{PROFILE_OPTIONS}}</select>
+<label>Zeitraum der Erhebung</label><input name="start" type="date"> <input name="end" type="date">
+</fieldset>
+<fieldset><legend>3. Einflussgroessen</legend>
+<label><input type="checkbox" name="sentinel2" value="true"> Sentinel-2 (Internet noetig)</label>
+<label><input type="checkbox" name="dem" value="true"> Hoehenmodell Copernicus DEM</label>
+<label><input type="checkbox" name="worldcover" value="true"> Landbedeckung ESA WorldCover</label>
+<label>Eigene Raster (GeoTIFF, mehrere moeglich)</label><input type="file" name="rasters" multiple>
+<label>Gruppe der eigenen Raster</label><select name="raster_group">
+<option value="structure">Struktur (ALS, Kronenhoehe)</option><option value="spectral">Spektral</option>
+<option value="topography">Gelaende</option><option value="landcover">Landbedeckung</option>
+<option value="intensity">Nutzungsintensitaet</option><option value="climate">Klima</option></select>
+<label>Rasterweite (m)</label><input name="resolution_m" type="number" value="20" min="5" max="100">
+<label>Koordinatensystem</label><input name="crs" value="EPSG:25832">
+</fieldset>
+<button type="submit">Rechnen</button>
+</form>
+<div id="status"></div>
+<script>
+const st=document.getElementById('status');
+function poll(id){fetch('/api/jobs/'+id).then(r=>r.json()).then(j=>{
+  if(j.status==='laeuft'){st.textContent='Rechnet ... (einige Minuten moeglich)';setTimeout(()=>poll(id),2000)}
+  else if(j.status==='fertig'){st.innerHTML='Fertig (Ampel: '+j.ampel+'). <a href="'+j.report_url+'" target="_blank">Bericht oeffnen</a>'}
+  else{st.textContent='Fehler: '+j.error}})}
+function go(p){st.style.display='block';st.textContent='Gestartet ...';p.then(r=>r.json().then(j=>{
+  if(!r.ok){st.textContent='Fehler: '+(j.detail||r.status);return}poll(j.job)}))}
+document.getElementById('demo').onclick=()=>go(fetch('/api/demo',{method:'POST'}));
+document.getElementById('f').onsubmit=e=>{e.preventDefault();go(fetch('/api/run',{method:'POST',body:new FormData(e.target)}))};
+</script>
+</body></html>

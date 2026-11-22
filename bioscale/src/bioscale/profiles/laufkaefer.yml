@@ -1,0 +1,14 @@
+name: laufkaefer
+label: Laufkaefer (Carabidae), Bodenfallen
+domain: wald
+radius_m: [10, 300]
+variable_groups: [structure, spectral, topography, climate, landcover]
+recommended_model: glm
+data_types: [counts, presence_absence]
+status: Expertenschaetzung, pruefen
+hints:
+  - Aktivitaetsdichte, nicht Dichte - Fallentage als Aufwand angeben.
+  - Mikroklima und Streuauflage wirken oft staerker als Kronenstruktur; Bodenfeuchte (TWI) mitnehmen.
+  - Artenzahl haengt stark von der Fallenzahl ab - nur gleich beprobte Standorte vergleichen.
+references:
+  - Jackson & Fahrig 2012, Landscape Ecology (Wirkradius kaum aus Merkmalen vorhersagbar)

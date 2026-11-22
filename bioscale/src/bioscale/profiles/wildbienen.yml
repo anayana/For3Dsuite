@@ -1,0 +1,11 @@
+name: wildbienen
+label: Wildbienen
+domain: offenland
+radius_m: [100, 2000]
+variable_groups: [intensity, landcover, spectral, topography, climate]
+recommended_model: glm
+data_types: [counts, presence_absence]
+status: Expertenschaetzung, pruefen
+hints:
+  - Nisthabitat (offener Boden, Totholz) und Bluetenangebot getrennt denken; Flugradius artspezifisch.
+  - Kleinstrukturen und Saeume (HRL Small Woody Features) mitnehmen.

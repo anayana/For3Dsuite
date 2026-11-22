@@ -1,0 +1,11 @@
+name: huftiere_kamerafalle
+label: Huftiere / Mittelsaeuger (Fotofallen, Camtrap DP)
+domain: wald
+radius_m: [250, 3000]
+variable_groups: [structure, landcover, topography, spectral, access]
+recommended_model: glm
+data_types: [counts, presence_absence]
+status: Expertenschaetzung, pruefen
+hints:
+  - Aufwand = Kameratage; unabhaengige Ereignisse (z. B. 30 min Abstand) zaehlen.
+  - Fotofallen an Wechseln/Wegen erzeugen Bias - Abstand zu Wegen als Stoergroesse aufnehmen.

@@ -1,0 +1,10 @@
+name: heuschrecken
+label: Heuschrecken (Offenland)
+domain: offenland
+radius_m: [20, 500]
+variable_groups: [intensity, spectral, topography, climate, landcover]
+recommended_model: glm
+data_types: [presence_absence, counts]
+status: Expertenschaetzung, pruefen
+hints:
+  - Vegetationshoehe und Mahdregime (Intensitaet) sind entscheidend; Waerme (Exposition, Hangneigung) mitnehmen.

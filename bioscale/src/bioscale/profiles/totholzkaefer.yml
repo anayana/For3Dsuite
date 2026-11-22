@@ -1,0 +1,14 @@
+name: totholzkaefer
+label: Totholzkaefer (xylobiont), Flugfensterfallen
+domain: wald
+radius_m: [10, 500]
+variable_groups: [structure, spectral, topography, climate]
+recommended_model: glm
+data_types: [counts, presence_absence]
+status: Expertenschaetzung, pruefen
+hints:
+  - Totholzmenge und Besonnung entscheiden; Luecken und offene Bestaende (ALS-Lueckenanteil) sind wichtig.
+  - Sentinel-1 kann ALS teilweise ersetzen (Bae et al. 2019), ALS bleibt fuer Artenzahl besser.
+references:
+  - Mueller & Brandl 2009 (ALS sagt Kaefergemeinschaften vorher)
+  - Bae et al. 2019, Nature Communications (Sentinel-1 vs. ALS fuer 12 Artengruppen)

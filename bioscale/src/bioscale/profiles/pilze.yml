@@ -1,0 +1,11 @@
+name: pilze
+label: Pilze (Fruchtkoerper-Kartierung, Totholzpilze)
+domain: wald
+radius_m: [10, 300]
+variable_groups: [structure, climate, topography, spectral]
+recommended_model: glm
+data_types: [presence_absence, counts]
+status: Expertenschaetzung, pruefen
+hints:
+  - Fruchtkoerper erscheinen witterungsabhaengig - mehrere Jahre/Begehungen noetig.
+  - Totholz und Mikroklima (Feuchte, Beschattung) sind zentrale Treiber.

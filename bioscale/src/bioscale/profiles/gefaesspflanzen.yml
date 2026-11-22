@@ -1,0 +1,12 @@
+name: gefaesspflanzen
+label: Gefaesspflanzen (Vegetationsaufnahmen)
+domain: wald
+radius_m: [5, 100]
+variable_groups: [structure, spectral, topography, climate, intensity]
+recommended_model: glm
+data_types: [presence_absence, counts]
+status: Expertenschaetzung, pruefen
+hints:
+  - Krautschicht unter geschlossenem Buchendach ist aus Fernerkundung schwer zu erfassen - Erwartung niedrig halten.
+  - Spektrale Diversitaet im Buchen-Kronendach ist schwach und daher kein Hauptweg.
+  - Kleine Radien: Lagegenauigkeit der Aufnahmeflaechen pruefen (GNSS unter Kronendach!).

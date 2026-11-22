@@ -1,0 +1,12 @@
+__pycache__/
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+# Ergebnisse und Nutzerdaten bleiben lokal
+out/
+runs/
+cache/
+*.laz
+*.las
+# Ausnahme: kleine synthetische Beispieldaten werden zur Laufzeit erzeugt, nicht versioniert

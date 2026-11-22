@@ -1,0 +1,11 @@
+name: tagfalter
+label: Tagfalter (Transekte)
+domain: offenland
+radius_m: [50, 1000]
+variable_groups: [intensity, spectral, landcover, topography, climate]
+recommended_model: glm
+data_types: [counts, presence_absence]
+status: Expertenschaetzung, pruefen
+hints:
+  - Mahdzeitpunkt und -haeufigkeit (Intensitaet) wichtiger als die Klasse Gruenland.
+  - Transektlaenge und Begehungen als Aufwand angeben.

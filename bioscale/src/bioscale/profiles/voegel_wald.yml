@@ -1,0 +1,14 @@
+name: voegel_wald
+label: Brutvoegel im Wald (Punkt-Stopp, BirdNET)
+domain: wald
+radius_m: [50, 1000]
+variable_groups: [structure, spectral, topography, climate, landcover]
+recommended_model: glm
+data_types: [presence_absence, counts, presence_only]
+status: Expertenschaetzung, pruefen
+hints:
+  - Strukturgebundene Gruppe - ALS-Hoehe, Schichtung und Luecken funktionieren meist gut.
+  - BirdNET-Konfidenzschwelle je Art pruefen; Fehlalarme verfaelschen Fehlen und Vorkommen.
+  - Mehrere Begehungen erlauben eine Schaetzung der Nachweiswahrscheinlichkeit.
+references:
+  - Zellweger et al. 2016, Journal of Biogeography (Klima erklaert oft mehr als Struktur)

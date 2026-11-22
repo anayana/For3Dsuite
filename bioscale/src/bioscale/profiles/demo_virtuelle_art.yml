@@ -1,0 +1,10 @@
+name: demo_virtuelle_art
+label: Demo - virtuelle Art (bekannter Wirkradius 200 m)
+domain: wald
+radius_m: [25, 800]
+variable_groups: [landcover, structure, spectral, topography]
+recommended_model: glm
+data_types: [presence_absence]
+status: Synthetischer Testfall - Wahrheit bekannt
+hints:
+  - Dient nur dem Nachweis der Methode. Wahrer Wirkradius 200 m, Stichprobe absichtlich verzerrt (Wege, Westteil).
