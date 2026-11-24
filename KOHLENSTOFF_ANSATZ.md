@@ -58,7 +58,7 @@ Fehler der Allometrie nicht. Er ist der größte Hebel. Deshalb braucht es eine 
 ## Ansatz in fünf Bausteinen
 
 ### 1. Lokale Allometrie: gefällte Buchen plus TLS
-- 12–15 starke Buchen (ab 60 cm) aus angrenzenden Revieren von ThüringenForst werden vor der Fällung unbelaubt gescannt und danach vermessen und gewogen (Studienarbeit, siehe unten). Kleine und mittlere Buchen deckt die Literatur ab.
+- 12–15 starke Buchen (ab 55 cm) aus angrenzenden Revieren von ThüringenForst werden vor der Fällung unbelaubt gescannt und danach vermessen und gewogen (Studienarbeit, siehe unten). Kleine und mittlere Buchen deckt die Literatur ab.
 - Daraus entstehen zwei Ergebnisse:
   - **(a)** eine lokale Allometrie je Kompartiment (Stamm, Äste, Rinde) mit Literatur als Vorinformation
   - **(b)** eine Kalibrierung des TLS-QSM gegen die Waage, vor allem für den Astanteil
@@ -119,6 +119,29 @@ ALS-Modell und Stichprobe.
 
 ## Studienarbeit: gefällte Buchen für eine Standort-Allometrie
 
+### Durchmesserverteilung im Hainich
+**28-ha-Fläche im alten Kern** (Schorn et al. 2026):
+
+| Jahr | Stämme/ha | Grundfläche |
+|---|---|---|
+| 1999 | 519 | 36,2 m²/ha |
+| 2007 | 465 | 37,5 m²/ha |
+| 2013 | 505 | 39,9 m²/ha |
+| 2023 | 439 | 39,5 m²/ha |
+
+- Die Buche stellt ca. 90 % der Stämme und ca. 70 % der Grundfläche.
+- Die Verteilung hat die Form eines umgekehrten J: viele dünne Bäume, dazu ein **Buckel bei 40–80 cm BHD**.
+- Früher Mittelwald, dann Hochwald mit Einzelentnahme, ungenutzt seit 1965.
+- Bäume bis ca. 265 Jahre alt.
+- Laut ICOS ist Buche ca. 64 % der Baumbiomasse, der Rest vor allem Esche und Bergahorn.
+
+**Folgerung für den Kohlenstoff:**
+- Der Anzahl nach überwiegen dünne Bäume, die Biomasse steckt aber im Buckel und darüber.
+- Die Grundfläche wächst seit 2013 nicht mehr. Die Biomasse kann trotzdem zunehmen, wenn die starken Bäume zulegen und dünne ausfallen. Ob sie es tut, zeigt der Abgleich mit dem Turm.
+
+**Gesamter Nationalpark:** Der Süden (ehemaliger Truppenübungsplatz bis 1997) und früher bewirtschaftete
+Flächen tragen jüngere Bestände. Dort zählen auch mittlere Bäume, die die Literatur abdeckt.
+
 ### Gibt es das schon?
 Für Buchen mittlerer Größe ja, und reichlich:
 - **Wutzler et al. 2008:** 443 Buchen aus 13 Studien.
@@ -174,7 +197,8 @@ Ab ca. 20–25 Bäumen flacht der Gewinn ab.
 - 12 Bäume ergeben 5–8 %, 15 Bäume 5–7 %. Das ist so gut wie 12–15 Bäume über alle Klassen.
 - Ohne Vorinformation wären es 10–30 %.
 
-**Empfehlung: 12–15 starke Buchen**, je 4–5 in den Klassen 60–75 cm, 75–90 cm und über 90 cm,
+**Empfehlung: 12–15 starke Buchen**, je 4–5 in den Klassen 55–70 cm, 70–85 cm und über 85 cm
+(passend zum Buckel bei 40–80 cm),
 alle vorher unbelaubt gescannt. Die kleinen Bäume deckt die Literatur ab. Wenn möglich kommen
 4–6 Eschen aus Fällungen zur Verkehrssicherung dazu.
 
