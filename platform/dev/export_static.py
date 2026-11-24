@@ -140,7 +140,7 @@ def export_html():
             shutil.copyfile(src, OUT / extra)
 
     # Projektseiten in eigenen Ordnern (kurze Adresse, z. B. /qforestlab/)
-    for sub in ("qforestlab", "npp", "kraeuter-memory"):
+    for sub in ("qforestlab", "npp", "kraeuter-memory", "konzepte"):
         if (GALLERY / sub).is_dir():
             shutil.copytree(GALLERY / sub, OUT / sub, dirs_exist_ok=True)
 
