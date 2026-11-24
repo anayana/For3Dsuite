@@ -117,6 +117,54 @@ Szenarien: Klima und Eschenausfall (Esche ca. 25 % des Bestands).
 **Unsicherheit:** Monte Carlo über Messung, Allometrie (Parameter und Reststreuung), Dichte,
 ALS-Modell und Stichprobe.
 
+## Nutzen und Finanzierung
+**Vorweg:** Kohlenstoff im Nationalpark bringt selbst kein Geld. Zertifikate sind nicht möglich,
+weil die Fläche ohnehin geschützt ist und damit keine Zusätzlichkeit besteht. Geld gibt es nur,
+weil andere die Zahlen oder die Methode brauchen.
+
+**Wer die Zahlen braucht:**
+- **EU-Wiederherstellungsverordnung (2024/1991):**
+  - Der organische Kohlenstoffvorrat ist einer der Waldindikatoren.
+  - Die Mitgliedstaaten müssen überwachen und haben bis 1.9.2026 einen Entwurf des nationalen Plans vorgelegt.
+  - Ungenutzte alte Buchenwälder liefern dafür den Referenzwert.
+- **Bund:**
+  - Die Bundeswaldinventur 2022 zeigt den Wald 2017–2022 als Kohlenstoffquelle.
+  - Der Entwurf zum Aktionsprogramm Natürlicher Klimaschutz 2.0 (ANK 2.0, Juli 2026) nennt Forschung zum Waldkohlenstoff, besseres Monitoring der Landnutzung und ein digitales Waldmonitoring.
+  - Der Hainich blieb laut Turm trotz Dürre eine Senke. Er ist damit die Referenz in der Debatte Stilllegung gegen Nutzung.
+- **Wirtschaftswald, hier fließt Geld:**
+  - Klimaangepasstes Waldmanagement: ab 2027 200 Mio €/Jahr. Ein Ziel ist, den Kohlenstoffspeicher zu erhalten.
+  - Eine Nachfolge-Richtlinie für Ökosystemleistungen in Natura-2000-Wäldern ist für Ende 2026 bzw. Anfang 2027 geplant.
+  - EU-Carbon-Farming (CRCF): Methoden für Wald sind in Arbeit.
+  - All das braucht eine günstige, prüfbare Messung. Der Hainich ist dafür der Eichstandort, die Methode wird übertragbar.
+- **Wissenschaft:**
+  - 25 Jahre Turm gegen Inventur
+  - Dürre, Eschensterben
+  - Allometrie starker Altbuchen
+
+**Woher das Geld kommt** (die Nationalparkverwaltung liefert nur Daten und Fläche):
+
+| Quelle | Antrag stellt | passt für |
+|---|---|---|
+| Masterarbeit, Bachelorarbeit | Uni | gefällte Buchen, Vorstudie (fast ohne Kosten) |
+| DFG-Sachbeihilfe | Uni Göttingen, Leipzig/iDiv, Jena | Forschung: Turm gegen Inventur, Altbuchen-Allometrie |
+| Waldklimafonds bzw. FNR (aktuellen Aufruf prüfen) | Uni mit ThüringenForst | Monitoring-Methode für Wirtschaftswald |
+| DBU | Uni oder Dienstleister mit ThüringenForst | Methodentransfer in die Praxis |
+| ANK-Forschung und Monitoring (ZUG), sobald ANK 2.0 aufruft | Uni, Verbund | digitales Waldmonitoring, Kohlenstoff |
+| EU LIFE | Verbund (der Hainich war schon bei LIFE+ PROGNOSES) | großes Projekt, Eigenanteil nötig |
+| Auftrag vom Thünen-Institut oder vom Land Thüringen | Uni oder Dienstleister | Referenzwerte für Treibhausgasbericht und Wiederherstellungsplan |
+
+**Kosten:**
+- ca. 12–13 Personenmonate (ca. 90.000 €)
+- Zusatzmessungen ca. 20.000–30.000 €
+- **zusammen ca. 120.000 €**
+
+Das ist die Größe eines DBU- oder Waldklimafonds-Projekts, oder ein Baustein in einem LIFE-Projekt.
+
+**Lohnt es sich?** Ein Beispiel: 1.000 ha alter Buchenwald mit 15–20 t CO₂/ha/Jahr ergeben
+15.000–20.000 t CO₂ pro Jahr. Zum UBA-Satz von 350 €/t sind das 5–7 Mio € Klimaleistung pro Jahr. Der
+belastbare Nachweis kostet einmalig ca. 120.000 €. Das ist ein Argument für Politik und Geldgeber,
+aber kein Geldfluss.
+
 ## Arbeitsplan Kohlenstoffkarte mit vorhandenen Daten
 Aufwand in Personenmonaten (PM) für eine Person, insgesamt ca. 12–13 PM.
 
