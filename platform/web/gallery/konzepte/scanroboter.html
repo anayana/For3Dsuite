@@ -1,0 +1,1036 @@
+<!doctype html><html lang="de"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Scanroboter Museumswohnung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Studiobühne: Vollbild-3D als Bühne, Titel oben links, Legende oben rechts, Schrittkarte unten. Ein dunkler Studio-Look, die Laserfarben tragen Bedeutung */
+:root{
+  --bg:#0a0e15;
+  --bg2:#141c2b;
+  --fg:#eef2f7;
+  --muted:#97a3b6;
+  --line:rgba(150,175,210,.2);
+  --panel:rgba(12,18,29,.8);
+  --lidar:#41d6ff;
+  --tof:#ffb13b;
+  --ir:#ff4d61;
+  --edge:#ff7a1a;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{
+  background:radial-gradient(120% 90% at 55% 30%,var(--bg2),var(--bg) 68%);
+  color:var(--fg);font-family:var(--display);overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-font-smoothing:antialiased;
+}
+#stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+.head{
+  position:fixed;z-index:2;text-shadow:0 1px 14px rgba(5,8,14,.9),0 0 2px rgba(5,8,14,.6);
+  top:calc(env(safe-area-inset-top,0px) + 20px);
+  left:max(20px,calc(env(safe-area-inset-left,0px) + 20px));
+  max-width:min(520px,calc(100vw - 40px));pointer-events:none;
+}
+.eyebrow{margin:0 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--lidar)}
+h1{
+  margin:0;font-weight:800;font-stretch:118%;font-size:clamp(26px,3.6vw,46px);line-height:.98;letter-spacing:-.01em;text-wrap:balance;
+}
+.lede{margin:12px 0 0;max-width:40ch;color:var(--muted);font-size:15px;line-height:1.45;font-stretch:96%}
+.legend{
+  position:fixed;z-index:2;display:grid;gap:8px;text-shadow:0 1px 10px rgba(5,8,14,.95);
+  top:calc(env(safe-area-inset-top,0px) + 22px);
+  right:max(20px,calc(env(safe-area-inset-right,0px) + 20px));
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);pointer-events:none;
+}
+.legend span{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.legend i{display:block;width:22px;height:2px;background:var(--c);box-shadow:0 0 10px var(--c),0 0 2px var(--c);border-radius:2px}
+.card{
+  position:fixed;z-index:3;
+  left:max(20px,calc(env(safe-area-inset-left,0px) + 20px));
+  bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
+  width:min(470px,calc(100vw - 40px));
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);
+  padding:18px 20px 16px;display:grid;gap:10px;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+.card h2{margin:0;font-size:22px;line-height:1.1;font-weight:750;font-stretch:110%;text-wrap:balance}
+.card p{margin:0;font-size:15px;line-height:1.5;color:#d3dbe6;max-width:62ch}
+.spec{font-family:var(--mono);font-size:12px;color:var(--lidar);letter-spacing:.02em;line-height:1.5;font-variant-numeric:tabular-nums}
+.dots{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.dots button{
+  width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);
+  font-family:var(--mono);font-size:10px;cursor:pointer;padding:0;display:grid;place-items:center;
+}
+.dots button[aria-current="step"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.dots button.done{color:var(--fg);border-color:rgba(238,242,247,.45)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.controls button{
+  font:600 13px/1 var(--display);font-stretch:105%;color:var(--fg);background:rgba(255,255,255,.06);
+  border:1px solid var(--line);border-radius:999px;padding:9px 14px;cursor:pointer;
+}
+.controls button.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.controls button:hover{border-color:rgba(238,242,247,.55)}
+button:focus-visible,input:focus-visible+span{outline:2px solid var(--lidar);outline-offset:2px}
+.toggle{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.toggle span{width:34px;height:20px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid var(--line);position:relative;transition:background .2s}
+.toggle span::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.toggle input:checked+span{background:rgba(65,214,255,.25)}
+.toggle input:checked+span::after{transform:translateX(14px);background:var(--lidar)}
+.note{font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--muted);letter-spacing:.01em}
+.tag{
+  position:fixed;z-index:1;pointer-events:none;transform:translate(-50%,-120%);
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:5px 8px;border-radius:6px;white-space:nowrap;
+  background:rgba(10,14,21,.82);border:1px solid var(--line);color:var(--fg);
+}
+.tag.stop{border-color:var(--ir);color:#ffd9dd;box-shadow:0 0 18px rgba(255,77,97,.35)}
+.tag.stop b{color:var(--ir)}
+.tag.angle{color:var(--lidar);border-color:rgba(65,214,255,.45)}
+.fallback{position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted);font-size:15px;z-index:1}
+@media (max-width:760px){
+  .legend{display:none}
+  .head{max-width:calc(100vw - 40px)}
+  .lede{display:none}
+  h1{font-size:clamp(22px,7vw,30px)}
+  .card{
+    left:max(12px,calc(env(safe-area-inset-left,0px) + 12px));
+    right:max(12px,calc(env(safe-area-inset-right,0px) + 12px));
+    width:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
+    max-height:46vh;overflow:auto;padding:14px 16px 12px;gap:8px;
+  }
+  .card h2{font-size:19px}
+  .card p{font-size:14px}
+  .note{display:none}
+}
+@media (prefers-reduced-motion:reduce){.toggle span,.toggle span::after{transition:none}}
+</style>
+
+<canvas id="stage" tabindex="0" aria-label="3D-Modell des Scanroboters. Ziehen zum Drehen, Zwei-Finger oder Mausrad zum Zoomen."></canvas>
+
+<header class="head">
+  <p class="eyebrow">Paper 3 · Entwurf · Oktober 2026</p>
+  <h1>Scanroboter für Museums&shy;wohnungen</h1>
+  <p class="lede">Fährt selbst, hält an, nimmt auf. Erkennt Hindernisse vom Boden bis über den Kopf.</p>
+</header>
+
+<aside class="legend" aria-label="Legende der Laserfarben">
+  <span>Laserscanner Mid-360<i style="--c:var(--lidar)"></i></span>
+  <span>Lichtvorhang<i style="--c:var(--tof)"></i></span>
+  <span>Infrarot und Absturz<i style="--c:var(--ir)"></i></span>
+  <span>Schaltleiste<i style="--c:var(--edge)"></i></span>
+</aside>
+
+<section class="card" aria-live="polite">
+  <div class="meta"><span id="stepNo"><b>Übersicht</b></span><span id="stepHint">Ziehen zum Drehen</span></div>
+  <h2 id="stepTitle">Der fertige Aufnahmeroboter</h2>
+  <p id="stepText">Er fährt selbst durch die Museumswohnung, hält an, dreht sich, schwenkt die Kameras und nimmt den Raum in 3D auf.</p>
+  <div class="spec" id="stepSpec">Entwurf für Paper 3 · Maße gerundet</div>
+  <nav class="dots" id="dots" aria-label="Schritte"></nav>
+  <div class="controls">
+    <button id="prev" type="button">Zurück</button>
+    <button id="play" type="button" class="primary">Zusammenbau starten</button>
+    <button id="next" type="button">Weiter</button>
+    <label class="toggle" for="lasers"><input type="checkbox" id="lasers" checked><span aria-hidden="true"></span>Laser</label>
+  </div>
+  <div class="note">Skizze. Die Strahlen sind sichtbar gemacht, echte Sensoren arbeiten mit unsichtbarem Infrarot. <a href="./" style="color:inherit">Alle Konzepte</a> · <a href="../" style="color:inherit">Galerie</a></div>
+</section>
+
+<div class="tag stop" id="tagStop" hidden>Tischkante erkannt · <b>Halt bei 45 cm</b></div>
+<div class="tag angle" id="tagHigh" hidden>+52°</div>
+<div class="tag angle" id="tagLow" hidden>−7°</div>
+<div class="fallback" id="fallback" hidden>Die 3D-Ansicht braucht WebGL und konnte hier nicht starten.</div>
+
+<script>
+  setTimeout(function(){ if(!window.__scanOK){ var f=document.getElementById('fallback'); if(f){ f.hidden=false; } } }, 9000);
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const narrow = () => window.innerWidth <= 760;
+const D2R = Math.PI / 180;
+const canvas = document.getElementById('stage');
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+} catch (e) {
+  document.getElementById('fallback').hidden = false;
+  throw e;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const BG = 0x0a0e15;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(BG);
+scene.fog = new THREE.Fog(BG, 6.5, 13);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(35, 1, 0.02, 60);
+camera.position.set(1.9, 1.3, 2.3);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 0.6;
+controls.maxDistance = 9;
+controls.maxPolarAngle = Math.PI * 0.495;
+controls.target.set(0, 0.65, 0);
+
+/* Licht */
+scene.add(new THREE.HemisphereLight(0xbcd3ff, 0x0b0f16, 0.45));
+const key = new THREE.DirectionalLight(0xffffff, 2.4);
+key.position.set(2.6, 4.6, 2.4);
+key.castShadow = true;
+key.shadow.mapSize.set(1024, 1024);
+Object.assign(key.shadow.camera, { near: 0.5, far: 12, left: -2.2, right: 2.2, top: 3, bottom: -1.5 });
+key.shadow.bias = -0.0004;
+key.shadow.radius = 5;
+scene.add(key);
+const rim = new THREE.SpotLight(0x6cc9ff, 40, 12, Math.PI / 5, 0.7, 1.6);
+rim.position.set(-2.6, 3.2, -2.4);
+rim.target.position.set(0, 0.7, 0);
+scene.add(rim, rim.target);
+
+/* Boden */
+const floor = new THREE.Mesh(new THREE.CircleGeometry(10, 96),
+  new THREE.MeshStandardMaterial({ color: 0x101724, roughness: 0.38, metalness: 0.4 }));
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+const grid = new THREE.GridHelper(14, 70, 0x2b3c55, 0x18233a);
+grid.material.transparent = true;
+grid.material.opacity = 0.32;
+grid.position.y = 0.001;
+scene.add(grid);
+
+/* Materialien */
+const M = {
+  white: new THREE.MeshPhysicalMaterial({ color: 0xe8ecf1, roughness: 0.22, clearcoat: 1, clearcoatRoughness: 0.06 }),
+  dark: new THREE.MeshPhysicalMaterial({ color: 0x1a2029, roughness: 0.32, clearcoat: 0.8, clearcoatRoughness: 0.1 }),
+  alu: new THREE.MeshStandardMaterial({ color: 0xc7d0da, metalness: 1, roughness: 0.26 }),
+  aluDark: new THREE.MeshStandardMaterial({ color: 0x3a4250, metalness: 0.9, roughness: 0.35 }),
+  black: new THREE.MeshStandardMaterial({ color: 0x0c0f14, roughness: 0.45, metalness: 0.25 }),
+  glass: new THREE.MeshPhysicalMaterial({ color: 0x04060a, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.02, metalness: 0.1 }),
+  tire: new THREE.MeshStandardMaterial({ color: 0x07090c, roughness: 0.9 }),
+  pcb: new THREE.MeshStandardMaterial({ color: 0x1f2c47, roughness: 0.5, metalness: 0.2 }),
+  rubber: new THREE.MeshStandardMaterial({ color: 0xff7a1a, roughness: 0.55, emissive: 0x3a1400 }),
+  wood: new THREE.MeshStandardMaterial({ color: 0x6a4a33, roughness: 0.48, metalness: 0.05 }),
+  battery: new THREE.MeshPhysicalMaterial({ color: 0x2a313c, roughness: 0.4, clearcoat: 0.5 }),
+};
+const ledMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0x9fe8ff).multiplyScalar(1.6), toneMapped: false });
+
+function glow(hex, opacity, k = 2.2) {
+  return new THREE.MeshBasicMaterial({ color: new THREE.Color(hex).multiplyScalar(k), transparent: true, opacity,
+    blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
+}
+function glowLine(hex, opacity, k = 2.2) {
+  return new THREE.LineBasicMaterial({ color: new THREE.Color(hex).multiplyScalar(k), transparent: true, opacity,
+    blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+}
+function mesh(geo, mat, x = 0, y = 0, z = 0, cast = true) {
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z);
+  m.castShadow = cast;
+  m.receiveShadow = true;
+  return m;
+}
+const C = { lidar: 0x41d6ff, tof: 0xffb13b, ir: 0xff4d61, edge: 0xff7a1a, stop: 0xff3348 };
+
+/* Roboter */
+const robot = new THREE.Group();
+scene.add(robot);
+const parts = {};
+
+// 1 Basis
+{
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.CylinderGeometry(0.17, 0.168, 0.075, 72), M.white, 0, 0.046, 0));
+  g.add(mesh(new THREE.CylinderGeometry(0.163, 0.163, 0.006, 72), M.dark, 0, 0.086, 0));
+  const bump = mesh(new THREE.CylinderGeometry(0.174, 0.174, 0.05, 72, 1, true, -Math.PI / 2, Math.PI), M.dark, 0, 0.04, 0);
+  bump.material = M.dark.clone(); bump.material.side = THREE.DoubleSide;
+  g.add(bump);
+  const ring = mesh(new THREE.TorusGeometry(0.036, 0.0035, 12, 64), ledMat, 0, 0.0895, 0, false);
+  ring.rotation.x = Math.PI / 2; g.add(ring);
+  for (const sx of [-1, 1]) {
+    const w = mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.02, 32), M.tire, sx * 0.12, 0.036, 0);
+    w.rotation.z = Math.PI / 2; g.add(w);
+  }
+  for (let i = 0; i < 6; i++) {
+    const a = (-60 + i * 24) * D2R;
+    const win = mesh(new THREE.BoxGeometry(0.018, 0.012, 0.004), M.glass, Math.sin(a) * 0.1755, 0.05, Math.cos(a) * 0.1755, false);
+    win.rotation.y = a; g.add(win);
+  }
+  parts.base = g; robot.add(g);
+}
+// 2 Deck mit Akku und Rechner
+{
+  const g = new THREE.Group();
+  for (let i = 0; i < 3; i++) {
+    const a = (i * 120 + 30) * D2R;
+    g.add(mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.062, 12), M.alu, Math.sin(a) * 0.11, 0.117, Math.cos(a) * 0.11));
+  }
+  g.add(mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.008, 64), M.aluDark, 0, 0.152, 0));
+  g.add(mesh(new RoundedBoxGeometry(0.16, 0.055, 0.074, 3, 0.008), M.battery, 0, 0.1835, -0.056));
+  const stripe = mesh(new THREE.BoxGeometry(0.162, 0.006, 0.076), glow(C.tof, 0.9, 1.4), 0, 0.2, -0.056, false);
+  g.add(stripe);
+  g.add(mesh(new RoundedBoxGeometry(0.1, 0.035, 0.088, 3, 0.006), M.black, 0, 0.1735, 0.06));
+  for (let i = 0; i < 7; i++) g.add(mesh(new THREE.BoxGeometry(0.084, 0.012, 0.0025), M.alu, 0, 0.197, 0.026 + i * 0.011));
+  g.add(mesh(new THREE.BoxGeometry(0.034, 0.012, 0.034), M.alu, 0, 0.162, 0));
+  parts.deck = g; robot.add(g);
+}
+// 3 Mast
+{
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.BoxGeometry(0.02, 0.98, 0.02), M.alu, 0, 0.646, 0));
+  for (const s of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    g.add(mesh(new THREE.BoxGeometry(s[0] ? 0.001 : 0.006, 0.98, s[1] ? 0.001 : 0.006), M.black, s[0] * 0.0101, 0.646, s[1] * 0.0101, false));
+  }
+  parts.mast = g; robot.add(g);
+}
+// 4 Lichtvorhang
+const TOF_H = [0.25, 0.5, 0.75, 1.0];
+{
+  const g = new THREE.Group();
+  for (const h of TOF_H) {
+    g.add(mesh(new THREE.BoxGeometry(0.03, 0.022, 0.005), M.pcb, 0, h, 0.0128));
+    g.add(mesh(new THREE.BoxGeometry(0.011, 0.006, 0.002), M.glass, 0, h, 0.0158, false));
+  }
+  parts.tof = g; robot.add(g);
+}
+// 5 Kopf: Schwenkbasis, Gabel, Neigekameras, Brücke
+const pan = new THREE.Group();
+const tilt = new THREE.Group();
+{
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.CylinderGeometry(0.036, 0.042, 0.03, 40), M.black, 0, 1.152, 0));
+  pan.position.y = 1.17;
+  pan.add(mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.008, 40), M.alu, 0, 0, 0));
+  pan.add(mesh(new THREE.BoxGeometry(0.16, 0.008, 0.044), M.aluDark, 0, 0.004, 0));
+  for (const sx of [-1, 1]) pan.add(mesh(new THREE.BoxGeometry(0.006, 0.094, 0.044), M.aluDark, sx * 0.077, 0.047, 0));
+  pan.add(mesh(new THREE.BoxGeometry(0.16, 0.008, 0.05), M.aluDark, 0, 0.094, 0));
+  tilt.position.y = 0.047;
+  tilt.add(mesh(new RoundedBoxGeometry(0.13, 0.026, 0.03, 3, 0.005), M.dark, 0, 0, 0));
+  for (const sx of [-1, 1]) {
+    tilt.add(mesh(new RoundedBoxGeometry(0.038, 0.038, 0.04, 3, 0.006), M.black, sx * 0.034, 0, 0.012));
+    const lens = mesh(new THREE.CylinderGeometry(0.0125, 0.0135, 0.018, 32), M.alu, sx * 0.034, 0, 0.04);
+    lens.rotation.x = Math.PI / 2; tilt.add(lens);
+    const eye = mesh(new THREE.CircleGeometry(0.0105, 32), M.glass, sx * 0.034, 0, 0.0491, false);
+    tilt.add(eye);
+  }
+  pan.add(tilt);
+  g.add(pan);
+  parts.head = g; robot.add(g);
+}
+// 6 Mid-360 auf der Brücke
+const lidar = new THREE.Group();
+{
+  lidar.position.y = 0.114;
+  lidar.add(mesh(new RoundedBoxGeometry(0.065, 0.032, 0.065, 3, 0.006), M.dark, 0, 0, 0));
+  lidar.add(mesh(new THREE.CylinderGeometry(0.03, 0.031, 0.028, 48), M.glass, 0, 0.03, 0));
+  lidar.add(mesh(new THREE.CylinderGeometry(0.027, 0.03, 0.006, 48), M.dark, 0, 0.047, 0));
+  lidar.add(mesh(new THREE.TorusGeometry(0.0305, 0.0009, 6, 64), glow(C.lidar, 0.9, 1.6), 0, 0.02, 0, false).rotateX(Math.PI / 2));
+  pan.add(lidar);
+  parts.lidar = lidar;
+}
+// 7 Schaltleiste
+{
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.018, 24), M.aluDark, 0, 1.124, 0));
+  const R = 0.128, Y = 1.217;
+  const ring = mesh(new THREE.TorusGeometry(R, 0.014, 20, 96), M.rubber, 0, Y, 0);
+  ring.rotation.x = Math.PI / 2; g.add(ring);
+  for (let i = 0; i < 3; i++) {
+    const a = (i * 120 + 90) * D2R;
+    const p0 = new THREE.Vector3(Math.cos(a) * 0.02, 1.126, Math.sin(a) * 0.02);
+    const p1 = new THREE.Vector3(Math.cos(a) * (R - 0.012), Y, Math.sin(a) * (R - 0.012));
+    const len = p0.distanceTo(p1);
+    const rod = mesh(new THREE.CylinderGeometry(0.003, 0.003, len, 8), M.alu, 0, 0, 0);
+    rod.position.copy(p0).lerp(p1, 0.5);
+    rod.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), p1.clone().sub(p0).normalize());
+    g.add(rod);
+  }
+  parts.ring = g; robot.add(g);
+}
+
+/* Laser */
+const lasers = [];
+function laserGroup(owner, parent, extra = {}) {
+  const g = new THREE.Group();
+  parent.add(g);
+  const L = { g, owner, fade: 0, ...extra };
+  lasers.push(L);
+  return L;
+}
+function register(L) {
+  L.g.traverse(o => { if (o.material) { o.material.userData.base = o.material.opacity; } });
+}
+
+// IR und Absturz (Basis)
+const irL = laserGroup(1, robot);
+const irBeams = [];
+{
+  for (let i = 0; i < 6; i++) {
+    const a = (-60 + i * 24) * D2R;
+    const dir = new THREE.Vector3(Math.sin(a), 0, Math.cos(a));
+    const o = dir.clone().multiplyScalar(0.177).setY(0.05);
+    const len = 0.32;
+    const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.0022, 0.0022, len, 8), glow(C.ir, 0.85));
+    beam.position.copy(o).addScaledVector(dir, len / 2);
+    beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir);
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.05, len, 24, 1, true), glow(C.ir, 0.08));
+    cone.position.copy(beam.position);
+    cone.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), dir);
+    const dot = new THREE.Mesh(new THREE.SphereGeometry(0.006, 12, 8), glow(C.ir, 1));
+    irL.g.add(beam, cone, dot);
+    irBeams.push({ dot, o, dir, len, phase: i * 0.37 });
+  }
+  for (const deg of [-55, -20, 20, 55]) {
+    const a = deg * D2R;
+    const x = Math.sin(a) * 0.145, z = Math.cos(a) * 0.145;
+    const c = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.03, 16, 1, true), glow(C.ir, 0.35));
+    c.position.set(x, 0.022, z);
+    const spot = new THREE.Mesh(new THREE.CircleGeometry(0.014, 24), glow(C.ir, 0.7));
+    spot.rotation.x = -Math.PI / 2; spot.position.set(x, 0.0025, z);
+    irL.g.add(c, spot);
+  }
+  register(irL);
+}
+
+// Lichtvorhang (Mehrzonen-Abstandssensoren)
+const TOF_LEN = 0.9;
+const TOF_DIAG = 32.5 * D2R;
+const tofL = laserGroup(4, robot);
+const tofSensors = [];
+{
+  const r = TOF_LEN * Math.tan(TOF_DIAG);
+  const half = r / Math.SQRT2;
+  for (const h of TOF_H) {
+    const s = new THREE.Group();
+    s.position.set(0, h, 0.017);
+    const geo = new THREE.ConeGeometry(r, TOF_LEN, 4, 1, true);
+    geo.rotateY(Math.PI / 4);
+    geo.translate(0, -TOF_LEN / 2, 0);
+    geo.rotateX(-Math.PI / 2);
+    const fillMat = glow(C.tof, 0.032);
+    const fill = new THREE.Mesh(geo, fillMat);
+    const edgeMat = glowLine(C.tof, 0.45);
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat);
+    const pts = [];
+    for (let k = 0; k <= 8; k++) {
+      const t = -half + (2 * half * k) / 8;
+      pts.push(-half, t, TOF_LEN, half, t, TOF_LEN, t, -half, TOF_LEN, t, half, TOF_LEN);
+    }
+    const gGeo = new THREE.BufferGeometry();
+    gGeo.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    const gridMat = glowLine(C.tof, 0.15);
+    const zones = new THREE.LineSegments(gGeo, gridMat);
+    s.add(fill, edges, zones);
+    tofL.g.add(s);
+    tofSensors.push({ h, fillMat, edgeMat, gridMat, hot: 0 });
+  }
+  register(tofL);
+}
+
+// Mid-360: Sichtband und Strahlen
+const BAND_R = 1.7;
+const EL_MIN = -7 * D2R, EL_MAX = 52 * D2R;
+const lidarL = laserGroup(6, lidar);
+const RAYS = 40;
+const rayPos = new Float32Array(RAYS * 6);
+const rayGeo = new THREE.BufferGeometry();
+rayGeo.setAttribute('position', new THREE.BufferAttribute(rayPos, 3));
+{
+  const lid = new THREE.Group();
+  lid.position.y = 0.03;
+  const band = new THREE.Mesh(new THREE.SphereGeometry(BAND_R, 128, 12, 0, Math.PI * 2, (90 - 52) * D2R, 59 * D2R), glow(C.lidar, 0.016));
+  lid.add(band);
+  for (const el of [EL_MIN, EL_MAX]) {
+    const pts = [];
+    for (let k = 0; k <= 160; k++) {
+      const az = (k / 160) * Math.PI * 2;
+      pts.push(new THREE.Vector3(Math.cos(el) * Math.sin(az) * BAND_R, Math.sin(el) * BAND_R, Math.cos(el) * Math.cos(az) * BAND_R));
+    }
+    lid.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), glowLine(C.lidar, el === EL_MIN ? 0.7 : 0.45)));
+  }
+  lid.add(new THREE.LineSegments(rayGeo, glowLine(C.lidar, 0.32)));
+  lidarL.g.add(lid);
+  lidarL.inner = lid;
+  register(lidarL);
+}
+
+// Säule (Navigation)
+const colL = laserGroup(8, robot, { onlyFrom: 8 });
+{
+  const H = 1.4, R = 0.22;
+  const cyl = new THREE.Mesh(new THREE.CylinderGeometry(R, R, H, 64, 1, true), glow(0x9ec9ff, 0.06, 1.3));
+  cyl.position.y = H / 2 + 0.004;
+  colL.g.add(cyl);
+  for (let k = 0; k <= 7; k++) {
+    const y = 0.004 + (H * k) / 7;
+    const pts = [];
+    for (let i = 0; i <= 96; i++) { const a = (i / 96) * Math.PI * 2; pts.push(new THREE.Vector3(Math.cos(a) * R, y, Math.sin(a) * R)); }
+    colL.g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), glowLine(0x9ec9ff, k === 7 ? 0.55 : 0.22, 1.3)));
+  }
+  const v = [];
+  for (let i = 0; i < 12; i++) { const a = (i / 12) * Math.PI * 2; v.push(Math.cos(a) * R, 0.004, Math.sin(a) * R, Math.cos(a) * R, H + 0.004, Math.sin(a) * R); }
+  const vg = new THREE.BufferGeometry(); vg.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+  colL.g.add(new THREE.LineSegments(vg, glowLine(0x9ec9ff, 0.16, 1.3)));
+  register(colL);
+}
+
+/* Raum für den Einsatz */
+const ROOM = { x: 1.8, z0: -1.7, z1: 2.5, h: 2.6 };
+const TABLE = { cz: 1.45, w: 1.1, d: 0.7, top: 0.75, th: 0.04 };
+const TABLE_EDGE = TABLE.cz - TABLE.d / 2;
+const room = new THREE.Group();
+scene.add(room);
+const roomMats = [];
+const tableBoxes = [];
+{
+  const top = mesh(new RoundedBoxGeometry(TABLE.w, TABLE.th, TABLE.d, 3, 0.008), M.wood.clone(), 0, TABLE.top - TABLE.th / 2, TABLE.cz);
+  room.add(top);
+  tableBoxes.push(new THREE.Box3(new THREE.Vector3(-TABLE.w / 2, TABLE.top - TABLE.th, TABLE_EDGE), new THREE.Vector3(TABLE.w / 2, TABLE.top, TABLE.cz + TABLE.d / 2)));
+  const legH = TABLE.top - TABLE.th;
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+    const lx = sx * (TABLE.w / 2 - 0.05), lz = TABLE.cz + sz * (TABLE.d / 2 - 0.05);
+    room.add(mesh(new THREE.BoxGeometry(0.04, legH, 0.04), top.material, lx, legH / 2, lz));
+    tableBoxes.push(new THREE.Box3(new THREE.Vector3(lx - 0.02, 0, lz - 0.02), new THREE.Vector3(lx + 0.02, legH, lz + 0.02)));
+  }
+  roomMats.push(top.material);
+  const outline = [
+    [-ROOM.x, ROOM.z0], [-ROOM.x, ROOM.z1], [ROOM.x, ROOM.z1], [ROOM.x, ROOM.z0], [-ROOM.x, ROOM.z0]
+  ].map(p => new THREE.Vector3(p[0], 0.003, p[1]));
+  const om = glowLine(C.lidar, 0.35, 1.2);
+  room.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(outline), om));
+  roomMats.push(om);
+  for (const m of roomMats) { m.transparent = true; m.userData.base = m.opacity; }
+}
+room.visible = false;
+
+// Punktwolke
+const MAXP = 42000;
+const pPos = new Float32Array(MAXP * 3);
+const pCol = new Float32Array(MAXP * 3);
+const pGeo = new THREE.BufferGeometry();
+const pPosAttr = new THREE.BufferAttribute(pPos, 3).setUsage(THREE.DynamicDrawUsage);
+const pColAttr = new THREE.BufferAttribute(pCol, 3).setUsage(THREE.DynamicDrawUsage);
+pGeo.setAttribute('position', pPosAttr);
+pGeo.setAttribute('color', pColAttr);
+pGeo.setDrawRange(0, 0);
+const pMat = new THREE.PointsMaterial({ size: 0.014, vertexColors: true, transparent: true, opacity: 0.9,
+  blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, sizeAttenuation: true });
+const cloud = new THREE.Points(pGeo, pMat);
+cloud.frustumCulled = false;
+scene.add(cloud);
+let pHead = 0, pCount = 0;
+const cLow = new THREE.Color(0x1fb7c9).multiplyScalar(1.4);
+const cHigh = new THREE.Color(0xc4ecff).multiplyScalar(1.5);
+const cTable = new THREE.Color(0xffe2b8).multiplyScalar(1.6);
+const tmpC = new THREE.Color();
+
+// Strahlen im Einsatz (Weltkoordinaten)
+const WR = 48;
+const wRayPos = new Float32Array(WR * 6);
+const wRayGeo = new THREE.BufferGeometry();
+wRayGeo.setAttribute('position', new THREE.BufferAttribute(wRayPos, 3));
+const wRayMat = glowLine(C.lidar, 0.26);
+const wRays = new THREE.LineSegments(wRayGeo, wRayMat);
+wRays.frustumCulled = false;
+scene.add(wRays);
+wRays.visible = false;
+
+const ray = new THREE.Ray();
+const hitV = new THREE.Vector3();
+const origin = new THREE.Vector3();
+function castLidar(o, az, el, out) {
+  const ce = Math.cos(el);
+  const dx = ce * Math.sin(az), dy = Math.sin(el), dz = ce * Math.cos(az);
+  let t = Infinity;
+  if (dx > 1e-6) t = Math.min(t, (ROOM.x - o.x) / dx);
+  if (dx < -1e-6) t = Math.min(t, (-ROOM.x - o.x) / dx);
+  if (dz > 1e-6) t = Math.min(t, (ROOM.z1 - o.z) / dz);
+  if (dz < -1e-6) t = Math.min(t, (ROOM.z0 - o.z) / dz);
+  if (dy > 1e-6) t = Math.min(t, (ROOM.h - o.y) / dy);
+  if (dy < -1e-6) t = Math.min(t, (0 - o.y) / dy);
+  let onTable = false;
+  ray.origin.copy(o); ray.direction.set(dx, dy, dz);
+  for (const b of tableBoxes) {
+    if (ray.intersectBox(b, hitV)) {
+      const tt = hitV.distanceTo(o);
+      if (tt < t) { t = tt; onTable = true; }
+    }
+  }
+  if (!isFinite(t) || t > 9) return null;
+  out.set(o.x + dx * t, o.y + dy * t, o.z + dz * t);
+  return onTable;
+}
+const hitP = new THREE.Vector3();
+function addPoints(n) {
+  lidar.getWorldPosition(origin);
+  origin.y += 0.03;
+  let start = pHead, wrapped = false;
+  for (let i = 0; i < n; i++) {
+    const az = Math.random() * Math.PI * 2;
+    const el = EL_MIN + Math.random() * (EL_MAX - EL_MIN);
+    const onTable = castLidar(origin, az, el, hitP);
+    if (onTable === null) continue;
+    const j = pHead * 3;
+    pPos[j] = hitP.x + (Math.random() - 0.5) * 0.006;
+    pPos[j + 1] = hitP.y + (Math.random() - 0.5) * 0.006;
+    pPos[j + 2] = hitP.z + (Math.random() - 0.5) * 0.006;
+    if (onTable) tmpC.copy(cTable);
+    else tmpC.copy(cLow).lerp(cHigh, Math.min(1, hitP.y / ROOM.h));
+    pCol[j] = tmpC.r; pCol[j + 1] = tmpC.g; pCol[j + 2] = tmpC.b;
+    pHead++;
+    if (pHead >= MAXP) { pHead = 0; wrapped = true; }
+    pCount = Math.min(MAXP, pCount + 1);
+  }
+  const count = wrapped ? MAXP : pHead - start;
+  for (const a of [pPosAttr, pColAttr]) {
+    if (a.clearUpdateRanges && !wrapped && count > 0) { a.clearUpdateRanges(); a.addUpdateRange(start * 3, count * 3); }
+    else if (a.clearUpdateRanges) a.clearUpdateRanges();
+    a.needsUpdate = true;
+  }
+  pGeo.setDrawRange(0, pCount);
+}
+function clearPoints() { pHead = 0; pCount = 0; pGeo.setDrawRange(0, 0); }
+function updateWorldRays() {
+  lidar.getWorldPosition(origin);
+  origin.y += 0.03;
+  for (let i = 0; i < WR; i++) {
+    const az = Math.random() * Math.PI * 2;
+    const el = EL_MIN + Math.random() * (EL_MAX - EL_MIN);
+    const r = castLidar(origin, az, el, hitP);
+    const k = i * 6;
+    wRayPos[k] = origin.x; wRayPos[k + 1] = origin.y; wRayPos[k + 2] = origin.z;
+    if (r === null) { wRayPos[k + 3] = origin.x; wRayPos[k + 4] = origin.y; wRayPos[k + 5] = origin.z; }
+    else { wRayPos[k + 3] = hitP.x; wRayPos[k + 4] = hitP.y; wRayPos[k + 5] = hitP.z; }
+  }
+  wRayGeo.attributes.position.needsUpdate = true;
+}
+
+/* Schritte */
+const STEPS = [
+  { key: null, label: 'Übersicht', title: 'Der fertige Aufnahmeroboter',
+    text: 'Er fährt selbst durch die Museumswohnung, hält an, dreht sich, schwenkt die Kameras und nimmt den Raum in 3D auf.',
+    spec: 'Entwurf für Paper 3 · Maße gerundet', cam: { t: [0, 0.68, 0], d: 3.4, az: 38, el: 13 } },
+  { key: 'base', title: 'Basis: iRobot Create 3',
+    text: 'Die Basis fährt selbst und langsam, im sicheren Modus höchstens 0,31 m/s. Stoßfänger, vier Absturzsensoren und sechs Infrarotsensoren sehen alles in Bodennähe.',
+    spec: 'Ø 34 cm · bis 9 kg Nutzlast · ROS 2', cam: { t: [0, 0.09, 0.05], d: 1.35, az: 34, el: 24 } },
+  { key: 'deck', title: 'Akku und Rechner',
+    text: 'Akku und Rechner sitzen ganz unten auf dem Deck. So bleibt der Schwerpunkt tief, und der Mast kippt nicht.',
+    spec: 'Rechner für Kartierung und Navigation', cam: { t: [0, 0.16, 0], d: 1.2, az: 28, el: 30 } },
+  { key: 'mast', title: 'Mast',
+    text: 'Ein schlankes Aluprofil trägt Sensoren und Kopf. Er ist so niedrig wie möglich und so hoch, wie die Aufnahme es braucht.',
+    spec: 'Aluprofil 20 × 20 mm · Kopf auf etwa 1,2 m', cam: { t: [0, 0.64, 0], d: 2.6, az: 40, el: 12 } },
+  { key: 'tof', title: 'Lichtvorhang',
+    text: 'Vier Abstandssensoren übereinander schauen nach vorn, vom Knie bis über die Tischkante. Sie sehen, was die Basis am Boden nicht sieht.',
+    spec: 'VL53L5CX · 8 × 8 Zonen · bis 4 m · 65° diagonal · 60 Hz', cam: { t: [0, 0.62, 0.35], d: 2.9, az: 64, el: 12 } },
+  { key: 'head', title: 'Schwenkkopf mit Kameras',
+    text: 'An jedem Halt dreht und neigt der Kopf die Kameras. Der Roboter fährt erst weiter, wenn der Kopf still steht.',
+    spec: 'motorisiert · schwenken und neigen', cam: { t: [0, 1.21, 0], d: 1.0, az: 30, el: 10 } },
+  { key: 'lidar', title: 'Laserscanner Livox Mid-360',
+    text: 'Der Scanner misst den Raum rundum für die 3D-Aufnahme. Nach unten sieht er nur 7 Grad. Deshalb braucht es den Lichtvorhang.',
+    spec: '360° × 59° (−7° bis +52°) · 200.000 Punkte/s · 265 g', cam: { t: [0, 1.0, 0], d: 3.6, az: 40, el: 14 } },
+  { key: 'ring', title: 'Weiche Schaltleiste',
+    text: 'Ein weicher Ring um den Kopf stoppt bei Berührung sofort die Motoren. Er ist die letzte Sicherung und soll nie gebraucht werden.',
+    spec: 'Berührung heißt Halt', cam: { t: [0, 1.2, 0], d: 1.15, az: 36, el: 16 } },
+  { key: 'column', title: 'Der Roboter als Säule',
+    text: 'In der Navigation zählt alles zwischen Boden und Kopf als Hindernis. Eine Tischplatte mit freiem Raum darunter ist für ihn eine Wand.',
+    spec: 'Nav2-Voxelschicht · Höhe bis über den Kopf', cam: { t: [0, 0.7, 0], d: 3.2, az: 40, el: 14 } },
+  { key: 'room', title: 'Automatisch im Raum',
+    text: 'Unbekannter Raum gilt als Hindernis. Der Roboter fährt an, der Lichtvorhang meldet die Tischkante, und er hält mit Abstand. Dann dreht er sich, prüft rundum und nimmt auf.',
+    spec: 'fahren · halten · drehen · schwenken · aufnehmen', cam: { t: [0, 0.8, 0.45], d: 4.9, az: 68, el: 17 } },
+];
+const PART_STEP = { base: 1, deck: 2, mast: 3, tof: 4, head: 5, lidar: 6, ring: 7 };
+const FLY = {
+  base: new THREE.Vector3(0, 0.55, 0), deck: new THREE.Vector3(0, 0.6, 0), mast: new THREE.Vector3(0, 0.9, 0),
+  tof: new THREE.Vector3(0, 0, 0.7), head: new THREE.Vector3(0, 0.7, 0), lidar: new THREE.Vector3(0, 0.55, 0),
+  ring: new THREE.Vector3(0, 0.5, 0),
+};
+for (const k in PART_STEP) {
+  const p = parts[k];
+  p.userData.home = p.position.clone();
+  p.userData.anim = 1;
+}
+
+const ui = {
+  no: document.getElementById('stepNo'), hint: document.getElementById('stepHint'),
+  title: document.getElementById('stepTitle'), text: document.getElementById('stepText'),
+  spec: document.getElementById('stepSpec'), dots: document.getElementById('dots'),
+  prev: document.getElementById('prev'), next: document.getElementById('next'),
+  play: document.getElementById('play'), lasers: document.getElementById('lasers'),
+  card: document.querySelector('.card'),
+  stop: document.getElementById('tagStop'), high: document.getElementById('tagHigh'), low: document.getElementById('tagLow'),
+};
+STEPS.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = i === 0 ? '◎' : String(i);
+  b.setAttribute('aria-label', i === 0 ? 'Übersicht' : `Schritt ${i}: ${s.title}`);
+  b.addEventListener('click', () => { goTo(i, i > 0); });
+  ui.dots.appendChild(b);
+});
+
+let step = 0;
+let stepTime = 0;
+let playing = false;
+let started = false;
+let lasersOn = true;
+let clock = 0;
+const flashes = [];
+
+function flash(y, r) {
+  if (reduce) return;
+  const m = new THREE.Mesh(new THREE.RingGeometry(r * 0.96, r, 64), glow(0xcfefff, 0.7, 1.6));
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(robot.position.x, y, robot.position.z);
+  scene.add(m);
+  flashes.push({ m, t: 0 });
+}
+
+function goTo(i, animateCurrent = true) {
+  i = Math.max(0, Math.min(STEPS.length - 1, i));
+  const prev = step;
+  step = i;
+  stepTime = 0;
+  for (const k in PART_STEP) {
+    const p = parts[k], ps = PART_STEP[k];
+    const show = step === 0 || step >= ps;
+    p.visible = show;
+    if (!show) continue;
+    if (step === ps && animateCurrent && !reduce && (prev !== step)) { p.userData.anim = 0; }
+    else { p.userData.anim = 1; p.position.copy(p.userData.home); }
+  }
+  if (step === 9) startScenario(); else stopScenario();
+  updateCard();
+  userHoldUntil = 0;
+}
+
+function updateCard() {
+  const s = STEPS[step];
+  ui.no.innerHTML = step === 0 ? '<b>Übersicht</b>' : `Schritt <b>${step}</b> von ${STEPS.length - 1}`;
+  ui.title.textContent = s.title;
+  ui.text.textContent = s.text;
+  ui.spec.textContent = s.spec;
+  [...ui.dots.children].forEach((b, i) => {
+    if (i === step) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+    b.classList.toggle('done', i > 0 && i < step);
+  });
+  ui.prev.disabled = step === 0;
+  ui.next.disabled = step === STEPS.length - 1;
+  ui.play.textContent = !started ? 'Zusammenbau starten' : (playing ? 'Pause' : 'Abspielen');
+  ui.play.classList.toggle('primary', !started || !playing);
+  ui.hint.textContent = step === 9 ? 'läuft in Schleife' : 'Ziehen zum Drehen';
+  requestAnimationFrame(layoutView);
+}
+
+ui.prev.addEventListener('click', () => { goTo(step - 1, false); });
+ui.next.addEventListener('click', () => { goTo(step + 1, true); });
+ui.play.addEventListener('click', () => {
+  if (!started) { started = true; playing = true; goTo(1, true); return; }
+  playing = !playing;
+  if (playing && step === 0) goTo(1, true);
+  updateCard();
+});
+ui.lasers.addEventListener('change', () => { lasersOn = ui.lasers.checked; });
+window.addEventListener('keydown', e => {
+  if (e.target && (e.target.tagName === 'INPUT')) return;
+  if (e.key === 'ArrowRight') goTo(step + 1, true);
+  if (e.key === 'ArrowLeft') goTo(step - 1, false);
+});
+
+/* Kamera */
+let userHoldUntil = 0;
+controls.addEventListener('start', () => { userHoldUntil = Infinity; });
+controls.addEventListener('end', () => { userHoldUntil = clock + 7; });
+const camGoal = new THREE.Vector3();
+const tgtGoal = new THREE.Vector3();
+function frameCamera(dt, t) {
+  if (clock < userHoldUntil) return;
+  const c = STEPS[step].cam;
+  const sway = step === 0 ? t * 9 : Math.sin(t * 0.33) * 7;
+  const baseAz = step === 9 && narrow() ? 152 : c.az;
+  const az = (baseAz + sway) * D2R, el = c.el * D2R;
+  const d = c.d * (narrow() ? (step === 9 ? 1.05 : 1.18) : 1);
+  tgtGoal.set(c.t[0], c.t[1], c.t[2]);
+  if (step === 9) tgtGoal.z = (robot.position.z + TABLE_EDGE) / 2;
+  camGoal.set(tgtGoal.x + d * Math.cos(el) * Math.sin(az), tgtGoal.y + d * Math.sin(el), tgtGoal.z + d * Math.cos(el) * Math.cos(az));
+  const k = reduce ? 1 : 1 - Math.exp(-dt * 1.8);
+  camera.position.lerp(camGoal, k);
+  controls.target.lerp(tgtGoal, k);
+}
+
+/* Einsatz */
+const S = { phase: 'off', t: 0, z: 0, yaw: 0, pan: 0, tilt: 0, detect: false };
+const Z_START = -0.75;
+const Z_STOP = TABLE_EDGE - 0.45 - 0.017;
+function startScenario() {
+  room.visible = true;
+  clearPoints();
+  Object.assign(S, { phase: 'enter', t: 0, z: Z_START, yaw: 0, pan: 0, tilt: 0, detect: false });
+  if (reduce) {
+    Object.assign(S, { phase: 'still', z: Z_STOP, detect: true });
+    robot.position.z = S.z;
+    robot.updateMatrixWorld(true);
+    for (let i = 0; i < 90; i++) addPoints(300);
+  }
+}
+function stopScenario() {
+  S.phase = 'off';
+  room.visible = false;
+  wRays.visible = false;
+  clearPoints();
+  robot.position.set(0, 0, 0);
+  robot.rotation.set(0, 0, 0);
+  pan.rotation.set(0, 0, 0);
+  tilt.rotation.set(0, 0, 0);
+  for (const s of tofSensors) s.hot = 0;
+}
+function updateScenario(dt) {
+  if (S.phase === 'off') return;
+  S.t += dt;
+  const gap = TABLE_EDGE - (S.z + 0.017);
+  S.detect = gap <= TOF_LEN;
+  switch (S.phase) {
+    case 'enter':
+      if (S.t > 1.0) { S.phase = 'drive'; S.t = 0; }
+      break;
+    case 'drive': {
+      const v = gap > TOF_LEN ? 0.32 : 0.32 * Math.max(0.07, Math.min(1, (gap - 0.45) / 0.45));
+      S.z = Math.min(Z_STOP, S.z + v * dt);
+      if (S.z >= Z_STOP - 1e-4) { S.z = Z_STOP; S.phase = 'halt'; S.t = 0; }
+      break;
+    }
+    case 'halt':
+      if (S.t > 1.3) { S.phase = 'turn'; S.t = 0; }
+      break;
+    case 'turn':
+      S.yaw = Math.min(1, S.t / 4.2) * Math.PI * 2;
+      if (S.t > 4.2) { S.yaw = 0; S.phase = 'scan'; S.t = 0; }
+      break;
+    case 'scan':
+      S.pan = Math.min(1, S.t / 3.6) * Math.PI * 2;
+      S.tilt = Math.sin(S.t * 2.6) * 0.38;
+      if (S.t > 3.6) { S.pan = 0; S.tilt = 0; S.phase = 'hold'; S.t = 0; }
+      break;
+    case 'hold':
+      if (S.t > 2.6) { startScenario(); }
+      break;
+  }
+  robot.position.z = S.z;
+  robot.rotation.y = S.yaw;
+  pan.rotation.y = S.pan;
+  tilt.rotation.x = -S.tilt;
+}
+
+/* Bildausschnitt auf dem Handy über der Karte */
+function layoutView() {
+  const w = window.innerWidth, h = window.innerHeight;
+  if (narrow()) {
+    const r = ui.card.getBoundingClientRect();
+    const covered = Math.max(0, h - r.top);
+    const off = Math.round(covered * 0.42);
+    camera.setViewOffset(w, h, 0, off, w, h);
+  } else if (camera.view) {
+    camera.clearViewOffset();
+  }
+  camera.updateProjectionMatrix();
+}
+
+/* Nachleuchten */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.6, 0.55, 0.82);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  composer.setSize(w, h);
+  camera.aspect = w / h;
+  layoutView();
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* Hilfen für Beschriftungen */
+const proj = new THREE.Vector3();
+function place(el, v, on) {
+  if (!on) { el.hidden = true; return; }
+  proj.copy(v).project(camera);
+  if (proj.z > 1 || proj.z < -1) { el.hidden = true; return; }
+  el.hidden = false;
+  el.style.left = `${(proj.x * 0.5 + 0.5) * window.innerWidth}px`;
+  el.style.top = `${(-proj.y * 0.5 + 0.5) * window.innerHeight}px`;
+}
+
+/* Hauptschleife */
+const ease = t => 1 - Math.pow(1 - t, 3);
+const easeBack = t => { const c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+const tmpV = new THREE.Vector3();
+const red = new THREE.Color(C.stop).multiplyScalar(2.4);
+const amber = new THREE.Color(C.tof).multiplyScalar(2.2);
+let last = performance.now();
+const DWELL = [3.2, 4.6, 4.2, 4.2, 5.2, 4.6, 5.6, 4.4, 5.0, 999];
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  clock += dt;
+  stepTime += dt;
+
+  if (playing && step < 9 && stepTime > DWELL[step]) goTo(step + 1, true);
+
+  // Teile einfliegen lassen
+  for (const k in PART_STEP) {
+    const p = parts[k];
+    if (!p.visible || p.userData.anim >= 1) continue;
+    p.userData.anim = Math.min(1, p.userData.anim + dt / 1.25);
+    const a = p.userData.anim;
+    const e = easeBack(a);
+    p.position.copy(p.userData.home).addScaledVector(FLY[k], 1 - e);
+    if (a >= 1) {
+      p.position.copy(p.userData.home);
+      const y = { base: 0.004, deck: 0.155, mast: 0.16, tof: 0.5, head: 1.17, lidar: 1.29, ring: 1.217 }[k];
+      flash(y, k === 'base' ? 0.24 : 0.17);
+    }
+  }
+  const landed = s => {
+    const k = Object.keys(PART_STEP).find(n => PART_STEP[n] === s);
+    return !k || parts[k].userData.anim >= 1;
+  };
+
+  // Einsatz
+  if (step === 9 && (playing || !started) && S.phase !== 'still') updateScenario(dt);
+  else if (step === 9 && !playing && started) { /* angehalten */ }
+  if (step === 9 && S.phase !== 'off') {
+    const scanning = S.phase === 'scan' || S.phase === 'turn' || S.phase === 'halt' || S.phase === 'drive';
+    if (lasersOn && S.phase !== 'still' && (playing || !started)) addPoints(narrow() ? 150 : scanning ? 300 : 180);
+    wRays.visible = lasersOn;
+    if (lasersOn && (playing || !started || reduce)) updateWorldRays();
+  }
+  // Raum einblenden
+  if (room.visible) {
+    const f = Math.min(1, (S.phase === 'enter' ? S.t : 1));
+    for (const m of roomMats) m.opacity = m.userData.base * f;
+    pMat.opacity = 0.9;
+  }
+
+  // Lichtvorhang-Farbe
+  for (const s of tofSensors) {
+    const want = step === 9 && S.detect && s.h >= 0.5 ? 1 : 0;
+    s.hot += (want - s.hot) * Math.min(1, dt * 6);
+    s.fillMat.color.copy(amber).lerp(red, s.hot);
+    s.edgeMat.color.copy(amber).lerp(red, s.hot);
+    s.gridMat.color.copy(amber).lerp(red, s.hot);
+  }
+
+  // Laser ein- und ausblenden
+  for (const L of lasers) {
+    let want = lasersOn && (step === 0 ? !L.onlyFrom : step >= L.owner) && landed(L.owner);
+    let level = 1;
+    if (L === colL && step === 9) level = 0.55;
+    if (L === lidarL && step === 9) level = 0.35;
+    const target = want ? level : 0;
+    L.fade += (target - L.fade) * Math.min(1, dt * 4);
+    L.g.visible = L.fade > 0.01;
+    if (!L.g.visible) continue;
+    L.g.traverse(o => {
+      if (!o.material || o.material.userData.base === undefined) return;
+      o.material.opacity = o.material.userData.base * L.fade;
+    });
+  }
+
+  // IR-Punkte wandern
+  for (const b of irBeams) {
+    const u = ((clock * 0.9 + b.phase) % 1);
+    b.dot.position.copy(b.o).addScaledVector(b.dir, u * b.len);
+    b.dot.material.opacity = (1 - u) * irL.fade;
+  }
+
+  // Mid-360 Strahlen im Sichtband
+  if (lidarL.g.visible) {
+    const base = clock * (reduce ? 0 : 1.8);
+    for (let i = 0; i < RAYS; i++) {
+      const az = base + (i / RAYS) * Math.PI * 2 + Math.sin(i * 12.9898 + clock * 3.1) * 0.08;
+      const el = EL_MIN + ((Math.sin(i * 78.233 + clock * (reduce ? 0 : 2.3)) + 1) / 2) * (EL_MAX - EL_MIN);
+      const k = i * 6;
+      rayPos[k] = 0; rayPos[k + 1] = 0; rayPos[k + 2] = 0;
+      rayPos[k + 3] = Math.cos(el) * Math.sin(az) * BAND_R;
+      rayPos[k + 4] = Math.sin(el) * BAND_R;
+      rayPos[k + 5] = Math.cos(el) * Math.cos(az) * BAND_R;
+    }
+    rayGeo.attributes.position.needsUpdate = true;
+  }
+
+  // Kopf leicht bewegen bei Schritt 5 und in der Übersicht
+  if (step !== 9) {
+    const live = !reduce && (step === 0 || step === 5 || step === 6);
+    pan.rotation.y = live ? Math.sin(clock * 0.6) * 0.5 : pan.rotation.y * 0.9;
+    tilt.rotation.x = live ? Math.sin(clock * 0.9) * 0.18 : tilt.rotation.x * 0.9;
+  }
+
+  // Lichtblitze beim Einrasten
+  for (let i = flashes.length - 1; i >= 0; i--) {
+    const f = flashes[i];
+    f.t += dt;
+    const a = f.t / 0.7;
+    f.m.scale.setScalar(1 + a * 1.6);
+    f.m.material.opacity = 0.7 * (1 - a);
+    if (a >= 1) { scene.remove(f.m); f.m.geometry.dispose(); f.m.material.dispose(); flashes.splice(i, 1); }
+  }
+
+  frameCamera(dt, clock);
+  controls.update();
+
+  // Beschriftungen
+  const showStop = step === 9 && (S.phase === 'halt' || S.phase === 'turn' || S.phase === 'scan' || S.phase === 'hold' || S.phase === 'still');
+  place(ui.stop, tmpV.set(0, TABLE.top + 0.02, TABLE_EDGE), showStop);
+  const showAng = lasersOn && step === 6 && lidarL.fade > 0.5;
+  lidar.getWorldPosition(origin);
+  origin.y += 0.03;
+  const azL = 90 * D2R;
+  place(ui.high, tmpV.set(origin.x + Math.cos(EL_MAX) * Math.sin(azL) * BAND_R, origin.y + Math.sin(EL_MAX) * BAND_R, origin.z), showAng);
+  place(ui.low, tmpV.set(origin.x + Math.cos(EL_MIN) * Math.sin(azL) * BAND_R, origin.y + Math.sin(EL_MIN) * BAND_R, origin.z), showAng);
+
+  composer.render();
+  requestAnimationFrame(frame);
+}
+
+goTo(0, false);
+window.__scanOK = true;
+requestAnimationFrame(frame);
+if (!reduce) {
+  setTimeout(() => { if (!started) { started = true; playing = true; goTo(1, true); } }, 3600);
+}
+</script>
+
+</body></html>

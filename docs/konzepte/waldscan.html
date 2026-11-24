@@ -1,0 +1,1050 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Waldscan-Rucksack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Studiobühne im Wald: Vollbild-3D als Bühne, Titel oben links, Legende oben rechts, Schrittkarte unten.
+   Dunkler Waldboden-Ton, die Farben der Sichtfelder tragen Bedeutung (wie beim Scanroboter Museumswohnung). */
+:root{
+  --bg:#070c0a;
+  --bg2:#13201a;
+  --fg:#eef3ef;
+  --muted:#98a89f;
+  --line:rgba(160,200,180,.2);
+  --panel:rgba(9,15,12,.82);
+  --lidar:#41d6ff;
+  --lidar2:#46f0b0;
+  --camlo:#b48cff;
+  --camhi:#ffb13b;
+  --x5:#e9f1ff;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{
+  background:radial-gradient(120% 90% at 55% 30%,var(--bg2),var(--bg) 68%);
+  color:var(--fg);font-family:var(--display);overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));
+  -webkit-font-smoothing:antialiased;
+}
+#stage{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+.head{
+  position:fixed;z-index:2;text-shadow:0 1px 14px rgba(4,8,6,.9),0 0 2px rgba(4,8,6,.6);
+  top:calc(env(safe-area-inset-top,0px) + 20px);
+  left:max(20px,calc(env(safe-area-inset-left,0px) + 20px));
+  max-width:min(540px,calc(100vw - 40px));pointer-events:none;
+}
+.eyebrow{margin:0 0 10px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--lidar2)}
+h1{margin:0;font-weight:800;font-stretch:118%;font-size:clamp(26px,3.6vw,46px);line-height:.98;letter-spacing:-.01em;text-wrap:balance}
+.lede{margin:12px 0 0;max-width:42ch;color:var(--muted);font-size:15px;line-height:1.45;font-stretch:96%}
+.legend{
+  position:fixed;z-index:2;display:grid;gap:8px;text-shadow:0 1px 10px rgba(4,8,6,.95);
+  top:calc(env(safe-area-inset-top,0px) + 22px);
+  right:max(20px,calc(env(safe-area-inset-right,0px) + 20px));
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--muted);pointer-events:none;
+}
+.legend span{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.legend i{display:block;width:22px;height:2px;background:var(--c);box-shadow:0 0 10px var(--c),0 0 2px var(--c);border-radius:2px}
+.card{
+  position:fixed;z-index:3;
+  left:max(20px,calc(env(safe-area-inset-left,0px) + 20px));
+  bottom:calc(env(safe-area-inset-bottom,0px) + 20px);
+  width:min(490px,calc(100vw - 40px));
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  backdrop-filter:blur(14px) saturate(1.2);-webkit-backdrop-filter:blur(14px) saturate(1.2);
+  padding:18px 20px 16px;display:grid;gap:10px;
+  box-shadow:0 20px 60px rgba(0,0,0,.45);
+}
+.meta{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+.card h2{margin:0;font-size:22px;line-height:1.1;font-weight:750;font-stretch:110%;text-wrap:balance}
+.card p{margin:0;font-size:15px;line-height:1.5;color:#d4ddd7;max-width:62ch}
+.spec{font-family:var(--mono);font-size:12px;color:var(--lidar);letter-spacing:.02em;line-height:1.5;font-variant-numeric:tabular-nums}
+.scene-link{display:grid;gap:6px}
+.scene-link a{
+  justify-self:start;font:600 13px/1 var(--display);font-stretch:105%;color:var(--bg);background:var(--lidar2);
+  border-radius:999px;padding:9px 14px;text-decoration:none;
+}
+.scene-link a:hover{filter:brightness(1.08)}
+.scene-link small{font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--muted)}
+.dots{display:flex;gap:6px;flex-wrap:wrap;margin-top:2px}
+.dots button{
+  width:26px;height:26px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--muted);
+  font-family:var(--mono);font-size:10px;cursor:pointer;padding:0;display:grid;place-items:center;
+}
+.dots button[aria-current="step"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.dots button.done{color:var(--fg);border-color:rgba(238,243,239,.45)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.controls button{
+  font:600 13px/1 var(--display);font-stretch:105%;color:var(--fg);background:rgba(255,255,255,.06);
+  border:1px solid var(--line);border-radius:999px;padding:9px 14px;cursor:pointer;
+}
+.controls button.primary{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.controls button:hover{border-color:rgba(238,243,239,.55)}
+.controls button:disabled{opacity:.4;cursor:default}
+button:focus-visible,a:focus-visible,input:focus-visible+span{outline:2px solid var(--lidar2);outline-offset:2px}
+.toggle{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.toggle input{position:absolute;opacity:0;width:1px;height:1px}
+.toggle span{width:34px;height:20px;border-radius:999px;background:rgba(255,255,255,.12);border:1px solid var(--line);position:relative;transition:background .2s}
+.toggle span::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--muted);transition:transform .2s,background .2s}
+.toggle input:checked+span{background:rgba(70,240,176,.25)}
+.toggle input:checked+span::after{transform:translateX(14px);background:var(--lidar2)}
+.note{font-family:var(--mono);font-size:10.5px;line-height:1.5;color:var(--muted);letter-spacing:.01em}
+.tag{
+  position:fixed;z-index:1;pointer-events:none;transform:translate(-50%,-120%);
+  font-family:var(--mono);font-size:11px;letter-spacing:.04em;padding:5px 8px;border-radius:6px;white-space:nowrap;
+  background:rgba(8,13,11,.84);border:1px solid var(--line);color:var(--fg);
+}
+.tag.t-up{color:var(--lidar);border-color:rgba(65,214,255,.45)}
+.tag.t-down{color:var(--lidar2);border-color:rgba(70,240,176,.45)}
+.tag.t-lo{color:#dccbff;border-color:rgba(180,140,255,.5)}
+.tag.t-hi{color:#ffd9a0;border-color:rgba(255,177,59,.5)}
+.tag.t-x5{color:var(--x5);border-color:rgba(233,241,255,.4)}
+.tag.t-tree{color:#e7f2df;border-color:rgba(150,200,130,.45)}
+.tag.t-tree b{color:#b6e39a;font-weight:600}
+.fallback{position:fixed;inset:0;display:grid;place-items:center;padding:24px;text-align:center;color:var(--muted);font-size:15px;z-index:1}
+@media (max-width:760px){
+  .legend{display:none}
+  .head{max-width:calc(100vw - 40px)}
+  .lede{display:none}
+  h1{font-size:clamp(22px,7vw,30px)}
+  .card{
+    left:max(12px,calc(env(safe-area-inset-left,0px) + 12px));
+    right:max(12px,calc(env(safe-area-inset-right,0px) + 12px));
+    width:auto;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
+    max-height:48vh;overflow:auto;padding:14px 16px 12px;gap:8px;
+  }
+  .card h2{font-size:19px}
+  .card p{font-size:14px}
+  .note{display:none}
+  .tag{font-size:10px;padding:4px 6px}
+}
+@media (prefers-reduced-motion:reduce){.toggle span,.toggle span::after{transition:none}}
+</style>
+
+</head>
+<body>
+<canvas id="stage" tabindex="0" aria-label="3D-Modell des Scan-Rucksacks. Ziehen zum Drehen, Zwei-Finger oder Mausrad zum Zoomen."></canvas>
+
+<header class="head">
+  <p class="eyebrow">Projektskizze · Nationalpark Hainich · November 2026</p>
+  <h1>Scan-Rucksack für den Wald</h1>
+  <p class="lede">Eine Person trägt ihn durch den Bestand. Zwei Laserscanner und fünf Kameras erfassen alles vom Waldboden bis zum Kronenansatz.</p>
+</header>
+
+<aside class="legend" aria-label="Legende der Sichtfelder">
+  <span>Laserscanner oben<i style="--c:var(--lidar)"></i></span>
+  <span>Laserscanner kopfüber<i style="--c:var(--lidar2)"></i></span>
+  <span>Kameras oben<i style="--c:var(--camhi)"></i></span>
+  <span>Kameras unten<i style="--c:var(--camlo)"></i></span>
+  <span>360°-Kamera<i style="--c:var(--x5)"></i></span>
+</aside>
+
+<section class="card" aria-live="polite">
+  <div class="meta"><span id="stepNo"><b>Übersicht</b></span><span id="stepHint">Ziehen zum Drehen</span></div>
+  <h2 id="stepTitle">Scan-Rucksack für den Wald</h2>
+  <p id="stepText"></p>
+  <div class="spec" id="stepSpec"></div>
+  <div class="scene-link" id="sceneLink" hidden>
+    <a href="../splat.html?id=stump-3dgs" >Beispielszene öffnen: 3D Gaussian Splat</a>
+    <small>Testszene eines Baumstumpfs aus einem öffentlichen Benchmark (Mip-NeRF 360), mit der For3Dsuite trainiert. Noch keine Aufnahme aus dem Hainich.</small>
+  </div>
+  <nav class="dots" id="dots" aria-label="Schritte"></nav>
+  <div class="controls">
+    <button id="prev" type="button">Zurück</button>
+    <button id="play" type="button" class="primary">Rundgang starten</button>
+    <button id="next" type="button">Weiter</button>
+    <label class="toggle" for="fov"><input type="checkbox" id="fov" checked><span aria-hidden="true"></span>Sichtfelder</label>
+  </div>
+  <div class="note">Skizze, Maße gerundet. Sichtfelder und Laserstrahlen sind sichtbar gemacht, die Scanner arbeiten mit unsichtbarem Infrarot. <a href="./" style="color:inherit">Alle Konzepte</a> · <a href="../" style="color:inherit">Galerie</a></div>
+</section>
+
+<div id="tags"></div>
+<div class="fallback" id="fallback" hidden>Die 3D-Ansicht braucht WebGL und konnte hier nicht starten.</div>
+
+<script>
+  setTimeout(function(){ if(!window.__scanOK){ var f=document.getElementById('fallback'); if(f){ f.hidden=false; } } }, 9000);
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const narrow = () => window.innerWidth <= 760;
+const D2R = Math.PI / 180;
+const canvas = document.getElementById('stage');
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+} catch (e) {
+  document.getElementById('fallback').hidden = false;
+  throw e;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const BG = 0x070c0a;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(BG);
+scene.fog = new THREE.Fog(BG, 18, 75);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+
+const camera = new THREE.PerspectiveCamera(35, 1, 0.05, 220);
+camera.position.set(3.5, 2.6, 4.2);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+controls.minDistance = 0.6;
+controls.maxDistance = 70;
+controls.maxPolarAngle = Math.PI * 0.495;
+controls.target.set(0, 1.5, 0);
+
+/* Licht */
+scene.add(new THREE.HemisphereLight(0xcfe8d8, 0x0a0f0c, 0.5));
+const key = new THREE.DirectionalLight(0xffffff, 2.3);
+key.position.set(4, 9, 4);
+key.castShadow = true;
+key.shadow.mapSize.set(1024, 1024);
+Object.assign(key.shadow.camera, { near: 0.5, far: 40, left: -6, right: 6, top: 8, bottom: -3 });
+key.shadow.bias = -0.0004;
+key.shadow.radius = 5;
+scene.add(key);
+const rim = new THREE.SpotLight(0x7fe0c0, 60, 30, Math.PI / 5, 0.7, 1.6);
+rim.position.set(-4, 6, -4);
+rim.target.position.set(0, 1.5, 0);
+scene.add(rim, rim.target);
+
+/* Boden */
+const floor = new THREE.Mesh(new THREE.CircleGeometry(80, 96),
+  new THREE.MeshStandardMaterial({ color: 0x0f1813, roughness: 0.6, metalness: 0.2 }));
+floor.rotation.x = -Math.PI / 2;
+floor.receiveShadow = true;
+scene.add(floor);
+const grid = new THREE.GridHelper(80, 80, 0x2a4636, 0x15251c);
+grid.material.transparent = true;
+grid.material.opacity = 0.3;
+grid.position.y = 0.002;
+scene.add(grid);
+
+/* Materialien */
+const M = {
+  body: new THREE.MeshStandardMaterial({ color: 0x2b3540, roughness: 0.75, metalness: 0.05 }),
+  strap: new THREE.MeshStandardMaterial({ color: 0x141a20, roughness: 0.8 }),
+  dark: new THREE.MeshPhysicalMaterial({ color: 0x1a2029, roughness: 0.32, clearcoat: 0.8, clearcoatRoughness: 0.1 }),
+  alu: new THREE.MeshStandardMaterial({ color: 0xc7d0da, metalness: 1, roughness: 0.26 }),
+  aluDark: new THREE.MeshStandardMaterial({ color: 0x3a4250, metalness: 0.9, roughness: 0.35 }),
+  black: new THREE.MeshStandardMaterial({ color: 0x0c0f14, roughness: 0.45, metalness: 0.25 }),
+  glass: new THREE.MeshPhysicalMaterial({ color: 0x04060a, roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.02, metalness: 0.1 }),
+  rubber: new THREE.MeshStandardMaterial({ color: 0xff7a1a, roughness: 0.55, emissive: 0x3a1400 }),
+  battery: new THREE.MeshPhysicalMaterial({ color: 0x2a313c, roughness: 0.4, clearcoat: 0.5 }),
+  bark: new THREE.MeshStandardMaterial({ color: 0x55605a, roughness: 0.85, metalness: 0.02 }),
+};
+
+function glow(hex, opacity, k = 2.2) {
+  return new THREE.MeshBasicMaterial({ color: new THREE.Color(hex).multiplyScalar(k), transparent: true, opacity,
+    blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, side: THREE.DoubleSide });
+}
+function glowLine(hex, opacity, k = 2.2) {
+  return new THREE.LineBasicMaterial({ color: new THREE.Color(hex).multiplyScalar(k), transparent: true, opacity,
+    blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+}
+function mesh(geo, mat, x = 0, y = 0, z = 0, cast = true) {
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z);
+  m.castShadow = cast;
+  m.receiveShadow = true;
+  return m;
+}
+const C = { up: 0x41d6ff, down: 0x46f0b0, lo: 0xb48cff, hi: 0xffb13b, x5: 0xe9f1ff };
+
+/* Maße des Rigs (Meter) */
+const MZ = -0.24;          // Mast hinter dem Rücken
+const H = { lo: 2.0, down: 2.1, up: 2.2, hi: 2.32, x5: 2.56 };
+const CAM = {
+  lo: { pitch: -30, h: 72.6, v: 95.4, len: 2.4 },
+  hi: { pitch: 43, h: 40.3, v: 57.6, len: 4.0 },
+};
+const ARM = 0.14;
+function camDir(sx, pitchDeg) { return new THREE.Vector3(sx * Math.cos(pitchDeg * D2R), Math.sin(pitchDeg * D2R), 0); }
+function orientTo(obj, dir) {
+  const m = new THREE.Matrix4().lookAt(dir.clone(), new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 1, 0));
+  obj.quaternion.setFromRotationMatrix(m);
+}
+
+/* ---------- Rig ---------- */
+const rig = new THREE.Group();
+scene.add(rig);
+const parts = {};
+
+// Person (trägt das Rig)
+const person = new THREE.Group();
+{
+  for (const sx of [-1, 1]) {
+    person.add(mesh(new THREE.CapsuleGeometry(0.075, 0.72, 6, 14), M.body, sx * 0.1, 0.44, 0));
+    const arm = mesh(new THREE.CapsuleGeometry(0.05, 0.5, 6, 12), M.body, sx * 0.25, 1.12, 0.02);
+    arm.rotation.z = sx * 0.12;
+    person.add(arm);
+  }
+  const torso = mesh(new THREE.CapsuleGeometry(0.17, 0.42, 8, 18), M.body, 0, 1.16, 0);
+  torso.scale.set(1.05, 1, 0.72);
+  person.add(torso);
+  person.add(mesh(new THREE.SphereGeometry(0.11, 24, 16), M.body, 0, 1.66, 0.01));
+  rig.add(person);
+}
+
+// 3 Tragegestell und Mast
+{
+  const g = new THREE.Group();
+  for (const sx of [-1, 1]) {
+    g.add(mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.82, 12), M.alu, sx * 0.14, 1.2, MZ));
+    const strap = mesh(new THREE.BoxGeometry(0.045, 0.52, 0.02), M.strap, sx * 0.1, 1.32, -0.13);
+    strap.rotation.x = -0.12;
+    g.add(strap);
+  }
+  for (const y of [0.82, 1.2, 1.6]) g.add(mesh(new THREE.BoxGeometry(0.3, 0.02, 0.02), M.alu, 0, y, MZ));
+  g.add(mesh(new THREE.BoxGeometry(0.34, 0.06, 0.05), M.strap, 0, 0.92, -0.15));
+  g.add(mesh(new THREE.CylinderGeometry(0.016, 0.016, 1.0, 16), M.alu, 0, 2.08, MZ));
+  g.add(mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.05, 24), M.rubber, 0, 1.63, MZ));
+  parts.frame = g; rig.add(g);
+}
+// 4 Rechner, Akku, Auslösung
+{
+  const g = new THREE.Group();
+  g.add(mesh(new RoundedBoxGeometry(0.17, 0.05, 0.12, 3, 0.008), M.black, 0, 1.02, MZ - 0.07));
+  for (let i = 0; i < 6; i++) g.add(mesh(new THREE.BoxGeometry(0.15, 0.004, 0.003), M.alu, 0, 1.047, MZ - 0.115 + i * 0.016));
+  g.add(mesh(new RoundedBoxGeometry(0.16, 0.09, 0.08, 3, 0.008), M.battery, 0, 0.89, MZ - 0.06));
+  g.add(mesh(new THREE.BoxGeometry(0.162, 0.006, 0.082), glow(0xffb13b, 0.9, 1.4), 0, 0.92, MZ - 0.06, false));
+  g.add(mesh(new THREE.BoxGeometry(0.05, 0.02, 0.035), new THREE.MeshStandardMaterial({ color: 0x1f2c47, roughness: 0.5 }), 0.06, 1.06, MZ - 0.05));
+  const cable = new THREE.Line(new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0.02, 1.05, MZ - 0.02), new THREE.Vector3(0.02, 1.6, MZ - 0.02), new THREE.Vector3(0.02, 2.5, MZ - 0.02)]),
+    glowLine(0x9fe8ff, 0.4, 1.4));
+  g.add(cable);
+  parts.box = g; rig.add(g);
+}
+function mid360() {
+  const g = new THREE.Group();
+  g.add(mesh(new RoundedBoxGeometry(0.065, 0.032, 0.065, 3, 0.006), M.dark, 0, 0, 0));
+  g.add(mesh(new THREE.CylinderGeometry(0.03, 0.031, 0.028, 48), M.glass, 0, 0.03, 0));
+  g.add(mesh(new THREE.CylinderGeometry(0.027, 0.03, 0.006, 48), M.dark, 0, 0.047, 0));
+  const ring = mesh(new THREE.TorusGeometry(0.0305, 0.0009, 6, 64), glow(C.up, 0.9, 1.6), 0, 0.02, 0, false);
+  ring.rotation.x = Math.PI / 2; g.add(ring);
+  return g;
+}
+// 5 Laserscanner oben
+{
+  const g = new THREE.Group();
+  const s = mid360(); s.position.set(0, H.up, MZ); g.add(s);
+  parts.up = g; rig.add(g);
+}
+// 6 Laserscanner kopfüber
+{
+  const g = new THREE.Group();
+  const s = mid360(); s.position.set(0, H.down, MZ); s.rotation.x = Math.PI; g.add(s);
+  parts.down = g; rig.add(g);
+}
+function cameraModel() {
+  const g = new THREE.Group();
+  g.add(mesh(new RoundedBoxGeometry(0.048, 0.048, 0.055, 3, 0.006), M.black, 0, 0, 0));
+  const lens = mesh(new THREE.CylinderGeometry(0.017, 0.019, 0.04, 32), M.alu, 0, 0, 0.045);
+  lens.rotation.x = Math.PI / 2; g.add(lens);
+  g.add(mesh(new THREE.CircleGeometry(0.014, 32), M.glass, 0, 0, 0.0655, false));
+  return g;
+}
+function camPair(h, pitch) {
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.BoxGeometry(ARM * 2 + 0.03, 0.012, 0.012), M.aluDark, 0, h, MZ));
+  for (const sx of [-1, 1]) {
+    const c = cameraModel();
+    c.position.set(sx * ARM, h, MZ);
+    orientTo(c, camDir(sx, pitch));
+    g.add(c);
+  }
+  return g;
+}
+// 7 Bodenkameras, 8 obere Kameras
+parts.lo = camPair(H.lo, CAM.lo.pitch); rig.add(parts.lo);
+parts.hi = camPair(H.hi, CAM.hi.pitch); rig.add(parts.hi);
+// 9 360°-Kamera
+{
+  const g = new THREE.Group();
+  g.add(mesh(new THREE.CylinderGeometry(0.008, 0.008, 0.1, 12), M.alu, 0, H.x5 - 0.1, MZ));
+  g.add(mesh(new RoundedBoxGeometry(0.046, 0.124, 0.038, 3, 0.008), M.dark, 0, H.x5, MZ));
+  for (const sz of [-1, 1]) {
+    const l = mesh(new THREE.SphereGeometry(0.016, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), M.glass, 0, H.x5 + 0.035, MZ + sz * 0.019);
+    l.rotation.x = sz * Math.PI / 2; g.add(l);
+  }
+  parts.x5 = g; rig.add(g);
+}
+
+/* ---------- Sichtfelder ---------- */
+const fovs = [];
+function fovGroup(owner, extra = {}) {
+  const g = new THREE.Group();
+  rig.add(g);
+  const F = { g, owner, fade: 0, boost: 0, ...extra };
+  fovs.push(F);
+  return F;
+}
+function register(F) {
+  F.g.traverse(o => { if (o.material) o.material.userData.base = o.material.opacity; });
+}
+const BAND_R = 2.6;
+function lidarBand(F, origin, elMin, elMax, hex) {
+  const lid = new THREE.Group();
+  lid.position.copy(origin);
+  const thetaStart = (90 - elMax) * D2R, thetaLen = (elMax - elMin) * D2R;
+  lid.add(new THREE.Mesh(new THREE.SphereGeometry(BAND_R, 128, 12, 0, Math.PI * 2, thetaStart, thetaLen), glow(hex, 0.016)));
+  for (const el of [elMin, elMax]) {
+    const pts = [];
+    for (let k = 0; k <= 160; k++) {
+      const az = (k / 160) * Math.PI * 2, e = el * D2R;
+      pts.push(new THREE.Vector3(Math.cos(e) * Math.sin(az) * BAND_R, Math.sin(e) * BAND_R, Math.cos(e) * Math.cos(az) * BAND_R));
+    }
+    lid.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), glowLine(hex, 0.55)));
+  }
+  const RAYS = 36;
+  const pos = new Float32Array(RAYS * 6);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  lid.add(new THREE.LineSegments(geo, glowLine(hex, 0.3)));
+  F.g.add(lid);
+  Object.assign(F, { lid, rays: pos, rayGeo: geo, nRays: RAYS, elMin, elMax });
+}
+const fUp = fovGroup(5); lidarBand(fUp, new THREE.Vector3(0, H.up + 0.03, MZ), -7, 52, C.up); register(fUp);
+const fDown = fovGroup(6); lidarBand(fDown, new THREE.Vector3(0, H.down - 0.03, MZ), -52, 7, C.down); register(fDown);
+
+function frustum(hex, hDeg, vDeg, len) {
+  const g = new THREE.Group();
+  const tx = Math.tan(hDeg / 2 * D2R) * len, ty = Math.tan(vDeg / 2 * D2R) * len;
+  const P = [[0, 0, 0], [-tx, -ty, len], [tx, -ty, len], [tx, ty, len], [-tx, ty, len]];
+  const pos = [];
+  const tri = (a, b, c) => { pos.push(...P[a], ...P[b], ...P[c]); };
+  tri(0, 1, 2); tri(0, 2, 3); tri(0, 3, 4); tri(0, 4, 1);
+  const fg = new THREE.BufferGeometry();
+  fg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  g.add(new THREE.Mesh(fg, glow(hex, 0.03)));
+  const e = [];
+  for (const i of [1, 2, 3, 4]) e.push(...P[0], ...P[i]);
+  for (const [a, b] of [[1, 2], [2, 3], [3, 4], [4, 1]]) e.push(...P[a], ...P[b]);
+  for (let k = 1; k < 4; k++) {
+    const x = -tx + (2 * tx * k) / 4, y = -ty + (2 * ty * k) / 4;
+    e.push(x, -ty, len, x, ty, len, -tx, y, len, tx, y, len);
+  }
+  const eg = new THREE.BufferGeometry();
+  eg.setAttribute('position', new THREE.Float32BufferAttribute(e, 3));
+  g.add(new THREE.LineSegments(eg, glowLine(hex, 0.5)));
+  return g;
+}
+function camFov(owner, h, spec, hex) {
+  const F = fovGroup(owner);
+  F.tips = [];
+  for (const sx of [-1, 1]) {
+    const f = frustum(hex, spec.h, spec.v, spec.len);
+    f.position.set(sx * ARM, h, MZ);
+    const d = camDir(sx, spec.pitch);
+    orientTo(f, d);
+    F.g.add(f);
+    F.tips.push(new THREE.Vector3(sx * ARM, h, MZ).addScaledVector(d, spec.len));
+  }
+  register(F);
+  return F;
+}
+const fLo = camFov(7, H.lo, CAM.lo, C.lo);
+const fHi = camFov(8, H.hi, CAM.hi, C.hi);
+const fX5 = fovGroup(9);
+{
+  const s = new THREE.LineSegments(new THREE.WireframeGeometry(new THREE.SphereGeometry(0.6, 24, 12)), glowLine(C.x5, 0.16, 1.4));
+  s.position.set(0, H.x5, MZ);
+  fX5.g.add(s);
+  register(fX5);
+}
+
+/* ---------- 3D-Gaussian-Splat-Baum (Schritte 1, 2, 11) ---------- */
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const R = rng(7);
+const SP = { p: [], c: [], s: [] };
+const tc = new THREE.Color();
+function sp(x, y, z, hex, size, jitter = 0.12) {
+  tc.setHex(hex);
+  const k = 1 + (R() - 0.5) * jitter * 2;
+  SP.p.push(x, y, z); SP.c.push(tc.r * k, tc.g * k, tc.b * k); SP.s.push(size * (0.75 + R() * 0.5));
+}
+const scaleN = narrow() ? 0.6 : 1;
+const TRUNK_H = 16;
+function trunkR(y) { return 0.22 + 0.13 * (1 - y / TRUNK_H) + (y < 0.8 ? 0.25 * Math.pow(1 - y / 0.8, 2) : 0); }
+{
+  const bark = [0x8d989b, 0x9aa5a7, 0x7d888a, 0xa7b0b0];
+  for (let i = 0; i < 9000 * scaleN; i++) {
+    const y = Math.pow(R(), 0.85) * TRUNK_H, a = R() * Math.PI * 2, r = trunkR(y);
+    const moss = y < 4 && a > Math.PI * 0.6 && a < Math.PI * 1.4 && R() < 0.7;
+    sp(Math.cos(a) * r, y, Math.sin(a) * r, moss ? 0x5f7a3a : bark[(R() * 4) | 0], 0.09);
+  }
+  // Spechthöhle bei 9 m
+  for (let i = 0; i < 260 * scaleN; i++) {
+    const t = R() * Math.PI * 2, rr = Math.sqrt(R());
+    const a = 0.35 + Math.cos(t) * rr * 0.22, y = 9 + Math.sin(t) * rr * 0.1;
+    const r = trunkR(y) + 0.005;
+    sp(Math.cos(a) * r, y, Math.sin(a) * r, 0x161210, 0.05, 0.05);
+  }
+  // Pilzkonsole bei 3 m
+  for (let i = 0; i < 320 * scaleN; i++) {
+    const a = -0.4 + (R() - 0.5) * 0.7, out = R() * 0.18, y = 3 + (R() - 0.5) * 0.05 - out * 0.15;
+    const r = trunkR(3) + out;
+    sp(Math.cos(a) * r, y, Math.sin(a) * r, R() < 0.5 ? 0xc2a271 : 0xa58456, 0.05);
+  }
+  // Totast bei 7 m
+  for (let i = 0; i < 380 * scaleN; i++) {
+    const t = R(), a = 2.6;
+    const r0 = trunkR(7), len = 1.5 * t;
+    sp(Math.cos(a) * (r0 + len) + (R() - 0.5) * 0.06, 7 - 0.25 * t + (R() - 0.5) * 0.06, Math.sin(a) * (r0 + len) + (R() - 0.5) * 0.06, 0x6f6558, 0.06);
+  }
+  // Wasserreiser bei 5 m
+  for (let i = 0; i < 160 * scaleN; i++) {
+    const a = 1.2 + (R() - 0.5) * 0.4, out = R() * 0.35, y = 5 + out * 0.6 + (R() - 0.5) * 0.15;
+    const r = trunkR(5) + out;
+    sp(Math.cos(a) * r, y, Math.sin(a) * r, 0x7fae4e, 0.08);
+  }
+  // Äste ab 12 m und Krone
+  for (let b = 0; b < 5; b++) {
+    const a = b * 1.26 + 0.3, y0 = 12 + b * 0.5;
+    for (let i = 0; i < 220 * scaleN; i++) {
+      const t = R(), r = trunkR(y0) + t * 3.2;
+      sp(Math.cos(a) * r, y0 + t * 3, Math.sin(a) * r, 0x6b7372, 0.07);
+    }
+  }
+  const leaf = [0x4f7f3a, 0x6a9a45, 0x3d6b2f, 0x5c8c3c];
+  for (let i = 0; i < 7000 * scaleN; i++) {
+    const u = R() * 2 - 1, th = R() * Math.PI * 2, rr = Math.cbrt(R());
+    const x = Math.sqrt(1 - u * u) * Math.cos(th) * rr * 5.2, z = Math.sqrt(1 - u * u) * Math.sin(th) * rr * 5.2, y = 18.5 + u * rr * 6;
+    if (y < 12.6) continue;
+    sp(x, y, z, leaf[(R() * 4) | 0], 0.42);
+  }
+  // Waldboden
+  const litter = [0x7a5a33, 0x9a7240, 0x5b4a2e, 0x86663a];
+  for (let i = 0; i < 5000 * scaleN; i++) {
+    const r = Math.sqrt(R()) * 5.5, a = R() * Math.PI * 2;
+    if (r < 0.45) continue;
+    sp(Math.cos(a) * r, 0.02 + R() * 0.03, Math.sin(a) * r, litter[(R() * 4) | 0], 0.16);
+  }
+  // liegendes Totholz
+  const A = new THREE.Vector3(1.3, 0.2, 1.4), B = new THREE.Vector3(4.0, 0.22, 0.5);
+  const axis = B.clone().sub(A), L = axis.length(); axis.normalize();
+  const n1 = new THREE.Vector3(0, 1, 0), n2 = new THREE.Vector3().crossVectors(axis, n1).normalize();
+  for (let i = 0; i < 1600 * scaleN; i++) {
+    const t = R() * L, a = R() * Math.PI * 2, r = 0.19;
+    const p = A.clone().addScaledVector(axis, t).addScaledVector(n1, Math.cos(a) * r).addScaledVector(n2, Math.sin(a) * r);
+    if (p.y < 0.02) continue;
+    sp(p.x, p.y, p.z, Math.cos(a) > 0.2 && R() < 0.6 ? 0x56713a : 0x6b6450, 0.09);
+  }
+}
+const splatUniforms = { uScale: { value: 800 }, uOpacity: { value: 0 } };
+const splatMat = new THREE.ShaderMaterial({
+  uniforms: splatUniforms,
+  vertexShader: `attribute float asize; attribute vec3 acolor; varying vec3 vColor; uniform float uScale;
+    void main(){ vColor = acolor; vec4 mv = modelViewMatrix * vec4(position, 1.0);
+      gl_PointSize = clamp(asize * uScale / max(0.1, -mv.z), 1.0, 64.0); gl_Position = projectionMatrix * mv; }`,
+  fragmentShader: `varying vec3 vColor; uniform float uOpacity;
+    void main(){ vec2 d = gl_PointCoord - 0.5; float r2 = dot(d, d) * 4.0; float a = exp(-r2 * 3.0) * uOpacity;
+      if (a < 0.02) discard; gl_FragColor = vec4(vColor, a); }`,
+  transparent: true, depthWrite: false,
+});
+const splatGeo = new THREE.BufferGeometry();
+splatGeo.setAttribute('position', new THREE.Float32BufferAttribute(SP.p, 3));
+splatGeo.setAttribute('acolor', new THREE.Float32BufferAttribute(SP.c, 3));
+splatGeo.setAttribute('asize', new THREE.Float32BufferAttribute(SP.s, 1));
+const splatTree = new THREE.Points(splatGeo, splatMat);
+splatTree.frustumCulled = false;
+splatTree.position.set(0, 0, 0);
+scene.add(splatTree);
+
+/* ---------- Bestand für den Einsatz (Schritt 10) ---------- */
+const TREES = [
+  { x: -4.5, z: 2, r: 0.33 }, { x: 5, z: 4.5, r: 0.38 }, { x: -5.2, z: 9, r: 0.28 }, { x: 4.4, z: 11.5, r: 0.31 },
+  { x: -3.8, z: 15.5, r: 0.36 }, { x: 6, z: 17, r: 0.27 }, { x: -6, z: -3, r: 0.3 }, { x: 5.5, z: -4.5, r: 0.34 },
+  { x: -8.5, z: 5.5, r: 0.3 }, { x: 8.8, z: 8, r: 0.32 },
+].map(t => ({ ...t, h: 28, cy: 21, cr: 5.5 }));
+const forest = new THREE.Group();
+scene.add(forest);
+const forestMats = [];
+{
+  const crownMat = new THREE.MeshStandardMaterial({ color: 0x2f5a35, roughness: 0.9, transparent: true, opacity: 0.13, depthWrite: false });
+  forestMats.push(crownMat);
+  for (const t of TREES) {
+    forest.add(mesh(new THREE.CylinderGeometry(t.r * 0.6, t.r, t.h, 20), M.bark, t.x, t.h / 2, t.z));
+    const cr = new THREE.Mesh(new THREE.SphereGeometry(t.cr, 24, 16), crownMat);
+    cr.position.set(t.x, t.cy, t.z);
+    forest.add(cr);
+  }
+  for (const [x, op] of [[0, 0.7], [10, 0.32], [-10, 0.32]]) {
+    const pts = [];
+    for (let z = -6; z <= 20; z += 0.5) pts.push(new THREE.Vector3(x, 0.01, z));
+    const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color: 0x9fe8c8, dashSize: 0.3, gapSize: 0.25, transparent: true, opacity: op }));
+    line.computeLineDistances();
+    line.material.userData.base = op;
+    forestMats.push(line.material);
+    forest.add(line);
+  }
+}
+forest.visible = false;
+
+// Punktwolke des Einsatzes
+const MAXP = narrow() ? 26000 : 52000;
+const pPos = new Float32Array(MAXP * 3);
+const pCol = new Float32Array(MAXP * 3);
+const pGeo = new THREE.BufferGeometry();
+const pPosAttr = new THREE.BufferAttribute(pPos, 3).setUsage(THREE.DynamicDrawUsage);
+const pColAttr = new THREE.BufferAttribute(pCol, 3).setUsage(THREE.DynamicDrawUsage);
+pGeo.setAttribute('position', pPosAttr);
+pGeo.setAttribute('color', pColAttr);
+pGeo.setDrawRange(0, 0);
+const pMat = new THREE.PointsMaterial({ size: 0.07, vertexColors: true, transparent: true, opacity: 0.9,
+  blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false, sizeAttenuation: true });
+const cloud = new THREE.Points(pGeo, pMat);
+cloud.frustumCulled = false;
+scene.add(cloud);
+let pHead = 0, pCount = 0;
+const colGround = new THREE.Color(0.6, 0.45, 0.26).multiplyScalar(1.3);
+const colTrunkLo = new THREE.Color(0.35, 0.75, 0.95).multiplyScalar(1.3);
+const colTrunkHi = new THREE.Color(0.75, 0.92, 1.0).multiplyScalar(1.4);
+const colCrown = new THREE.Color(0.3, 0.85, 0.42).multiplyScalar(1.2);
+const tmpC = new THREE.Color();
+
+function castForest(o, d, out) {
+  let t = Infinity, type = 0, hy = 0;
+  if (d.y < -1e-6) { const tg = -o.y / d.y; if (tg < t) { t = tg; type = 1; } }
+  for (const tr of TREES) {
+    const dx = o.x - tr.x, dz = o.z - tr.z;
+    const a = d.x * d.x + d.z * d.z;
+    if (a < 1e-9) continue;
+    const b = 2 * (dx * d.x + dz * d.z), c = dx * dx + dz * dz - tr.r * tr.r;
+    const disc = b * b - 4 * a * c;
+    if (disc < 0) continue;
+    const t1 = (-b - Math.sqrt(disc)) / (2 * a);
+    if (t1 > 0 && t1 < t) { const y = o.y + d.y * t1; if (y >= 0 && y <= 15) { t = t1; type = 2; hy = y; } }
+    const ox = o.x - tr.x, oy = o.y - tr.cy, oz = o.z - tr.z;
+    const bb = ox * d.x + oy * d.y + oz * d.z, cc = ox * ox + oy * oy + oz * oz - tr.cr * tr.cr;
+    const dd = bb * bb - cc;
+    if (dd >= 0) { const t2 = -bb - Math.sqrt(dd); if (t2 > 0 && t2 < t) { t = t2; type = 3; } }
+  }
+  if (!isFinite(t) || t > 40) return 0;
+  out.set(o.x + d.x * t, o.y + d.y * t, o.z + d.z * t);
+  return type;
+}
+const hitP = new THREE.Vector3();
+const dirV = new THREE.Vector3();
+const originUp = new THREE.Vector3(), originDown = new THREE.Vector3();
+function updateOrigins() {
+  originUp.set(rig.position.x, rig.position.y + H.up + 0.03, rig.position.z + MZ);
+  originDown.set(rig.position.x, rig.position.y + H.down - 0.03, rig.position.z + MZ);
+}
+function addPoints(n) {
+  updateOrigins();
+  let start = pHead, wrapped = false;
+  for (let i = 0; i < n; i++) {
+    const useUp = i % 2 === 0;
+    const o = useUp ? originUp : originDown;
+    const az = R() * Math.PI * 2;
+    const el = (useUp ? -7 + R() * 59 : -52 + R() * 59) * D2R;
+    dirV.set(Math.cos(el) * Math.sin(az), Math.sin(el), Math.cos(el) * Math.cos(az));
+    const type = castForest(o, dirV, hitP);
+    if (!type) continue;
+    const j = pHead * 3;
+    pPos[j] = hitP.x + (R() - 0.5) * 0.02;
+    pPos[j + 1] = hitP.y + (R() - 0.5) * 0.02;
+    pPos[j + 2] = hitP.z + (R() - 0.5) * 0.02;
+    if (type === 1) tmpC.copy(colGround);
+    else if (type === 2) tmpC.copy(colTrunkLo).lerp(colTrunkHi, Math.min(1, hitP.y / 15));
+    else tmpC.copy(colCrown);
+    pCol[j] = tmpC.r; pCol[j + 1] = tmpC.g; pCol[j + 2] = tmpC.b;
+    pHead++;
+    if (pHead >= MAXP) { pHead = 0; wrapped = true; }
+    pCount = Math.min(MAXP, pCount + 1);
+  }
+  const count = wrapped ? MAXP : pHead - start;
+  for (const at of [pPosAttr, pColAttr]) {
+    if (at.clearUpdateRanges && !wrapped && count > 0) { at.clearUpdateRanges(); at.addUpdateRange(start * 3, count * 3); }
+    else if (at.clearUpdateRanges) at.clearUpdateRanges();
+    at.needsUpdate = true;
+  }
+  pGeo.setDrawRange(0, pCount);
+}
+function clearPoints() { pHead = 0; pCount = 0; pGeo.setDrawRange(0, 0); }
+
+/* ---------- Schritte ---------- */
+const STEPS = [
+  { title: 'Scan-Rucksack für den Wald',
+    text: 'Eine Person trägt ihn durch den Bestand. Zwei Laserscanner und fünf Kameras erfassen alles vom Waldboden bis zum Kronenansatz. Daraus entsteht für jede Fläche eine begehbare, messbare 3D-Szene.',
+    spec: 'Entwurf · Hardware ca. 6.200 € · Mast ca. 2,5 m', cam: { t: [0, 2.0, 0], d: 11, az: 38, el: 14 } },
+  { title: 'Was ist 3D Gaussian Splatting?',
+    text: 'Die Szene besteht aus Millionen kleiner, farbiger, halbtransparenter Ellipsen. Ein Rechner lernt sie aus hunderten Fotos. Der Laserscanner liefert Lage und Maßstab. So wird das Modell fotorealistisch und messbar, und es läuft im Browser.',
+    spec: 'Fotos + LiDAR → 3D-Gaussians · begehbar · messbar', cam: { t: [0, 8.5, 0], d: 31, az: 32, el: 6 } },
+  { title: 'Holzwert und Habitatwert aus einer Aufnahme',
+    text: 'Für jeden Baum entstehen forstliche und naturschutzfachliche Werte, gleichberechtigt. Die Auswertung ist automatisch, wiederholbar und auf allen Flächen gleich. Das macht Bewertungen nachvollziehbar.',
+    spec: 'BHD · Höhe · Kronenansatz · erster Totast · Wasserreiser · Güte · Mikrohabitate · Totholz', cam: { t: [0.8, 8, 0.5], d: 29, az: 26, el: 6 } },
+  { key: 'frame', title: 'Tragegestell und Mast',
+    text: 'Eine Kraxe trägt einen Mast bis etwa 2,5 m. Ein Gummidämpfer nimmt das Schwanken beim Gehen. Eine Person trägt das Rig. Im Wald ist das günstiger als ein Roboter.',
+    spec: 'Kraxe · Aluminiummast ca. 2,5 m · Dämpfer', cam: { t: [0, 1.5, -0.2], d: 3.6, az: 140, el: 12 } },
+  { key: 'box', title: 'Rechner, Akku und Auslösung',
+    text: 'Rechner und Akku sitzen unten am Gestell. So bleibt der Schwerpunkt tief. Ein Mikrocontroller löst alle Kameras gleichzeitig aus und gibt allen Daten dieselbe Uhrzeit.',
+    spec: 'Jetson Orin Nano · Akku 99 Wh · Teensy (Auslösung, PPS)', cam: { t: [0, 0.98, -0.3], d: 1.5, az: 150, el: 18 } },
+  { key: 'up', title: 'Laserscanner oben: Livox Mid-360',
+    text: 'Er misst rundum die Stämme bis in den Kronenraum und berechnet unterwegs die eigene Position. Damit passen alle Fotos und alle Aufnahmetermine zentimetergenau zusammen.',
+    spec: '360° × 59° (−7° bis +52°) · 200.000 Punkte/s · 265 g', cam: { t: [0, 2.1, -0.2], d: 7.2, az: 40, el: 14 } },
+  { key: 'down', title: 'Laserscanner kopfüber: zweiter Mid-360',
+    text: 'Er schaut nach unten auf Boden, Stammfuß und Brusthöhe, schon ab 0,6 m Entfernung. So wird jeder Stamm in 1,3 m Höhe zu mindestens 9/16 des Umfangs erfasst. Das braucht ein sicherer BHD.',
+    spec: '360° × 59° (+7° bis −52°) · BHD ab 0,6 m', cam: { t: [0, 1.6, -0.2], d: 7.2, az: 40, el: 18 } },
+  { key: 'lo', title: 'Bodenkameras',
+    text: 'Zwei Kameras, je Seite eine, 30° nach unten geneigt. Sie sehen Waldboden, liegendes Totholz, Stammfuß und Brusthöhe. In 5 m Entfernung ist ein Pixel etwa 1,7 mm groß.',
+    spec: '20 MP (Sony IMX183, 1″) · 6 mm · −78° bis +18° · ≈ 54 Pixel/°', cam: { t: [0, 1.6, -0.2], d: 6.5, az: 20, el: 18 } },
+  { key: 'hi', title: 'Obere Kameras',
+    text: 'Zwei Kameras, 43° nach oben geneigt. Sie zeigen den Stamm bis zum Kronenansatz: Totäste, Astnarben, Wasserreiser, Spechthöhlen. In 10 m Höhe ist ein Pixel etwa 1,7 mm groß, in 15 m Höhe 2,6 bis 3 mm.',
+    spec: '20 MP (Sony IMX183, 1″) · 12 mm · +14° bis +72° · ≈ 93 Pixel/°', cam: { t: [0, 3.4, -0.2], d: 9, az: 22, el: 10 } },
+  { key: 'x5', title: '360°-Kamera auf dem Mast',
+    text: 'Die Insta360 X5 nimmt bei jedem Halt rundum auf, auch senkrecht nach oben. Das gibt Übersicht, Zusammenhang und die Öffnung des Kronendachs.',
+    spec: 'Insta360 X5 · 360° · 72 MP · ≈ 33 Pixel/°', cam: { t: [0, 2.45, -0.2], d: 2.2, az: 40, el: 14 } },
+  { key: 'forest', title: 'Aufnahme im Bestand',
+    text: 'Gehen, etwa jeden Meter kurz anhalten, alle Kameras lösen aus. Die Laserscanner laufen durchgehend. Die Spuren liegen 10 m auseinander, so wird jeder Stamm von zwei Seiten erfasst.',
+    spec: '≈ 1 km und ≈ 50 min pro Hektar · 4 Termine im Jahr', cam: null },
+  { key: 'result', title: 'Ergebnis und Bedarf',
+    text: 'Je Probefläche eine begehbare, messbare 3D-Szene und eine Tabelle mit allen Werten je Baum, auch als GIS-Layer. Für Aufbau, Programmierung und Aufnahmen braucht es die Hardware und ein Jahr lang 8 Stunden pro Woche.',
+    spec: 'Hardware ≈ 6.200 € · Personal E13, 8 h/Woche, 1 Jahr ≈ 19.000 € · gesamt ≈ 25.000 €', cam: { t: [0.8, 8, 0.5], d: 29, az: 210, el: 7 } },
+];
+const PART_STEP = { frame: 3, box: 4, up: 5, down: 6, lo: 7, hi: 8, x5: 9 };
+const FLY = {
+  frame: new THREE.Vector3(0, 0.9, -0.6), box: new THREE.Vector3(0, 0, -0.8), up: new THREE.Vector3(0, 0.7, 0),
+  down: new THREE.Vector3(0, -0.6, -0.4), lo: new THREE.Vector3(0, 0, -0.9), hi: new THREE.Vector3(0, 0.6, -0.6), x5: new THREE.Vector3(0, 0.7, 0),
+};
+for (const k in PART_STEP) { parts[k].userData.home = parts[k].position.clone(); parts[k].userData.anim = 1; }
+const RIG_STEPS = s => s === 0 || (s >= 3 && s <= 10);
+const TREE_STEPS = s => s === 1 || s === 2 || s === 11;
+
+/* ---------- Beschriftungen ---------- */
+const tagBox = document.getElementById('tags');
+const TAGS = [];
+function addTag(cls, html, when, pos) {
+  const el = document.createElement('div');
+  el.className = 'tag ' + cls; el.innerHTML = html; el.hidden = true;
+  tagBox.appendChild(el);
+  TAGS.push({ el, when, pos });
+}
+const W = (x, y, z) => () => new THREE.Vector3(x, y, z).add(rig.position);
+const bandPt = (h, el, az) => () => new THREE.Vector3(Math.cos(el * D2R) * Math.sin(az * D2R) * BAND_R, h + Math.sin(el * D2R) * BAND_R, MZ + Math.cos(el * D2R) * Math.cos(az * D2R) * BAND_R).add(rig.position);
+addTag('t-up', '+52°', s => s === 5, bandPt(H.up + 0.03, 52, 90));
+addTag('t-up', '−7°', s => s === 5, bandPt(H.up + 0.03, -7, 90));
+addTag('t-down', '+7°', s => s === 6, bandPt(H.down - 0.03, 7, -90));
+addTag('t-down', '−52°', s => s === 6, bandPt(H.down - 0.03, -52, -90));
+addTag('t-lo', '−78° … +18° · 54 Px/°', s => s === 7, () => fLo.tips[1].clone().add(rig.position));
+addTag('t-hi', '+14° … +72° · 93 Px/°', s => s === 8, () => fHi.tips[1].clone().add(rig.position));
+addTag('t-x5', '360° · 33 Px/°', s => s === 9, W(0, H.x5 + 0.62, MZ));
+const tr = (y, a, extra = 0) => () => { const r = trunkR(y) + extra; return new THREE.Vector3(Math.cos(a) * r, y, Math.sin(a) * r); };
+addTag('t-tree', 'Jeder Fleck: eine Ellipse mit Farbe, Form und Transparenz', s => s === 1, tr(2.2, 0.6));
+addTag('t-tree', '<b>Kronenansatz</b> · darüber belaubt kaum sichtbar', s => s === 2 || s === 11, () => new THREE.Vector3(0, 12.6, 0));
+addTag('t-tree', '<b>Spechthöhle</b> · 9 m', s => s === 2 || s === 11, tr(9, 0.35));
+addTag('t-tree', '<b>erster Totast</b> · 7 m', s => s === 2 || s === 11, () => new THREE.Vector3(Math.cos(2.6) * 1.3, 6.8, Math.sin(2.6) * 1.3));
+addTag('t-tree', '<b>Wasserreiser</b> · 5 m', s => s === 2 || s === 11, tr(5.2, 1.2, 0.3));
+addTag('t-tree', '<b>Pilzkonsole</b> · 3 m', s => s === 2 || s === 11, tr(3, -0.4, 0.15));
+addTag('t-tree', '<b>BHD</b> · 1,3 m', s => s === 2 || s === 11, tr(1.3, -1.6));
+addTag('t-tree', '<b>liegendes Totholz</b>', s => s === 2 || s === 11, () => new THREE.Vector3(2.9, 0.45, 0.85));
+const T0 = TREES[0];
+addTag('t-down', 'Brusthöhe aus 4,5 m · 1,5 mm/px', s => s === 10, () => new THREE.Vector3(T0.x + T0.r, 1.3, T0.z));
+addTag('t-hi', '10 m Höhe · 1,7 mm/px', s => s === 10, () => new THREE.Vector3(T0.x + T0.r * 0.8, 10, T0.z));
+addTag('t-x5', 'nächste Spur in 10 m', s => s === 10, () => new THREE.Vector3(10, 0.05, 12));
+
+/* ---------- Bedienung ---------- */
+const ui = {
+  no: document.getElementById('stepNo'), hint: document.getElementById('stepHint'),
+  title: document.getElementById('stepTitle'), text: document.getElementById('stepText'),
+  spec: document.getElementById('stepSpec'), dots: document.getElementById('dots'),
+  prev: document.getElementById('prev'), next: document.getElementById('next'),
+  play: document.getElementById('play'), fov: document.getElementById('fov'),
+  card: document.querySelector('.card'), link: document.getElementById('sceneLink'),
+};
+STEPS.forEach((s, i) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = i === 0 ? '◎' : String(i);
+  b.setAttribute('aria-label', i === 0 ? 'Übersicht' : `Schritt ${i}: ${s.title}`);
+  b.addEventListener('click', () => { goTo(i, i > 0); });
+  ui.dots.appendChild(b);
+});
+
+let step = 0, stepTime = 0, playing = false, started = false, fovOn = true, clock = 0;
+const flashes = [];
+function flash(y, r) {
+  if (reduce) return;
+  const m = new THREE.Mesh(new THREE.RingGeometry(r * 0.96, r, 64), glow(0xcfefff, 0.7, 1.6));
+  m.rotation.x = -Math.PI / 2;
+  m.position.set(rig.position.x, y, rig.position.z + MZ);
+  scene.add(m);
+  flashes.push({ m, t: 0 });
+}
+
+function goTo(i, animateCurrent = true) {
+  i = Math.max(0, Math.min(STEPS.length - 1, i));
+  const prev = step;
+  step = i; stepTime = 0;
+  const rigOn = RIG_STEPS(step);
+  rig.visible = rigOn;
+  for (const k in PART_STEP) {
+    const p = parts[k], ps = PART_STEP[k];
+    const show = rigOn && (step === 0 || step >= ps);
+    p.visible = show;
+    if (!show) continue;
+    if (step === ps && animateCurrent && !reduce && prev !== step) p.userData.anim = 0;
+    else { p.userData.anim = 1; p.position.copy(p.userData.home); }
+  }
+  if (step === 10) startScenario(); else stopScenario();
+  updateCard();
+  userHoldUntil = 0;
+}
+function updateCard() {
+  const s = STEPS[step];
+  ui.no.innerHTML = step === 0 ? '<b>Übersicht</b>' : `Schritt <b>${step}</b> von ${STEPS.length - 1}`;
+  ui.title.textContent = s.title;
+  ui.text.textContent = s.text;
+  ui.spec.textContent = s.spec;
+  ui.link.hidden = step !== 11;
+  [...ui.dots.children].forEach((b, i) => {
+    if (i === step) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+    b.classList.toggle('done', i > 0 && i < step);
+  });
+  ui.prev.disabled = step === 0;
+  ui.next.disabled = step === STEPS.length - 1;
+  ui.play.textContent = !started ? 'Rundgang starten' : (playing ? 'Pause' : 'Abspielen');
+  ui.play.classList.toggle('primary', !started || !playing);
+  ui.hint.textContent = step === 10 ? 'läuft in Schleife' : 'Ziehen zum Drehen';
+  requestAnimationFrame(layoutView);
+}
+ui.prev.addEventListener('click', () => { goTo(step - 1, false); });
+ui.next.addEventListener('click', () => { goTo(step + 1, true); });
+ui.play.addEventListener('click', () => {
+  if (!started) { started = true; playing = true; goTo(1, true); return; }
+  playing = !playing;
+  if (playing && step === 0) goTo(1, true);
+  updateCard();
+});
+ui.fov.addEventListener('change', () => { fovOn = ui.fov.checked; });
+window.addEventListener('keydown', e => {
+  if (e.target && e.target.tagName === 'INPUT') return;
+  if (e.key === 'ArrowRight') goTo(step + 1, true);
+  if (e.key === 'ArrowLeft') goTo(step - 1, false);
+});
+
+/* ---------- Kamera ---------- */
+let userHoldUntil = 0;
+controls.addEventListener('start', () => { userHoldUntil = Infinity; });
+controls.addEventListener('end', () => { userHoldUntil = clock + 7; });
+const camGoal = new THREE.Vector3(), tgtGoal = new THREE.Vector3();
+function frameCamera(dt, t) {
+  if (clock < userHoldUntil) return;
+  let c = STEPS[step].cam;
+  if (!c) c = { t: [0, 3.2, rig.position.z + 3], d: 17, az: 58, el: 16 };
+  const sway = step === 0 ? t * 9 : Math.sin(t * 0.33) * 7;
+  const az = (c.az + sway) * D2R, el = c.el * D2R;
+  const d = c.d * (narrow() ? 1.2 : 1);
+  tgtGoal.set(c.t[0], c.t[1], c.t[2]);
+  camGoal.set(tgtGoal.x + d * Math.cos(el) * Math.sin(az), tgtGoal.y + d * Math.sin(el), tgtGoal.z + d * Math.cos(el) * Math.cos(az));
+  const k = reduce ? 1 : 1 - Math.exp(-dt * 1.8);
+  camera.position.lerp(camGoal, k);
+  controls.target.lerp(tgtGoal, k);
+}
+
+/* ---------- Einsatz im Bestand ---------- */
+const S = { phase: 'off', t: 0, z: 0 };
+const Z_START = -3, Z_END = 14;
+function startScenario() {
+  forest.visible = true;
+  clearPoints();
+  Object.assign(S, { phase: 'walk', t: 0, z: Z_START, nextStop: Z_START + 1 });
+  rig.position.set(0, 0, Z_START);
+  if (reduce) {
+    for (let z = Z_START; z <= Z_END; z += 1) { rig.position.z = z; addPoints(1200); }
+    S.phase = 'still';
+  }
+}
+function stopScenario() {
+  S.phase = 'off';
+  forest.visible = false;
+  clearPoints();
+  rig.position.set(0, 0, 0);
+}
+function updateScenario(dt) {
+  if (S.phase === 'off' || S.phase === 'still') return;
+  S.t += dt;
+  if (S.phase === 'walk') {
+    S.z = Math.min(S.nextStop, S.z + 1.0 * dt);
+    rig.position.y = Math.abs(Math.sin(S.t * 6)) * 0.02;
+    if (S.z >= S.nextStop - 1e-4) {
+      S.phase = 'stop'; S.t = 0;
+      for (const F of [fLo, fHi, fX5]) F.boost = 1;
+      flash(0.004, 0.5);
+    }
+  } else if (S.phase === 'stop') {
+    rig.position.y = 0;
+    if (S.t > 0.9) {
+      if (S.nextStop >= Z_END) { startScenario(); return; }
+      S.phase = 'walk'; S.t = 0; S.nextStop += 1;
+    }
+  }
+  rig.position.z = S.z;
+}
+
+/* Bildausschnitt auf dem Handy über der Karte */
+function layoutView() {
+  const w = window.innerWidth, h = window.innerHeight;
+  if (narrow()) {
+    const r = ui.card.getBoundingClientRect();
+    const covered = Math.max(0, h - r.top);
+    camera.setViewOffset(w, h, 0, Math.round(covered * 0.42), w, h);
+  } else if (camera.view) {
+    camera.clearViewOffset();
+  }
+  camera.updateProjectionMatrix();
+}
+
+/* Nachleuchten */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.55, 0.55, 0.82);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  composer.setSize(w, h);
+  camera.aspect = w / h;
+  splatUniforms.uScale.value = (h * renderer.getPixelRatio()) / (2 * Math.tan((camera.fov / 2) * D2R));
+  layoutView();
+}
+window.addEventListener('resize', resize);
+resize();
+
+const proj = new THREE.Vector3();
+function place(el, v, on) {
+  if (!on) { el.hidden = true; return; }
+  proj.copy(v).project(camera);
+  if (proj.z > 1 || proj.z < -1 || Math.abs(proj.x) > 1.05 || Math.abs(proj.y) > 1.05) { el.hidden = true; return; }
+  if (narrow() && (-proj.y * 0.5 + 0.5) * window.innerHeight < 150) { el.hidden = true; return; }
+  el.hidden = false;
+  el.style.left = `${(proj.x * 0.5 + 0.5) * window.innerWidth}px`;
+  el.style.top = `${(-proj.y * 0.5 + 0.5) * window.innerHeight}px`;
+}
+
+/* ---------- Hauptschleife ---------- */
+const easeBack = t => { const c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+let last = performance.now();
+const DWELL = [3.6, 7, 7, 4.6, 4.6, 5.6, 5.6, 5.6, 5.6, 4.8, 24, 999];
+const LAND_Y = { frame: 1.6, box: 0.9, up: H.up, down: H.down, lo: H.lo, hi: H.hi, x5: H.x5 };
+
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now; clock += dt; stepTime += dt;
+  if (playing && stepTime > DWELL[step] && step < STEPS.length - 1) goTo(step + 1, true);
+
+  for (const k in PART_STEP) {
+    const p = parts[k];
+    if (!p.visible || p.userData.anim >= 1) continue;
+    p.userData.anim = Math.min(1, p.userData.anim + dt / 1.25);
+    const a = p.userData.anim;
+    p.position.copy(p.userData.home).addScaledVector(FLY[k], 1 - easeBack(a));
+    if (a >= 1) { p.position.copy(p.userData.home); flash(LAND_Y[k], 0.22); }
+  }
+  const landed = s => { const k = Object.keys(PART_STEP).find(n => PART_STEP[n] === s); return !k || parts[k].userData.anim >= 1; };
+
+  // Splat-Baum ein- und ausblenden
+  const wantTree = TREE_STEPS(step) ? 1 : 0;
+  splatUniforms.uOpacity.value += (wantTree - splatUniforms.uOpacity.value) * Math.min(1, dt * 3);
+  splatTree.visible = splatUniforms.uOpacity.value > 0.01;
+
+  // Einsatz
+  if (step === 10) {
+    if (playing || !started) updateScenario(dt);
+    if (S.phase !== 'still' && (playing || !started)) addPoints(narrow() ? 200 : 420);
+  }
+
+  // Sichtfelder
+  const rigOn = RIG_STEPS(step);
+  for (const F of fovs) {
+    const want = fovOn && rigOn && (step === 0 || step >= F.owner) && landed(F.owner);
+    let level = 1;
+    if (step === 10) level = 0.15;
+    else if (step >= 3 && step <= 9 && F.owner < step) level = 0.22;
+    F.boost = Math.max(0, F.boost - dt * 1.6);
+    const target = want ? Math.min(1.2, level + F.boost * 0.6) : 0;
+    F.fade += (target - F.fade) * Math.min(1, dt * 5);
+    F.g.visible = F.fade > 0.01;
+    if (!F.g.visible) continue;
+    F.g.traverse(o => { if (o.material && o.material.userData.base !== undefined) o.material.opacity = Math.min(1, o.material.userData.base * F.fade); });
+    if (F.rays) {
+      const base = clock * (reduce ? 0 : 1.8);
+      for (let i = 0; i < F.nRays; i++) {
+        const az = base + (i / F.nRays) * Math.PI * 2 + Math.sin(i * 12.9898 + clock * 3.1) * 0.08;
+        const el = (F.elMin + ((Math.sin(i * 78.233 + clock * (reduce ? 0 : 2.3)) + 1) / 2) * (F.elMax - F.elMin)) * D2R;
+        const k = i * 6;
+        F.rays[k] = 0; F.rays[k + 1] = 0; F.rays[k + 2] = 0;
+        F.rays[k + 3] = Math.cos(el) * Math.sin(az) * BAND_R;
+        F.rays[k + 4] = Math.sin(el) * BAND_R;
+        F.rays[k + 5] = Math.cos(el) * Math.cos(az) * BAND_R;
+      }
+      F.rayGeo.attributes.position.needsUpdate = true;
+    }
+  }
+
+  for (let i = flashes.length - 1; i >= 0; i--) {
+    const f = flashes[i];
+    f.t += dt;
+    const a = f.t / 0.7;
+    f.m.scale.setScalar(1 + a * 1.6);
+    f.m.material.opacity = 0.7 * (1 - a);
+    if (a >= 1) { scene.remove(f.m); f.m.geometry.dispose(); f.m.material.dispose(); flashes.splice(i, 1); }
+  }
+
+  frameCamera(dt, clock);
+  controls.update();
+
+  for (const T of TAGS) {
+    const on = T.when(step) && (step < 3 || step > 9 || fovOn);
+    place(T.el, on ? T.pos() : proj, on && (step !== 2 && step !== 11 && step !== 1 ? true : splatUniforms.uOpacity.value > 0.6));
+  }
+
+  composer.render();
+  requestAnimationFrame(frame);
+}
+
+goTo(0, false);
+window.__scanOK = true;
+requestAnimationFrame(frame);
+if (!reduce) {
+  setTimeout(() => { if (!started) { started = true; playing = true; goTo(1, true); } }, 3600);
+}
+</script>
+
+</body>
+</html>
