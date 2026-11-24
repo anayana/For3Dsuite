@@ -1,0 +1,116 @@
+# Open Data Hub Nationalpark Hainich: Nutzen, Grundlagen, Geld, Aufbau, Hardware
+
+Stand 24.11.2026. Grobe Schätzung, Zahlen gerundet.
+
+## Nutzen
+**Gesamtwirtschaftlich (nicht hainich-spezifisch):**
+- Der Markt für offene Daten in der EU lag 2019 bei 184 Mrd €, für 2025 werden 199–334 Mrd € erwartet (data.europa.eu 2020).
+- Für Deutschland schätzte das Europäische Datenportal 2015 ein Potenzial von ca. 43 Mrd €.
+
+**Für den Nationalpark konkret:**
+1. **Weniger Aufwand:** Statt einzelner Datenanfragen von Forschung und Bürgern gibt es Selbstbedienung über Portal und Schnittstelle.
+2. **Mehr Forschung pro Euro:** 25 Jahre Zeitreihen werden nachnutzbar und Doppelmessungen entfallen. Gute Daten ziehen Projekte und Drittmittel an.
+3. **Pflichten in einem Zug erfüllen:**
+   - aktive Verbreitung von Umweltinformationen
+   - INSPIRE (Schutzgebiete)
+   - FFH-Bericht, Wiederherstellungsverordnung, Welterbe-Bericht
+4. **Bildung und Tourismus:** Inhalte für Besucherzentren, Schulen und Ranger, darunter 3D-Rundgänge (For3Dsuite).
+5. **Akzeptanz:** Entscheidungen des Nationalparks (Prozessschutz, Verkehrssicherung) sind mit Daten belegt.
+
+Ehrlich: Direkte Einnahmen bringt das nicht. Der Nutzen liegt in gespartem Aufwand, Drittmitteln und Legitimation.
+
+## Grundlagen: Steuergeld soll den Bürgern etwas zurückgeben
+| Grundlage | Aussage |
+|---|---|
+| EU-Open-Data-Richtlinie 2019/1024, Art. 10 | Öffentlich finanzierte Forschungsdaten sollen offen verfügbar sein: so offen wie möglich, so geschlossen wie nötig, nach FAIR-Prinzipien |
+| Datennutzungsgesetz (DNG) | setzt die Richtlinie um. Erfasst öffentlich finanzierte Forschungsdaten, die schon in Repositorien liegen |
+| EU-Durchführungsverordnung 2023/138 (hochwertige Datensätze) | Daten zu Georaum, Erdbeobachtung und Umwelt kostenfrei über Schnittstellen, seit 2024 |
+| Umweltinformationsrichtlinie 2003/4/EG, Aarhus-Konvention, UIG | Recht auf Umweltinformation und Pflicht der Behörden zur aktiven Verbreitung. Beruht auf EU-Recht und bleibt deshalb vom Thüringer Abbau bei der Transparenz unberührt |
+| INSPIRE 2007/2/EG | Geodaten zu Schutzgebieten als Dienste bereitstellen |
+| DFG-Kodex, Leitlinie 13 | öffentlichen Zugang zu Forschungsergebnissen herstellen |
+| Horizon Europe | Open-Science-Pflichten für geförderte Projekte |
+| UNESCO-Empfehlung zu Open Science (2021) | Wissenschaft als Gemeingut |
+| „Public Money, Public Code“ (FSFE) | öffentlich bezahlte Software als freie Software |
+
+**Thüringen:** Das „Erste Thüringer Entlastungsgesetz“ (Juli 2026) schwächt laut netzpolitik.org die
+Veröffentlichungspflichten des Transparenzgesetzes. Die Begründung sollte deshalb auf EU-Recht und
+auf die Bedingungen der Forschungsförderer gestützt werden.
+
+**Hebel ohne Kosten:**
+- **Forschungsgenehmigung des Nationalparks:** Daten und Ergebnisse nach höchstens 2 Jahren Sperrfrist offen ablegen, mit Lizenz CC BY 4.0, Kurzfassung in einfacher Sprache für das Portal.
+- Abschreckendes Beispiel: Die Hainich-Baumdaten im Datensatz LIFE+ PROGNOSES sind bis 2030 gesperrt.
+
+## Geld
+| Quelle | Antrag stellt | wofür |
+|---|---|---|
+| EU LIFE, Bereich Umwelt-Governance und Information (60 %) | Nationalparkverwaltung direkt | Aufbau des Portals, Öffentlichkeit |
+| ENL Thüringen (80–100 %, Thüringer Aufbaubank) | Nationalparkverwaltung | Teile mit Bezug zu Natura-2000-Management und Monitoring (bei der Aufbaubank klären) |
+| NFDI4Biodiversity Flexfunds 2026, NFDI4Earth Incubator (17.500–35.000 €) | Uni als Mitglied des Konsortiums mit dem Nationalpark | FAIR-Datenflüsse, Schnittstellen |
+| Prototype Fund (bis 95.000 € in 6 Monaten) | Einzelpersonen oder Team, nicht die Behörde | freie Software, z. B. Viewer, Schnittstelle, auch für andere Nationalparke nutzbar |
+| Horizon Europe, Biodiversa+, Digital Europe (Green Deal Data Space) | Verbund, der Nationalpark als Partner | große Lösung |
+| BfN, Nationales Monitoringzentrum zur Biodiversität | Auftrag oder Kooperation | Anbindung an das bundesweite Biodiversitätsmonitoring |
+| Landeshaushalt (TMUENF) | Haushaltsanmeldung | Betrieb (Pflichtaufgaben, siehe oben) |
+
+**Multiplikator:** Wird das Portal als Vorlage für alle Nationalen Naturlandschaften gebaut, werden
+größere Fördertöpfe und mehr Partner möglich.
+
+## Aufbau
+**Was man vorne sieht:**
+- Forschung: Ergebnisse in drei Sätzen mit Original und Daten
+- Karten: Kohlenstoff, Totholz, Habitatbäume, Lücken
+- Messnetz live: Klima, Bodenfeuchte, Turm, Dendrometer
+- 3D: For3Dsuite
+- Arten: zusammengefasst, sensible Arten unscharf
+- Downloads und Schnittstelle
+- Mitmachen (Citizen Science)
+
+**Technik dahinter (alles freie Software):**
+- **Katalog:** CKAN (DCAT-AP.de, wird von GovData eingesammelt)
+- **Karten:** GeoServer oder pygeoapi (OGC-Dienste)
+- **Datenbank:** PostgreSQL/PostGIS
+- **Messnetz:** FROST-Server (OGC SensorThings API)
+- **Rasterdaten und Punktwolken:** Cloud-optimierte Formate COG und COPC, gestreamt über HTTP, so dass kein Rechenserver nötig ist
+- **Dauerablage:** Zenodo mit DOI, Artfunde zusätzlich an GBIF
+
+**Nicht öffentlich:**
+- Horst- und Brutbäume, Fundorte seltener Arten
+- Personen auf Wildkamerabildern (DSGVO)
+- Rohdaten ohne Freigabe
+
+## Hardware und Betrieb
+**Datenmengen (Schätzung):**
+
+| Quelle | Menge |
+|---|---|
+| ALS (ca. 75 km², ca. 20 Punkte/m², LAZ) | ca. 5–10 GB je Befliegung |
+| TLS, Rucksack | 1–5 GB je Aufnahme. Eine 3D-Gaussian-Splatting-Szene (3DGS) 0,1–0,5 GB |
+| Wildkameras (z. B. 50 Kameras × 20.000 Bilder × 3 MB) | ca. 3 TB pro Jahr |
+| Akustik (Vögel, Fledermaus-Ultraschall) | 2–10 TB pro Jahr |
+| Drohnenbilder | 0,5–2 TB pro Jahr |
+| Sensoren, Turm | unter 10 GB pro Jahr |
+
+Das ergibt beim Start ein Rohdatenarchiv von 20–50 TB, das um 5–15 TB pro Jahr wächst.
+Öffentlich ausgeliefert werden nur aufbereitete Produkte, ca. 1–5 TB.
+
+**Bedarf:**
+
+| Baustein | Auslegung | Kosten |
+|---|---|---|
+| Anwendungsserver (oder VM) | 16 Kerne, 64 GB RAM, 2 TB NVMe, 1 Gbit/s | 4.000–6.000 € einmalig oder 100–200 €/Monat |
+| Hauptspeicher Archiv | ca. 100 TB nutzbar (NAS, ZFS/RAID6), reicht für ca. 5 Jahre | 8.000–12.000 € |
+| Sicherung an zweitem Standort | 100 TB | 5.000–8.000 € oder Cloud-Speicher |
+| Auslieferung über CDN | 1–5 TB/Monat (3D-Szenen, Karten) | 10–100 €/Monat |
+| GPU (Splats, Auswertung) | nicht kaufen: RunPod Community Cloud bei Bedarf, bis 0,30 $/h | wenige 10 € pro Jahr |
+
+**Günstigste Variante:** Betrieb im Rechenzentrum eines Partners, z. B. der GWDG Göttingen als
+Partner der Uni, oder im Landesrechenzentrum. Dann entfällt eigene Hardware weitgehend.
+
+**Personal (der größte Posten):**
+- Aufbau: 1 Vollzeitstelle Datenmanagement und Entwicklung für 1–2 Jahre
+- Betrieb: 0,5 Stellen
+- Redaktion (Forschung in einfacher Sprache): 0,25 Stellen
+- Je Vollzeitstelle ca. 70.000–90.000 € pro Jahr
+
+**Summe:**
+- Aufbau ca. 150.000–200.000 € über 1–2 Jahre
+- Betrieb ca. 50.000–70.000 € pro Jahr
