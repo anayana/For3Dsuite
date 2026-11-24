@@ -152,3 +152,47 @@ Bundesland keine Rolle. Landesmittel und Landesinfrastruktur gibt es aber nur ü
 
 **Bisher nicht gefunden:** ein allgemeines Open-Data-Portal des Landes Thüringen für Daten, die
 keine Geodaten sind. Für Geodaten ist das Geoportal der richtige Ort.
+
+## Pipeline „Knopf drücken, Karte erscheint im Geoportal Thüringen“
+**Ausgangslage:**
+- Andere Stellen (Unstrut-Hainich-Kreis, Gera, Weimar, Geologischer Landesdienst) veröffentlichen schon über den Geoproxy der GDI-Th. Der Weg ist also eingeführt.
+- Die GDI-Th wird gerade auf **Geoproxy 4.0** umgebaut: cloud- und containerbasiert, mit neuen OGC-API-Diensten (FOSSGIS 2026).
+- Nach ThürGDIG gilt der Nationalpark als geodatenhaltende Stelle des Landes. Für INSPIRE-Themen wie Schutzgebiete, Lebensräume und Artverbreitung muss er Dienste und Metadaten bereitstellen und kann die GDI-Th dafür nutzen.
+
+**Drei technische Wege** (alles freie Software):
+
+| Weg | Ablauf | Aufwand beim Nationalpark |
+|---|---|---|
+| **A: Dienst beim Nationalpark, Geoproxy leitet weiter** (Standard) | QGIS → Plugin **GeoCat Bridge** (ein Klick) → GeoServer mit Stil und Daten, Metadaten in GeoNetwork. Der Geoproxy bindet den Dienst einmal ein, das Geoportal holt die Metadaten regelmäßig ab. Neue Ebenen erscheinen dann automatisch | Server im Landesnetz oder im Landesrechenzentrum, 2–4 Wochen Einrichtung |
+| **A2: QGIS Server statt GeoServer** | Das QGIS-Projekt in einen Ordner speichern, QGIS Server liefert es genau so aus, wie es in QGIS aussieht (WMS, WFS, OGC API) | am einfachsten für „schöne Karten“, kein Umrechnen der Stile |
+| **B: Lieferung an die TLBG, Hosting im Geoproxy 4.0** | Datenpaket (GeoPackage oder Cloud-optimiertes GeoTIFF, Stil, Metadaten als ISO-XML) per Skript in einen vereinbarten Eingang (SFTP, S3 oder Git), dann veröffentlicht die TLBG | kein eigener Server. Nur möglich, wenn die TLBG das anbietet |
+| **C: Downloaddienst als Atom-Feed bzw. OGC API** | Ein Skript erzeugt Dateien, Atom-Feed und Metadaten und legt sie auf einen Webspeicher. Das Geoportal holt die Metadaten ab | sehr einfach, gut für Rasterkarten (z. B. Kohlenstoffkarte) |
+
+**Was beim Knopfdruck passiert** (als Skript bzw. CI-Job):
+1. **Eingabe:** QGIS-Projekt (Ebene und Stil) und ein Metadatenformular. Darin stehen Titel, Kurzfassung, Methode, Zeitbezug, Lizenz, Kontakt und der Link zur Studie bzw. DOI.
+2. **Prüfen:**
+   - Bezugssystem ETRS89/UTM32 (EPSG:25832)
+   - Lizenz (DL-DE BY 2.0 oder CC BY 4.0)
+   - sensible Inhalte, z. B. Artfundorte vergröbern
+   - Metadaten mit der **GDI-DE-Testsuite** prüfen
+3. **Erzeugen:**
+   - Cloud-optimiertes GeoTIFF oder GeoPackage
+   - Stil (SLD bzw. QGIS-Stil)
+   - ISO-19139-Metadaten (Bridge oder `pygeometa`)
+   - Vorschaubild
+4. **Veröffentlichen:**
+   - Dienst (Weg A, B oder C) und Metadaten in den Katalog (CSW)
+   - optional die Daten mit DOI auf REFODAT oder Zenodo
+5. **Erscheinen:**
+   - im Geoportal Thüringen, im Geodatenkatalog von GDI-DE und im INSPIRE-Geoportal
+   - Die Metadaten verlinken auf die Seite mit Hintergrund im Portal des Nationalparks.
+
+**Mit der TLBG klären** (Kompetenzzentrum GDI-Th, kompetenzzentrum.gdi-th@tlbg.thueringen.de):
+1. Welche Wege Geoproxy 4.0 unterstützt (Weiterleitung, Hosting, OGC API)?
+2. Welches Metadatenprofil gilt, und wie oft werden die Metadaten abgeholt?
+3. Namensregeln und Server-Adressen im Landesnetz.
+4. Ansprechpartner und Freigabeweg.
+
+**Aufwand:**
+- Einrichtung ca. 1–2 Monate, davon das Meiste für die Abstimmung mit der TLBG.
+- Danach dauert jede neue Karte Minuten. Sie erscheint im Geoportal mit der nächsten Abholung der Metadaten.
