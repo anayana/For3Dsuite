@@ -102,8 +102,7 @@ Das ergibt beim Start ein Rohdatenarchiv von 20–50 TB, das um 5–15 TB pro Ja
 | Auslieferung über CDN | 1–5 TB/Monat (3D-Szenen, Karten) | 10–100 €/Monat |
 | GPU (Splats, Auswertung) | nicht kaufen: RunPod Community Cloud bei Bedarf, bis 0,30 $/h | wenige 10 € pro Jahr |
 
-**Günstigste Variante:** Betrieb im Rechenzentrum eines Partners, z. B. der GWDG Göttingen als
-Partner der Uni, oder im Landesrechenzentrum. Dann entfällt eigene Hardware weitgehend.
+**Günstigste Variante:** die Thüringen-Variante (siehe unten).
 
 **Personal (der größte Posten):**
 - Aufbau: 1 Vollzeitstelle Datenmanagement und Entwicklung für 1–2 Jahre
@@ -114,3 +113,42 @@ Partner der Uni, oder im Landesrechenzentrum. Dann entfällt eigene Hardware wei
 **Summe:**
 - Aufbau ca. 150.000–200.000 € über 1–2 Jahre
 - Betrieb ca. 50.000–70.000 € pro Jahr
+
+## Thüringen-Variante: vorhandene Landesinfrastruktur nutzen (empfohlen)
+Der Nationalpark ist eine Thüringer Landesbehörde. Was das Land schon betreibt, wird mitgenutzt
+statt nachgebaut:
+
+| Was | Wohin | Wer |
+|---|---|---|
+| Karten des Nationalparks (Kohlenstoff, Totholz, Habitatbäume, Messpunkte, Zonen) als Darstellungs- und Downloaddienste (WMS/WFS/Atom) | **Geoproxy und Geoportal Thüringen**. Damit stehen sie automatisch auch im Geodatenkatalog von GDI-DE und im INSPIRE-Geoportal, und die INSPIRE-Pflicht ist erfüllt. Der Unstrut-Hainich-Kreis, Gera und Weimar veröffentlichen dort schon | TLBG, Kompetenzzentrum GDI-Th (klären, ob dort auch gehostet oder nur durchgeleitet wird) |
+| Grunddaten (DGM, DOM, ALS, Luftbilder) | liegen schon offen im Geoportal Thüringen und werden nur verlinkt | TLBG |
+| Artfunde | Landes-Artdaten des TLUBN (Kartendienst), zusätzlich GBIF | TLUBN |
+| Forschungsdaten aus Projekten mit Thüringer Hochschulen | **REFODAT**, das Repositorium für Forschungsdaten Thüringen: seit 1.11.2024, mit DOI, kostenfrei für Forschende an Thüringer Hochschulen. Sonst Zenodo | TKFDM: Kompetenznetzwerk FDM der Unis Jena, Erfurt, Ilmenau, Weimar |
+| Rohdatenarchiv | Landesrechenzentrum oder NAS im Nationalpark | TMUENF bzw. Nationalpark |
+
+**Was der Nationalpark dann selbst baut:**
+- **Schmales Portal** als statische Seite:
+  - Forschung in einfacher Sprache
+  - 3D-Rundgänge (For3Dsuite)
+  - eingebettete Karten aus dem Geoportal
+  - Messnetz live (FROST-Server auf einer kleinen VM)
+- Das ersetzt den eigenen Katalog und den eigenen Kartenserver.
+
+**Partner in Thüringen** für Hosting und Landesmittel:
+- Uni Jena (Zedif, TKFDM)
+- MPI für Biogeochemie Jena (Turm DE-Hai)
+- FH Erfurt (Forst)
+
+Forschungspartner aus Göttingen (Niedersachsen) bleiben möglich. Für Bund und EU spielt das
+Bundesland keine Rolle. Landesmittel und Landesinfrastruktur gibt es aber nur über Thüringer Partner.
+
+**Kosten in der Thüringen-Variante (Schätzung):**
+- **Hardware:**
+  - Archiv ca. 100 TB, NAS mit Sicherung: 13.000–20.000 € einmalig, oder Landesrechenzentrum
+  - kleine VM für Portal und Messnetz: 50–100 €/Monat
+  - Content Delivery Network für die 3D-Szenen: 10–100 €/Monat
+- **Personal:** Aufbau 0,5–1 Stelle für 1 Jahr, Betrieb 0,25–0,5 Stellen
+- **Summe:** Aufbau ca. 80.000–120.000 €, Betrieb ca. 25.000–45.000 € pro Jahr. Das ist etwa die Hälfte der Eigenbau-Variante.
+
+**Bisher nicht gefunden:** ein allgemeines Open-Data-Portal des Landes Thüringen für Daten, die
+keine Geodaten sind. Für Geodaten ist das Geoportal der richtige Ort.
