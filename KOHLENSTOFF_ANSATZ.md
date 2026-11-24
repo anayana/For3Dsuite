@@ -117,6 +117,31 @@ Szenarien: Klima und Eschenausfall (Esche ca. 25 % des Bestands).
 **Unsicherheit:** Monte Carlo über Messung, Allometrie (Parameter und Reststreuung), Dichte,
 ALS-Modell und Stichprobe.
 
+## Arbeitsplan Kohlenstoffkarte mit vorhandenen Daten
+Aufwand in Personenmonaten (PM) für eine Person, insgesamt ca. 12–13 PM.
+
+| Nr | Arbeit | Daten | Ergebnis | PM |
+|---|---|---|---|---|
+| 1 | **Daten zusammenführen und prüfen:** Baum-IDs über die Inventuren, BHD-Sprünge, Ein- und Ausfall, Lage der Probekreise, ALS-Befliegungen (Jahr, Laub, Punktdichte) | Inventur 2000/2010/2020, 28-ha-Fläche, ALS | geprüfte Datenbank | 2 |
+| 2 | **Fehlende Baumhöhen ergänzen** mit einem Höhenmodell je Art und Probekreis | Inventur, ALS | Höhe je Baum | 0,5 |
+| 3 | **Biomasse je Baum:** mehrere Funktionen nebeneinander (BWI/`TapeS`, NSUR, Wutzler), lokal geprüft an unbelaubten TLS-Scans, Wurzeln über Thünen-Funktionen, mit Unsicherheit | Inventur, TLS | C je Baum und Probekreis, je Inventur | 1 |
+| 4 | **Totholz:** Volumen × Dichte je Zersetzungsstufe × C-Gehalt | Inventur-Totholz | C-Totholz je Probekreis | 0,5 |
+| 5 | **ALS-Modell:** Metriken je Probekreis, nichtlineares heteroskedastisches Modell, räumliche Kreuzvalidierung, Inventurwerte auf das Befliegungsjahr fortschreiben | ALS, Probekreise | **Karte C (20 m) und Unsicherheitskarte** | 2,5 |
+| 6 | **Parksumme und Teilflächen** (Kernzone, Süden) modellgestützt mit Konfidenzintervall | 5 + Probekreise | Summe ± Fehler | 0,5 |
+| 7 | **Zeitreihe:** Bilanz aus den Inventuren (Zuwachs, Absterben, Einwuchs), ALS-Differenzen, jährliche Fortschreibung mit Landsat und Sentinel-2 (Windwurf, Eschensterben) | Inventuren, ALS, Satellit | Karten 2000–2025, Senke je Jahr | 2,5 |
+| 8 | **Boden und Streu** als Mittel je Bodeneinheit | Schrumpf et al., Bodenproben, Streufallen | C-Boden je Einheit | 0,5 |
+| 9 | **Abgleich mit dem Turm** im Messbereich des Turms | Karten, DE-Hai | Prüfung der Bilanz | 1 |
+| 10 | **Gesamtunsicherheit** (Monte Carlo), Bericht, Daten und Code auf Zenodo | alles | Veröffentlichung | 1,5 |
+
+Eine erste brauchbare Karte gibt es nach Schritt 1–6, also nach ca. 7 PM. Mit Literatur-Allometrie kann
+sie auch früher kommen, dann aber mit dem bekannten systematischen Fehler bei starken Bäumen.
+
+**Kleine Ergänzungsmessungen, die die Karte erst richtig gut machen:**
+- **Lage der Probekreise** auf 1–2 m genau (RTK-GNSS), falls nicht vorhanden. Ein Lagefehler von 5–10 m verdirbt das ALS-Modell. Ca. 20 Feldtage.
+- **Totholz-Dichte:** 30–50 Bohrkerne je Zersetzungsstufe. Ca. 1–2 Wochen.
+- **Unbelaubtes TLS** auf 20–30 Probekreisen für den Astanteil. Ca. 2–3 Wochen.
+- **Gefällte starke Buchen** (Masterarbeit, unten) gegen den systematischen Fehler bei starken Bäumen.
+
 ## Studienarbeit: gefällte Buchen für eine Standort-Allometrie
 
 ### Durchmesserverteilung im Hainich
