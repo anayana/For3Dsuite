@@ -153,6 +153,37 @@ weil andere die Zahlen oder die Methode brauchen.
 | EU LIFE | Verbund (der Hainich war schon bei LIFE+ PROGNOSES) | großes Projekt, Eigenanteil nötig |
 | Auftrag vom Thünen-Institut oder vom Land Thüringen | Uni oder Dienstleister | Referenzwerte für Treibhausgasbericht und Wiederherstellungsplan |
 
+**Aus Sicht der Nationalparkverwaltung**
+
+*Selbst antragsberechtigt:*
+- **ENL Thüringen** (EFRE/ELER, Antrag über die Thüringer Aufbaubank):
+  - Nationalparke sind ausdrücklich genannt, öffentliche Einrichtungen sind antragsberechtigt.
+  - Gefördert werden 80–100 %, auch Studien und Pläne zum Management von Natura-2000-Gebieten.
+  - Das passt für ein Monitoring von Waldstruktur, Totholz und Kohlenstoff im FFH-Gebiet. Die Förderperiode läuft bis 2027, deshalb bald anfragen.
+- **EU LIFE:**
+  - Öffentliche Stellen sind antragsberechtigt.
+  - Gefördert werden 60 % (Klima) bis 75 % (Natur). Den Eigenanteil kann eigenes Personal tragen.
+  - Die Frist 2026 ist vorbei (22.9.2026), der nächste Aufruf kommt 2027.
+  - Der Kohlenstoff wäre ein Baustein eines größeren Projekts mit ThüringenForst.
+- **Horizon Europe und Biodiversa+:** als Partner in einem Forschungsverbund, für Personal, Daten und Feldarbeit.
+
+*Nur über Partner:*
+- Für das Bundesprogramm Biologische Vielfalt sind Landeseinrichtungen nicht antragsberechtigt. Den Antrag müsste eine Uni oder ein Verband stellen.
+- DFG und BMFTR laufen über die Uni. Daraus kann z. B. eine Stelle vor Ort finanziert werden.
+
+*Geld verlangen (Auftrag oder Haushalt):*
+- **Eigenes Ministerium (TMUENF):**
+  - Das Land muss für die Wiederherstellungsverordnung Kohlenstoff und Totholz überwachen. Der Nationalpark liefert das für seine Fläche und die Referenzwerte. Das ist die Begründung für die Haushaltsanmeldung.
+  - Naturschutz und Forsten liegen im selben Ministerium. ThüringenForst nutzt die Methode mit, also ist eine gemeinsame Finanzierung möglich.
+- **Thünen-Institut und BfN:** Referenzdaten für ungenutzten Buchenwald (Treibhausgasbericht, Wiederherstellung) als Auftrag oder Kooperation.
+- **Unternehmen:** Sponsoring als Klimabeitrag, ohne Zertifikat und ohne Werbung mit Klimaneutralität. Das bringt kleine, aber regelmäßige Beträge.
+- **Daten selbst verkaufen geht nicht.** Umweltinformationen sind auf Antrag zugänglich, Gebühren gibt es nur für den Aufwand. Geld gibt es also für Leistungen, nicht für die Daten.
+
+*Tatsächlicher Nutzen für die Verwaltung:*
+- **Ein Durchgang, mehrere Berichte:** Dieselbe Inventur plus ALS liefert Kohlenstoff, Totholz, Habitatbäume und Altersphasen. Das bedient FFH-Bericht, Wiederherstellungsverordnung und Welterbe-Bericht zugleich.
+- **Belastbare Zahl für die Politik:** „Der Hainich bindet X t CO₂ pro Jahr und ist trotz Dürre eine Senke.“ Das hilft in Haushaltsverhandlungen und gegen Nutzungsdruck.
+- **Forschung ins Haus holen:** Personal und Daten, ohne eigene Kosten.
+
 **Kosten:**
 - ca. 12–13 Personenmonate (ca. 90.000 €)
 - Zusatzmessungen ca. 20.000–30.000 €
