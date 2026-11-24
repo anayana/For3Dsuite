@@ -1,0 +1,109 @@
+{
+  "bestand": {
+    "flaeche_ha": 0.13,
+    "baeume": 66,
+    "QSM_stamm_plausibel": 43,
+    "kalibrierung_n": 38,
+    "grundflaeche_m2_ha": 42.326756361631624,
+    "stammvolumen_m3_ha": 466.8605756313827
+  },
+  "annahmen": {
+    "raumdichte_t_m3": [
+      0.54,
+      0.56,
+      0.58
+    ],
+    "ast_expansion": [
+      1.15,
+      1.25,
+      1.4
+    ],
+    "C_anteil": 0.48,
+    "wurzel_spross": [
+      0.2,
+      0.24,
+      0.3
+    ]
+  },
+  "befund_qsm_kronenholz": {
+    "median_QSM_gesamtholz_zu_stamm": 3.241649147395468,
+    "plausibel_fuer_buche": "ca. 1,15-1,40"
+  },
+  "qsm_weg": {
+    "AGB_t_ha": 326.80240294196796,
+    "gesamt_t_ha": 405.2349796480403,
+    "C_t_ha": 194.51279023105934,
+    "CO2_t_ha": 713.2135641805509
+  },
+  "qsm_weg_CO2_spanne_t_ha": [
+    612.3119216904911,
+    867.359721600218
+  ],
+  "jenkins_2003": {
+    "AGB_t_ha": 400.4591937527222,
+    "C_t_ha": 238.3533121216202,
+    "CO2_t_ha": 873.9621444459407
+  },
+  "verhaeltnis_qsm_zu_jenkins_AGB": 0.8160691726901986,
+  "modell_DH_nls": {
+    "a": 7.754866665158101e-05,
+    "b_D": 1.7269269286544102,
+    "c_H": 1.077639293549583,
+    "delta_varianz": 0.6911573832918743
+  },
+  "modell_ALS_nls": {
+    "a": 0.0012719944458373365,
+    "b_HxCD": 1.2442078079112704,
+    "delta_varianz": 0.6984683406576765
+  },
+  "loo_rel_rmse_bias_pct": {
+    "D+H (TLS), log-OLS": [
+      23.5,
+      0.5
+    ],
+    "D+H (TLS), NLS heteroskedastisch": [
+      24.7,
+      -0.3
+    ],
+    "H+Kronendurchmesser (ALS-artig), NLS": [
+      29.4,
+      0.4
+    ],
+    "nur Hoehe, NLS": [
+      38.1,
+      -1.3
+    ]
+  },
+  "trajektorie": [
+    {
+      "jahr": 2026,
+      "CO2_t_ha": 713.2135641805509
+    },
+    {
+      "jahr": 2031,
+      "CO2_t_ha": 857.2168790260464
+    },
+    {
+      "jahr": 2036,
+      "CO2_t_ha": 945.6807239445079
+    },
+    {
+      "jahr": 2041,
+      "CO2_t_ha": 1030.7081003626154
+    },
+    {
+      "jahr": 2046,
+      "CO2_t_ha": 1118.276951978248
+    },
+    {
+      "jahr": 2051,
+      "CO2_t_ha": 1205.825954068504
+    },
+    {
+      "jahr": 2056,
+      "CO2_t_ha": 1290.7774833994408
+    }
+  ],
+  "senke_t_CO2_ha_jahr": 19.252130640629666,
+  "senke_wert_eur_ha_jahr_uba2026": 6738.245724220383
+}
