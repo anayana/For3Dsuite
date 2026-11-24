@@ -58,7 +58,7 @@ Fehler der Allometrie nicht. Er ist der größte Hebel. Deshalb braucht es eine 
 ## Ansatz in fünf Bausteinen
 
 ### 1. Lokale Allometrie: gefällte Buchen plus TLS
-- 20–30 gefällte Buchen aus angrenzenden Revieren von ThüringenForst werden vor der Fällung unbelaubt gescannt und danach vermessen und gewogen (Studienarbeit, siehe unten).
+- 12–15 starke Buchen (ab 60 cm) aus angrenzenden Revieren von ThüringenForst werden vor der Fällung unbelaubt gescannt und danach vermessen und gewogen (Studienarbeit, siehe unten). Kleine und mittlere Buchen deckt die Literatur ab.
 - Daraus entstehen zwei Ergebnisse:
   - **(a)** eine lokale Allometrie je Kompartiment (Stamm, Äste, Rinde) mit Literatur als Vorinformation
   - **(b)** eine Kalibrierung des TLS-QSM gegen die Waage, vor allem für den Astanteil
@@ -119,6 +119,39 @@ ALS-Modell und Stichprobe.
 
 ## Studienarbeit: gefällte Buchen für eine Standort-Allometrie
 
+### Gibt es das schon?
+Für Buchen mittlerer Größe ja, und reichlich:
+- **Wutzler et al. 2008:** 443 Buchen aus 13 Studien.
+- **Deutsche Funktionen der Bundeswaldinventur und der Treibhausgasberichterstattung** (Kändler & Bösch 2012; Vonderach et al. 2018 mit NSUR für 8 Arten): frei nutzbar im R-Paket `TapeS` (CRAN).
+- **Forrester et al. 2017:** 973 Funktionen, 105 Rohdatensätze mit mehr als 60.000 Messungen, offen auf Mendeley.
+- **Weitere Sammlungen:** Dänemark mit 140 Buchen, Nordostfrankreich, Tschechien.
+- **TLS gegen Waage bei Buche:** Demol et al. 2021 (Belgien, Bäume bis 2,8 m³ Holz).
+
+**Was fehlt: sehr starke, alte Buchen.**
+- Die TLS-Validierungen reichen bis ca. 2,8 m³, eine Buche mit 90 cm hat das Drei- bis Vierfache.
+- Ein FVA-Bericht deutet für die deutschen Buchendaten auf BHD bis ca. 70 cm hin. Das muss noch im Volltext geprüft werden.
+- Vergleich der vorhandenen Funktionen (`scripts/buche_funktionen_vergleich.R`):
+
+| BHD | BWI | NSUR | TLS Wien (Astfaktor 1,25) | Spanne aller Funktionen |
+|---|---|---|---|---|
+| 50 cm | 2,2 t | 2,3 t | 2,0 t | 24 % |
+| 70 cm | 4,7 t | 4,8 t | 3,9 t | 25 % |
+| 90 cm | 8,1 t | 8,4 t | 6,2 t | 36 % |
+| 110 cm | 11,7 t | 12,9 t | 8,9 t | 45 % |
+
+Die Spanne schließt Jenkins mit ein. Die Vertrauensbereiche der BWI-Funktion liegen nur bei ±1–2 %.
+Sie enthalten die Unterschiede zwischen Standorten nicht und täuschen deshalb Sicherheit vor.
+Im Hainich stecken ca. 80 % der Biomasse in Bäumen ab 50 cm, also genau dort, wo die Funktionen
+auseinanderlaufen.
+
+**Mehrwert also nur für:**
+- starke Altbuchen
+- Astanteil alter Kronen
+- Fäule und Höhlen
+- TLS-Eichung an großen Bäumen. Bei großen Bäumen mit unrunden Stämmen sind QSM-Fehler berichtet.
+
+Kleine und mittlere Buchen nicht noch einmal fällen, dort ist die Literatur die Vorinformation.
+
 ### Wie viele Buchen?
 Simulation (`scripts/allometrie_stichprobe_sim.py`):
 - **Bestand:** synthetischer alter Buchenbestand mit 329 Bäumen/ha. 82 % der Biomasse stecken in Bäumen ab 50 cm BHD.
@@ -135,9 +168,21 @@ Simulation (`scripts/allometrie_stichprobe_sim.py`):
 | 50 | 21 % | 3–5 % | 2,5–4 % |
 
 **Ergebnis:** Die Schichtung mit übervertretenen starken Bäumen ist wichtiger als die Anzahl.
-Ab ca. 20–25 Bäumen flacht der Gewinn ab. **Empfehlung: 24 Buchen, also 8 BHD-Klassen von 10 bis
-über 90 cm mit je 3 Bäumen.** Wenn möglich kommen 4–6 Eschen aus Fällungen zur Verkehrssicherung
-dazu.
+Ab ca. 20–25 Bäumen flacht der Gewinn ab.
+
+**Nur starke Buchen von 60–110 cm, mit Literatur als Vorinformation:**
+- 12 Bäume ergeben 5–8 %, 15 Bäume 5–7 %. Das ist so gut wie 12–15 Bäume über alle Klassen.
+- Ohne Vorinformation wären es 10–30 %.
+
+**Empfehlung: 12–15 starke Buchen**, je 4–5 in den Klassen 60–75 cm, 75–90 cm und über 90 cm,
+alle vorher unbelaubt gescannt. Die kleinen Bäume deckt die Literatur ab. Wenn möglich kommen
+4–6 Eschen aus Fällungen zur Verkehrssicherung dazu.
+
+Woher die Bäume kommen: Starke Buchen über 80 cm werden im Wirtschaftswald selten gefällt. In Frage
+kommen Wertholz-Altbuchen, Fällungen zur Verkehrssicherung und Windwürfe.
+
+Vorher klären: Gibt es bei MPI-BGC Jena oder Uni Leipzig (Wirth, Mund) oder bei der FVA
+(Vonderach) schon Rohdaten starker Buchen?
 
 ### Ablauf je Baum
 1. **Vor der Fällung, stehend und unbelaubt (November bis März):**
@@ -162,8 +207,9 @@ dazu.
    - C-Gehalt optional an einer Teilprobe messen.
 6. **Bonus:** Die Jahrringe der Stammfußscheibe liefern Alter und Zuwachsgeschichte für die Rückrechnung.
 
-Aufwand: Ein starker Baum braucht ca. 1 Feldtag mit 3–4 Personen und Maschine, dazu ca. 1 Labortag.
-24 Bäume ergeben ca. 25–30 Feldtage in einer Fällsaison.
+Aufwand: Eine Buche mit 90 cm hat ca. 8 t Trockenmasse, frisch etwa doppelt so viel. Sie braucht
+1–2 Feldtage mit 3–4 Personen und Maschine, dazu ca. 1 Labortag. 12–15 starke Bäume ergeben ca.
+20 Feldtage in einer Fällsaison.
 
 ### Worauf achten
 - **Starke Bäume übervertreten**, denn sie tragen die Biomasse und dort extrapolieren die Literaturfunktionen.
@@ -181,10 +227,15 @@ Aufwand: Ein starker Baum braucht ca. 1 Feldtag mit 3–4 Personen und Maschine,
   - Die Daten offen auf Zenodo ablegen.
 
 ### Bachelor oder Master?
-- **Masterarbeit**: 24 Buchen, alle Kompartimente, TLS vor der Fällung, lokale Allometrie und
-  Kalibrierung des TLS-QSM. Das ist publizierbar.
-- **Bachelor** nur als Teilstück, z. B. 8–10 Buchen zur Prüfung von Wutzler- und Thünen-Funktionen
-  am Standort, oder Dichte und Fäule aus den Scheiben, oder Jahrringe.
+- **Bachelor als Vorstudie, ganz ohne Fällung:**
+  - die vorhandenen Funktionen (BWI/`TapeS`, Wutzler, Forrester, TLS) auf die offenen Hainich-Daten anwenden (28-ha-Fläche 1999–2023)
+  - zeigen, wie stark Vorrat und Senke davon abhängen
+  - Rohdaten starker Buchen zusammentragen
+- **Masterarbeit:**
+  - 12–15 starke Buchen, alle Kompartimente, TLS vor der Fällung
+  - lokale Allometrie mit Literatur als Vorinformation
+  - Eichung des TLS-QSM für große Bäume, Abzug für Fäule und Höhlen
+  - Das ist publizierbar.
 - **Wurzeln** (3–4 Stubben mit Bagger ziehen und wiegen) als eigene Arbeit oder mit dem
   Thünen-Institut.
 
